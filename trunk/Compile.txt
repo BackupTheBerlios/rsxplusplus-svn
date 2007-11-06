@@ -1,0 +1,32 @@
+The most important thing about compiling: If it didn't work, *you* screwed up.
+
+What you need to compile RSX++:
+1. Source ;) Download it from RSX++ download site.
+2. WTL (from download site as well; you use official WTL on your own)
+3. STLPort SVN (5.2)
+4. DirectX & WMP SDK
+5. Visual C++ 8.0
+
+How to set-up framework:
+1. Compile STLPort SVN (readme and install included in STLPort will help you).
+2. Include STLPort and WTL directory in Visual Studio Properties (Tools->Options->Projects and Solutions->VC++ Directories; Inlcude files)
+	- make sure included folder contain stl & using directories & stl files!
+	- for including stlport static libraries, you can copy them VC\lib directory.
+	- for wtl, include folder with headers only.
+3. Include WMP SDK headers (include folder).
+4. If you will get error about missing natupnp.h file, update PlatfromSDK from Microsoft MSDN.
+
+How to compile RSX++:
+1. Open solution (RSXPlusPlus.sln).
+2. Choose build mode (Release/Debug) and press Ctrl+Shift+B :)
+
+
+
+Submitting patches:
+If you want to submit a patch for RSX++, post diff on RSX++ project site - http://sourceforge.net/projects/rsxplusplus/ (Tracker->Patches).
+
+By submitting a patch, you agree to that I get copyright of it. This to avoid stupid situations later on where
+the copyright is split out over a million people, each of which could stop further distribution of DC++, and also
+to make it easier for us to defend the gpl against violators. If you don't like this policy, start your own 
+distribution, if you're lucky it might become more popular than the original =). Please
+state explicitly in the email that you give me copyright over the code if the submission is larger than trivial.

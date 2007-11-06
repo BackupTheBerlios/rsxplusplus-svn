@@ -1,0 +1,1354 @@
+/*
+ * Copyright (C) 2001-2006 Jacek Sieka, arnetheduck on gmail point com
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
+#include "stdafx.h"
+#include "../client/DCPlusPlus.h"
+#include "Resource.h"
+
+#include "../client/ResourceManager.h"
+#include "../client/SettingsManager.h"
+#include "../client/ConnectionManager.h"
+#include "../client/DownloadManager.h"
+#include "../client/UploadManager.h"
+#include "../client/QueueManager.h"
+#include "../client/QueueItem.h"
+
+#include "WinUtil.h"
+#include "TransferView.h"
+#include "MainFrm.h"
+
+#include "BarShader.h"
+
+int TransferView::columnIndexes[] = { COLUMN_USER, COLUMN_HUB, COLUMN_STATUS, COLUMN_TIMELEFT, COLUMN_SPEED, COLUMN_FILE, COLUMN_SIZE, COLUMN_PATH, COLUMN_IP, COLUMN_RATIO };
+int TransferView::columnSizes[] = { 150, 100, 250, 75, 75, 175, 100, 200, 50, 75 };
+
+static ResourceManager::Strings columnNames[] = { ResourceManager::USER, ResourceManager::HUB_SEGMENTS, ResourceManager::STATUS,
+ResourceManager::TIME_LEFT, ResourceManager::SPEED, ResourceManager::FILENAME, ResourceManager::SIZE, ResourceManager::PATH,
+ResourceManager::IP_BARE, ResourceManager::RATIO};
+
+TransferView::~TransferView() {
+	arrows.Destroy();
+	OperaColors::ClearCache();
+	//RSX++
+	speedImages.Destroy();
+	DestroyIcon(user);
+	//END
+}
+
+LRESULT TransferView::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
+
+	arrows.CreateFromImage(IDB_ARROWS, 16, 3, CLR_DEFAULT, IMAGE_BITMAP, LR_CREATEDIBSECTION | LR_SHARED);
+	//RSX++
+	user = (HICON)LoadImage((HINSTANCE)::GetWindowLong(::GetParent(m_hWnd), GWL_HINSTANCE), MAKEINTRESOURCE(IDR_TUSER), IMAGE_ICON, 16, 16, LR_DEFAULTSIZE);
+	speedImages.CreateFromImage(IDB_TSPEEDS, 16, 5, CLR_DEFAULT, IMAGE_BITMAP, LR_CREATEDIBSECTION | LR_SHARED);
+	speedImagesBW.CreateFromImage(IDB_TSPEEDSBW, 16, 5, CLR_DEFAULT, IMAGE_BITMAP, LR_CREATEDIBSECTION | LR_SHARED);
+	//END
+	ctrlTransfers.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | 
+		WS_HSCROLL | WS_VSCROLL | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_SHAREIMAGELISTS, WS_EX_CLIENTEDGE, IDC_TRANSFERS);
+	ctrlTransfers.SetExtendedListViewStyle(LVS_EX_LABELTIP | LVS_EX_HEADERDRAGDROP | LVS_EX_FULLROWSELECT | LVS_EX_DOUBLEBUFFER | LVS_EX_INFOTIP);
+
+	WinUtil::splitTokens(columnIndexes, SETTING(MAINFRAME_ORDER), COLUMN_LAST);
+	WinUtil::splitTokens(columnSizes, SETTING(MAINFRAME_WIDTHS), COLUMN_LAST);
+
+	for(uint8_t j=0; j<COLUMN_LAST; j++) {
+		int fmt = (j == COLUMN_SIZE || j == COLUMN_TIMELEFT || j == COLUMN_SPEED) ? LVCFMT_RIGHT : LVCFMT_LEFT;
+		ctrlTransfers.InsertColumn(j, CTSTRING_I(columnNames[j]), fmt, columnSizes[j], j);
+	}
+
+	ctrlTransfers.setColumnOrderArray(COLUMN_LAST, columnIndexes);
+	ctrlTransfers.setVisible(SETTING(MAINFRAME_VISIBLE));
+
+	ctrlTransfers.SetBkColor(WinUtil::bgColor);
+	ctrlTransfers.SetTextBkColor(WinUtil::bgColor);
+	ctrlTransfers.SetTextColor(WinUtil::textColor);
+	ctrlTransfers.setFlickerFree(WinUtil::bgBrush);
+
+	ctrlTransfers.SetImageList(arrows, LVSIL_SMALL);
+	ctrlTransfers.setSortColumn(COLUMN_USER);
+
+	ConnectionManager::getInstance()->addListener(this);
+	DownloadManager::getInstance()->addListener(this);
+	UploadManager::getInstance()->addListener(this);
+	QueueManager::getInstance()->addListener(this);
+	SettingsManager::getInstance()->addListener(this);
+	return 0;
+}
+
+void TransferView::prepareClose() {
+	ctrlTransfers.saveHeaderOrder(SettingsManager::MAINFRAME_ORDER, SettingsManager::MAINFRAME_WIDTHS,
+		SettingsManager::MAINFRAME_VISIBLE);
+
+	ConnectionManager::getInstance()->removeListener(this);
+	DownloadManager::getInstance()->removeListener(this);
+	UploadManager::getInstance()->removeListener(this);
+	QueueManager::getInstance()->removeListener(this);
+	SettingsManager::getInstance()->removeListener(this);
+	
+}
+
+LRESULT TransferView::onSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
+	RECT rc;
+	GetClientRect(&rc);
+	ctrlTransfers.MoveWindow(&rc);
+
+	return 0;
+}
+
+LRESULT TransferView::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled) {
+	if (reinterpret_cast<HWND>(wParam) == ctrlTransfers && ctrlTransfers.GetSelectedCount() > 0) { 
+		POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+
+		if(pt.x == -1 && pt.y == -1) {
+			WinUtil::getContextMenuPos(ctrlTransfers, pt);
+		}
+
+		OMenu transferMenu, previewMenu;
+		const ItemInfo* ii = ctrlTransfers.getItemData(ctrlTransfers.GetNextItem(-1, LVNI_SELECTED));
+		bool parent = !ii->parent && ctrlTransfers.findChildren(ii->getGroupCond()).size() > 1;
+
+		transferMenu.CreatePopupMenu();
+		previewMenu.CreatePopupMenu();
+		previewMenu.InsertSeparatorFirst(TSTRING(PREVIEW_MENU));
+
+		if(!parent) {
+			transferMenu.InsertSeparatorFirst(TSTRING(MENU_TRANSFERS));
+			appendUserItems(transferMenu);
+			transferMenu.AppendMenu(MF_SEPARATOR);
+			transferMenu.AppendMenu(MF_STRING, IDC_FORCE, CTSTRING(FORCE_ATTEMPT));
+			if(ii->download) {
+				transferMenu.AppendMenu(MF_SEPARATOR);
+				transferMenu.AppendMenu(MF_STRING, IDC_SEARCH_ALTERNATES, CTSTRING(SEARCH_FOR_ALTERNATES));
+				transferMenu.AppendMenu(MF_STRING, IDC_MENU_SLOWDISCONNECT, CTSTRING(SETCZDC_DISCONNECTING_ENABLE));
+				transferMenu.AppendMenu(MF_POPUP, (UINT)(HMENU)previewMenu, CTSTRING(PREVIEW_MENU));
+			}
+
+			int i = -1;
+			if((i = ctrlTransfers.GetNextItem(i, LVNI_SELECTED)) != -1) {
+				const ItemInfo* itemI = ctrlTransfers.getItemData(i);
+	
+				if(itemI->user != (UserPtr)NULL)
+					prepareMenu(transferMenu, UserCommand::CONTEXT_CHAT, ClientManager::getInstance()->getHubs(itemI->user->getCID()));
+			}
+
+			transferMenu.AppendMenu(MF_SEPARATOR);
+			transferMenu.AppendMenu(MF_STRING, IDC_REMOVE, CTSTRING(CLOSE_CONNECTION));
+			
+			switch(SETTING(TRANSFERLIST_DBLCLICK)) {
+				case 0:
+		          transferMenu.SetMenuDefaultItem(IDC_PRIVATEMESSAGE);
+		          break;
+				case 1:
+		          transferMenu.SetMenuDefaultItem(IDC_GETLIST);
+		          break;
+				case 2:
+		          transferMenu.SetMenuDefaultItem(IDC_MATCH_QUEUE);
+		          break;
+				case 3:
+		          transferMenu.SetMenuDefaultItem(IDC_GRANTSLOT);
+		          break;
+				case 4:
+		          transferMenu.SetMenuDefaultItem(IDC_ADD_TO_FAVORITES);
+		          break;
+			}
+		} else {
+			transferMenu.InsertSeparatorFirst(TSTRING(SETTINGS_SEGMENT));
+			transferMenu.AppendMenu(MF_STRING, IDC_SEARCH_ALTERNATES, CTSTRING(SEARCH_FOR_ALTERNATES));
+			transferMenu.AppendMenu(MF_POPUP, (UINT)(HMENU)previewMenu, CTSTRING(PREVIEW_MENU));
+			transferMenu.AppendMenu(MF_STRING, IDC_MENU_SLOWDISCONNECT, CTSTRING(SETCZDC_DISCONNECTING_ENABLE));
+			transferMenu.AppendMenu(MF_SEPARATOR);
+			transferMenu.AppendMenu(MF_STRING, IDC_FORCE, CTSTRING(CONNECT_ALL));
+			transferMenu.AppendMenu(MF_STRING, IDC_DISCONNECT_ALL, CTSTRING(DISCONNECT_ALL));
+			transferMenu.AppendMenu(MF_SEPARATOR);
+			transferMenu.AppendMenu(MF_STRING, IDC_EXPAND_ALL, CTSTRING(EXPAND_ALL));
+			transferMenu.AppendMenu(MF_STRING, IDC_COLLAPSE_ALL, CTSTRING(COLLAPSE_ALL));
+			transferMenu.AppendMenu(MF_SEPARATOR);
+			transferMenu.AppendMenu(MF_STRING, IDC_REMOVEALL, CTSTRING(REMOVE_ALL));
+		}
+
+		transferMenu.CheckMenuItem(IDC_MENU_SLOWDISCONNECT, MF_BYCOMMAND | MF_UNCHECKED);
+
+		if(ii->download) {
+			if(!ii->target.empty()) {
+				string target = Text::fromT(ii->target);
+				string ext = Util::getFileExt(target);
+				if(ext.size()>1) ext = ext.substr(1);
+				PreviewAppsSize = WinUtil::SetupPreviewMenu(previewMenu, ext);
+				if(previewMenu.GetMenuItemCount() > 0) {
+					transferMenu.EnableMenuItem((UINT)(HMENU)previewMenu, MFS_ENABLED);
+				} else {
+					transferMenu.EnableMenuItem((UINT)(HMENU)previewMenu, MFS_DISABLED);
+				}
+
+				const QueueItem::StringMap& queue = QueueManager::getInstance()->lockQueue();
+
+				QueueItem::StringIter qi = queue.find(&target);
+
+				bool slowDisconnect = false;
+				if(qi != queue.end())
+					slowDisconnect = qi->second->isSet(QueueItem::FLAG_AUTODROP);
+
+				QueueManager::getInstance()->unlockQueue();
+
+				if(slowDisconnect) {
+					transferMenu.CheckMenuItem(IDC_MENU_SLOWDISCONNECT, MF_BYCOMMAND | MF_CHECKED);
+				}
+			}
+		}
+
+		transferMenu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, pt.x, pt.y, m_hWnd);
+		return TRUE; 
+	} else {
+		bHandled = FALSE;
+		return FALSE;
+	}
+}
+
+void TransferView::runUserCommand(UserCommand& uc) {
+	if(!WinUtil::getUCParams(m_hWnd, uc, ucLineParams))
+		return;
+
+	StringMap ucParams = ucLineParams;
+
+	int i = -1;
+	while((i = ctrlTransfers.GetNextItem(i, LVNI_SELECTED)) != -1) {
+		const ItemInfo* itemI = ctrlTransfers.getItemData(i);
+		if(!itemI->user->isOnline())
+			continue;
+
+		StringMap tmp = ucParams;
+		ucParams["fileFN"] = Text::fromT(itemI->target);
+
+		// compatibility with 0.674 and earlier
+		ucParams["file"] = ucParams["fileFN"];
+		
+		ClientManager::getInstance()->userCommand(itemI->user, uc, tmp, true);
+	}
+}
+
+LRESULT TransferView::onForce(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+	int i = -1;
+	while((i = ctrlTransfers.GetNextItem(i, LVNI_SELECTED)) != -1) {
+		ItemInfo* ii = ctrlTransfers.getItemData(i);
+		ctrlTransfers.SetItemText(i, COLUMN_STATUS, CTSTRING(CONNECTING_FORCED));
+
+		if(ii->parent == NULL && ii->hits != -1) {
+			const vector<ItemInfo*>& children = ctrlTransfers.findChildren(ii->getGroupCond());
+			for(vector<ItemInfo*>::const_iterator j = children.begin(); j != children.end(); ++j) {
+				ItemInfo* ii = *j;
+
+				int h = ctrlTransfers.findItem(ii);
+				if(h != -1)
+					ctrlTransfers.SetItemText(h, COLUMN_STATUS, CTSTRING(CONNECTING_FORCED));
+
+				ii->transferFailed = false;
+				ConnectionManager::getInstance()->force(ii->user);
+			}
+		} else {
+			ii->transferFailed = false;
+			ConnectionManager::getInstance()->force(ii->user);
+		}
+	}
+	return 0;
+}
+
+void TransferView::ItemInfo::removeAll() {
+	if(hits <= 1) {
+		QueueManager::getInstance()->removeSource(user, QueueItem::Source::FLAG_REMOVED);
+	} else {
+		if(!BOOLSETTING(CONFIRM_DELETE) || ::MessageBox(0, _T("Do you really want to remove this item?"), _T(APPNAME) _T(" ") _T(VERSIONSTRING), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2) == IDYES)
+			QueueManager::getInstance()->remove(Text::fromT(target));
+	}
+}
+
+LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled) {
+	NMLVCUSTOMDRAW* cd = (NMLVCUSTOMDRAW*)pnmh;
+
+	switch(cd->nmcd.dwDrawStage) {
+	case CDDS_PREPAINT:
+		return CDRF_NOTIFYITEMDRAW;
+
+	case CDDS_ITEMPREPAINT:
+		return CDRF_NOTIFYSUBITEMDRAW;
+
+	case CDDS_SUBITEM | CDDS_ITEMPREPAINT: {
+		ItemInfo* ii = reinterpret_cast<ItemInfo*>(cd->nmcd.lItemlParam);
+
+		int colIndex = ctrlTransfers.findColumn(cd->iSubItem);
+		cd->clrTextBk = WinUtil::bgColor;
+
+		if((colIndex == COLUMN_STATUS) && (ii->status != ItemInfo::STATUS_WAITING)) {
+			if(!BOOLSETTING(SHOW_PROGRESS_BARS)) {
+				bHandled = FALSE;
+				return 0;
+			}
+
+			// Get the text to draw
+			// Get the color of this bar
+			COLORREF clr = SETTING(PROGRESS_OVERRIDE_COLORS) ? 
+				(ii->download ? (!ii->parent ? SETTING(DOWNLOAD_BAR_COLOR) : SETTING(PROGRESS_SEGMENT_COLOR)) : SETTING(UPLOAD_BAR_COLOR)) : 
+				GetSysColor(COLOR_HIGHLIGHT);
+
+			//this is just severely broken, msdn says GetSubItemRect requires a one based index
+			//but it wont work and index 0 gives the rect of the whole item
+			CRect rc;
+			if(cd->iSubItem == 0) {
+				//use LVIR_LABEL to exclude the icon area since we will be painting over that
+				//later
+				ctrlTransfers.GetItemRect((int)cd->nmcd.dwItemSpec, &rc, LVIR_LABEL);
+			} else {
+				ctrlTransfers.GetSubItemRect((int)cd->nmcd.dwItemSpec, cd->iSubItem, LVIR_BOUNDS, &rc);
+			}
+			//RSX++
+			/* Thanks & credits for Stealthy style go to phaedrus */
+			bool useStealthyStyle = (SETTING(PROGRESSBAR_MODE) == 2);
+			//bool isSmaller = (!ii->parent && ii->collapsed == false);
+			//bool isMain = (!ii->parent || !ii->download);
+
+			// fixes issues with double border
+			if(useStealthyStyle) {
+				rc.top -= 1;
+				//if(isSmaller)
+					//rc.bottom -= 1;
+			}
+			//END
+			// Real rc, the original one.
+			CRect real_rc = rc;
+			// We need to offset the current rc to (0, 0) to paint on the New dc
+			rc.MoveToXY(0, 0);
+
+			CDC cdc;
+			cdc.CreateCompatibleDC(cd->nmcd.hdc);
+
+			HBITMAP pOldBmp = cdc.SelectBitmap(CreateCompatibleBitmap(cd->nmcd.hdc,  real_rc.Width(),  real_rc.Height()));
+			HDC& dc = cdc.m_hDC;
+			
+			COLORREF barPal[3] = { HLS_TRANSFORM(clr, -40, 50), clr, HLS_TRANSFORM(clr, 20, -30) };
+			COLORREF barPal2[3] = { HLS_TRANSFORM(clr, -15, 0), clr, HLS_TRANSFORM(clr, 15, 0) };
+			COLORREF oldcol;
+
+			HLSCOLOR hls = RGB2HLS(clr); // The value throws off, a bit
+			LONG top = rc.top + (rc.Height() - WinUtil::getTextHeight(cd->nmcd.hdc) - 1)/2 + (useStealthyStyle ? 0 : 1);
+			
+			HFONT oldFont = (HFONT)SelectObject(dc, WinUtil::font);
+			SetBkMode(dc, TRANSPARENT);
+
+			// Get the color of this text bar - this way it ends up looking nice imo.
+			if(!useStealthyStyle) {
+				oldcol = ::SetTextColor(dc, SETTING(PROGRESS_OVERRIDE_COLORS2) ? 
+				(ii->download ? SETTING(PROGRESS_TEXT_COLOR_DOWN) : SETTING(PROGRESS_TEXT_COLOR_UP)) : 
+				OperaColors::TextFromBackground(clr));
+			} else {
+				if(clr == RGB(255, 255, 255)) // see if user is using white as clr, rare but you may never know
+					oldcol = ::SetTextColor(dc, RGB(0, 0, 0));
+				else
+					oldcol = ::SetTextColor(dc, barPal2[1]);
+			}
+			
+			// Draw the background and border of the bar	
+			if(ii->size == 0) ii->size = 1;		
+			
+			if((SETTING(PROGRESSBAR_MODE) == 1 )|| useStealthyStyle) {
+				// New style progressbar tweaks the current colors
+				HLSTRIPLE hls_bk = OperaColors::RGB2HLS(cd->clrTextBk);
+
+				// Create pen (ie outline border of the cell)
+				HPEN penBorder = ::CreatePen(PS_SOLID, 1, OperaColors::blendColors(cd->clrTextBk, clr, (hls_bk.hlstLightness > 0.75) ? 0.6 : 0.4));
+				HGDIOBJ pOldPen = ::SelectObject(dc, penBorder);
+
+				// Draw the outline (but NOT the background) using pen
+				HBRUSH hBrOldBg = CreateSolidBrush(cd->clrTextBk);
+				hBrOldBg = (HBRUSH)::SelectObject(dc, hBrOldBg);
+
+				::Rectangle(dc, rc.left, rc.top, rc.right, rc.bottom);
+				DeleteObject(::SelectObject(dc, hBrOldBg));
+
+				// Set the background color, by slightly changing it
+				HBRUSH hBrDefBg = CreateSolidBrush(OperaColors::blendColors(cd->clrTextBk, clr, (hls_bk.hlstLightness > 0.75) ? 0.85 : 0.70));
+				HGDIOBJ oldBg = ::SelectObject(dc, hBrDefBg);
+
+				// Draw the outline AND the background using pen+brush
+				::Rectangle(dc, rc.left, rc.top, rc.left + (LONG)(rc.Width() * ii->getRatio() + 0.5), rc.bottom);
+
+				if(useStealthyStyle) {
+					// Draw the text over entire item
+					::ExtTextOut(dc, BOOLSETTING(STEALTHY_INDICATE_SPEEDS) ? rc.left + 23 : rc.left + 6, top, ETO_CLIPPED, rc, ii->statusString.c_str(), ii->statusString.length(), NULL);
+
+					rc.right = rc.left + (int) (((int64_t)rc.Width()) * ii->actual / ii->size);
+				
+					if(ii->pos != 0)
+						rc.bottom -= 1;
+
+					rc.top += 1;
+				
+					// create bar pen
+					if(HLS_S(hls) <= 30) // good values would be 20-30
+						penBorder = ::CreatePen(PS_SOLID, 1, barPal2[0]);
+					else
+						penBorder = ::CreatePen(PS_SOLID, 1, barPal[0]);
+				
+					DeleteObject(::SelectObject(dc, penBorder));
+
+					// create bar brush
+					hBrDefBg = CreateSolidBrush(barPal[1]);
+				
+					DeleteObject(::SelectObject(dc, hBrDefBg));
+				
+					// draw bar
+					::Rectangle(dc, rc.left, rc.top, rc.right, rc.bottom);
+
+					// draw bar highlight
+					if(rc.Width() > 4){
+						DeleteObject(SelectObject(cdc, CreatePen(PS_SOLID,1,barPal[2])));
+						rc.top += 2;
+						::MoveToEx(cdc,rc.left+2,rc.top,(LPPOINT)NULL);
+						::LineTo(cdc,rc.right-2,rc.top);
+					}
+				}
+				// Reset pen
+				DeleteObject(::SelectObject(dc, pOldPen));
+				// Reset bg (brush)
+				DeleteObject(::SelectObject(dc, oldBg));
+
+				if(!useStealthyStyle) {
+					COLORREF a, b;
+					OperaColors::EnlightenFlood(clr, a, b);
+					OperaColors::FloodFill(cdc, rc.left+1, rc.top+1,  rc.left + (int) ((int64_t)rc.Width() * ii->actual / ii->size), rc.bottom-1, a, b, BOOLSETTING(PROGRESSBAR_ODC_BUMPED));
+				}
+			} else {
+				CBarShader statusBar(rc.bottom - rc.top, rc.right - rc.left, SETTING(PROGRESS_BACK_COLOR), ii->size);
+
+				//rc.right = rc.left + (int) (rc.Width() * ii->pos / ii->size); 
+				if(!ii->download) {
+					statusBar.FillRange(0, ii->actual,  clr);
+				} else {
+					statusBar.FillRange(0, ii->actual, ii->parent ? SETTING(PROGRESS_SEGMENT_COLOR) : clr);
+				}
+				if(ii->pos > ii->actual)
+					statusBar.FillRange(ii->actual, ii->pos, SETTING(PROGRESS_COMPRESS_COLOR));
+
+				statusBar.Draw(cdc, rc.top, rc.left, SETTING(PROGRESS_3DDEPTH));
+			}
+
+			if(useStealthyStyle) {
+				if(BOOLSETTING(STEALTHY_INDICATE_SPEEDS)) {
+					// Draw icon - Nasty way to do the filelist icon, but couldn't get other ways to work well, TODO: do separating filelists from other transfers the proper way...
+					if(ii->getText(COLUMN_PATH).find(Text::toT(Util::getListPath())) != string::npos || ii->getText(COLUMN_PATH).find(Text::toT(Util::getConfigPath())) != string::npos) {
+						DrawIconEx(dc, rc.left + 3, top - 1, user, 16, 16, NULL, NULL, DI_NORMAL | DI_COMPAT);
+					} else if(ii->status == ItemInfo::STATUS_RUNNING) {
+						RECT rc2 = rc;
+						rc2.left += 3;
+						rc2.top = top + 1;
+						rc2.right = rc2.left + 16;
+						rc2.bottom = rc2.top + 12;
+
+						int64_t speedkb = ii->speed / 1000;
+						int64_t speedmark;
+						if(!BOOLSETTING(THROTTLE_ENABLE)) {
+							if(!ii->download) {
+								speedmark = SETTING(TOP_UP_SPEED) / 5;
+							} else {
+								speedmark = SETTING(TOP_SPEED) / 5;
+							}
+						} else {
+							if(!ii->download) {
+								speedmark = SETTING(MAX_UPLOAD_SPEED_LIMIT) / 5;
+							} else {
+								speedmark = SETTING(MAX_DOWNLOAD_SPEED_LIMIT) / 5;
+							}
+						}
+
+						if((HLS_S(hls) > 30) || (HLS_L(hls) < 70)) {
+							if(speedkb >= (speedmark * 5))
+								speedImages.DrawEx(4, dc, rc2, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
+							else if(speedkb >= (speedmark * 4))
+								speedImages.DrawEx(3, dc, rc2, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
+							else if(speedkb >= (speedmark * 3))
+								speedImages.DrawEx(2, dc, rc2, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
+							else if(speedkb >= (speedmark * 2))
+								speedImages.DrawEx(1, dc, rc2, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
+							else
+								speedImages.DrawEx(0, dc, rc2, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
+						} else { // color can be assumed to be a shade of grey, use greyscale speedImages
+							if(speedkb >= (speedmark * 5))
+								speedImagesBW.DrawEx(4, dc, rc2, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
+							else if(speedkb >= (speedmark * 4))
+								speedImagesBW.DrawEx(3, dc, rc2, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
+							else if(speedkb >= (speedmark * 3))
+								speedImagesBW.DrawEx(2, dc, rc2, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
+							else if(speedkb >= (speedmark * 2))
+								speedImagesBW.DrawEx(1, dc, rc2, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
+							else
+								speedImagesBW.DrawEx(0, dc, rc2, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
+						}
+					}
+
+					// adjust some rc's
+					rc.left += 23;
+					rc.right -= 2;
+				} else {
+					rc.left += 6;
+					rc.right -= 2;
+				}
+
+				// use white to as many colors as possible (values might need some tweaking), I didn't like TextFromBackground...
+				if(((HLS_L(hls) > 190) && (HLS_S(hls) <= 30)) || (HLS_L(hls) > 211))
+					oldcol = ::SetTextColor(dc, HLS_TRANSFORM(clr, -40, 0));
+				else
+					oldcol = ::SetTextColor(dc, RGB(255, 255, 255));
+			} else {
+				rc.left += 6;
+				rc.right -= 2;
+			}
+			
+			// Draw the text, the other stuff here was moved upwards due to stealthy style being added 
+			::ExtTextOut(dc, rc.left, top, ETO_CLIPPED, rc, ii->statusString.c_str(), ii->statusString.length(), NULL);
+
+			SelectObject(dc, oldFont);
+			::SetTextColor(dc, oldcol);
+
+			// New way:
+			BitBlt(cd->nmcd.hdc, real_rc.left, real_rc.top, real_rc.Width(), real_rc.Height(), dc, 0, 0, SRCCOPY);
+			DeleteObject(cdc.SelectBitmap(pOldBmp));
+
+			//bah crap, if we return CDRF_SKIPDEFAULT windows won't paint the icons
+			//so we have to do it
+			if(cd->iSubItem == 0){
+				LVITEM lvItem;
+				lvItem.iItem = cd->nmcd.dwItemSpec;
+				lvItem.iSubItem = 0;
+				lvItem.mask = LVIF_IMAGE | LVIF_STATE;
+				lvItem.stateMask = LVIS_SELECTED;
+				ctrlTransfers.GetItem(&lvItem);
+
+				HIMAGELIST imageList = (HIMAGELIST)::SendMessage(ctrlTransfers.m_hWnd, LVM_GETIMAGELIST, LVSIL_SMALL, 0);
+				if(imageList) {
+					//let's find out where to paint it
+					//and draw the background to avoid having 
+					//the selection color as background
+					CRect iconRect;
+					ctrlTransfers.GetSubItemRect((int)cd->nmcd.dwItemSpec, 0, LVIR_ICON, iconRect);
+					ImageList_Draw(imageList, lvItem.iImage, cd->nmcd.hdc, iconRect.left, iconRect.top, ILD_TRANSPARENT);
+				}
+			}
+			return CDRF_SKIPDEFAULT;
+		} else if(BOOLSETTING(GET_USER_COUNTRY) && (colIndex == COLUMN_IP)) {
+			ItemInfo* ii = (ItemInfo*)cd->nmcd.lItemlParam;
+			CRect rc;
+			ctrlTransfers.GetSubItemRect((int)cd->nmcd.dwItemSpec, cd->iSubItem, LVIR_BOUNDS, rc);
+			COLORREF color;
+			if(ctrlTransfers.GetItemState((int)cd->nmcd.dwItemSpec, LVIS_SELECTED) & LVIS_SELECTED) {
+				if(ctrlTransfers.m_hWnd == ::GetFocus()) {
+					color = GetSysColor(COLOR_HIGHLIGHT);
+					SetBkColor(cd->nmcd.hdc, GetSysColor(COLOR_HIGHLIGHT));
+					SetTextColor(cd->nmcd.hdc, GetSysColor(COLOR_HIGHLIGHTTEXT));
+				} else {
+					color = GetBkColor(cd->nmcd.hdc);
+					SetBkColor(cd->nmcd.hdc, color);
+				}				
+			} else {
+				color = WinUtil::bgColor;
+				SetBkColor(cd->nmcd.hdc, WinUtil::bgColor);
+				SetTextColor(cd->nmcd.hdc, WinUtil::textColor);
+			}
+			HGDIOBJ oldpen = ::SelectObject(cd->nmcd.hdc, CreatePen(PS_SOLID,0, color));
+			HGDIOBJ oldbr = ::SelectObject(cd->nmcd.hdc, CreateSolidBrush(color));
+			Rectangle(cd->nmcd.hdc,rc.left, rc.top, rc.right, rc.bottom);
+
+			DeleteObject(::SelectObject(cd->nmcd.hdc, oldpen));
+			DeleteObject(::SelectObject(cd->nmcd.hdc, oldbr));
+
+			TCHAR buf[256];
+			ctrlTransfers.GetItemText((int)cd->nmcd.dwItemSpec, cd->iSubItem, buf, 255);
+			buf[255] = 0;
+			if(_tcslen(buf) > 0) {
+				rc.left += 2;
+				LONG top = rc.top + (rc.Height() - 15)/2;
+				if((top - rc.top) < 2)
+					top = rc.top + 1;
+
+				POINT p = { rc.left, top };
+				WinUtil::flagImages.Draw(cd->nmcd.hdc, ii->flagImage, p, LVSIL_SMALL);
+				top = rc.top + (rc.Height() - WinUtil::getTextHeight(cd->nmcd.hdc) - 1)/2;
+				::ExtTextOut(cd->nmcd.hdc, rc.left + 30, top + 1, ETO_CLIPPED, rc, buf, _tcslen(buf), NULL);
+				return CDRF_SKIPDEFAULT;
+			}
+		} else if((colIndex != COLUMN_USER) && (colIndex != COLUMN_HUB) && (colIndex != COLUMN_STATUS) && (colIndex != COLUMN_IP) &&
+			(ii->status != ItemInfo::STATUS_RUNNING)) {
+			cd->clrText = OperaColors::blendColors(WinUtil::bgColor, WinUtil::textColor, 0.4);
+			return CDRF_NEWFONT;
+		}
+		// Fall through
+	}
+	default:
+		return CDRF_DODEFAULT;
+	}
+}
+
+LRESULT TransferView::onDoubleClickTransfers(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/) {
+    NMITEMACTIVATE* item = (NMITEMACTIVATE*)pnmh;
+	if (item->iItem != -1 ) {
+		CRect rect;
+		ctrlTransfers.GetItemRect(item->iItem, rect, LVIR_ICON);
+
+		// if double click on state icon, ignore...
+		if (item->ptAction.x < rect.left)
+			return 0;
+
+		ItemInfo* i = ctrlTransfers.getItemData(item->iItem);
+		const vector<ItemInfo*>& children = ctrlTransfers.findChildren(i->getGroupCond());
+		if(i->parent != NULL || children.size() <= 1) {
+			switch(SETTING(TRANSFERLIST_DBLCLICK)) {
+				case 0:
+					i->pm();
+					break;
+				case 1:
+					i->getList();
+					break;
+				case 2:
+					i->matchQueue();
+					break;
+				case 4:
+					i->addFav();
+					break;
+			}
+		}
+	}
+	return 0;
+}
+
+int TransferView::ItemInfo::compareItems(const ItemInfo* a, const ItemInfo* b, uint8_t col) {
+	if(a->status == b->status) {
+		if(a->download != b->download) {
+			return a->download ? -1 : 1;
+		}
+	} else {
+		return (a->status == ItemInfo::STATUS_RUNNING) ? -1 : 1;
+	}
+
+	switch(col) {
+		case COLUMN_USER: {
+			if(a->hits == b->hits)
+				return lstrcmpi(a->getText(COLUMN_USER).c_str(), b->getText(COLUMN_USER).c_str());
+			return compare(a->hits, b->hits);						
+		}
+		case COLUMN_HUB: {
+			if(a->running == b->running)
+				return lstrcmpi(a->getText(COLUMN_HUB).c_str(), b->getText(COLUMN_HUB).c_str());
+			return compare(a->running, b->running);						
+		}
+		case COLUMN_STATUS: return 0;
+		case COLUMN_TIMELEFT: return compare(a->timeLeft, b->timeLeft);
+		case COLUMN_SPEED: return compare(a->speed, b->speed);
+		case COLUMN_SIZE: return compare(a->size, b->size);
+		case COLUMN_RATIO: return compare(a->getRatio(), b->getRatio());
+		default: return lstrcmpi(a->getText(col).c_str(), b->getText(col).c_str());
+	}
+}
+
+#pragma optimize("t", on)
+TransferView::ItemInfo* TransferView::findItem(const UpdateInfo& ui, int& pos) const {
+	for(int j = 0; j < ctrlTransfers.GetItemCount(); ++j) {
+		ItemInfo* ii = ctrlTransfers.getItemData(j);
+		if(ui == *ii) {
+			pos = j;
+			return ii;
+		} else if(ui.download && ii->download && ii->parent == NULL) {
+			const vector<ItemInfo*>& children = ctrlTransfers.findChildren(ii->getGroupCond());
+			for(vector<ItemInfo*>::const_iterator k = children.begin(); k != children.end(); k++) {
+				ItemInfo* ii = *k;
+				if(ui == *ii) {
+					return ii;
+				}
+			}
+		}
+	}
+	return NULL;
+}
+
+LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
+	TaskQueue::List t;
+	tasks.get(t);
+	if(t.size() > 2) {
+		ctrlTransfers.SetRedraw(FALSE);
+	}
+
+	for(TaskQueue::Iter i = t.begin(); i != t.end(); ++i) {
+		if(i->first == ADD_ITEM) {
+			auto_ptr<UpdateInfo> ui(reinterpret_cast<UpdateInfo*>(i->second));
+			ItemInfo* ii = new ItemInfo(ui->user, ui->download);
+			ii->update(*ui);
+			if(ii->download) {
+				ctrlTransfers.insertGroupedItem(ii, false);
+			} else {
+				ctrlTransfers.insertItem(ii, IMAGE_UPLOAD);
+			}
+		} else if(i->first == REMOVE_ITEM) {
+			auto_ptr<UpdateInfo> ui(reinterpret_cast<UpdateInfo*>(i->second));
+
+			int pos = -1;
+			ItemInfo* ii = findItem(*ui, pos);
+			if(ii) {
+				if(ui->download) {
+					ctrlTransfers.removeGroupedItem(ii);
+				} else {
+					dcassert(pos != -1);
+					ctrlTransfers.DeleteItem(pos);
+					delete ii;
+				}
+			}
+		} else if(i->first == UPDATE_ITEM) {
+			auto_ptr<UpdateInfo> ui(reinterpret_cast<UpdateInfo*>(i->second));
+
+			int pos = -1;
+			ItemInfo* ii = findItem(*ui, pos);
+			if(ii) {
+				if(ui->download) {
+					ItemInfo* parent = ii->parent ? ii->parent : ii;
+
+					/* is file currently starting ? */
+					if(	(ui->status == ItemInfo::STATUS_RUNNING) &&
+						(parent->status == ItemInfo::STATUS_WAITING))
+					{
+						parent->fileBegin = GET_TICK();
+						parent->statusString = TSTRING(DOWNLOAD_STARTING);
+
+						if ((!SETTING(BEGINFILE).empty()) && (!BOOLSETTING(SOUNDS_DISABLED)))
+							PlaySound(Text::toT(SETTING(BEGINFILE)).c_str(), NULL, SND_FILENAME | SND_ASYNC);
+
+						if(BOOLSETTING(POPUP_DOWNLOAD_START)) {
+							MainFrame::getMainFrame()->ShowBalloonTip((
+								TSTRING(FILE) + _T(": ") + Util::getFileName(parent->target)).c_str(), CTSTRING(DOWNLOAD_STARTING));
+						}
+					}
+
+					else
+					
+					/* parent item must be updated with correct info about whole file */
+					if(	(ui->status == ItemInfo::STATUS_RUNNING) &&	(parent->hits == -1))
+					{
+						ui->updateMask &= ~UpdateInfo::MASK_POS;
+						ui->updateMask &= ~UpdateInfo::MASK_ACTUAL;
+						ui->updateMask &= ~UpdateInfo::MASK_SIZE;
+						ui->updateMask &= ~UpdateInfo::MASK_STATUS_STRING;
+						ui->updateMask &= ~UpdateInfo::MASK_TIMELEFT;
+					}
+
+					/* if target has changed, regroup the item */
+					bool changeParent = (ui->updateMask & UpdateInfo::MASK_FILE) && (ui->target != ii->target);
+					if(changeParent)
+						ctrlTransfers.removeGroupedItem(ii, false);
+
+					ii->update(*ui);
+
+					if(changeParent) {
+						ctrlTransfers.insertGroupedItem(ii, false);
+						parent = ii->parent ? ii->parent : ii;
+					}
+
+					if(ii == parent || !parent->collapsed) {
+						updateItem(ctrlTransfers.findItem(ii), ui->updateMask);
+					}
+					continue;
+				}
+				ii->update(*ui);
+				dcassert(pos != -1);
+				updateItem(pos, ui->updateMask);
+			}
+		} else if(i->first == UPDATE_PARENT) {
+			auto_ptr<UpdateInfo> ui(reinterpret_cast<UpdateInfo*>(i->second));
+			ItemInfoList::ParentPair* pp = ctrlTransfers.findParentPair(ui->target);
+			
+			if(!pp) 
+				continue;
+
+			if(ui->status == ItemInfo::STATUS_RUNNING) {
+				uint64_t time = GET_TICK() - pp->parent->fileBegin;
+				if(time > 1000) {
+					AutoArray<TCHAR> buf(TSTRING(DOWNLOADED_BYTES).size() + 64);
+						_stprintf(buf, CTSTRING(DOWNLOADED_BYTES), Util::formatBytesW(ui->pos).c_str(), 
+						(double)ui->pos*100.0/(double)ui->size, Util::formatSeconds(time/1000).c_str());
+
+					ui->setStatusString(tstring(buf));
+				}
+			}
+			pp->parent->update(*ui);
+			updateItem(ctrlTransfers.findItem(pp->parent), ui->updateMask);
+		}
+	}
+
+	if(!t.empty()) {
+		ctrlTransfers.resort();
+		if(t.size() > 2) {
+			ctrlTransfers.SetRedraw(TRUE);
+		}
+	}
+	
+	return 0;
+}
+#pragma optimize("", on)
+
+LRESULT TransferView::onSearchAlternates(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+	int i = -1;
+	while((i = ctrlTransfers.GetNextItem(i, LVNI_SELECTED)) != -1) {
+		const ItemInfo *ii = ctrlTransfers.getItemData(i);
+
+		TTHValue tth;
+		if(QueueManager::getInstance()->getTTH(Text::fromT(ii->target), tth)) {
+			WinUtil::searchHash(tth);
+		}
+	}
+
+	return 0;
+}
+	
+TransferView::ItemInfo::ItemInfo(const UserPtr& u, bool aDownload) : user(u), download(aDownload), transferFailed(false),
+	status(STATUS_WAITING), pos(0), size(0), actual(0), speed(0), timeLeft(0), ip(Util::emptyStringT), target(Util::emptyStringT),
+	flagImage(0), collapsed(true), parent(NULL), hits(-1), statusString(Util::emptyStringT), running(0) { }
+
+void TransferView::ItemInfo::update(const UpdateInfo& ui) {
+	if(ui.updateMask & UpdateInfo::MASK_STATUS) {
+		status = ui.status;
+	}
+	if(ui.updateMask & UpdateInfo::MASK_STATUS_STRING) {
+		// No slots etc from transfermanager better than disconnected from connectionmanager
+		if(!transferFailed)
+			statusString = ui.statusString;
+		transferFailed = ui.transferFailed;
+	}
+	if(ui.updateMask & UpdateInfo::MASK_SIZE) {
+		size = ui.size;
+	}
+	if(ui.updateMask & UpdateInfo::MASK_POS) {
+		pos = ui.pos;
+	}
+	if(ui.updateMask & UpdateInfo::MASK_ACTUAL) {
+		actual = ui.actual;
+	}
+	if(ui.updateMask & UpdateInfo::MASK_SPEED) {
+		speed = ui.speed;
+	}
+	if(ui.updateMask & UpdateInfo::MASK_FILE) {
+		target = ui.target;
+	}
+	if(ui.updateMask & UpdateInfo::MASK_TIMELEFT) {
+		timeLeft = ui.timeLeft;
+	}
+	if(ui.updateMask & UpdateInfo::MASK_IP) {
+		flagImage = ui.flagImage;
+		ip = ui.IP;
+	}
+	if(ui.updateMask & UpdateInfo::MASK_SEGMENT) {
+		running = ui.running;
+	}
+}
+
+void TransferView::updateItem(int ii, uint32_t updateMask) {
+	if(	updateMask & UpdateInfo::MASK_STATUS || updateMask & UpdateInfo::MASK_STATUS_STRING ||
+		updateMask & UpdateInfo::MASK_POS || updateMask & UpdateInfo::MASK_ACTUAL) {
+		ctrlTransfers.updateItem(ii, COLUMN_STATUS);
+	}
+	if(updateMask & UpdateInfo::MASK_POS || updateMask & UpdateInfo::MASK_ACTUAL) {
+		ctrlTransfers.updateItem(ii, COLUMN_RATIO);
+	}
+	if(updateMask & UpdateInfo::MASK_SIZE) {
+		ctrlTransfers.updateItem(ii, COLUMN_SIZE);
+	}
+	if(updateMask & UpdateInfo::MASK_SPEED) {
+		ctrlTransfers.updateItem(ii, COLUMN_SPEED);
+	}
+	if(updateMask & UpdateInfo::MASK_FILE) {
+		ctrlTransfers.updateItem(ii, COLUMN_PATH);
+		ctrlTransfers.updateItem(ii, COLUMN_FILE);
+	}
+	if(updateMask & UpdateInfo::MASK_TIMELEFT) {
+		ctrlTransfers.updateItem(ii, COLUMN_TIMELEFT);
+	}
+	if(updateMask & UpdateInfo::MASK_IP) {
+		ctrlTransfers.updateItem(ii, COLUMN_IP);
+	}
+	if(updateMask & UpdateInfo::MASK_SEGMENT) {
+		ctrlTransfers.updateItem(ii, COLUMN_HUB);
+	}
+}
+
+void TransferView::on(ConnectionManagerListener::Added, const ConnectionQueueItem* aCqi) {
+	UpdateInfo* ui = new UpdateInfo(aCqi->getUser(), aCqi->getDownload());
+
+	if(ui->download) {
+		string aTarget; int64_t aSize; int aFlags;
+		if(QueueManager::getInstance()->getQueueInfo(aCqi->getUser(), aTarget, aSize, aFlags)) {
+			ui->setTarget(Text::toT(aTarget));
+			ui->setSize(aSize);
+		}
+	}
+
+	ui->setStatus(ItemInfo::STATUS_WAITING);
+	ui->setStatusString(TSTRING(CONNECTING));
+
+	speak(ADD_ITEM, ui);
+}
+
+void TransferView::on(ConnectionManagerListener::StatusChanged, const ConnectionQueueItem* aCqi) {
+	UpdateInfo* ui = new UpdateInfo(aCqi->getUser(), aCqi->getDownload());
+	string aTarget;	int64_t aSize; int aFlags = 0;
+
+	if(QueueManager::getInstance()->getQueueInfo(aCqi->getUser(), aTarget, aSize, aFlags)) {
+		ui->setTarget(Text::toT(aTarget));
+		ui->setSize(aSize);
+	}
+
+	ui->setStatusString((aFlags & QueueItem::FLAG_TESTSUR) ? TSTRING(CHECKING_CLIENT) : TSTRING(CONNECTING));
+	ui->setStatus(ItemInfo::STATUS_WAITING);
+
+	speak(UPDATE_ITEM, ui);
+}
+
+void TransferView::on(ConnectionManagerListener::Removed, const ConnectionQueueItem* aCqi) {
+	speak(REMOVE_ITEM, new UpdateInfo(aCqi->getUser(), aCqi->getDownload()));
+}
+
+void TransferView::on(ConnectionManagerListener::Failed, const ConnectionQueueItem* aCqi, const string& aReason) {
+	UpdateInfo* ui = new UpdateInfo(aCqi->getUser(), aCqi->getDownload());
+	if(aCqi->getUser()->isSet(User::OLD_CLIENT)) {
+		ui->setStatusString(TSTRING(SOURCE_TOO_OLD));
+	//RSX++
+	} else if(aCqi->getUser()->isSet(User::PG_BLOCK)) {
+		ui->setStatusString(TSTRING(PG_BLOCKED));
+	//END
+	} else {
+		ui->setStatusString(Text::toT(aReason));
+	}
+	ui->setStatus(ItemInfo::STATUS_WAITING);
+	speak(UPDATE_ITEM, ui);
+}
+
+void TransferView::on(DownloadManagerListener::Starting, const Download* aDownload) {
+	UpdateInfo* ui = new UpdateInfo(aDownload->getUser(), true);
+
+	bool isFile = aDownload->getType() == Transfer::TYPE_FILE;
+	ui->setStatus(ItemInfo::STATUS_RUNNING);
+	ui->setPos(isFile ? 0 : aDownload->getPos());
+	ui->setActual(isFile ? 0 : aDownload->getStartPos() + aDownload->getActual());
+	ui->setSize(isFile ? aDownload->getChunkSize() : aDownload->getSize());
+	ui->setTarget(Text::toT(aDownload->getPath()));
+	ui->setStatusString(TSTRING(DOWNLOAD_STARTING));
+
+	string ip = aDownload->getUserConnection().getRemoteIp();
+	string country = Util::getIpCountry(ip);
+	if(country.empty()) {
+		ui->setIP(Text::toT(ip), 0);
+	} else {
+		ui->setIP(Text::toT(country + " (" + ip + ")"), WinUtil::getFlagImage(country.c_str()));
+	}
+	if(aDownload->getType() == Transfer::TYPE_TREE) {
+		ui->setStatus(ItemInfo::TREE_DOWNLOAD);
+	}
+
+	speak(UPDATE_ITEM, ui);
+}
+
+void TransferView::on(DownloadManagerListener::Tick, const DownloadList& dl) {
+	AutoArray<TCHAR> buf(TSTRING(DOWNLOADED_BYTES).size() + 64);
+
+	for(DownloadList::const_iterator j = dl.begin(); j != dl.end(); ++j) {
+		Download* d = *j;
+		
+		UpdateInfo* ui = new UpdateInfo(d->getUser(), true);
+		ui->setStatus(ItemInfo::STATUS_RUNNING);
+		ui->setTimeLeft(d->getSecondsLeft());
+		ui->setSpeed(static_cast<int64_t>(d->getAverageSpeed()));
+
+		if(d->getType() == Transfer::TYPE_FILE) {
+			ui->setActual(d->getActual());
+			ui->setPos(d->getTotal());
+			ui->setSize(d->getChunkSize());
+			ui->timeLeft = (ui->speed > 0) ? ((ui->size - d->getTotal()) / ui->speed) : 0;
+
+			double progress = (double)(d->getTotal())*100.0/(double)ui->size;
+			_stprintf(buf, CTSTRING(DOWNLOADED_BYTES), Util::formatBytesW(d->getTotal()).c_str(), 
+				progress, Util::formatSeconds((GET_TICK() - d->getStart())/1000).c_str());
+			if(progress > 100) {
+				// workaround to fix > 100% percentage
+				d->getUserConnection().disconnect();
+				continue;
+			}
+		} else {
+			ui->setActual(d->getStartPos() + d->getActual());
+			ui->setPos(d->getPos());
+
+			_stprintf(buf, CTSTRING(DOWNLOADED_BYTES), Util::formatBytesW(d->getPos()).c_str(), 
+				(double)d->getPos()*100.0/(double)d->getSize(), Util::formatSeconds((GET_TICK() - d->getStart())/1000).c_str());
+		}
+
+		tstring statusString;
+
+		if(d->isSet(Download::FLAG_PARTIAL)) {
+			statusString += _T("[P]");
+		}
+		if(d->getUserConnection().isSecure()) {
+			if(d->getUserConnection().isTrusted()) {
+				statusString += _T("[S]");
+			} else {
+				statusString += _T("[U]");
+			}
+		}
+		if(d->isSet(Download::FLAG_TTH_CHECK)) {
+			statusString += _T("[T]");
+		}
+		if(d->isSet(Download::FLAG_ZDOWNLOAD)) {
+			statusString += _T("[Z]");
+		}
+		if(d->isSet(Download::FLAG_CHUNKED)) {
+			statusString += _T("[C]");
+		}
+		if(d->isSet(Download::FLAG_OVERLAPPED)) {
+			statusString += _T("[O]");
+		}
+		if(!statusString.empty()) {
+			statusString += _T(" ");
+		}
+		statusString += buf;
+		ui->setStatusString(statusString);
+		if((d->getAverageSpeed() < 1) && ((GET_TICK() - d->getStart()) > 1000)) {
+			d->getUserConnection().disconnect();
+		}
+			
+		tasks.add(UPDATE_ITEM, ui);
+	}
+
+	PostMessage(WM_SPEAKER);
+}
+
+void TransferView::on(DownloadManagerListener::Failed, const Download* aDownload, const string& aReason) {
+	UpdateInfo* ui = new UpdateInfo(aDownload->getUser(), true, true);
+	ui->setStatus(ItemInfo::STATUS_WAITING);
+	ui->setPos(0);
+	ui->setStatusString(Text::toT(aReason));
+	ui->setSize(aDownload->getSize());
+	ui->setTarget(Text::toT(aDownload->getPath()));
+
+	string ip = aDownload->getUserConnection().getRemoteIp();
+	string country = Util::getIpCountry(ip);
+	if(country.empty()) {
+		ui->setIP(Text::toT(ip), 0);
+	} else {
+		ui->setIP(Text::toT(country + " (" + ip + ")"), WinUtil::getFlagImage(country.c_str()));
+	}
+	if(BOOLSETTING(POPUP_DOWNLOAD_FAILED)) {
+		MainFrame::getMainFrame()->ShowBalloonTip((
+			TSTRING(FILE) + _T(": ") + Util::getFileName(ui->target) + _T("\n")+
+			TSTRING(USER) + _T(": ") + WinUtil::getNicks(ui->user) + _T("\n")+
+			TSTRING(REASON) + _T(": ") + Text::toT(aReason)).c_str(), CTSTRING(DOWNLOAD_FAILED), NIIF_WARNING);
+	}
+
+	speak(UPDATE_ITEM, ui);
+}
+
+void TransferView::on(DownloadManagerListener::Status, const UserConnection* uc, const string& aReason) {
+	UpdateInfo* ui = new UpdateInfo(uc->getUser(), true);
+	ui->setStatus(ItemInfo::STATUS_WAITING);
+	ui->setPos(0);
+	ui->setStatusString(Text::toT(aReason));
+
+	speak(UPDATE_ITEM, ui);
+}
+//RSX++
+void TransferView::on(DownloadManagerListener::CheckComplete, const UserConnection* conn) {
+	UpdateInfo* ui = new UpdateInfo(conn->getUser(), true);
+	//to avoid no pk&lock bug in special cases ;)
+	(*const_cast<UserConnection*>(conn)).disconnect(true);
+	ui->setStatus(ItemInfo::STATUS_WAITING);	
+	speak(REMOVE_ITEM, ui);
+}
+//END
+void TransferView::on(UploadManagerListener::Starting, const Upload* aUpload) {
+	UpdateInfo* ui = new UpdateInfo(aUpload->getUser(), false);
+
+	ui->setStatus(ItemInfo::STATUS_RUNNING);
+	ui->setPos(aUpload->getPos());
+	ui->setActual(aUpload->getStartPos() + aUpload->getActual());
+	ui->setSize(aUpload->getType() == Transfer::TYPE_TREE ? aUpload->getSize() : aUpload->getFileSize());
+	ui->setTarget(Text::toT(aUpload->getPath()));
+
+	if(!aUpload->isSet(Upload::FLAG_RESUMED)) {
+		ui->setStatusString(TSTRING(UPLOAD_STARTING));
+	}
+
+	string ip = aUpload->getUserConnection().getRemoteIp();
+	string country = Util::getIpCountry(ip);
+	if(country.empty()) {
+		ui->setIP(Text::toT(ip), 0);
+	} else {
+		ui->setIP(Text::toT(country + " (" + ip + ")"), WinUtil::getFlagImage(country.c_str()));
+	}
+
+	speak(UPDATE_ITEM, ui);
+}
+
+void TransferView::on(UploadManagerListener::Tick, const UploadList& ul) {
+	AutoArray<TCHAR> buf(TSTRING(UPLOADED_BYTES).size() + 64);
+
+	for(UploadList::const_iterator j = ul.begin(); j != ul.end(); ++j) {
+		Upload* u = *j;
+
+		if (u->getTotal() == 0) continue;
+
+		UpdateInfo* ui = new UpdateInfo(u->getUser(), false);
+		ui->setActual(u->getStartPos() + u->getActual());
+		ui->setPos(u->getPos());
+		ui->setTimeLeft(u->getSecondsLeft(true)); // we are interested when whole file is finished and not only one chunk
+		ui->setSpeed(static_cast<int64_t>(u->getAverageSpeed()));
+
+		_stprintf(buf, CTSTRING(UPLOADED_BYTES), Util::formatBytesW(u->getPos()).c_str(), 
+			(double)u->getPos()*100.0/(double)(u->getType() == Transfer::TYPE_TREE ? u->getSize() : u->getFileSize()), Util::formatSeconds((GET_TICK() - u->getStart())/1000).c_str());
+
+		tstring statusString;
+
+		if(u->isSet(Upload::FLAG_PARTIAL)) {
+			statusString += _T("[P]");
+		}
+		if(u->isSet(Upload::FLAG_CHUNKED)) {
+			statusString += _T("[C]");
+		}
+		if(u->getUserConnection().isSecure()) {
+			if(u->getUserConnection().isTrusted()) {
+				statusString += _T("[S]");
+			} else {
+				statusString += _T("[U]");
+			}
+		}
+		if(u->isSet(Upload::FLAG_ZUPLOAD)) {
+			statusString += _T("[Z]");
+		}
+		if(!statusString.empty()) {
+			statusString += _T(" ");
+		}			
+		statusString += buf;
+
+		ui->setStatusString(statusString);
+					
+		tasks.add(UPDATE_ITEM, ui);
+		if((u->getAverageSpeed() < 1) && ((GET_TICK() - u->getStart()) > 1000)) {
+			u->getUserConnection().disconnect(true);
+		}
+	}
+
+	PostMessage(WM_SPEAKER);
+}
+
+void TransferView::onTransferComplete(const Transfer* aTransfer, bool isUpload, const string& aFileName, bool isTree) {
+	UpdateInfo* ui = new UpdateInfo(aTransfer->getUser(), !isUpload);
+
+	ui->setStatus(ItemInfo::STATUS_WAITING);	
+	ui->setPos(0);
+	ui->setStatusString(isUpload ? TSTRING(UPLOAD_FINISHED_IDLE) : TSTRING(DOWNLOAD_FINISHED_IDLE));
+
+	if(!isUpload) {
+		if(BOOLSETTING(POPUP_DOWNLOAD_FINISHED) && !isTree) {
+			MainFrame::getMainFrame()->ShowBalloonTip((
+				TSTRING(FILE) + _T(": ") + Text::toT(aFileName) + _T("\n")+
+				TSTRING(USER) + _T(": ") + WinUtil::getNicks(aTransfer->getUser())).c_str(), CTSTRING(DOWNLOAD_FINISHED_IDLE));
+		}
+	} else {
+		if(BOOLSETTING(POPUP_UPLOAD_FINISHED) && !isTree) {
+			MainFrame::getMainFrame()->ShowBalloonTip((
+				TSTRING(FILE) + _T(": ") + Text::toT(aFileName) + _T("\n")+
+				TSTRING(USER) + _T(": ") + WinUtil::getNicks(aTransfer->getUser())).c_str(), CTSTRING(UPLOAD_FINISHED_IDLE));
+		}
+	}
+	
+	speak(UPDATE_ITEM, ui);
+}
+
+void TransferView::ItemInfo::disconnect() {
+	ConnectionManager::getInstance()->disconnect(user, download);
+}
+		
+LRESULT TransferView::onPreviewCommand(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/){
+	int i = -1;
+	while((i = ctrlTransfers.GetNextItem(i, LVNI_SELECTED)) != -1) {
+		const ItemInfo *ii = ctrlTransfers.getItemData(i);
+
+		const QueueItem::StringMap& queue = QueueManager::getInstance()->lockQueue();
+
+		string tmp = Text::fromT(ii->target);
+		QueueItem::StringIter qi = queue.find(&tmp);
+
+		string aTempTarget;
+		if(qi != queue.end())
+			aTempTarget = qi->second->getTempTarget();
+
+		QueueManager::getInstance()->unlockQueue();
+
+		WinUtil::RunPreviewCommand(wID - IDC_PREVIEW_APP, aTempTarget);
+	}
+
+	return 0;
+}
+
+void TransferView::CollapseAll() {
+	for(int q = ctrlTransfers.GetItemCount()-1; q != -1; --q) {
+		ItemInfo* m = (ItemInfo*)ctrlTransfers.getItemData(q);
+		if(m->download && m->parent) {
+			ctrlTransfers.deleteItem(m); 
+		}
+		if(m->download && !m->parent) {
+			m->collapsed = true;
+			ctrlTransfers.SetItemState(ctrlTransfers.findItem(m), INDEXTOSTATEIMAGEMASK(1), LVIS_STATEIMAGEMASK);
+		 }
+	}
+}
+
+void TransferView::ExpandAll() {
+	for(ItemInfoList::ParentMap::const_iterator i = ctrlTransfers.parents.begin(); i != ctrlTransfers.parents.end(); ++i) {
+		ItemInfo* l = (*i).second.parent;
+		if(l->collapsed) {
+			ctrlTransfers.Expand(l, ctrlTransfers.findItem(l));
+		}
+	}
+}
+
+LRESULT TransferView::onDisconnectAll(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+	int i = -1;
+	while((i = ctrlTransfers.GetNextItem(i, LVNI_SELECTED)) != -1) {
+		const ItemInfo* ii = ctrlTransfers.getItemData(i);
+		
+		const vector<ItemInfo*>& children = ctrlTransfers.findChildren(ii->getGroupCond());
+		for(vector<ItemInfo*>::const_iterator j = children.begin(); j != children.end(); ++j) {
+			ItemInfo* ii = *j;
+			ii->disconnect();
+
+			int h = ctrlTransfers.findItem(ii);
+			if(h != -1)
+				ctrlTransfers.SetItemText(h, COLUMN_STATUS, CTSTRING(DISCONNECTED));
+		}
+
+		ctrlTransfers.SetItemText(i, COLUMN_STATUS, CTSTRING(DISCONNECTED));
+	}
+	return 0;
+}
+
+LRESULT TransferView::onSlowDisconnect(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+	int i = -1;
+	while((i = ctrlTransfers.GetNextItem(i, LVNI_SELECTED)) != -1) {
+		const ItemInfo *ii = ctrlTransfers.getItemData(i);
+
+		const QueueItem::StringMap& queue = QueueManager::getInstance()->lockQueue();
+
+		string tmp = Text::fromT(ii->target);
+		QueueItem::StringIter qi = queue.find(&tmp);
+
+		if(qi != queue.end()) {
+			if(qi->second->isSet(QueueItem::FLAG_AUTODROP)) {
+				qi->second->unsetFlag(QueueItem::FLAG_AUTODROP);
+			} else {
+				qi->second->setFlag(QueueItem::FLAG_AUTODROP);
+			}
+		}
+
+		QueueManager::getInstance()->unlockQueue();
+	}
+
+	return 0;
+}
+
+void TransferView::on(SettingsManagerListener::Save, SimpleXML& /*xml*/) throw() {
+	bool refresh = false;
+	if(ctrlTransfers.GetBkColor() != WinUtil::bgColor) {
+		ctrlTransfers.SetBkColor(WinUtil::bgColor);
+		ctrlTransfers.SetTextBkColor(WinUtil::bgColor);
+		ctrlTransfers.setFlickerFree(WinUtil::bgBrush);
+		refresh = true;
+	}
+	if(ctrlTransfers.GetTextColor() != WinUtil::textColor) {
+		ctrlTransfers.SetTextColor(WinUtil::textColor);
+		refresh = true;
+	}
+	if(refresh == true) {
+		RedrawWindow(NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_UPDATENOW | RDW_ALLCHILDREN);
+	}
+}
+
+void TransferView::on(QueueManagerListener::StatusUpdated, const QueueItem* qi) throw() {
+	UpdateInfo* ui = new UpdateInfo(const_cast<QueueItem*>(qi), true);
+	ui->setTarget(Text::toT(qi->getTarget()));
+
+	if(qi->isRunning() && !qi->isSet(QueueItem::FLAG_TESTSUR)) {
+		double ratio = 0;
+		int64_t totalSpeed = 0;
+		int16_t segs = 0;
+
+		for(DownloadList::const_iterator i = qi->getDownloads().begin(); i != qi->getDownloads().end(); i++) {
+			if((*i)->getStart() > 0) {
+				segs++;
+
+				totalSpeed += static_cast<int64_t>((*i)->getAverageSpeed());
+				ratio += (*i)->getPos() > 0 ? (*i)->getActual() / (*i)->getPos() : 1.00;
+			}
+		}
+
+		ui->setRunning(segs);
+		if(segs > 0) {
+			ratio = ratio / segs;
+
+			ui->setSize(qi->isSet(QueueItem::FLAG_USER_LIST) ? qi->getDownloads()[0]->getSize() : qi->getSize());
+			ui->setPos(qi->isSet(QueueItem::FLAG_USER_LIST) ? qi->getDownloads()[0]->getPos() : qi->getDownloadedBytes());
+			ui->setActual((int64_t)((double)ui->pos * (ratio == 0 ? 1.00 : ratio)));
+			ui->setTimeLeft((totalSpeed > 0) ? ((ui->size - ui->pos) / totalSpeed) : 0);
+			ui->setSpeed(totalSpeed);
+			ui->setStatus(ItemInfo::STATUS_RUNNING);
+		}
+	} else {
+		ui->setSize(qi->getSize());
+		ui->setStatus(ItemInfo::STATUS_WAITING);
+		ui->setRunning(0);
+	}
+
+	speak(UPDATE_PARENT, ui);
+}
+
+void TransferView::on(QueueManagerListener::Finished, const QueueItem* qi, const string&, int64_t) throw() {
+	UpdateInfo* ui = new UpdateInfo(const_cast<QueueItem*>(qi), true, true);
+	ui->setTarget(Text::toT(qi->getTarget()));
+	ui->setPos(0);
+	ui->setActual(0);
+	ui->setTimeLeft(0);
+	ui->setStatusString(TSTRING(DOWNLOAD_FINISHED_IDLE));
+	ui->setStatus(ItemInfo::STATUS_WAITING);
+	ui->setRunning(0);
+	
+	speak(UPDATE_PARENT, ui);
+}
+
+void TransferView::on(QueueManagerListener::Removed, const QueueItem* qi) throw() {
+	UpdateInfo* ui = new UpdateInfo(const_cast<QueueItem*>(qi), true);
+	ui->setTarget(Text::toT(qi->getTarget()));
+	ui->setPos(0);
+	ui->setActual(0);
+	ui->setTimeLeft(0);
+	ui->setStatusString(TSTRING(DISCONNECTED));
+	ui->setStatus(ItemInfo::STATUS_WAITING);
+	ui->setRunning(0);
+
+	speak(UPDATE_PARENT, ui);
+}
+
+/**
+ * @file
+ * $Id: TransferView.cpp 334 2007-11-04 13:04:34Z bigmuscle $
+ */

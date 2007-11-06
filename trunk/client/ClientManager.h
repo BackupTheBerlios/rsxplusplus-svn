@@ -1,0 +1,303 @@
+/*
+ * Copyright (C) 2001-2007 Jacek Sieka, arnetheduck on gmail point com
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
+#if !defined(CLIENT_MANAGER_H)
+#define CLIENT_MANAGER_H
+
+#include "TimerManager.h"
+
+#include "Client.h"
+#include "Singleton.h"
+#include "SettingsManager.h"
+#include "User.h"
+#include "DirectoryListing.h"
+
+#include "ClientManagerListener.h"
+//RSX++
+#include "Thread.h"
+#include "../rsx/IpManager.h"
+//END
+
+class UserCommand;
+
+class ClientManager : public Speaker<ClientManagerListener>, 
+	private ClientListener, public Singleton<ClientManager>, 
+	private TimerManagerListener
+{
+public:
+	Client* getClient(const string& aHubURL);
+	void putClient(Client* aClient);
+
+	size_t getUserCount() const;
+	int64_t getAvailable() const;
+	StringList getHubs(const CID& cid) const;
+	StringList getHubNames(const CID& cid) const;
+	StringList getNicks(const CID& cid) const;
+	string getConnection(const CID& cid) const;
+
+	bool isConnected(const string& aUrl) const;
+	
+	void search(int aSizeMode, int64_t aSize, int aFileType, const string& aString, const string& aToken);
+	void search(StringList& who, int aSizeMode, int64_t aSize, int aFileType, const string& aString, const string& aToken);
+	void infoUpdated();
+
+	UserPtr getUser(const string& aNick, const string& aHubUrl) throw();
+	UserPtr getUser(const CID& cid) throw();
+
+	string findHub(const string& ipPort) const;
+	const string& findHubEncoding(const string& aUrl) const;
+
+	UserPtr findUser(const string& aNick, const string& aHubUrl) const throw() { return findUser(makeCid(aNick, aHubUrl)); }
+	UserPtr findUser(const CID& cid) const throw();
+	UserPtr findLegacyUser(const string& aNick) const throw();
+
+	bool isOnline(const UserPtr& aUser) const {
+		Lock l(cs);
+		return onlineUsers.find(aUser->getCID()) != onlineUsers.end();
+	}
+	
+	void setIPUser(const string& IP, const UserPtr user, const string& host = Util::emptyString) {
+		{
+		Lock l(cs);
+//		OnlinePairC p = onlineUsers.equal_range(user->getCID());
+//		for (OnlineIterC i = p.first; i != p.second; i++) {
+		OnlineIterC i = onlineUsers.find(user->getCID());
+		if(i == onlineUsers.end()) return;
+			OnlineUser* ou = i->second;
+			ou->getIdentity().setIp(IP);
+			if(!host.empty())
+				ou->getIdentity().set("HT", host);
+			if(ou->getIdentity().get("IC").empty())
+				ou->getIdentity().checkIP(*ou);
+		}
+		//RSX++ //ISP & Host check && IP Watch
+	}
+	
+	const string getMyNMDCNick(const UserPtr& p) const {
+		Lock l(cs);
+		OnlineIterC i = onlineUsers.find(p->getCID());
+		if(i != onlineUsers.end()) {
+			return i->second->getClient().getMyNick();
+		}
+		return Util::emptyString;
+	}
+
+	void reportUser(const UserPtr& p) {
+		string nick; string report;
+		Client* c;
+		{
+			Lock l(cs);
+			OnlineIterC i = onlineUsers.find(p->getCID());
+			if(i == onlineUsers.end()) return;
+
+			nick = i->second->getIdentity().getNick();
+			report = i->second->getIdentity().getReport();
+			c = &i->second->getClient();
+		}
+		c->cheatMessage("*** Info on " + nick + " ***" + "\r\n" + report + "\r\n");
+	}
+	//RSX++
+	const string getFirstNick(const CID& cid) const {
+		StringList lst = getNicks(cid);
+		return lst.empty() ? Util::emptyString : lst[0];
+	}
+	//RSX++ // Clean User
+	void cleanUser(const UserPtr& p) {
+		Lock l(cs);
+		OnlineIterC i = onlineUsers.find(p->getCID());
+		if(i == onlineUsers.end()) return;
+
+		i->second->getIdentity().cleanUser();
+		i->second->updateUser();
+	}
+	//RSX++ //Hide Share
+	bool getSharingHub(const UserPtr& p) {
+		Lock l(cs);
+		OnlineIter i = onlineUsers.find(p->getCID());
+		if(i != onlineUsers.end()) {
+			return i->second->getClient().getHideShare();
+		}
+		return false;
+	}
+	//RSX++ //check slot count
+	void checkSlots(const UserPtr& p, int slots) {
+		Lock l(cs);
+		OnlineIterC i = onlineUsers.find(p->getCID());
+		if(i == onlineUsers.end()) return;
+
+		if(i->second->getIdentity().get("SC").empty())
+			i->second->getIdentity().checkSlotsCount((*i->second), slots);
+	}
+	//END
+	void updateUser(const UserPtr& p) {
+		OnlineUser* ou;
+		{
+			Lock l(cs);
+			OnlineIterC i = onlineUsers.find(p->getCID());
+			if(i == onlineUsers.end()) return;
+
+			ou = i->second;
+		}
+		ou->getClient().updated(*ou);
+	}
+
+	void setPkLock(const UserPtr& p, const string& aPk, const string& aLock) {
+		Lock l(cs);
+		OnlineIterC i = onlineUsers.find(p->getCID());
+		if(i == onlineUsers.end()) return;
+		i->second->getIdentity().set("PK", aPk);
+		i->second->getIdentity().set("LO", aLock);
+	}
+
+	void setSupports(const UserPtr& p, const string& aSupports) {
+		Lock l(cs);
+		OnlineIterC i = onlineUsers.find(p->getCID());
+		if(i == onlineUsers.end()) return;
+		i->second->getIdentity().set("SU", aSupports);
+	}
+
+	void setGenerator(const UserPtr& p, const string& aGenerator, const string& aCID, const string& aBase) {
+		Lock l(cs);
+		OnlineIterC i = onlineUsers.find(p->getCID());
+		if(i == onlineUsers.end()) return;
+		i->second->getIdentity().set("GE", aGenerator);
+		i->second->getIdentity().set("FI", aCID);
+		i->second->getIdentity().set("FB", aBase);
+		i->second->updateUser();
+		i->second->getIdentity().checkFilelistGenerator((*i->second)); //RSX++
+	}
+
+	void setUnknownCommand(const UserPtr& p, const string& aUnknownCommand) {
+		Lock l(cs);
+		OnlineIterC i = onlineUsers.find(p->getCID());
+		if(i == onlineUsers.end()) return;
+		i->second->getIdentity().set("UC", aUnknownCommand);
+	}
+
+	bool isOp(const UserPtr& aUser, const string& aHubUrl) const;
+	bool isStealth(const string& aHubUrl) const;
+
+	/** Constructs a synthetic, hopefully unique CID */
+	CID makeCid(const string& nick, const string& hubUrl) const throw();
+
+	void putOnline(OnlineUser* ou) throw();
+	void putOffline(OnlineUser* ou) throw();
+
+	UserPtr& getMe();
+	
+	void connect(const UserPtr& p, const string& token);
+	void send(AdcCommand& c, const CID& to);
+	void privateMessage(const UserPtr& p, const string& msg);
+
+	void userCommand(const UserPtr& p, const ::UserCommand& uc, StringMap& params, bool compatibility);
+	void sendRawCommand(const UserPtr& user, const string& aRaw, bool checkProtection = false);
+
+	int getMode(const string& aHubUrl) const;
+	bool isActive(const string& aHubUrl) const { return getMode(aHubUrl) != SettingsManager::INCOMING_FIREWALL_PASSIVE; }
+
+	void lock() throw() { cs.enter(); }
+	void unlock() throw() { cs.leave(); }
+
+	//RSX++
+	void sendAction(const UserPtr& p, const int aAction);
+	void sendAction(OnlineUser& ou, const int aAction);
+	void kickFromAutosearch(const UserPtr& p, int action, const string& cheat, const string& file, const string& size, const string& tth, bool display = false);
+	bool canCheckHim(const UserPtr& p);
+	Client* getUserClient(const UserPtr& p);
+	void multiHubKick(const UserPtr& p, const string& aRaw);
+	tstring getHubsLoadInfo() const;
+	//END
+
+	const string& getHubUrl(const UserPtr& aUser) const;
+
+	const Client::List& getClients() const { return clients; }
+
+	string getCachedIp() const { Lock l(cs); return cachedIp; }
+
+	CID getMyCID();
+	const CID& getMyPID();
+
+	// fake detection methods
+	void setListLength(const UserPtr& p, const string& listLen);
+	void setListSize(const UserPtr& p, int64_t aFileLength, bool adc);
+	void fileListDisconnected(const UserPtr& p);
+	void connectionTimeout(const UserPtr& p);
+	void checkCheating(const UserPtr& p, DirectoryListing* dl);
+	void setCheating(const UserPtr& p, const string& aTestSURString, const string& aCheatString, const int aRawCommand, bool bc, bool bf = false, bool aDisplay = true, bool cc = false, bool cf = false);
+	//RSX++
+	void addCheckToQueue(const UserPtr& p, bool filelist);
+	//RSX++ // Lua
+	static bool ucExecuteLua(const string& cmd, StringMap& params);
+	//END
+
+private:
+	//RSX++
+	bool compareUsers(const OnlineUser& ou1, const OnlineUser& ou2);
+	//END
+	typedef unordered_map<CID, UserPtr, CID::Hash> UserMap;
+	typedef UserMap::iterator UserIter;
+
+	typedef unordered_multimap<CID, OnlineUser*, CID::Hash> OnlineMap;
+	typedef OnlineMap::iterator OnlineIter;
+	typedef OnlineMap::const_iterator OnlineIterC;
+	typedef pair<OnlineIter, OnlineIter> OnlinePair;
+	typedef pair<OnlineIterC, OnlineIterC> OnlinePairC;
+
+	Client::List clients;
+	mutable CriticalSection cs;
+	
+	UserMap users;
+	OnlineMap onlineUsers;
+
+	UserPtr me;
+	
+	string cachedIp;
+	CID pid;	
+
+	friend class Singleton<ClientManager>;
+
+	ClientManager() {
+		TimerManager::getInstance()->addListener(this); 
+	}
+
+	~ClientManager() throw() {
+		TimerManager::getInstance()->removeListener(this); 
+	}
+
+	void updateCachedIp();
+
+	// ClientListener
+	void on(Connected, const Client* c) throw() { fire(ClientManagerListener::ClientConnected(), c); }
+	void on(UserUpdated, const Client*, const OnlineUser& user) throw() { fire(ClientManagerListener::UserUpdated(), user); }
+	void on(UsersUpdated, const Client* c, const UserList&) throw() { fire(ClientManagerListener::ClientUpdated(), c); }
+	void on(Failed, const Client*, const string&) throw();
+	void on(HubUpdated, const Client* c) throw() { fire(ClientManagerListener::ClientUpdated(), c); }
+	void on(HubUserCommand, const Client*, int, int, const string&, const string&) throw();
+	void on(NmdcSearch, Client* aClient, const string& aSeeker, int aSearchType, int64_t aSize, 
+		int aFileType, const string& aString, bool) throw();
+	void on(AdcSearch, const Client* c, const AdcCommand& adc, const CID& from) throw();
+	// TimerManagerListener
+	void on(TimerManagerListener::Minute, uint64_t aTick) throw();
+};
+
+#endif // !defined(CLIENT_MANAGER_H)
+
+/**
+ * @file
+ * $Id: ClientManager.h 334 2007-11-04 13:04:34Z bigmuscle $
+ */

@@ -1,0 +1,79 @@
+/* 
+ * 
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
+#ifndef CHAT_CTRL_H
+#define CHAT_CTRL_H
+
+#if _MSC_VER > 1000
+#pragma once
+#endif // _MSC_VER > 1000
+
+#include "../client/Client.h"
+
+#include "TypedListViewCtrl.h"
+#include "ImageDataObject.h"
+
+#ifndef _RICHEDIT_VER
+# define _RICHEDIT_VER 0x0300
+#endif
+
+class UserInfo;
+
+class ChatCtrl: public CRichEditCtrl {
+public:
+	ChatCtrl();
+	~ChatCtrl();
+
+	LRESULT OnRButtonDown(POINT pt);
+
+	bool HitNick(POINT p, tstring& sNick, int& iBegin , int& iEnd);
+	bool HitIP(POINT p, tstring& sIP, int& iBegin, int& iEnd);
+	bool HitURL();
+
+	tstring LineFromPos(POINT p) const;
+
+	void AdjustTextSize();
+	void AppendText(const Identity& i, const tstring& sMyNick, const tstring& sTime, const LPCTSTR sMsg, CHARFORMAT2& cf, bool bUseEmo = true, bool useHL = true);
+	void AppendTextOnly(const tstring& sMyNick, const LPCTSTR sMsg, CHARFORMAT2& cf, bool bMyMess, const tstring& sAuthor, bool useHL = true);
+
+	void GoToEnd();
+	bool GetAutoScroll() const { return m_boAutoScroll; }
+	void SetAutoScroll(bool boAutoScroll);
+	void SetTextStyleMyNick(CHARFORMAT2 ts) { WinUtil::m_TextStyleMyNick = ts; };
+	
+	void setClient(const Client* pClient) { client = pClient; }
+
+	static tstring sSelectedLine;
+	static tstring sSelectedIP;
+	static tstring sSelectedUser;
+
+private:
+    const Client* client;
+    bool m_boAutoScroll;
+
+	//RSX++
+	struct hlAction{tstring match; bool actPopup; bool actFlash; bool actSound; string soundPath;};
+	void handleActions(const tstring& msgAuthor);
+
+	typedef vector<hlAction> ActionsList;
+	ActionsList actions;
+	//END
+};
+
+
+#endif //!defined(CHAT_CTRL_H)

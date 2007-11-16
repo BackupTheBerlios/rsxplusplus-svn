@@ -204,7 +204,6 @@ private:
 		int64_t actual;
 		int64_t speed;
 		int64_t timeLeft;
-		uint64_t fileBegin;
 		
 		tstring ip;
 		tstring statusString;
@@ -361,5 +360,5 @@ private:
 
 /**
  * @file
- * $Id: TransferView.h 334 2007-11-04 13:04:34Z bigmuscle $
+ * $Id: TransferView.h 335 2007-11-10 13:01:41Z bigmuscle $
  */

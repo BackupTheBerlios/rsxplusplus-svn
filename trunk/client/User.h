@@ -150,7 +150,7 @@ public:
 
 	string getVersion() const;
 	void cleanUser();
-	bool isProtectedUser(const Client& c) const;
+	bool isProtectedUser(const Client& c, bool OpBotHubCheck) const;
 	//END
 	UserPtr& getUser() { return user; }
 	GETSET(UserPtr, user, User);
@@ -246,7 +246,7 @@ public:
 
 	bool isInList;
 	//RSX++
-	bool isProtectedUser() const { return identity.isProtectedUser(getClient()); }
+	bool isProtectedUser(bool checkOp = true) const { return identity.isProtectedUser(getClient(), checkOp); }
 	bool getChecked(bool filelist = false);
 	bool isCheckable(bool delay = true) const;
 	bool shouldTestSUR() const { return !identity.isTestSURQueued() && !identity.isClientChecked(); }

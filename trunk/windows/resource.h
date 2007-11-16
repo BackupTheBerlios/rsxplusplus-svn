@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
-// Used by w:\Visual Studio Projects\rsx_svn\checkout\trunk\RSXPlusPlus.rc
+// Used by w:\Visual Studio Projects\rsxplusplus\trunk\RSXPlusPlus.rc
 //
 #define IDD_ABOUTBOX                    100
 #define IDC_FILETYPES                   101
@@ -122,7 +122,6 @@
 #define IDD_EMOTICONS_DLG               293
 #define IDD_FILELIST_DETECTOR_PAGE      294
 #define IDB_EMOTICON                    295
-#define IDD_ISP_DLG                     295
 #define IDD_NETWORKPAGE                 296
 #define IDD_CERTIFICATESPAGE            297
 #define IDD_QUEUEPAGE                   298
@@ -136,7 +135,7 @@
 #define IDB_TSPEEDS                     308
 #define IDB_BITMAP3                     309
 #define IDB_TSPEEDSBW                   309
-#define IDD_ISP                         310
+#define IDD_IP_PAGE                     310
 #define IDB_RSX_SPLASH                  312
 #define IDD_ADD_IPWATCH                 313
 #define IDD_AUTOSEARCH                  314
@@ -511,7 +510,6 @@
 #define IDC_LIST_EDIT                   1264
 #define IDC_CHEAT                       1264
 #define IDC_NAME_ONE                    1264
-#define IDC_RANGE                       1264
 #define IDC_RENAME_EX                   1264
 #define IDC_MYINFO_ADDRESS              1265
 #define IDC_NAME_TWO                    1265
@@ -549,20 +547,15 @@
 #define IDC_SLASH                       1275
 #define IDC_LOG_OPTIONS                 1275
 #define IDC_TEXT_SIX                    1275
-#define IDC_ISP                         1275
 #define IDC_ADD_HL                      1275
 #define IDC_SETTINGS_FILE_NAME          1276
-#define IDC_ADD_ISP                     1276
 #define IDC_CHANGE_HL                   1276
 #define IDC_ALTERNATE_COLOR             1277
 #define IDC_FSTRING                     1277
-#define IDC_CHANGE_ISP                  1277
 #define IDC_REMOVE_HL                   1277
 #define IDC_FAKE_BOOLEANS               1278
 #define IDC_SETTINGS_FILELIST_MENU      1278
-#define IDC_REMOVE_ISP                  1278
 #define IDC_PURGE                       1279
-#define IDC_RELOAD_ISPS                 1279
 #define IDC_KBPS                        1280
 #define IDC_IPWATCH_LIST                1280
 #define IDC_MINUTES                     1281
@@ -581,6 +574,7 @@
 #define IDC_EDIT2                       1285
 #define IDC_CLIPBOARD_FOUR              1285
 #define IDC_PD_MULTISOURCE              1285
+#define IDC_IPW_MATCH_TYPE              1285
 #define IDC_EDIT3                       1286
 #define IDC_BIND_ADDRESS                1286
 #define IDC_CLIPBOARD_FIVE              1286
@@ -628,7 +622,6 @@
 #define IDC_DIRECT                      1302
 #define IDC_PRIO_NORMAL_SIZE            1302
 #define IDC_ROLLBACK_SPIN               1302
-#define IDC_BAD_ISP                     1302
 #define IDC_ADLSEARCH_ACTION2           1302
 #define IDC_FIREWALL_UPNP               1303
 #define IDC_PRIO_LOW_SIZE               1303
@@ -689,7 +682,6 @@
 #define IDC_USE_AB                      1314
 #define IDC_CHECK_MYINFO                1314
 #define IDC_USE_CHAT_FILTER             1314
-#define IDC_ENABLE_ISP                  1314
 #define IDC_FILTER_USECOLOR             1314
 #define IDC_USE_TRANSPARENT             1314
 #define IDC_WATCH_DISPLAY_CHEAT         1314
@@ -700,6 +692,7 @@
 #define IDC_USE_SDL_KICK                1314
 #define IDC_HAS_FONT_COLOR              1314
 #define IDC_DISPLAY_CHEAT               1314
+#define IDC_RAW_LUA                     1314
 #define IDC_SETTINGS_CONFIRM_OPTIONS    1315
 #define IDC_ADD_ACTION                  1315
 #define IDC_SPIN1                       1315
@@ -949,6 +942,11 @@
 #define IDC_PROGRESS_MODE               1468
 #define IDC_LIST1                       1469
 #define IDC_FILELISTDP_SELECTOR         1470
+#define IDC_COMPILE_TIME                1472
+#define IDC_IPW_MODE                    1474
+#define IDC_IPW_ISP                     1475
+#define IDC_UPDATE_VERSION_CURRENT_IPW  1476
+#define IDC_UPDATE_VERSION_LATEST_IPW   1477
 #define IDC_PERCENT_FAKE_SHARE_TOLERATED 1504
 #define IDC_TIMEOUTS_NO                 1505
 #define IDC_DISCONNECTS_NO              1506
@@ -1217,7 +1215,7 @@
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        322
 #define _APS_NEXT_COMMAND_VALUE         32806
-#define _APS_NEXT_CONTROL_VALUE         1472
+#define _APS_NEXT_CONTROL_VALUE         1478
 #define _APS_NEXT_SYMED_VALUE           134
 #endif
 #endif

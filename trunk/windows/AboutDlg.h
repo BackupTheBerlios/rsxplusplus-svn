@@ -63,6 +63,8 @@ public:
 		/*	sprintf(buf, "Uptime: %s", Util::formatTime(Util::getUptime()));
 			SetDlgItemText(IDC_UPTIME, Text::toT(buf).c_str());*/
 		}
+		SetDlgItemText(IDC_COMPILE_TIME, Text::toT("Compiled: " + WinUtil::getCompileDate()).c_str()); //RSX++
+
 		CenterWindow(GetParent());
 		c.addListener(this);
 		c.downloadFile(VERSION_URL);

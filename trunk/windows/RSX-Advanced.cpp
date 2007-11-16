@@ -41,6 +41,7 @@ RSXAdvanced::ListItem RSXAdvanced::listItems[] = {
 	{ RSXSettingsManager::GET_UPDATE_PROFILE,					ResourceManager::SETTINGS_GET_UPDATE_PROFILE },
 	{ RSXSettingsManager::IGNORE_PM_SPAMMERS,					ResourceManager::SETTINGS_IGNORE_PM_SPAMMERS },
 	{ RSXSettingsManager::PROTECT_PM_USERS,						ResourceManager::SETTINGS_PROTECT_PM_USERS },
+	{ RSXSettingsManager::SORT_PROTECTED_AFTER_FAV,				ResourceManager::SETTINGS_SORT_PROTECTED_AFTER_FAV },
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
 

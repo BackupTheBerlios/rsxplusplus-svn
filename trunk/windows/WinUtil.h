@@ -26,6 +26,7 @@
 
 #include "resource.h"
 #include "OMenu.h"
+#include <atlcomtime.h>
 
 class ChatCtrl;
 
@@ -457,6 +458,12 @@ public:
 	static void flashWindow();
 	static tstring toYesNo(bool value);
 	static string CPUInfo();
+
+	static string getCompileDate() {
+		COleDateTime tCompileDate; 
+		tCompileDate.ParseDateTime( _T( __DATE__ ), LOCALE_NOUSEROVERRIDE, 1033 );
+		return Text::fromT(tCompileDate.Format(_T("%Y-%m-%d")).GetString());
+	}
 	//END
 
 private:

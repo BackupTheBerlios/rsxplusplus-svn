@@ -20,10 +20,10 @@
 #define VERSIONSTRING "1.00B2"
 #define VERSIONFLOAT 1.001
 
-#define DCVERSIONSTRING "0.702"
-#define DCVERSIONFLOAT 0.7021
+#define DCVERSIONSTRING "0.703"
+#define DCVERSIONFLOAT 0.7031
 
-#define SVNVERSION "svn334"
+#define SVNVERSION "svn335"
 //RSX++ //////////////////////////////////////////////////////////
 #define SVN_REVISION_STR "43"
 #define SVN_REVISION 43
@@ -41,5 +41,5 @@
 
 /**
  * @file
- * $Id: version.h 326 2007-09-01 16:55:01Z bigmuscle $
+ * $Id: version.h 335 2007-11-10 13:01:41Z bigmuscle $
  */

@@ -52,7 +52,7 @@
 #include "ParamsPage.h"
 #include "FilterPage.h"
 #include "FakeSharesPage.h"
-#include "ISPPage.h"
+#include "IpWatchPage.h"
 #include "FileListDetectorPage.h"
 #include "AutosearchPage.h"
 
@@ -89,7 +89,7 @@ PropertiesDlg::PropertiesDlg(HWND parent, SettingsManager *s) : TreePropertyShee
 	pages[n++] = new MyinfoPage(s);
 	pages[n++] = new FileListDetectorPage(s);
 	pages[n++] = new FakeSharesPage(s);
-	pages[n++] = new ISPPage(s);
+	pages[n++] = new IpWatchPage(s);
 	pages[n++] = new AutosearchPage(s);
 	pages[n++] = new RawPage(s);
 	pages[n++] = new RSXAdvanced(s);

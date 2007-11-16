@@ -291,21 +291,21 @@ bool Identity::updateClientType(OnlineUser& ou) {
 
 		DETECTION_DEBUG("\tChecking profile: " + cp.getName());
 
-		if (!RegexpHandler::matchProfile(get("LO"), cp.getLock()))									{ continue; }
-		if (!RegexpHandler::matchProfile(getTag(), formattedTagExp))								{ continue; } 
-		if (!RegexpHandler::matchProfile(get("PK"), formattedPkExp))								{ continue; }
-		if (!RegexpHandler::matchProfile(get("SU"), cp.getSupports()))								{ continue; }
-		if (!RegexpHandler::matchProfile(get("TS"), cp.getTestSUR()))								{ continue; }
-		if (!RegexpHandler::matchProfile(getStatus(), cp.getStatus()))								{ continue; }
-		if (!RegexpHandler::matchProfile(get("UC"), cp.getUserConCom()))							{ continue; }
-		if (!RegexpHandler::matchProfile(getDescription(), formattedExtTagExp))						{ continue; }
-		if (!RegexpHandler::matchProfile(getConnection(), cp.getConnection()))						{ continue; }
+		if(!RegexpHandler::matchProfile(get("LO"), cp.getLock()))									{ continue; }
+		if(!RegexpHandler::matchProfile(getTag(), formattedTagExp))									{ continue; } 
+		if(!RegexpHandler::matchProfile(get("PK"), formattedPkExp))									{ continue; }
+		if(!RegexpHandler::matchProfile(get("SU"), cp.getSupports()))								{ continue; }
+		if(!RegexpHandler::matchProfile(get("TS"), cp.getTestSUR()))								{ continue; }
+		if(!RegexpHandler::matchProfile(getStatus(), cp.getStatus()))								{ continue; }
+		if(!RegexpHandler::matchProfile(get("UC"), cp.getUserConCom()))								{ continue; }
+		if(!RegexpHandler::matchProfile(getDescription(), formattedExtTagExp))						{ continue; }
+		if(!RegexpHandler::matchProfile(getConnection(), cp.getConnection()))						{ continue; }
 
-		if (verTagExp.find("%[version]") != string::npos) {		version = RegexpHandler::getVersion(verTagExp, getTag()); }
-		if (extTagExp.find("%[version2]") != string::npos) {	extraVersion = RegexpHandler::getVersion(extTagExp, getDescription()); }
-		if (pkExp.find("%[version]") != string::npos) {			pkVersion = RegexpHandler::getVersion(pkExp, get("PK")); }
+		if(verTagExp.find("%[version]") != string::npos) { version = RegexpHandler::getVersion(verTagExp, getTag()); }
+		if(extTagExp.find("%[version2]") != string::npos) { extraVersion = RegexpHandler::getVersion(extTagExp, getDescription()); }
+		if(pkExp.find("%[version]") != string::npos) { pkVersion = RegexpHandler::getVersion(pkExp, get("PK")); }
 
-		if (!(cp.getVersion().empty()) && !RegexpHandler::matchProfile(version, cp.getVersion()))	{ continue; }
+		if(!(cp.getVersion().empty()) && !RegexpHandler::matchProfile(version, cp.getVersion()))	{ continue; }
 		
 		DETECTION_DEBUG("Client found: " + cp.getName() + " time taken: " + Util::toString(GET_TICK()-tick) + " milliseconds");
 
@@ -367,17 +367,17 @@ void Identity::myInfoDetect(OnlineUser& ou) {
 			formattedExtTagExp.replace(j, 11, ".*");
 		}
 
-		if (!RegexpHandler::matchProfile(getTag(), formattedTagExp))									{ continue; }
-		if (!RegexpHandler::matchProfile(fixed_status, cq.getStatus()))									{ continue; }
-		if (!RegexpHandler::matchProfile(getDescription(), formattedExtTagExp))							{ continue; }
-		if (!RegexpHandler::matchProfile(getConnection(), cq.getConnection()))							{ continue; }
-		if (!RegexpHandler::matchProfile(getNick(), cq.getNick()))										{ continue; } 
-		if (!RegexpHandler::matchProfile(get("SS"), cq.getShared()))									{ continue; } 
-		if (!RegexpHandler::matchProfile(getEmail(), cq.getEmail()))									{ continue; } 
+		if(!RegexpHandler::matchProfile(getTag(), formattedTagExp))									{ continue; }
+		if(!RegexpHandler::matchProfile(fixed_status, cq.getStatus()))								{ continue; }
+		if(!RegexpHandler::matchProfile(getDescription(), formattedExtTagExp))						{ continue; }
+		if(!RegexpHandler::matchProfile(getConnection(), cq.getConnection()))						{ continue; }
+		if(!RegexpHandler::matchProfile(getNick(), cq.getNick()))									{ continue; } 
+		if(!RegexpHandler::matchProfile(get("SS"), cq.getShared()))									{ continue; } 
+		if(!RegexpHandler::matchProfile(getEmail(), cq.getEmail()))									{ continue; } 
 
-		if (verTagExp.find("%[version]") != string::npos) {		version = RegexpHandler::getVersion(verTagExp, getTag()); }
-		if (extTagExp.find("%[version2]") != string::npos) {	extraVersion = RegexpHandler::getVersion(extTagExp, getDescription()); }
-		if (!(cq.getVersion().empty()) && !RegexpHandler::matchProfile(version, cq.getVersion()))		{ continue; }
+		if(verTagExp.find("%[version]") != string::npos) {	version = RegexpHandler::getVersion(verTagExp, getTag()); }
+		if(extTagExp.find("%[version2]") != string::npos) {	extraVersion = RegexpHandler::getVersion(extTagExp, getDescription()); }
+		if(!(cq.getVersion().empty()) && !RegexpHandler::matchProfile(version, cq.getVersion()))	{ continue; }
 
 		if(cq.getUseExtraVersion())
 			setMyInfoType((cq.getName() + " " + extraVersion)); 
@@ -419,7 +419,7 @@ void Identity::isFakeShare(OnlineUser& ou) {
 	}
 }
 //RSX++ //Protected users
-bool Identity::isProtectedUser(const Client& c) const {
+bool Identity::isProtectedUser(const Client& c, bool OpBotHubCheck) const {
 	Lock l(cs);
 
 	string RegProtect;
@@ -428,7 +428,7 @@ bool Identity::isProtectedUser(const Client& c) const {
 	} else {
 		RegProtect = RSXSETTING(PROTECTED_USERS);
 	}
-	if(isOp() || isBot() || isHub()) {
+	if(OpBotHubCheck && isOp() || isBot() || isHub()) {
 		return true;
 	} else if(RSXSETTING(FAV_USER_IS_PROTECTED_USER) && FavoriteManager::getInstance()->isFavoriteUser(getUser())) {
 		return true;
@@ -532,33 +532,42 @@ bool Identity::isPmSpamming() {
 }
 //RSX++ //ISP Check
 void Identity::checkIP(OnlineUser& ou) {
-	if(RSXBOOLSETTING(ISP_CHECKING)) {
-		if(getISP().empty()) {
-			Isp::Ptr& i = IpManager::getInstance()->getISP(getIp());
-			setISP(i->getIsp());
-			if(i->getBad()) {
-				setCheatMsg(ou.getClient(), "Bad ISP - " + i->getIsp(), false, false, RSXBOOLSETTING(SHOW_BAD_ISP_RAW));
-				ClientManager::getInstance()->sendAction(ou, RSXSETTING(BAD_ISP_RAW));
-			}
-		}
-	}
 	if(RSXBOOLSETTING(USE_IPWATCH)) {
 		set("IC", "1"); //ip checked, to avoid cheat spam caused by search
 		IPWatch::List& il = IpManager::getInstance()->getWatch();
 		bool matched = false;
 		for(IPWatch::Iter j = il.begin(); j != il.end(); j++) {
-			if((*j)->getUseRegExp()) {
-				PME reg((*j)->getIp());
-				if(reg.match(getIp())) {
-					matched = true;
-				}
-			} else {
-				if(Wildcard::patternMatch(getIp(), (*j)->getIp(), '|')) {
-					matched = true;
-				}
+			string strToMatch = Util::emptyString;
+			switch((*j)->getMode()) {
+				case 0: strToMatch = getIp(); break;
+				case 1: strToMatch = get("HT"); break;
+				case 2: strToMatch = getIp(); break;
+				default: strToMatch = getIp();
 			}
+			switch((*j)->getMatchType()) {
+				case 0: {
+					if(Wildcard::patternMatch(strToMatch, (*j)->getPattern(), '|'))
+						matched = true;
+					break;
+				}
+				case 1: {
+					PME reg((*j)->getPattern());
+					if(reg.IsValid() && reg.match(strToMatch))
+						matched = true;
+					break;
+				}
+				case 2: {
+					if(RsxUtil::isIpInRange(getIp(), (*j)->getPattern()))
+						matched = true;
+					break;
+				}
+				default: break;
+			}
+
 			if(matched) {
-				switch((*j)->getAction()) {
+				if(!(*j)->getIsp().empty())
+					setISP((*j)->getIsp());
+				switch((*j)->getTask()) {
 					case 0:  {
 						getUser()->setFlag(User::PROTECTED);
 						set("CT", "[Protected IP]");
@@ -566,7 +575,7 @@ void Identity::checkIP(OnlineUser& ou) {
 					}
 					case 1: { 
 						setCheatMsg(ou.getClient(), (*j)->getCheat(), false, false, (*j)->getDisplayCheat());
-						ClientManager::getInstance()->sendAction(ou, (*j)->getActionCommand());
+						ClientManager::getInstance()->sendAction(ou, (*j)->getAction());
 						break;
 					}
 					case 2: {
@@ -598,8 +607,7 @@ void Identity::checkFilelistGenerator(OnlineUser& ou) {
 	}
 
 	if(!get("VE").empty() && strncmp(getTag().c_str(), "<++ V:", 6) == 0) {
-		//dc++ 0.68 miss cid in filelist...
-		if((Util::toFloat(get("VE")) > 0.668 && get("VE") != "0.68") || (!get("FI").empty() && !get("FB").empty() && get("VE") == "0.68")) {
+		if((Util::toFloat(get("VE")) > 0.668)) {
 			if(get("FI").empty() || get("FB").empty()) {
 				setCheatMsg(ou.getClient(), "DC++ emulation", true, false, RSXBOOLSETTING(SHOW_DCPP_EMULATION_RAW));
 				ou.updateUser();
@@ -694,9 +702,9 @@ void Identity::logDetect(bool successful) {
 }
 
 void Identity::checkTagState(OnlineUser& ou) {
-	if((getTag().find(",M:P,") != string::npos) && isTcpActive()) {
+	if(isTcpActive() && (getTag().find(",M:P,") != string::npos)) {
 		ou.getClient().cheatMessage("*** " + getNick() + " - Tag states passive mode, but he's using active commands"); 
-	} else if((getTag().find(",M:A,") != string::npos) && !isTcpActive()) {
+	} else if(!isTcpActive() && (getTag().find(",M:A,") != string::npos)) {
 		ou.getClient().cheatMessage("*** " + getNick() + " - Tag states active mode, but he's using passive commands"); 
 	}
 }
@@ -766,6 +774,15 @@ int OnlineUser::compareItems(const OnlineUser* a, const OnlineUser* b, uint8_t c
 			if(!a_isFav && b_isFav)
 				return 1;
 		}
+		//RSX++
+		if(RSXBOOLSETTING(SORT_PROTECTED_AFTER_FAV)) {
+			bool a_isProt = a->isProtectedUser(false), b_isProt = b->isProtectedUser(false);
+			if(a_isProt && !b_isProt)
+				return -1;
+			if(!a_isProt && b_isProt)
+				return 1;
+		}
+		//END
 		// workaround for faster hub loading
 		// lstrcmpiA(a->identity.getNick().c_str(), b->identity.getNick().c_str());
 	}
@@ -773,7 +790,8 @@ int OnlineUser::compareItems(const OnlineUser* a, const OnlineUser* b, uint8_t c
 		case COLUMN_SHARED:
 		case COLUMN_EXACT_SHARED: return compare(a->identity.getBytesShared(), b->identity.getBytesShared());
 		case COLUMN_SLOTS: return compare(Util::toInt(a->identity.get("SL")), Util::toInt(b->identity.get("SL")));
-		case COLUMN_HUBS: return compare(Util::toInt(a->identity.get("HN"))+Util::toInt(a->identity.get("HR"))+Util::toInt(a->identity.get("HO")), Util::toInt(b->identity.get("HN"))+Util::toInt(b->identity.get("HR"))+Util::toInt(b->identity.get("HO")));
+		//case COLUMN_HUBS: return compare(Util::toInt(a->identity.get("HN"))+Util::toInt(a->identity.get("HR"))+Util::toInt(a->identity.get("HO")), Util::toInt(b->identity.get("HN"))+Util::toInt(b->identity.get("HR"))+Util::toInt(b->identity.get("HO")));
+		case COLUMN_HUBS: return compare(Util::toInt(a->identity.get("AH")), Util::toInt(b->identity.get("AH")));
 		case COLUMN_UPLOAD_SPEED: return compare(a->identity.getUser()->getLastDownloadSpeed(), b->identity.getUser()->getLastDownloadSpeed());
 	}
 	return lstrcmpi(a->getText(col).c_str(), b->getText(col).c_str());
@@ -837,10 +855,16 @@ const tstring OnlineUser::getText(uint8_t col) const {
 		case COLUMN_LOCK: return Text::toT(identity.get("LO"));
 		case COLUMN_SUPPORT: return Text::toT(identity.get("SU"));
 		case COLUMN_STATUS: { 
-			if(getUser()->isSet(User::NMDC))
+			if(getUser()->isSet(User::NMDC)) {
 				return Text::toT(Util::formatStatus(Util::toInt(identity.getStatus())));
-			else
-				return Text::toT(identity.isAway() ? "Away (1)" : "Normal (0)");
+			} else {
+				switch(Util::toInt(identity.getStatus())) {
+					case 0: return _T("Normal (0)");
+					case 1: return _T("Away (1)");
+					case 2: return _T("Extended Away (2)");
+					default: return Text::toT("Unknown (" + identity.get("AW") + ")");
+				}
+			}
 		}
 		case COLUMN_COMMENT: return Text::toT(identity.get("CM"));
 		default: return Util::emptyStringT;

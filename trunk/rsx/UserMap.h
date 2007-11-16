@@ -26,18 +26,12 @@
 template<bool isADC, typename BaseMap>
 class UserMap : public BaseMap {
 public:
-	UserMap() : clientEngine(NULL), myInfoEngine(NULL) { };
+	UserMap() : client(NULL), clientEngine(NULL) { };
 	virtual ~UserMap() throw() { 
-		uinitMyINFOCheck();
+		stopMyINFOCheck();
 		uinitClientCheck();
 		QueueManager::getInstance()->removeOfflineChecks();
 	};
-
-	void initMyINFOCheck(Client* client) {
-		if(myInfoEngine == NULL) {
-			myInfoEngine = new ThreadedMyINFOCheck(client, this);
-		}
-	}
 
 	void initClientCheck(Client* client) {
 		if(clientEngine == NULL) {
@@ -53,25 +47,16 @@ public:
 		}
 	}
 
-	void uinitMyINFOCheck() {
-		stopMyINFOCheck();
-		if(myInfoEngine != NULL) {
-			delete myInfoEngine;
-			myInfoEngine = NULL;
-		}
-	}
-
 	//myinfo start/stop functions
 	void startMyINFOCheck(bool fs, bool myinfo) { 
-		try {
-			if(myInfoEngine && !myInfoEngine->isChecking() && (fs || myinfo)) {
-				myInfoEngine->startCheck(fs, myinfo);
-			}
-		} catch(/*const ThreadException& e*/...) {
-			//
+		if(!myInfoEngine.isChecking() && (fs || myinfo)) {
+			myInfoEngine.startCheck(this, fs, myinfo);
 		}
+
 	}
-	void stopMyINFOCheck() { if(myInfoEngine) myInfoEngine->cancel(); }
+	void stopMyINFOCheck() { 
+		myInfoEngine.cancel();
+	}
 
 	//clients check start/stop functions
 	void startCheck(bool cc, bool cf) {
@@ -104,23 +89,28 @@ public:
 			clientEngine->startCheck();
 		}
 	}
-
+	void setClient(Client* cl) { client = cl; }
 private:
+	Client* client;
+	Client* getClient() { return client; }
 	CriticalSection cs;
 
 	//myinfo check engine
 	class ThreadedMyINFOCheck : public Thread {
 	public:
-		ThreadedMyINFOCheck(Client* cl, UserMap* um) : client(cl), users(um), inThread(false), checkFakeShare(false), checkMyInfo(false) { };
-		~ThreadedMyINFOCheck() throw() { cancel(); join(); }
+		ThreadedMyINFOCheck() : client(NULL), users(NULL), inThread(false), checkFakeShare(false), checkMyInfo(false) { };
+		~ThreadedMyINFOCheck() throw() { cancel(); }
 		bool isChecking() { 
 			return inThread; 
 		}
 		void cancel() { 
 			inThread = false;
+			join();
 		}
 
-		void startCheck(bool cfs, bool myInfo) {
+		void startCheck(UserMap* map, bool cfs, bool myInfo) {
+			users = map;
+			client = map->getClient();
 			checkFakeShare = cfs;
 			checkMyInfo = myInfo;
 			if(!inThread)
@@ -132,13 +122,13 @@ private:
 			setThreadPriority(Thread::LOW);
 			//Thread::sleep(100);
 			//Lock l(client->cs);
-			if(client && client->isConnected()) {
+			//if(client && client->isConnected()) {
+			Lock l(cs);
 				for(BaseMap::const_iterator i = users->begin(); i != users->end(); ++i) {
-					if(!inThread) 
+					if(!inThread || !(client && client->isConnected())) 
 						break;
 					i->second->inc();
-					Lock l(i->second->getClient().cs);
-					if(client && client->isConnected() && !i->second->isHidden()) {
+					if(!i->second->isHidden()) {
 						try {
 							if(checkMyInfo) {
 								i->second->getIdentity().myInfoDetect((*i->second));
@@ -154,16 +144,17 @@ private:
 					Thread::sleep(1);
 				}
 				client->setCheckedAtConnect(true);
-			}
+			//}
 			inThread = false;
 			return 0;
 		}
 	private:
+		CriticalSection cs;
 		bool inThread;
 		bool checkFakeShare, checkMyInfo;
 		Client* client;
 		UserMap* users;
-	} *myInfoEngine;
+	}myInfoEngine;
 
 	//clients check engine
 	class ThreadedCheck : public Thread {

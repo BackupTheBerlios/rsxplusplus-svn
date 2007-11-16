@@ -25,12 +25,13 @@
 
 #define RAW_FILE "Raws.xml"
 
-RawManager::RawManager() : lastAction(0) { 
+RawManager::RawManager() : lastAction(0) {
 	loadActionRaws(); 
 	TimerManager::getInstance()->addListener(this); 
 }
 
 RawManager::~RawManager() {
+	saveActionRaws();
 	TimerManager::getInstance()->removeListener(this);
 	for(Action::List::const_iterator i = action.begin(); i != action.end(); ++i) {
 		delete i->second;
@@ -49,13 +50,14 @@ void RawManager::saveActionRaws() {
 			xml.addChildAttrib("Name", l->second->getName());
 			xml.addChildAttrib("Actif", Util::toString(l->second->getActif()));
 			xml.stepIn();
-			for(Action::RawsList::iterator j = l->second->raw.begin(); j != l->second->raw.end(); ++j) {
+			for(Action::RawsList::const_iterator j = l->second->raw.begin(); j != l->second->raw.end(); ++j) {
 				xml.addTag("Raw");
 				xml.addChildAttrib("ID", Util::toString(j->getRawId()));
 				xml.addChildAttrib("Name", j->getName());
 				xml.addChildAttrib("Raw", j->getRaw());
 				xml.addChildAttrib("Time", Util::toString(j->getTime()));
 				xml.addChildAttrib("Actif", Util::toString(j->getActif()));
+				xml.addChildAttrib("UseLua", Util::toString(j->getLua()));
 			}
 			xml.stepOut();
 		}
@@ -84,7 +86,7 @@ void RawManager::loadActionRaws(SimpleXML& aXml) {
 		aXml.stepIn();
 		while(aXml.findChild("Raw")) {
 			addRaw(actionId, aXml.getIntChildAttrib("ID"), aXml.getChildAttrib("Name"), aXml.getChildAttrib("Raw"), 
-				Util::toInt(aXml.getChildAttrib("Time")), aXml.getBoolChildAttrib("Actif"));
+				aXml.getIntChildAttrib("Time"), aXml.getBoolChildAttrib("Actif"), aXml.getBoolChildAttrib("UseLua"));
 		}
 		aXml.stepOut();
 	}
@@ -232,15 +234,13 @@ Action::RawsList RawManager::getRawListActionId(int actionId) {
 	return list;
 }
 
-void RawManager::addRaw(int actionId, int rawId, const string& name, const string& raw, int time, bool actif) {
+void RawManager::addRaw(int actionId, int rawId, const string& name, const string& raw, int time, bool actif, bool lua) {
 	if(name.empty())
 		return;
 
 	Lock l(act);
-
 	for(Action::List::const_iterator i = action.begin(); i != action.end(); ++i) {
 		if(i->second->getActionId() == actionId) {
-
 			for(Action::RawsList::const_iterator j = i->second->raw.begin(); j != i->second->raw.end(); ++j) {
 				if(j->getName() == name)
 					return;
@@ -254,14 +254,13 @@ void RawManager::addRaw(int actionId, int rawId, const string& name, const strin
 					}
 				}
 			}
-
-			i->second->raw.push_back(Action::Raw(i->second->lastRaw++, rawId, name, raw, time, actif));
+			i->second->raw.push_back(Action::Raw(i->second->lastRaw++, rawId, name, raw, time, actif, lua));
 			return;
 		}
 	}
 }
 
-Action::Raw RawManager::addRaw(int id, const string& name, const string& raw, int time) throw(Exception) {
+Action::Raw RawManager::addRaw(int id, const string& name, const string& raw, int time, bool lua) throw(Exception) {
 	if(name.empty())
 		throw Exception(STRING(NO_NAME_SPECIFIED));
 
@@ -281,19 +280,17 @@ Action::Raw RawManager::addRaw(int id, const string& name, const string& raw, in
 				}
 			}
 		}
-
-		i->second->raw.push_back(Action::Raw(i->second->lastRaw++, rawId, name, raw, time, true));
+		i->second->raw.push_back(Action::Raw(i->second->lastRaw++, rawId, name, raw, time, true, lua));
 		return i->second->raw.back();
 	}
-	return Action::Raw(0, 0, Util::emptyString, Util::emptyString, 0, false);
+	return Action::Raw(0, 0, Util::emptyString, Util::emptyString, 0, false, lua);
 }
 
-void RawManager::changeRaw(int id, const string& oName, const string& nName, const string& raw, int time) throw(Exception) {
+void RawManager::changeRaw(int id, const string& oName, const string& nName, const string& raw, int time, bool lua) throw(Exception) {
 	if(oName.empty() || nName.empty())
 		throw Exception(STRING(NO_NAME_SPECIFIED));
 
 	Lock l(act);
-
 	Action::List::const_iterator i = action.find(id);
 	if(i != action.end()) {
 		if(oName != nName) {
@@ -308,6 +305,7 @@ void RawManager::changeRaw(int id, const string& oName, const string& nName, con
 				j->setName(nName);
 				j->setRaw(raw);
 				j->setTime(time);
+				j->setLua(lua);
 				break;
 			}
 		}
@@ -379,7 +377,13 @@ bool RawManager::moveRaw(int id, int idRaw, int pos) {
 void RawManager::on(TimerManagerListener::Second, uint64_t aTick) throw() {
 	for(ListRaw::iterator i = raw.begin(); i != raw.end(); ++i) {
 		if(aTick >= i->first) {
-			i->second.second->insertRaw(i->second.first);
+			if(i->second.client) {
+				if(i->second.lua) {
+					ScriptManager::getInstance()->onRaw(i->second.rawName, i->second.raw, i->second.client);
+				} else {
+					i->second.client->insertRaw(i->second.raw);
+				}
+			}
 			raw.erase(i);
 		}
 	}

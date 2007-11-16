@@ -25,11 +25,12 @@
 #include "../rsx/rsx-settings/rsx-SettingsManager.h"
 #include "../client/version.h"
 #include "../windows/WinUtil.h"
+#include "../rsx/IpManager.h"
 
 //some shortcuts
 #define set_text(idc, val) ::SetWindowText(GetDlgItem(idc), Text::toT(val).c_str())
 #define is_checked(idc) IsDlgButtonChecked(idc) == BST_CHECKED
-#define enable_window(idc, val) ::EnableWindow(GetDlgItem(idc), val)
+#define set_visible(idc, val) ::ShowWindow(GetDlgItem(idc), val)
 
 UpdateDialog::~UpdateDialog() {
 	if(c != NULL) {
@@ -52,9 +53,10 @@ LRESULT UpdateDialog::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lP
 
 	set_text(IDC_UPDATE_VERSION_CURRENT_PROFIL, ClientProfileManager::getInstance()->getProfileVersion());
 	set_text(IDC_UPDATE_VERSION_CURRENT_PROFIL_MYINFO, ClientProfileManager::getInstance()->getMyinfoProfileVersion());
+	set_text(IDC_UPDATE_VERSION_CURRENT_IPW, IpManager::getInstance()->getIpWatchVersion());
 	set_text(IDC_CLIENT_ADDRESS, RSXSETTING(UPDATE_URL));
 	set_text(IDC_MYINFO_ADDRESS, RSXSETTING(UPDATE_MYINFOS));
-	set_text(IDC_ISP_ADDRESS, RSXSETTING(UPDATE_ISP_URL));
+	set_text(IDC_ISP_ADDRESS, RSXSETTING(UPDATE_IPWATCH_URL));
 	set_text(IDCLOSE, STRING(CLOSE));
 	set_text(IDC_UPDATE_VERSION_CURRENT, VERSIONSTRING);
 	
@@ -157,7 +159,7 @@ void UpdateDialog::on(UpdateManagerListener::Complete, int file) throw() {
 			updateStatus(reload ? _T("Complete reloading MyINFO Profiles") : _T("Complete updating MyINFO Profiles"));
 			break;
 		case 2: 
-			updateStatus(reload ? _T("Complete reloading ISP List") : _T("Complete updating ISP List"));
+			updateStatus(reload ? _T("Complete reloading IP Watch List") : _T("Complete updating IP Watch List"));
 			break;
 		default: break;
 	}
@@ -198,12 +200,29 @@ void UpdateDialog::versionXML() {
 			}
 
 			xml.resetCurrentChild();
+			bool resize = false;
 			if(xml.findChild("URL")) {
 				downloadUrl = xml.getChildData();
 				if(xSVN > SVN_REVISION && !downloadUrl.empty()) {
-					enable_window(IDC_UPDATE_DOWNLOAD, true);
+					set_visible(IDC_UPDATE_DOWNLOAD, true);
+					resize = true;
 				}
 			}
+
+			if(resize) {
+				CEdit tmpEdit;
+				tmpEdit.Attach(GetDlgItem(IDC_UPDATE_HISTORY_TEXT));
+				CRect rcEdit, rc;
+				tmpEdit.GetWindowRect(rcEdit);
+				tmpEdit.MoveWindow(23, 101, rcEdit.Width(), rcEdit.Height()-25, true);
+				tmpEdit.Detach();
+			}
+
+			xml.resetCurrentChild();
+			while(xml.findChild("Message")) {
+				xHistory += xml.getChildData();					
+			}
+			set_text(IDC_UPDATE_HISTORY_TEXT, xHistory);
 
 			xml.resetCurrentChild();
 			if(xml.findChild("VersionProfile")) {
@@ -224,12 +243,15 @@ void UpdateDialog::versionXML() {
 					fixControls();
 				}
 			}
-
 			xml.resetCurrentChild();
-			while(xml.findChild("Message")) {
-				xHistory += xml.getChildData();					
+			if(xml.findChild("IpWatchVersion")) {
+				set_text(IDC_UPDATE_VERSION_LATEST_IPW, xml.getChildData());
+				if(Util::toDouble(xml.getChildData()) > Util::toDouble(IpManager::getInstance()->getIpWatchVersion())) {
+					updateStatus(_T("New ipw ver"));
+					setCheck(IDC_ISP_ACTIVE, true);
+					fixControls();
+				}
 			}
-			set_text(IDC_UPDATE_HISTORY_TEXT, xHistory);
 			xml.resetCurrentChild();
 			xml.stepOut();
 		}
@@ -269,7 +291,7 @@ void UpdateDialog::initClose() {
 	GetDlgItemText(IDC_MYINFO_ADDRESS, buf, 512);
 	RSXSettingsManager::getInstance()->set(RSXSettingsManager::UPDATE_MYINFOS, Text::fromT(buf));
 	GetDlgItemText(IDC_ISP_ADDRESS, buf, 512);
-	RSXSettingsManager::getInstance()->set(RSXSettingsManager::UPDATE_ISP_URL, Text::fromT(buf));
+	RSXSettingsManager::getInstance()->set(RSXSettingsManager::UPDATE_IPWATCH_URL, Text::fromT(buf));
 }
 
 void UpdateDialog::prepareFiles() {
@@ -285,7 +307,7 @@ void UpdateDialog::prepareFiles() {
 	}
 	if(is_checked(IDC_ISP_ACTIVE)) {
 		GetDlgItemText(IDC_ISP_ADDRESS, buf, 512);
-		updateItems.insert(make_pair((int8_t)UpdateManager::ISP, Text::fromT(buf)));
+		updateItems.insert(make_pair((int8_t)UpdateManager::IPWATCH, Text::fromT(buf)));
 	}
 	cProgress.SetRange(0, updateItems.size());
 	cProgress.SetPos(0);
@@ -299,7 +321,7 @@ void UpdateDialog::fixControls() {
 	::EnableWindow(GetDlgItem(IDC_LOAD_BACKUP), 
 		(clientActive && Util::fileExists(Util::getConfigPath() + "Profiles.xml.old")) || 
 		(myinfoActive && Util::fileExists(Util::getConfigPath() + "MyinfoProfiles.xml.old")) || 
-		(ispActive && Util::fileExists(Util::getConfigPath() + "ISPs.xml.old")));
+		(ispActive && Util::fileExists(Util::getConfigPath() + "IPWatch.xml.old")));
 
 	::EnableWindow(GetDlgItem(IDC_UPDATE),		clientActive || myinfoActive || ispActive);
 	::EnableWindow(GetDlgItem(IDC_PROGRESS),	clientActive || myinfoActive || ispActive);

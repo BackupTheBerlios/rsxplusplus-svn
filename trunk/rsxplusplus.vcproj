@@ -641,11 +641,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\windows\ISPDlg.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\windows\ISPPage.cpp"
+				RelativePath=".\windows\IpWatchPage.cpp"
 				>
 			</File>
 			<File
@@ -1058,11 +1054,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\windows\ISPDlg.h"
-				>
-			</File>
-			<File
-				RelativePath=".\windows\ISPPage.h"
+				RelativePath=".\windows\IpWatchPage.h"
 				>
 			</File>
 			<File

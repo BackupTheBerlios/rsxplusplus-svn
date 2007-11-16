@@ -69,8 +69,8 @@ protected:
 
 	void insertAllItem();
 	void insertItem(const tstring& a, int b, int showCheat);
-	int settingRaw[20];
-	int showCheat[20];
+	int settingRaw[19];
+	int showCheat[19];
 
 	static Item items[];
 	TCHAR* title;

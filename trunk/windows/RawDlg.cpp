@@ -30,6 +30,8 @@ LRESULT RawDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 	ctrlTime.Attach(GetDlgItem(IDC_TIME));
 	cVariables.Attach(GetDlgItem(IDC_RAW_VAR));
 	cVar.Attach(GetDlgItem(IDC_RAW_VAR_EXAMPLE));
+	ctrlLua.Attach(GetDlgItem(IDC_RAW_LUA));
+	ctrlLua.SetCheck(useLua ? BST_CHECKED : BST_UNCHECKED);
 
 	ctrlName.SetWindowText(Text::toT(name).c_str());
 	ctrlRaw.SetWindowText(Text::toT(raw).c_str());
@@ -84,6 +86,7 @@ LRESULT RawDlg::OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOO
 		raw = Text::fromT(buf);
 		GetDlgItemText(IDC_TIME, buf, 256);
 		time = Util::toInt(Text::fromT(buf));
+		useLua = ctrlLua.GetCheck() == BST_CHECKED;
 	}
 	EndDialog(wID);
 	return 0;

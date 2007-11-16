@@ -293,6 +293,7 @@ private:
 		client = ClientManager::getInstance()->getUserClient(user);
 		ctrlClient.setClient(client);
 	}
+	Client* getClient() { return client; }
 
 	string getCustomAway() {
 		string defAway = Util::getAwayMessage();

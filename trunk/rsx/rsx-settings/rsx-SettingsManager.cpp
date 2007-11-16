@@ -28,7 +28,7 @@ const string RSXSettingsManager::settingTags[] =
 {
 	// Strings
 	"ProtectedUsers", 
-	"UpdateProfiles", "UpdateISP", "UpdateMyInfoProfilesUrl",
+	"UpdateProfiles", "UpdateIpWatch", "UpdateMyInfoProfilesUrl",
 	
 	"ClipboardNameOne", "ClipboardNameTwo", "ClipboardNameThree", "ClipboardNameFour", "ClipboardNameFive", "ClipboardNameSix", 
 	"ClipboardTextOne", "ClipboardTextTwo", "ClipboardTextThree", "ClipboardTextFour", "ClipboardTextFive", "ClipboardTextSix",
@@ -39,41 +39,38 @@ const string RSXSettingsManager::settingTags[] =
 	"CheckDelay", "SleepTime", "MaxFilelists", "MaxTestSURs", "UseSendDelayedRaw", 
 	"FavoriteUserIsProtectedUser", "CheckAllClientsBeforeFilelists", "UncheckClientProtectedUser",
 	"UncheckListProtectedUser", "MaxTimeouts", "MaxDisconnects", "DisplayCheatsInMainChat",
-	"ShowShareCheckedUsers", "DeleteCheckedFilelists", "CheckConflicts", "ISPCheck", "UsePointsAdlSearch", "UseIpWatch",
+	"ShowShareCheckedUsers", "DeleteCheckedFilelists", "UsePointsAdlSearch", "UseIpWatch",
 	"IgnoreUserRegExpOrWC", "AutoUpdateIpOnStartup", "SlowDownloadSpeed", "SlowDownloadTime", "RawSenderSleepTime",
-	"IgnorePMSpammers", "DefaultProcessPriority",
+	"IgnorePMSpammers", "DefaultProcessPriority", "FlashWindowOnPM", "FlashWindowOnNewPM", "AutoStart",
 
 	"TimeoutRaw", "DisconnectRaw", 
 	"FakeShareRaw", "ListLenMismatch", 
 	"FilelistTooSmallOrBig", "FilelistUnavailable",
 	"NoTTHF", "VersionMisMatch", 
 	"MyInfoSpamKick", "CTMSpamKick", 
-	"BadIsp", "ADLLowPointsRaw", 
-	"ADLMediumPointsRaw", "ADLHighPointsRaw",
-	"HashErrorRaw", "rmDCRaw", 
-	"DCPlusPlusEmulationRaw", "FilelistVersionMismatch", 
-	"SlowDownloadRaw", "PMSpamKick", 
-	"FakeSlotCount",
+	"ADLLowPointsRaw", "ADLMediumPointsRaw", 
+	"ADLHighPointsRaw", "HashErrorRaw", 
+	"rmDCRaw", "DCPlusPlusEmulationRaw", 
+	"FilelistVersionMismatch", "SlowDownloadRaw", 
+	"PMSpamKick", "FakeSlotCount",
 
 	"ShowTimeoutRaw", "ShowDisconnectRaw", 
 	"ShowFakeShareRaw", "ShowLisLenMismatch", 
 	"ShowFilelistTooSmallOrBig", "ShowFilelistUnavailable", 
 	"ShowNoTTHF", "ShowVersionMisMatch", 
 	"ShowMyInfoSpamKick", "ShowCTMSpamKick", 
-	"ShowBadIsp", "ShowADLLowPointsRaw", 
-	"ShowADLMediumPointsRaw", "ShowADLHighPointsRaw",
-	"ShowHashErrorRaw", "ShowrmDCRaw", 
-	"ShowDCPlusPlusEmulationRaw", "ShowFilelistVersionMismatch", 
-	"ShowSlowDownloadRaw", "ShowPMSpamKick", 
-	"ShowFakeSlotCount",
+	"ShowADLLowPointsRaw", "ShowADLMediumPointsRaw", 
+	"ShowADLHighPointsRaw", "ShowHashErrorRaw", 
+	"ShowrmDCRaw", "ShowDCPlusPlusEmulationRaw", 
+	"ShowFilelistVersionMismatch", "ShowSlowDownloadRaw", 
+	"ShowPMSpamKick", "ShowFakeSlotCount",
 
 	"MyInfoCounter", "MyInfoTime", "CTMCounter", "CTMTime", "PMCounter", "PMTime",
-
 	"PercentHashed", "PercentFakeShareTolerated", "MaxFilelistSize", "MinFilelistSize", 
 
-	"UseChatFilter", "UsePartialFileSharing", "AutosearchEnable", "AutosearchTime", "AutosearchEvery", 
+	"UseChatFilter", "AutosearchEnable", "AutosearchTime", "AutosearchEvery", 
 	"AutosearchRecheckTime", "UseHighLight", "GetUpdateProfile", "UseFiltersOnNewHubs", "UseHighlightsOnNewHubs", "ProtectPMUser",
-	"UseSlowDownloadKick",
+	"UseSlowDownloadKick", "SortProtectedAfterFavs",
 	"SENTRY",
 	// Int64
 	"TotalDetects", "TotalFailedDetects", "TotalRawCommandsSent",
@@ -94,10 +91,10 @@ RSXSettingsManager::RSXSettingsManager()
 		int64Settings[k] = 0;
 	}
 
-	setDefault(UPDATE_URL,		"http://rsxplusplus.sf.net/xml/");
-	setDefault(UPDATE_MYINFOS,	"http://rsxplusplus.sf.net/xml/");
-	setDefault(UPDATE_ISP_URL,	"http://rsxplusplus.sf.net/xml/");
-	setDefault(PROFILE_VER_URL,	"http://rsxplusplus.sf.net/xml/");
+	setDefault(UPDATE_URL,			"http://rsxplusplus.sf.net/xml/");
+	setDefault(UPDATE_MYINFOS,		"http://rsxplusplus.sf.net/xml/");
+	setDefault(UPDATE_IPWATCH_URL,	"http://rsxplusplus.sf.net/xml/");
+	setDefault(PROFILE_VER_URL,		"http://rsxplusplus.sf.net/xml/");
 
 	setDefault(MAX_FILELISTS,					10);
 	setDefault(MAX_TESTSURS,					20);
@@ -126,8 +123,6 @@ RSXSettingsManager::RSXSettingsManager()
 	setDefault(CHECK_ALL_CLIENTS_BEFORE_FILELISTS,	true);
 	setDefault(UNCHECK_CLIENT_PROTECTED_USER,		true);
 	setDefault(UNCHECK_LIST_PROTECTED_USER,			true);
-	setDefault(CHECK_CONFLICTS,						false);
-	setDefault(ISP_CHECKING,						true);
 	setDefault(USE_IPWATCH,							true);
 	setDefault(AUTOSEARCH_ENABLED,					true);
 	setDefault(AUTOSEARCH_ENABLED_TIME,				true);
@@ -138,6 +133,10 @@ RSXSettingsManager::RSXSettingsManager()
 	setDefault(SHOW_SHARE_CHECKED_USERS,			true);
 	setDefault(DISPLAY_CHEATS_IN_MAIN_CHAT,			true);
 	setDefault(DELETE_CHECKED_FILELISTS,			true);
+	setDefault(FLASH_WINDOW_ON_PM,					false);
+	setDefault(FLASH_WINDOW_ON_NEW_PM,				true);
+	setDefault(AUTO_START,							false);
+	setDefault(SORT_PROTECTED_AFTER_FAV,			true);
 
 	//raws
 	setDefault(TIMEOUT_RAW,					0);
@@ -149,7 +148,6 @@ RSXSettingsManager::RSXSettingsManager()
 	setDefault(VERSION_MISMATCH,			0);
 	setDefault(MYINFO_SPAM_KICK,			0);
 	setDefault(CTM_SPAM_KICK,				0);
-	setDefault(BAD_ISP_RAW,					0);
 	setDefault(ADL_RAW_LOW_POINTS,			0);
 	setDefault(ADL_RAW_MEDIUM_POINTS,		0);
 	setDefault(ADL_RAW_HIGH_POINTS,			0);
@@ -171,7 +169,6 @@ RSXSettingsManager::RSXSettingsManager()
 	setDefault(SHOW_VERSION_MISMATCH,			true);
 	setDefault(SHOW_MYINFO_SPAM_KICK,			true);
 	setDefault(SHOW_CTM_SPAM_KICK,				true);
-	setDefault(SHOW_BAD_ISP_RAW,				true);
 	setDefault(SHOW_ADL_RAW_LOW_POINTS,			true);
 	setDefault(SHOW_ADL_RAW_MEDIUM_POINTS,		true);
 	setDefault(SHOW_ADL_RAW_HIGH_POINTS,		true);
@@ -206,7 +203,6 @@ RSXSettingsManager::RSXSettingsManager()
 	//others
 	setDefault(USE_CHAT_FILTER,				false);
 	setDefault(USE_HIGHLIGHT,				false);
-	setDefault(PARTIAL_FILE_SHARING,		true);
 	setDefault(IPUPDATE,					false);
 	setDefault(GET_UPDATE_PROFILE,			true);
 	setDefault(USE_FILTER_FAV,				false);

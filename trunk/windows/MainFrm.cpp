@@ -185,7 +185,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	// Set window name
 	SetWindowText(_T(APPNAME) _T(" ") _T(VERSIONSTRING)
 #ifdef SVN_REVISION_STR
-	EXTRA_VER
+		EXTRA_VER
 #endif
 		);
 
@@ -371,11 +371,11 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	ctrlToolbar.CheckButton(IDC_AWAY,BOOLSETTING(AWAY));
 	ctrlToolbar.CheckButton(IDC_LIMITER,BOOLSETTING(THROTTLE_ENABLE));
 	ctrlToolbar.CheckButton(IDC_DISABLE_SOUNDS, BOOLSETTING(SOUNDS_DISABLED));
-
+#ifndef SVN_REVISION_STR
 	if(SETTING(NICK).empty()) {
 		PostMessage(WM_COMMAND, ID_FILE_SETTINGS);
 	}
-
+#endif
 	// We want to pass this one on to the splitter...hope it get's there...
 	bHandled = FALSE;
 	return 0;

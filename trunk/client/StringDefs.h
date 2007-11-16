@@ -871,16 +871,6 @@ enum Strings { // @DontAdd
 	YES, // "Yes"
 	ZONEALARM_WARNING, // "ZoneAlarm was detected in your computer.  It is frequently responsible for corrupted downloads and is the cause of many \"rollback inconsistency\" errors.  Please uninstall it and use an alternate product.  "
 
-	WINAMP_HELP, // "/winamp - Works with 1.x, 2.x, 5.x (no WinAmp 3 support)\r\n- %[version]	Numerical Version (ex: 2.91)\r\n- %[state]	Playing state (ex: stopped/paused/playing)\r\n- %[title]		Window title from Winamp - if you want to change this for mp3s, Winamp > Pref > Input > MPEG > Title\r\n- %[rawtitle]	Window title from Winamp (if %[title] not working propertly)\r\n- %[percent]	Percentage (ex. 40%)\r\n- %[length]	Length in minutes:seconds (ex: 04:09)\r\n- %[elapsed]	Time elapsed in minutes:seconds (ex. 03:51)\r\n- %[bar]		ASCII progress bar, 10 characters wide no including brackets (ex. [----|-----])\r\n- %[bitrate]	Bitrate (ex. 128kbps)\r\n- %[sample]	Sample frequency (ex. 22kHz)\r\n- %[channels]	Number of channels (ex. stereo / mono)\r\nEmpty = Default String -> winamp(%[version]) %[state](%[title]) stats(%[percent] of %[length] %[bar])"
-	WINAMP_HELP_DESC, // "Winamp Help"
-	WMP_HELP, // "/wmp - Works with Windows Media Player 9+\r\n- %[version]	Version of Windows Media Player\r\n- %[fullversion]	Full version of Windows Media Player\r\n- %[status]	Pre-formatted status string from Windows Media Player\r\n- %[title]		Name of the currently playing item\r\n- %[elapsed]	Time elapsed in (HH:)MM:SS\r\n- %[percent]	Time elapsed presented as percentage from total length\r\n- %[bar]		ASCII progress bar, 10 characters wide no including brackets (ex. [----|-----])\r\n- %[length]	Full length of the current item in (HH:)MM:SS\r\n- %[artist]	Name of the artist for the currently playing item\r\n- %[album]	Name of the album the current song is from\r\n- %[genre]	Genre of the current media\r\n- %[bitrate]	Bitrate for the playing media\r\n- %[year]	Year of album publiciation (no WMP9 support)\r\n- %[size]		Size of the currently playing file\r\n- %[rating]	Users rating, represented with *'s (if available)\r\n\r\nEmpty = Default String -> +me %[title] at %[bitrate] <Windows Media Player %[version]>"
-	WMP_HELP_DESC, // "Windows Media Player Help"
-	ITUNES_HELP, // "/itunes - For iTunes media spamming\r\n- %[version]	Numerical Version (ex: 7.0.2.16)\r\n- %[album]	Name of the album the current track is from\r\n- %[artist]	Artist of the current track\r\n- %[title]		Name of the currently playing track\r\n- %[genre]	Genre of the currently playing track\r\n- %[elapsed]	Time elapsed in minutes:seconds\r\n- %[percent]	Time elapsed presented as percentage from total length\r\n- %[bar]		ASCII progress bar, 10 characters wide no including brackets (ex. [----|-----])\r\n- %[length]	Total length of the current track\r\n- %[bitrate]	Bitrate for the playing track (kbps)\r\n- %[frequency]	Frequency for the currently playing track (kHz)\r\n- %[year]	Year of publiciation/recording of the current track\r\n- %[size]		Size of the currently playing file\r\n- %[state]	Current state of iTunes (playing/stopped)\r\n\r\nEmpty = Default String -> +me playing: %[title] at %[bitrate] <iTunes %[version]>"
-	ITUNES_HELP_DESC, // "iTunes Help"
-	MPC_HELP, // "/mpc - For Media Player Classic media spamming\r\n- %[filename]	Name of the file currently playing\r\n- %[title]		Name of the cyrrently playing item (without file extension)\r\n- %[size]		Size of the file currently playing\r\n- %[state]	Current state of Media Player Classic (playing/paused/stopped)\r\n- %[elapsed]	Time elapsed in minutes:seconds\r\n- %[percent]	Time elapsed presented as percentage from total length\r\n- %[bar]		ASCII progress bar, 10 characters wide no including brackets (ex. [----|-----])\r\n- %[length]	Total length of the current file\r\n\r\nEmpty = Default String -> +me playing: %[title] <Media Player Classic>"
-	MPC_HELP_DESC, // "Media Player Classic Help"
-	NO_MEDIA_SPAM, // "Selected player doesn't support media spams"
-
 	STEALTHY_INDICATE_SPEEDS, // "Indicate speeds (Stealthy Style)"
 	PROGRESSBAR_STEALTHY_STYLE, // "Stealthy Style"
 	TICKS_SPEED_DOWN, // "5 ticks down speed:"
@@ -918,7 +908,7 @@ enum Strings { // @DontAdd
 	SETTINGS_AUTOSEARCH, // "Autosearch"
 	SETTINGS_ACTION_RAW, // "Action & Raw"
 
-	// @DontAdd // strings from rsx-advanced page
+	// @DontAdd // strings from settings page
 	SETTINGS_FAV_USER_IS_PROTECTED_USER, // "Favorite users are protected"
 	SETTINGS_USE_SEND_DELAYED_RAW, // "Use send delayed raw"
 	SETTINGS_UNCHECK_CLIENT_PROTECTED_USER, // "Not check the client of the protected users"
@@ -928,17 +918,18 @@ enum Strings { // @DontAdd
 	SETTINGS_GET_UPDATE_PROFILE, // "Check the new versions of client profile at startup"
 	SETTINGS_IGNORE_PM_SPAMMERS, // "Ignore PM Flooder instead of kick"
 	SETTINGS_PROTECT_PM_USERS, // "Protect user during PM session"
+	SETTINGS_AUTO_START, // "Start RSX++ at Windows starting"
 
 	// @DontAdd // some random settings
 	AUTOSEARCH_ENABLE, // "Enable search for forbidden files / TTH"
 	AUTOSEARCH_ENABLE_TIME, // "Automatically search every"
-	PARTIAL_FILE_SHARING, // "Use partial file sharing upload (Recommended)"
 	USE_FILTER_FAV, // "Use Chat Filter on connecting to new hubs"
 	USE_HL_FAV, // "Use Highlight on connecting to new hubs"
 	SETTINGS_EDIT_FOLDER, // "&Edit"
 	MENU_RECONNECT_DISCONNECTED, // "Reconnect disconnected"
 	SETTINGS_LOG_WEBSERVER, // "Log webserver"
 	SETTINGS_RAW_CMD_LOG, // "Log Raw Commands"
+	SETTINGS_SORT_PROTECTED_AFTER_FAV, // "Sort protected after favorite users"
 
 	SETTINGS_FSTRING, // "Line"
 	SETTINGS_IPW_ACTION, // "Action"
@@ -956,6 +947,8 @@ enum Strings { // @DontAdd
 	ADD_ACTION, // "Add / Rename an action"
 	NAME, // "Name"
 	RENAME, // "Rename"
+	FLASH_WINDOW_ON_NEW_PM, // "Flash window on PM only if it's from a new user"
+	FLASH_WINDOW_ON_PM, // "Flash window on PM"
 
 	SUPPORT, // "Support"
 	CHEATING_DESCRIPTION, // "Cheating Description"
@@ -1023,8 +1016,6 @@ enum Strings { // @DontAdd
 	SET_PROTECTED, // "Set Protected"
 	UNSET_PROTECTED, // "Unset Protected"
 
-	FLASH_WINDOW_ON_NEW_PM, // "Flash window on PM only if it's from a new user"
-	FLASH_WINDOW_ON_PM, // "Flash window on PM"
 	FORBIDDEN_DIRS, // "Forbidden Directories"
 	FORBIDDEN_FILES, // "Forbidden Files"
 	FORBIDDEN_FULLPATHS, // "Forbidden Full Path"

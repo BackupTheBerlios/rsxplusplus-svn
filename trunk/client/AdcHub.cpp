@@ -43,6 +43,7 @@ const string AdcHub::UDP4_FEATURE("UDP4");
 
 AdcHub::AdcHub(const string& aHubURL, bool secure) : Client(aHubURL, '\n', secure), sid(0) {
 	TimerManager::getInstance()->addListener(this);
+	users.setClient(this); //RSX++
 }
 
 AdcHub::~AdcHub() throw() {
@@ -196,8 +197,6 @@ void AdcHub::handle(AdcCommand::INF, AdcCommand& c) throw() {
 		//RSX++ // threaded checks
 		if(isOp()) {
 			users.initClientCheck(this);
-			users.initMyINFOCheck(this);
-
 			users.startMyINFOCheck(getCheckFakeShare(), getCheckMyInfo());
 			if(getCheckOnConnect()) {
 				users.startCheckOnConnect(getCheckClients(), getCheckFilelists());

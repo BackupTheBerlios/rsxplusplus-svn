@@ -5,7 +5,28 @@
  ** some lua optimizations
  ** fixed hub copy submenu
  ** when qs box is empty, on loose focus, default string is displayed
- ** option to reconnect disconnected
+ ** option to reconnect disconnected hubs
+ ** trunk moved to berlios.de
+ ** fixed fonts in dialogs...
+ ** removed option to disable partial file sharing
+ ** fixed removing filelist on disconnect
+ ** option to run rsx++ at windows startup
+ ** history box is resized on new version ;)
+ ** fixed QueueManager's crash
+ ** something from DC++ 0.703
+ ** allows to set one segment in QueueFrame
+ ** some changes about timing in TransferView
+ ** option to sort protected users after favorite users (if fav sort is enabled)
+ ** played with icon status for adc protocol
+ ** code cleanup as usual ;)
+ ** ip watch improved + added option to match host name
+ ** option to use lua function in raw
+ ** isp check included in ip watch
+ ** isp list completly removed
+ ** fixed fulDC detection (filelist...)
+ ** compile date in about box
+
+ not tested at all...
 
 ** SVN 42
  ** [TestAPI] missing icon file

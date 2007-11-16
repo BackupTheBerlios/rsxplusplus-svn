@@ -22,7 +22,6 @@
 #include "../client/SimpleXML.h"
 
 typedef map<int8_t, string> UpdateMap;
-//typedef UpdateMap::const_iterator UpdateIter;
 
 class UpdateManagerListener {
 public:
@@ -38,13 +37,11 @@ public:
 class UpdateManager : public Singleton<UpdateManager>, public Speaker<UpdateManagerListener>, private HttpConnectionListener {
 public:
 	UpdateManager();
-	~UpdateManager();
-	friend class Singleton<UpdateManager>;
-	
+	~UpdateManager();	
 	enum Types { 
 		CLIENT = 0, 
 		MYINFO, 
-		ISP
+		IPWATCH
 	};
 
 	void reloadFile(int file);
@@ -53,6 +50,8 @@ public:
 	void startDownload();
 
 private:
+	friend class Singleton<UpdateManager>;
+
 	HttpConnection c;
 	UpdateMap profileList;
 	int currentlyUpdating;

@@ -90,9 +90,9 @@ LRESULT PrivateFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 	setClient(replyTo);  //find user and get his client ;] ... case sensitive, specialy when user reconnect or back online
 	if(client) {
 		//just in case...
-		isOp = client->isOp();
-		hubName = client->getHubName();
-		myNick = client->getMyNick();
+		isOp = getClient()->isOp();
+		hubName = getClient()->getHubName();
+		myNick = getClient()->getMyNick();
 	}
 	customProtection = false;
 	if(RSXBOOLSETTING(PROTECT_PM_USERS)) {
@@ -134,6 +134,9 @@ void PrivateFrame::gotMessage(const Identity& from, const UserPtr& to, const Use
 				::PlaySound(Text::toT(SETTING(BEEPFILE)).c_str(), NULL, SND_FILENAME | SND_ASYNC);
 			}
 		}
+		if(RSXBOOLSETTING(FLASH_WINDOW_ON_PM)) {
+			WinUtil::flashWindow();
+		}
 	} else {
 		if(!myPM) {
 			if(BOOLSETTING(POPUP_PM)) {
@@ -147,6 +150,9 @@ void PrivateFrame::gotMessage(const Identity& from, const UserPtr& to, const Use
 				} else {
 					::PlaySound(Text::toT(SETTING(BEEPFILE)).c_str(), NULL, SND_FILENAME | SND_ASYNC);
 				}
+			}
+			if(RSXBOOLSETTING(FLASH_WINDOW_ON_PM) && !RSXBOOLSETTING(FLASH_WINDOW_ON_NEW_PM)){
+				WinUtil::flashWindow();
 			}
 		}
 		i->second->addLine(from, aMessage);
@@ -402,7 +408,7 @@ void PrivateFrame::addLine(const Identity& from, const tstring& aLine, CHARFORMA
 	}
 
 	//rsx++ was here...
-	tstring currentNick = Text::toT(client ? client->getCurrentNick() : SETTING(NICK));
+	tstring currentNick = Text::toT(getClient() ? getClient()->getCurrentNick() : SETTING(NICK));
 
 	if(BOOLSETTING(TIME_STAMPS)) {
 		ctrlClient.AppendText(from, currentNick, Text::toT("[" + Util::getShortTimeString() + "] "), aLine.c_str(), cf);
@@ -658,8 +664,8 @@ LRESULT PrivateFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
 		pSelectedLine = ctrlClient.LineFromPos(p);
 
 		selUser = NULL;
-		if(!ChatCtrl::sSelectedUser.empty())
-			selUser = client->findUser(Text::fromT(ChatCtrl::sSelectedUser))->getUser();
+		if(!ChatCtrl::sSelectedUser.empty() && client)
+			selUser = getClient()->findUser(Text::fromT(ChatCtrl::sSelectedUser))->getUser();
 
 		if(PreparePopupMenu(ChatCtrl::sSelectedUser, Mnu )) {
 			if(ChatCtrl::sSelectedUser.empty()) {
@@ -667,7 +673,7 @@ LRESULT PrivateFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
 				return TRUE;
 			} else {
 				if(client) { //no client? no fun
-					prepareMenu(Mnu, ::UserCommand::CONTEXT_CHAT, client->getHubUrl());
+					prepareMenu(Mnu, ::UserCommand::CONTEXT_CHAT, getClient()->getHubUrl());
 					Mnu.AppendMenu(MF_STRING, ID_EDIT_CLEAR_ALL, CTSTRING(CLEAR));
 					Mnu.AppendMenu(MF_SEPARATOR);
 					Mnu.AppendMenu(MF_STRING, IDC_CLOSE_WINDOW, CTSTRING(CLOSE));
@@ -888,7 +894,7 @@ bool PrivateFrame::PreparePopupMenu(const tstring& sNick, OMenu& pMenu ) {
 		if(bIsMe == false) {
 			pMenu.AppendMenu(MF_POPUP, (UINT)(HMENU)WinUtil::grantMenu, CTSTRING(GRANT_SLOTS_MENU));
 			if(client) {
-				if(isOp || !ClientManager::getInstance()->isOp(getSelectedUser(), client->getHubUrl())) {
+				if(isOp || !ClientManager::getInstance()->isOp(getSelectedUser(), getClient()->getHubUrl())) {
 					pMenu.AppendMenu(MF_SEPARATOR);
 					if(IgnoreManager::getInstance()->isIgnored(Text::fromT(sNick))) {
 						pMenu.AppendMenu(MF_STRING, IDC_UNIGNORE, CTSTRING(UNIGNORE_USER));
@@ -1046,7 +1052,7 @@ LRESULT PrivateFrame::onBanIP(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl
 	if(ChatCtrl::sSelectedIP != _T("")) {
 		tstring s = _T("!banip ") + ChatCtrl::sSelectedIP + _T(" ");
 		if(client) {
-			client->hubMessage(Text::fromT(s));
+			getClient()->hubMessage(Text::fromT(s));
 		}
 	}
 	return 0;
@@ -1056,7 +1062,7 @@ LRESULT PrivateFrame::onUnBanIP(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndC
 	if(ChatCtrl::sSelectedIP != _T("")) {
 		tstring s = _T("!unban ") + ChatCtrl::sSelectedIP + _T(" "); //verli NEED a unban reason at all
 		if(client) {
-			client->hubMessage(Text::fromT(s));
+			getClient()->hubMessage(Text::fromT(s));
 		}
 	}
 	return 0;
@@ -1110,7 +1116,7 @@ LRESULT PrivateFrame::onUnIgnore(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWnd
 LRESULT PrivateFrame::onCopyUserInfo(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
 	tstring sCopy;
 	if(!ChatCtrl::sSelectedUser.empty() && client != NULL) {
-		const OnlineUser* ui = client->findUser(Text::fromT(ChatCtrl::sSelectedUser));
+		const OnlineUser* ui = getClient()->findUser(Text::fromT(ChatCtrl::sSelectedUser));
 		if(ui) {
 			switch (wID) {
 				case IDC_COPY_NICK:
@@ -1219,7 +1225,7 @@ LRESULT PrivateFrame::onCopyUserInfo(WORD /*wNotifyCode*/, WORD wID, HWND /*hWnd
 
 LRESULT PrivateFrame::onCustomKick(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
 	if(!ChatCtrl::sSelectedUser.empty() && client) {
-		OnlineUser* ui = client->findUser(Text::fromT(ChatCtrl::sSelectedUser));
+		OnlineUser* ui = getClient()->findUser(Text::fromT(ChatCtrl::sSelectedUser));
 		if(ui) {
 			ui->customKick();
 		}
@@ -1229,7 +1235,7 @@ LRESULT PrivateFrame::onCustomKick(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
 
 LRESULT PrivateFrame::onMultihubKick(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
 	if(!ChatCtrl::sSelectedUser.empty() && client) {
-		OnlineUser* ui = client->findUser(Text::fromT(ChatCtrl::sSelectedUser));
+		OnlineUser* ui = getClient()->findUser(Text::fromT(ChatCtrl::sSelectedUser));
 		if(ui) {
 			ui->multiHubKick();
 		}

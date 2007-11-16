@@ -1071,7 +1071,7 @@ LRESULT QueueFrame::onSegments(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/,
 		QueueItemInfo* ii = ctrlQueue.getItemData(i);
 		QueueItem* qi = QueueManager::getInstance()->fileQueue.find(ii->getTarget());
 
-		qi->setMaxSegments(max((uint8_t)2, (uint8_t)(wID - 109)));
+		qi->setMaxSegments((uint8_t)(wID - 109));
 
 		ctrlQueue.updateItem(ctrlQueue.findItem(ii), COLUMN_SEGMENTS);
 	}
@@ -1504,5 +1504,5 @@ void QueueFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/) throw() {
 
 /**
  * @file
- * $Id: QueueFrame.cpp 334 2007-11-04 13:04:34Z bigmuscle $
+ * $Id: QueueFrame.cpp 335 2007-11-10 13:01:41Z bigmuscle $
  */

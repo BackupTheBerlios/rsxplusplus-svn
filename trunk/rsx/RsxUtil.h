@@ -49,13 +49,11 @@ public:
 	static bool				compareLower(const string& firstStr, const string& secondStr);
 	static bool				compareLower(const tstring& firstStr, const tstring& secondStr);
 	static int				CalcContrastColor(int crBg);
-	static HFONT			getSettingsFont();
+	static bool				isIpInRange(const string& aIp, const string& aRange);
 
 private:
 	static string tmpTestSur;
 	static StringList tags;
 	static StringList adcTags;
-	static HFONT settingsFont;
 };
-
 #endif //RSXUTIL_H

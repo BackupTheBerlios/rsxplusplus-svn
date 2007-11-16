@@ -373,9 +373,14 @@ void Client::sendActionCommand(const OnlineUser& ou, int actionId) {
 							const string& formattedCmd = Util::formatParams(uc.getCommand(), params, false);
 							if(RSXBOOLSETTING(USE_SEND_DELAYED_RAW)) {
 								delayTime += (i->getTime() * 1000) + 1;
-								RawManager::getInstance()->addRaw(delayTime, formattedCmd, this);
+								RawManager::getInstance()->addRaw(delayTime, formattedCmd, this, i->getName(), i->getLua());
 							} else {
-								insertRaw(formattedCmd);
+								//@todo maybe move also it to thread...
+								if(i->getLua()) {
+									ScriptManager::getInstance()->onRaw(i->getName(), formattedCmd, this);
+								} else {
+									insertRaw(formattedCmd);
+								}
 							}
 							if(SETTING(RAW_CMD_LOG)) {
 								params["rawCommand"] = formattedCmd;

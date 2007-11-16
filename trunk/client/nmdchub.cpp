@@ -42,6 +42,7 @@
 NmdcHub::NmdcHub(const string& aHubURL) : Client(aHubURL, '|', false), supportFlags(0),
 	lastBytesShared(0), lastUpdate(0)
 {
+	users.setClient(this); //RSX++
 }
 
 NmdcHub::~NmdcHub() throw() {
@@ -73,7 +74,7 @@ void NmdcHub::refreshUserList(bool refreshOnly) {
 		}
 	} else {
 		//RSX++ //make sure we dont check user
-		users.uinitMyINFOCheck();
+		users.stopMyINFOCheck();
 		//END
 		clearUsers();
 		getNickList();
@@ -803,7 +804,6 @@ void NmdcHub::onLine(const string& aLine) throw() {
 					setMyIdentity(ou.getIdentity());
 					//RSX++
 					users.initClientCheck(this);
-					users.initMyINFOCheck(this);
 					if(getCheckOnConnect()) {
 						users.startCheckOnConnect(getCheckClients(), getCheckFilelists());
 					}

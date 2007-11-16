@@ -25,21 +25,6 @@
 #include "../client/SimpleXML.h"
 #include "../client/SettingsManager.h"
 
-
-class Isp {
-public:
-	typedef Isp* Ptr;
-	typedef map<uint32_t, Ptr> List;
-	typedef List::iterator Iter;
-
-	Isp() { };
-	Isp(const string aISP, uint32_t aLower, bool aBad) : isp(aISP), lower(aLower), bad(aBad) { };
-
-	GETSET(string, isp, Isp);
-	GETSET(uint32_t, lower, Lower);
-	GETSET(bool, bad, Bad);
-};
-
 class IPWatch {
 public:
 	typedef IPWatch* Ptr;
@@ -47,104 +32,65 @@ public:
 	typedef List::iterator Iter;
 
 	IPWatch() { };
-	IPWatch(const string& aIp, int aAction, int aActionCommand, bool aDisplay, const string& aCheat, bool regexp)
-		throw() : ip(aIp), action(aAction), actionCommand(aActionCommand), displayCheat(aDisplay), cheat(aCheat), useRegExp(regexp) { };
+	IPWatch(int aMode, const string& aPattern, int aTask, int aAction, bool aDisplay, const string& aCheat, int mType, const string& aIsp)
+		throw() : mode(aMode), pattern(aPattern), task(aTask), action(aAction), displayCheat(aDisplay), cheat(aCheat), matchType(mType), isp(aIsp) { };
 
-	GETSET(string, ip, Ip);
+	GETSET(int, mode, Mode);
+	GETSET(string, pattern, Pattern);
+	GETSET(int, task, Task);
 	GETSET(int, action, Action);
-	GETSET(int, actionCommand, ActionCommand);
 	GETSET(bool, displayCheat, DisplayCheat);
 	GETSET(string, cheat, Cheat);
-	GETSET(bool, useRegExp, UseRegExp)
+	GETSET(int, matchType, MatchType);
+	GETSET(string, isp, Isp);
 };
 
 class SimpleXML;
-
 class IpManager : public Singleton<IpManager>, private HttpConnectionListener {
 public:
-	void reloadISPs() { clearISPList(); loadISPs(); }
-	void load() { loadISPs(); WatchLoad(); }
-	void loadISPs();
-	void saveISPs();
+	void load() { WatchLoad(); }
 	void WatchLoad();
 	void WatchSave();
+	void reloadIpWatch();
 
-	Isp::Ptr& getISP(const string& IP);
-	bool isBadRange(const uint32_t aKey);
-
-	void insertISP(const uint32_t high, const uint32_t low, const string& isp, const bool bad) {
-		Lock l(ics);
-		ispList.insert(make_pair(high, new Isp(isp, low, bad)));
-	}
-
-	void removeISP(const uint32_t aKey) {
-		Lock l(ics);
-		Isp::Iter j = ispList.find(aKey);
-		if(j != ispList.end()) {
-			delete j->second;
-			ispList.erase(aKey);
-		}
-	}
-
-	void clearISPList() {
-		Lock l(ics);
-		for(Isp::Iter j = ispList.begin(); j != ispList.end(); ++j) {
-			delete j->second;
-		}
-		ispList.clear();
-	}
-
-	Isp::List& getIspList() {
-		Lock l(ics);
-		reloadISPs();
-		return ispList; 
-	}
-
-	IPWatch* addWatch(const string& ip, int act, int actCmd, bool disp, const string& cheat, bool ur) {
-		IPWatch* ipw = new IPWatch(ip, act, actCmd, disp, cheat, ur);
+	IPWatch* addWatch(int m, const string& pat, int task, int act, bool disp, const string& cheat, int mt, const string& i) {
+		IPWatch* ipw = new IPWatch(m, pat, task, act, disp, cheat, mt, i);
 		ipwatch.push_back(ipw);
 		return ipw;
 	}
 
-	IPWatch* getWatch(unsigned int index, IPWatch &ipw) {
+	void getWatch(unsigned int index, IPWatch &ipw) {
 		if(ipwatch.size() > index)
 			ipw = *ipwatch[index];
-		return NULL;
 	}
 
-	IPWatch* updateWatch(unsigned int index, IPWatch &ipw) {
+	void updateWatch(unsigned int index, IPWatch &ipw) {
 		*ipwatch[index] = ipw;
-		return NULL;
 	}
 
-	IPWatch* removeWatch(unsigned int index) {
+	void removeWatch(unsigned int index) {
 		if(ipwatch.size() > index)
 			ipwatch.erase(ipwatch.begin() + index);
-		return NULL;
 	}
 
 	IPWatch::List& getWatch() { 
 		Lock l(cs);
 		return ipwatch; 
 	}
+
+	GETSET(string, ipWatchVersion, IpWatchVersion);
+
 	//@todo make possible to use it in network page as well
 	void UpdateExternalIp() { c->addListener(this); c->downloadFile("http://checkip.dyndns.org/"); }
-
 private:
-	friend class Singleton<IpManager>;
-
 	IpManager();
 	~IpManager();
 
-	mutable CriticalSection cs, ics;
-
-	Isp::List ispList;
+	CriticalSection cs;
 	IPWatch::List ipwatch;
-	static Isp::Ptr unknown;
+	friend class Singleton<IpManager>;
 
-	void loadISPs(SimpleXML& aXml);
 	void loadWatch(SimpleXML& aXml);
-
 	void clearWatchList() {
 		Lock l(cs);
 		for(IPWatch::Iter j = ipwatch.begin(); j!= ipwatch.end(); ++j) {
@@ -158,7 +104,7 @@ private:
 	string downBuf;
 
 	void on(HttpConnectionListener::Data, HttpConnection* /*conn*/, const uint8_t* buf, size_t len) throw() {
-		downBuf = string((const char*)buf, len);
+		downBuf += string((const char*)buf, len);
 	}
 
 	void on(HttpConnectionListener::Complete, HttpConnection* conn, const string&) throw() {

@@ -132,29 +132,17 @@ public:
 	
 	
 	void fileNotAvail(const std::string& msg = FILE_NOT_AVAILABLE) { isSet(FLAG_NMDC) ? send("$Error " + msg + "|") : send(AdcCommand(AdcCommand::SEV_RECOVERABLE, AdcCommand::ERROR_FILE_NOT_AVAILABLE, msg)); }
-	void shareHidden() { isSet(FLAG_NMDC) ? send("$Error: No sharing in this hub|") : send(AdcCommand(AdcCommand::SEV_RECOVERABLE, AdcCommand::ERROR_GENERIC, "No sharing in this hub")); }
+	void supports(const StringList& feat);
 	void getListLen() { send("$GetListLen|"); }
+	void shareHidden() { isSet(FLAG_NMDC) ? send("$Error: No sharing in this hub|") : send(AdcCommand(AdcCommand::SEV_RECOVERABLE, AdcCommand::ERROR_GENERIC, "No sharing in this hub")); }
 
 	// ADC Stuff
-	void sup(const StringList& features) { 
-		AdcCommand c(AdcCommand::CMD_SUP);
-		for(StringIterC i = features.begin(); i != features.end(); ++i)
-			c.addParam(*i);
-		send(c);
-	}
+	void sup(const StringList& features);
 	void inf(bool withToken);
 	void get(const string& aType, const string& aName, const int64_t aStart, const int64_t aBytes) {  send(AdcCommand(AdcCommand::CMD_GET).addParam(aType).addParam(aName).addParam(Util::toString(aStart)).addParam(Util::toString(aBytes))); }
 	void snd(const string& aType, const string& aName, const int64_t aStart, const int64_t aBytes) {  send(AdcCommand(AdcCommand::CMD_SND).addParam(aType).addParam(aName).addParam(Util::toString(aStart)).addParam(Util::toString(aBytes))); }
-
 	void send(const AdcCommand& c) { send(c.toString(0, isSet(FLAG_NMDC))); }
 
-	void supports(const StringList& feat) { 
-		string x;
-		for(StringList::const_iterator i = feat.begin(); i != feat.end(); ++i) {
-			x+= *i + ' ';
-		}
-		send("$Supports " + x + '|');
-	}
 	void setDataMode(int64_t aBytes = -1) { dcassert(socket); socket->setDataMode(aBytes); }
 	void setLineMode(size_t rollback) { dcassert(socket); socket->setLineMode(rollback); }
 
@@ -269,5 +257,5 @@ private:
 
 /**
  * @file
- * $Id: UserConnection.h 327 2007-10-07 12:46:45Z bigmuscle $
+ * $Id: UserConnection.h 335 2007-11-10 13:01:41Z bigmuscle $
  */

@@ -109,6 +109,7 @@ protected:
 	bool GetLuaBool();
 	string GetClientType(const Client* aClient);
 	string colorize(string& aLine);
+
 public:
 	void EvaluateFile(const string& fn);
 	void EvaluateChunk(const string& chunk);
@@ -116,17 +117,19 @@ public:
 
 class ScriptManager : public ScriptInstance, public Singleton<ScriptManager>, public Speaker<ScriptManagerListener>,
 		private ClientManagerListener, private TimerManagerListener {
-	Socket s;
-
-	friend class Singleton<ScriptManager>;
-	ScriptManager();
-	~ScriptManager() { lua_close(L); if(timerEnabled) TimerManager::getInstance()->removeListener(this); }
 public:
 	void load();
 	void SendDebugMessage(const string& s);
+	void onRaw(const string& aRawName, const string& aRaw, const Client* aClient) throw();
+
 	GETSET(bool, timerEnabled, TimerEnabled);
 	bool isRunning;
 private:
+	Socket s;
+	friend class Singleton<ScriptManager>;
+	ScriptManager();
+	~ScriptManager() { lua_close(L); if(timerEnabled) TimerManager::getInstance()->removeListener(this); }
+
 	friend struct LuaManager;
 	friend class ScriptInstance;
 

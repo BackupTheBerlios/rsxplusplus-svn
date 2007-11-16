@@ -492,7 +492,7 @@ string ScriptInstance::GetClientType(const Client* aClient) {
 		return "nmdch";
 	}
 }
-//RSX++
+
 string ScriptInstance::colorize(string& aLine) {
 	Lock l(scs);
 	MakeCall("dcpp", "OnColorize", 1, aLine);
@@ -501,7 +501,7 @@ string ScriptInstance::colorize(string& aLine) {
 	lua_settop(L, 0);
 	return aLine;
 }
-//END
+
 void ScriptManager::on(ClientDisconnected, const Client* aClient) throw() {
 	MakeCall(GetClientType(aClient), "OnHubRemoved", 0, aClient);
 }
@@ -512,6 +512,10 @@ void ScriptManager::on(ClientConnected, const Client* aClient) throw() {
 
 void ScriptManager::on(Second, uint64_t /* ticks */) {
 	MakeCall("dcpp", "OnTimer", 0, 0);
+}
+
+void ScriptManager::onRaw(const string& aRawName, const string& aRaw, const Client* aClient) throw() {
+	MakeCall("raw", aRawName, 0, aRaw, aClient);
 }
 
 void ScriptInstance::LuaPush(int i) { lua_pushnumber(L, i); }

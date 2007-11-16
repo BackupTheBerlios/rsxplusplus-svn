@@ -39,13 +39,13 @@ public:
 
 	class Raw {
 	public:
-		Raw() : id(0), rawId(0), time(0) { };
+		Raw() : id(0), rawId(0), time(0), lua(false) { };
 
-		Raw(int aId, int aRawId, const string& aName, const string& aRaw, int aTime, bool aActif) 
-			throw() : id(aId), rawId(aRawId), name(aName), raw(aRaw), time(aTime), actif(aActif) { };
-		Raw(const Raw& rhs) : id(rhs.id), rawId(rhs.rawId), name(rhs.name), raw(rhs.raw), time(rhs.time), actif(rhs.actif) { }
+		Raw(int aId, int aRawId, const string& aName, const string& aRaw, int aTime, bool aActif, bool aLua) 
+			throw() : id(aId), rawId(aRawId), name(aName), raw(aRaw), time(aTime), actif(aActif), lua(aLua) { };
+		Raw(const Raw& rhs) : id(rhs.id), rawId(rhs.rawId), name(rhs.name), raw(rhs.raw), time(rhs.time), actif(rhs.actif), lua(rhs.lua) { }
 		Raw& operator=(const Raw& rhs) { id = rhs.id; rawId = rhs.rawId; name = rhs.name; raw = rhs.raw;
-			time = rhs.time; actif = rhs.actif;
+		time = rhs.time; actif = rhs.actif; lua = rhs.lua;
 			return *this;
 		}
 
@@ -55,6 +55,7 @@ public:
 		GETSET(string, raw, Raw);
 		GETSET(int, time, Time);
 		GETSET(bool, actif, Actif);
+		GETSET(bool, lua, Lua);
 	};
 
 	typedef vector<Raw> RawsList;
@@ -68,7 +69,7 @@ public:
 	Action::List& getActionList() { Lock l(act); return action; }
 	Action::RawsList getRawList(int id);
 	Action::RawsList getRawListActionId(int actionId);
-	Action::Raw addRaw(int id, const string& name, const string& raw, int time) throw(Exception);
+	Action::Raw addRaw(int id, const string& name, const string& raw, int time, bool lua) throw(Exception);
 
 	int addAction(int actionId, const string& name, bool actif) throw(Exception);
 	int getValidAction(int actionId);
@@ -77,8 +78,8 @@ public:
 	void renameAction(const string& oName, const string& nName) throw(Exception);
 	void setActifAction(int id, bool actif);
 	void removeAction(int id);
-	void addRaw(int idAction, int rawId, const string& name, const string& raw, int time, bool actif);
-	void changeRaw(int id, const string& oName, const string& nName, const string& raw, int time) throw(Exception);
+	void addRaw(int idAction, int rawId, const string& name, const string& raw, int time, bool actif, bool lua);
+	void changeRaw(int id, const string& oName, const string& nName, const string& raw, int time, bool lua) throw(Exception);
 	void getRawItem(int id, int idRaw, Action::Raw& ra, bool favHub = false);
 	void setActifRaw(int id, int idRaw, bool actif);
 	void removeRaw(int id, int idRaw);
@@ -86,8 +87,8 @@ public:
 	void loadActionRaws();
 	void saveActionRaws();
 
-	void addRaw(uint64_t time, string aRaw, Client* c) { 
-		raw.insert(make_pair(time, make_pair(aRaw, c))); 
+	void addRaw(uint64_t time, const string& aRaw, Client* c, const string& aRawName = Util::emptyString, bool aLua = false) { 
+		raw.insert(make_pair(time, RawSendItem(c, aRaw, aRawName, aLua)));
 	}
 
 	bool moveRaw(int id, int idRaw, int pos);
@@ -99,6 +100,17 @@ private:
 	RawManager();
 	~RawManager();
 
+	class RawSendItem {
+	public:
+		RawSendItem(Client* c, const string& r, const string& rn, bool l) :
+		  client(c), raw(r), rawName(rn), lua(l) { };
+		~RawSendItem() { };
+		Client* client;
+		string raw;
+		string rawName;
+		bool lua;
+	};
+
 	friend class Singleton<RawManager>;
 	void loadActionRaws(SimpleXML& aXml);
 
@@ -106,7 +118,7 @@ private:
 	CriticalSection act;
 	uint16_t lastAction;
 
-	typedef map<uint64_t, pair<string, Client::Ptr>> ListRaw;
+	typedef std::map<uint64_t, RawSendItem> ListRaw;
 	ListRaw raw;
 
 	// TimerManagerListener

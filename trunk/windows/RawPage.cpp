@@ -44,14 +44,12 @@ LRESULT RawPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	PropPage::translate((HWND)(*this), texts);
 
 	CRect rc1, rc2;
-
 	ctrlAction.Attach(GetDlgItem(IDC_RAW_PAGE_ACTION));
 	ctrlAction.GetClientRect(rc1);
 	ctrlAction.InsertColumn(0, _T("Dummy"), LVCFMT_LEFT, rc1.Width() - 20, 0);
 	ctrlAction.SetExtendedListViewStyle(LVS_EX_CHECKBOXES | LVS_EX_FULLROWSELECT);
 
 	Action::List lst = RawManager::getInstance()->getActionList();
-
 	for(Action::List::const_iterator i = lst.begin(); i != lst.end(); ++i) {
 		addEntryAction(i->first, i->second->getName(), i->second->getActif(), ctrlAction.GetItemCount());
 	}
@@ -131,16 +129,10 @@ LRESULT RawPage::onAddRaw(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, 
 		int i = ctrlAction.GetNextItem(-1, LVNI_SELECTED);
 		try {
 			RawDlg raw;
-			raw.name = "Raw";
-			raw.raw = Util::emptyString;
-			raw.time = 0;
 			if(raw.DoModal(m_hWnd) == IDOK) {
 				addEntryRaw(RawManager::getInstance()->addRaw(
-					ctrlAction.GetItemData(i),
-					raw.name,
-					raw.raw,
-					raw.time
-					), ctrlRaw.GetItemCount());
+					ctrlAction.GetItemData(i), raw.name, raw.raw, raw.time, raw.useLua), ctrlRaw.GetItemCount()
+				);
 			}
 		} catch(const Exception& e) {
 			MessageBox(Text::toT(e.getError()).c_str(), _T(APPNAME) _T(" ") _T(VERSIONSTRING), MB_ICONSTOP | MB_OK);
@@ -164,9 +156,9 @@ LRESULT RawPage::onChangeRaw(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*
 				raw.name = name;
 				raw.raw = ra.getRaw();
 				raw.time = ra.getTime();
-
+				raw.useLua = ra.getLua();
 				if(raw.DoModal() == IDOK) {
-					RawManager::getInstance()->changeRaw(ctrlAction.GetItemData(j), name, raw.name, raw.raw, raw.time);
+					RawManager::getInstance()->changeRaw(ctrlAction.GetItemData(j), name, raw.name, raw.raw, raw.time, raw.useLua);
 					ctrlRaw.SetItemText(i, 0, Text::toT(raw.name).c_str());
 				}
 			} catch(const Exception& e) {
@@ -301,6 +293,5 @@ void RawPage::write() {
 			RawManager::getInstance()->setActifRaw(ctrlAction.GetItemData(j), ctrlRaw.GetItemData(l), RsxUtil::toBool(ctrlRaw.GetCheckState(l)));
 		}
 	}
-
 	RawManager::getInstance()->saveActionRaws();
 }

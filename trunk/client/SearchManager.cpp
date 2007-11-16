@@ -374,7 +374,6 @@ void SearchManager::onData(const uint8_t* buf, size_t aLen, const string& remote
 		onRES(c, user, remoteIp);
 
 	} if(x.compare(1, 4, "PSR ") == 0 && x[x.length() - 1] == 0x0a) {
-		if(!RSXBOOLSETTING(PARTIAL_FILE_SHARING)) return; //RSX++
 		AdcCommand c(x.substr(0, x.length()-1));
 		if(c.getParameters().empty())
 			return;

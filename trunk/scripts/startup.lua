@@ -1157,6 +1157,11 @@ function adch.OnHubRemoved( hub )
 	dcpp:removeHub( hub )
 end
 
+--//Raw Listener
+--raw = {}
+--function raw.OnRaw(msg, hub)
+--end
+
 --/////////////////////////////////////
 --// Utility functions
 --/////////////////////////////////////

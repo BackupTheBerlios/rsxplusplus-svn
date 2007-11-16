@@ -57,10 +57,9 @@ const string SettingsManager::settingTags[] =
 	"EmoticonsFile", "TLSPrivateKeyFile", "TLSCertificateFile", "TLSTrustedCertificatesPath",
 	"FinishedVisible", "FinishedULVisible", "DirectoryListingFrameVisible",
 	"RecentFrameOrder", "RecentFrameWidths",
-
 	//RSX++
 	"PGLogFormat", "PGLogFile", "PGUpdateURL", "PGFile"
-	"RawLogFormat", "RawLogFile",
+	"RawLogFormat", "RawLogFile", "BetaUser", "BetaPass",
 	//END
 	"SENTRY", 
 	// Ints
@@ -430,9 +429,11 @@ SettingsManager::SettingsManager()
 	setDefault(PG_UPDATE_URL, "");
 	setDefault(PROGRESSBAR_MODE, 2);
 	setDefault(SHOW_PLUGIN_TOOLBAR, true);
-	setDefault(RAW_LOG_FORMAT, "[%Y-%m-%d %H:%M] %[userNI] %[userI4] (%[userCS]) : %[rawCommand]");
 	setDefault(RAW_LOG_FILE, "RawCommands.log");
+	setDefault(RAW_LOG_FORMAT, "[%Y-%m-%d %H:%M] %[userNI] %[userI4] (%[userCS]) : %[rawCommand]");
 	setDefault(RAW_CMD_LOG, true);
+	setDefault(BETAUSR, "");
+	setDefault(BETAPASS, "");
 	//END
 	setDefault(PROGRESS_TEXT_COLOR_DOWN, RGB(255, 255, 255));
 	setDefault(PROGRESS_TEXT_COLOR_UP, RGB(255, 255, 255));
@@ -600,6 +601,7 @@ void SettingsManager::load(string const& aFileName)
 					set(StrSetting(i), xml.getChildData());
 				xml.resetCurrentChild();
 			}
+
 			for(i=INT_FIRST; i<INT_LAST; i++)
 			{
 				const string& attr = settingTags[i];
@@ -618,7 +620,7 @@ void SettingsManager::load(string const& aFileName)
 					set(Int64Setting(i), Util::toInt64(xml.getChildData()));
 				xml.resetCurrentChild();
 			}
-			
+
 			xml.stepOut();
 		}
 

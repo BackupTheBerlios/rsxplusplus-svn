@@ -895,70 +895,6 @@ Default: %H:%M:%S</String>
 		<String Name="WhoIs">Whois </String>
 		<String Name="Yes">Yes</String>
 		<String Name="ZonealarmWarning">ZoneAlarm was detected in your computer.  It is frequently responsible for corrupted downloads and is the cause of many \"rollback inconsistency\" errors.  Please uninstall it and use an alternate product.  </String>
-		<String Name="WinampHelp">/winamp - Works with 1.x, 2.x, 5.x (no WinAmp 3 support)
-- %[version]	Numerical Version (ex: 2.91)
-- %[state]	Playing state (ex: stopped/paused/playing)
-- %[title]		Window title from Winamp - if you want to change this for mp3s, Winamp &gt; Pref &gt; Input &gt; MPEG &gt; Title
-- %[rawtitle]	Window title from Winamp (if %[title] not working propertly)
-- %[percent]	Percentage (ex. 40%)
-- %[length]	Length in minutes:seconds (ex: 04:09)
-- %[elapsed]	Time elapsed in minutes:seconds (ex. 03:51)
-- %[bar]		ASCII progress bar, 10 characters wide no including brackets (ex. [----|-----])
-- %[bitrate]	Bitrate (ex. 128kbps)
-- %[sample]	Sample frequency (ex. 22kHz)
-- %[channels]	Number of channels (ex. stereo / mono)
-Empty = Default String -&gt; winamp(%[version]) %[state](%[title]) stats(%[percent] of %[length] %[bar])</String>
-		<String Name="WinampHelpDesc">Winamp Help</String>
-		<String Name="WmpHelp">/wmp - Works with Windows Media Player 9+
-- %[version]	Version of Windows Media Player
-- %[fullversion]	Full version of Windows Media Player
-- %[status]	Pre-formatted status string from Windows Media Player
-- %[title]		Name of the currently playing item
-- %[elapsed]	Time elapsed in (HH:)MM:SS
-- %[percent]	Time elapsed presented as percentage from total length
-- %[bar]		ASCII progress bar, 10 characters wide no including brackets (ex. [----|-----])
-- %[length]	Full length of the current item in (HH:)MM:SS
-- %[artist]	Name of the artist for the currently playing item
-- %[album]	Name of the album the current song is from
-- %[genre]	Genre of the current media
-- %[bitrate]	Bitrate for the playing media
-- %[year]	Year of album publiciation (no WMP9 support)
-- %[size]		Size of the currently playing file
-- %[rating]	Users rating, represented with *'s (if available)
-
-Empty = Default String -&gt; +me %[title] at %[bitrate] &lt;Windows Media Player %[version]&gt;</String>
-		<String Name="WmpHelpDesc">Windows Media Player Help</String>
-		<String Name="ItunesHelp">/itunes - For iTunes media spamming
-- %[version]	Numerical Version (ex: 7.0.2.16)
-- %[album]	Name of the album the current track is from
-- %[artist]	Artist of the current track
-- %[title]		Name of the currently playing track
-- %[genre]	Genre of the currently playing track
-- %[elapsed]	Time elapsed in minutes:seconds
-- %[percent]	Time elapsed presented as percentage from total length
-- %[bar]		ASCII progress bar, 10 characters wide no including brackets (ex. [----|-----])
-- %[length]	Total length of the current track
-- %[bitrate]	Bitrate for the playing track (kbps)
-- %[frequency]	Frequency for the currently playing track (kHz)
-- %[year]	Year of publiciation/recording of the current track
-- %[size]		Size of the currently playing file
-- %[state]	Current state of iTunes (playing/stopped)
-
-Empty = Default String -&gt; +me playing: %[title] at %[bitrate] &lt;iTunes %[version]&gt;</String>
-		<String Name="ItunesHelpDesc">iTunes Help</String>
-		<String Name="MpcHelp">/mpc - For Media Player Classic media spamming
-- %[filename]	Name of the file currently playing
-- %[title]		Name of the cyrrently playing item (without file extension)
-- %[size]		Size of the file currently playing
-- %[state]	Current state of Media Player Classic (playing/paused/stopped)
-- %[elapsed]	Time elapsed in minutes:seconds
-- %[percent]	Time elapsed presented as percentage from total length
-- %[bar]		ASCII progress bar, 10 characters wide no including brackets (ex. [----|-----])
-- %[length]	Total length of the current file
-
-Empty = Default String -&gt; +me playing: %[title] &lt;Media Player Classic&gt;</String>
-		<String Name="MpcHelpDesc">Media Player Classic Help</String>
-		<String Name="NoMediaSpam">Selected player doesn't support media spams</String>
 		<String Name="StealthyIndicateSpeeds">Indicate speeds (Stealthy Style)</String>
 		<String Name="ProgressbarStealthyStyle">Stealthy Style</String>
 		<String Name="TicksSpeedDown">5 ticks down speed:</String>
@@ -1001,15 +937,16 @@ Empty = Default String -&gt; +me playing: %[title] &lt;Media Player Classic&gt;<
 		<String Name="SettingsGetUpdateProfile">Check the new versions of client profile at startup</String>
 		<String Name="SettingsIgnorePmSpammers">Ignore PM Flooder instead of kick</String>
 		<String Name="SettingsProtectPmUsers">Protect user during PM session</String>
+		<String Name="SettingsAutoStart">Start RSX++ at Windows starting</String>
 		<String Name="AutosearchEnable">Enable search for forbidden files / TTH</String>
 		<String Name="AutosearchEnableTime">Automatically search every</String>
-		<String Name="PartialFileSharing">Use partial file sharing upload (Recommended)</String>
 		<String Name="UseFilterFav">Use Chat Filter on connecting to new hubs</String>
 		<String Name="UseHlFav">Use Highlight on connecting to new hubs</String>
 		<String Name="SettingsEditFolder">&amp;Edit</String>
 		<String Name="MenuReconnectDisconnected">Reconnect disconnected</String>
 		<String Name="SettingsLogWebserver">Log webserver</String>
 		<String Name="SettingsRawCmdLog">Log Raw Commands</String>
+		<String Name="SettingsSortProtectedAfterFav">Sort protected after favorite users</String>
 		<String Name="SettingsFstring">Line</String>
 		<String Name="SettingsIpwAction">Action</String>
 		<String Name="SettingsIpwIp">IP</String>
@@ -1025,6 +962,8 @@ Empty = Default String -&gt; +me playing: %[title] &lt;Media Player Classic&gt;<
 		<String Name="AddAction">Add / Rename an action</String>
 		<String Name="Name">Name</String>
 		<String Name="Rename">Rename</String>
+		<String Name="FlashWindowOnNewPm">Flash window on PM only if it's from a new user</String>
+		<String Name="FlashWindowOnPm">Flash window on PM</String>
 		<String Name="Support">Support</String>
 		<String Name="CheatingDescription">Cheating Description</String>
 		<String Name="Comment">Comment</String>
@@ -1082,8 +1021,6 @@ Empty = Default String -&gt; +me playing: %[title] &lt;Media Player Classic&gt;<
 		<String Name="MenuDetect">Detector</String>
 		<String Name="SetProtected">Set Protected</String>
 		<String Name="UnsetProtected">Unset Protected</String>
-		<String Name="FlashWindowOnNewPm">Flash window on PM only if it's from a new user</String>
-		<String Name="FlashWindowOnPm">Flash window on PM</String>
 		<String Name="ForbiddenDirs">Forbidden Directories</String>
 		<String Name="ForbiddenFiles">Forbidden Files</String>
 		<String Name="ForbiddenFullpaths">Forbidden Full Path</String>

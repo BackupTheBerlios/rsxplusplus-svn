@@ -85,7 +85,7 @@ void Socket::accept(const Socket& listeningSocket) throw(SocketException) {
 
 	do {
 		sock = ::accept(listeningSocket.sock, (sockaddr*)&sock_addr, &sz);
-	} while (sock < 0 && getLastError() == EINTR);
+	} while (sock == SOCKET_ERROR && getLastError() == EINTR);
 	check(sock);
 
 #ifdef _WIN32
@@ -646,5 +646,5 @@ const string Socket::getRemoteHost(const string& aIp) {
 
 /**
  * @file
- * $Id: Socket.cpp 317 2007-08-04 14:52:24Z bigmuscle $
+ * $Id: Socket.cpp 335 2007-11-10 13:01:41Z bigmuscle $
  */

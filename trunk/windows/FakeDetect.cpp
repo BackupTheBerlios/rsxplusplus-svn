@@ -68,7 +68,6 @@ LRESULT FakeDetect::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 	settingRaw[n++] = RSXSETTING(MYINFO_SPAM_KICK);
 	settingRaw[n++] = RSXSETTING(CTM_SPAM_KICK);
 	settingRaw[n++] = RSXSETTING(PM_SPAM_KICK);
-	settingRaw[n++] = RSXSETTING(BAD_ISP_RAW);
 
 	n = 0;
 	showCheat[n++] = RSXBOOLSETTING(SHOW_ADL_RAW_LOW_POINTS);
@@ -90,7 +89,6 @@ LRESULT FakeDetect::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 	showCheat[n++] = RSXBOOLSETTING(SHOW_MYINFO_SPAM_KICK);
 	showCheat[n++] = RSXBOOLSETTING(SHOW_CTM_SPAM_KICK);
 	showCheat[n++] = RSXBOOLSETTING(SHOW_PM_SPAM_KICK);
-	showCheat[n++] = RSXBOOLSETTING(SHOW_BAD_ISP_RAW);
 
 	CRect rc;
 	ctrlList.Attach(GetDlgItem(IDC_DETECTOR_ITEMS));
@@ -169,7 +167,6 @@ void FakeDetect::write() {
 	rsxs->set(RSXSettingsManager::MYINFO_SPAM_KICK,				RawManager::getInstance()->getValidAction(settingRaw[n++]));
 	rsxs->set(RSXSettingsManager::CTM_SPAM_KICK,				RawManager::getInstance()->getValidAction(settingRaw[n++]));
 	rsxs->set(RSXSettingsManager::PM_SPAM_KICK,					RawManager::getInstance()->getValidAction(settingRaw[n++]));
-	rsxs->set(RSXSettingsManager::BAD_ISP_RAW,					RawManager::getInstance()->getValidAction(settingRaw[n++]));
 
 	n = 0;
 
@@ -192,7 +189,6 @@ void FakeDetect::write() {
 	rsxs->set(RSXSettingsManager::SHOW_MYINFO_SPAM_KICK,			showCheat[n++]);
 	rsxs->set(RSXSettingsManager::SHOW_CTM_SPAM_KICK,				showCheat[n++]);
 	rsxs->set(RSXSettingsManager::SHOW_PM_SPAM_KICK,				showCheat[n++]);
-	rsxs->set(RSXSettingsManager::SHOW_BAD_ISP_RAW,					showCheat[n++]);
 }
 
 void FakeDetect::insertAllItem() {
@@ -218,7 +214,6 @@ void FakeDetect::insertAllItem() {
 	insertItem(_T("$MyINFO Flood"),						settingRaw[n++],	showCheat[c++]);
 	insertItem(_T("$ConnectToMe Flood"),				settingRaw[n++],	showCheat[c++]);
 	insertItem(_T("PM Flood"),							settingRaw[n++],	showCheat[c++]);
-	insertItem(_T("Bad ISP"),							settingRaw[n++],	showCheat[c++]);
 }
 
 void FakeDetect::insertItem(const tstring& a, int b, int showCheat) {

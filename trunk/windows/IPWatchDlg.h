@@ -14,25 +14,16 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#if !defined(FILTERPAGE_DLG_H)
-#define FILTERPAGE_DLG_H
-
-#if _MSC_VER > 1000
-#pragma once
-#endif // _MSC_VER > 1000
+#ifndef IPWATCH_DLG
+#define IPWATCH_DLG
 
 #include "../client/RawManager.h"
 
 class IPWatchDlg : public CDialogImpl<IPWatchDlg>, protected RawSelector {
-	CEdit cIP;
-	CEdit cCheat;
-	CComboBox cAction;
-	CComboBox cActionCommand;
-	CButton cDisplay, cRegExp;
 public:
-	tstring ip, cheat;
-	int action, actionCmd;
-	bool display, regexp;
+	tstring pattern, cheat, isp;
+	int task, action, mode, matchType;
+	bool display;
 
 	enum { IDD = IDD_ADD_IPWATCH };
 
@@ -42,16 +33,19 @@ public:
 		COMMAND_ID_HANDLER(IDOK, OnCloseCmd)
 		COMMAND_ID_HANDLER(IDCANCEL, OnCloseCmd)
 		COMMAND_ID_HANDLER(IDC_WATCH_ACTION, onAction)
+		COMMAND_ID_HANDLER(IDC_IPW_MODE, onAction)
 	END_MSG_MAP()
 
-	IPWatchDlg() { };
+	IPWatchDlg() : mode(0), pattern(_T("0.0.0.0")), cheat(_T("Forbidden IP!")), task(0), action(0), display(true), matchType(0), isp(Util::emptyStringT) { };
 	~IPWatchDlg() {
-		cActionCommand.Detach();
 		cAction.Detach();
+		cTask.Detach();
+		cMode.Detach();
+		cMatchType.Detach();
 	}
 
 	LRESULT onFocus(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
-		cIP.SetFocus();
+		cPattern.SetFocus();
 		return FALSE;
 	}
 	LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
@@ -59,7 +53,14 @@ public:
 	LRESULT onAction(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 
 private:
+	CEdit cPattern;
+	CComboBox cAction, cTask, cMode, cMatchType;
+	CButton cDisplay;
 	void fixControls();
 };
+#endif //IPWATCH_DLG
 
-#endif // !defined(FILTERPAGE_DLG_H)
+/**
+ * @file
+ * $Id$
+ */

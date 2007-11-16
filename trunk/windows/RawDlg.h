@@ -20,17 +20,12 @@
 #include "../client/Util.h"
 #include "../client/FavoriteManager.h"
 
-class RawDlg : public CDialogImpl<RawDlg>
-{
-	CEdit ctrlName;
-	CEdit ctrlRaw;
-	CEdit ctrlTime;
-
+class RawDlg : public CDialogImpl<RawDlg> {
 public:
-	
 	string name;
 	string raw;
 	int time;
+	bool useLua;
 
 	enum { IDD = IDD_RAW_DLG };
 
@@ -41,12 +36,14 @@ public:
 		COMMAND_HANDLER(IDC_RAW_VAR, CBN_SELCHANGE, onSelChange)
 	END_MSG_MAP()
 
-	RawDlg() { 
+	RawDlg() : name("Raw"), raw(""), time(0), useLua(false) { };
+	~RawDlg() { 
 		ctrlName.Detach();
 		ctrlRaw.Detach();
 		ctrlTime.Detach();
 		cVariables.Detach();
 		cVar.Detach();
+		ctrlLua.Detach();
 	};
 
 	LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
@@ -54,8 +51,9 @@ public:
 	LRESULT onSelChange(WORD /* wNotifyCode */, WORD wID, HWND /* hWndCtl */, BOOL& /* bHandled */);
 
 private:
+	CEdit ctrlName, ctrlTime, ctrlRaw, cVar;
 	CComboBox cVariables;
-	CEdit cVar;
+	CButton ctrlLua;
 };
 
 #endif

@@ -55,8 +55,8 @@ void UpdateManager::reloadFile(int file) {
 		case MYINFO:
 			ClientProfileManager::getInstance()->reloadMyinfoProfilesFromHttp();
 			break;
-		case ISP: 
-			IpManager::getInstance()->reloadISPs();
+		case IPWATCH: 
+			IpManager::getInstance()->reloadIpWatch();
 			break;
 		default: return;
 	}
@@ -71,8 +71,8 @@ void UpdateManager::restoreOld(int file) {
 		case MYINFO:
 			ClientProfileManager::getInstance()->reloadMyinfoProfiles();
 			break;
-		case ISP: 
-			IpManager::getInstance()->reloadISPs();
+		case IPWATCH: 
+			IpManager::getInstance()->reloadIpWatch();
 			break;
 		default: return;
 	}

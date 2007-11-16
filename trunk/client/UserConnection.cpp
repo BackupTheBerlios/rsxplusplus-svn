@@ -190,6 +190,21 @@ void UserConnection::inf(bool withToken) {
 	send(c);
 }
 
+void UserConnection::sup(const StringList& features) {
+	AdcCommand c(AdcCommand::CMD_SUP);
+	for(StringIterC i = features.begin(); i != features.end(); ++i)
+		c.addParam(*i);
+	send(c);
+}
+
+void UserConnection::supports(const StringList& feat) {
+	string x;
+	for(StringList::const_iterator i = feat.begin(); i != feat.end(); ++i) {
+		x+= *i + ' ';
+	}
+	send("$Supports " + x + '|');
+}
+
 void UserConnection::on(Connected) throw() {
 	lastActivity = GET_TICK();
     fire(UserConnectionListener::Connected(), this); 
@@ -223,5 +238,5 @@ void UserConnection::on(Failed, const string& aLine) throw() {
 
 /**
  * @file
- * $Id: UserConnection.cpp 332 2007-10-27 14:21:52Z bigmuscle $
+ * $Id: UserConnection.cpp 335 2007-11-10 13:01:41Z bigmuscle $
  */

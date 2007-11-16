@@ -256,6 +256,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\client\DebugManager.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\client\DirectoryListing.cpp"
 				>
 			</File>

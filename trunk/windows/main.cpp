@@ -65,7 +65,7 @@ FARPROC WINAPI FailHook(unsigned /* dliNotify */, PDelayLoadInfo  pdli) {
 #endif
 
 #include "../client/SSLSocket.h"
-/*
+
 string getExceptionName(DWORD code) {
 	switch(code)
     { 
@@ -92,7 +92,7 @@ string getExceptionName(DWORD code) {
 	}
 	return "";
 }
-*/
+
 LONG __stdcall DCUnhandledExceptionFilter( LPEXCEPTION_POINTERS e )
 {	
 	Lock l(cs);
@@ -134,8 +134,8 @@ LONG __stdcall DCUnhandledExceptionFilter( LPEXCEPTION_POINTERS e )
 	
 	DWORD exceptionCode = e->ExceptionRecord->ExceptionCode ;
 
-	sprintf(buf, "Code: %x\r\nVersion: %s\r\n", 
-		exceptionCode, VERSIONSTRING);
+	sprintf(buf, "Code: %x\r\nVersion: %s\r\nException code: %s\r\n", 
+		exceptionCode, getExceptionName(exceptionCode).c_str(), VERSIONSTRING);
 
 	f.write(buf, strlen(buf));
 #if defined(SVN_REVISION_STR)
@@ -416,8 +416,8 @@ static int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 	} else {
 		wndMain.ShowWindow(((nCmdShow == SW_SHOWDEFAULT) || (nCmdShow == SW_SHOWNORMAL)) ? SETTING(MAIN_WINDOW_STATE) : nCmdShow);
 	}
+
 	int nRet = theLoop.Run();
-	
 	_Module.RemoveMessageLoop();
 
 	shutdown();
@@ -431,7 +431,6 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 #else
 	SingleInstance dcapp(_T("{RSXPLUSPLUS-AEE8350A-B49A-4753-AB4B-E55479A48350}"));
 #endif
-
 	if(dcapp.IsAnotherInstanceRunning()) {
 		// Allow for more than one instance...
 				bool multiple = false;

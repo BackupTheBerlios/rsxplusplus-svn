@@ -601,6 +601,7 @@ void ClientManager::fileListDisconnected(const UserPtr& p) {
 					ou->getIdentity().setTestSURQueued(Util::emptyString);
 					ou->setTestSURComplete();
 				}
+				remove = true;
 				sendAction(*ou, RSXSETTING(DISCONNECT_RAW));
 			}
 		}
@@ -937,18 +938,18 @@ void ClientManager::setListSize(const UserPtr& p, int64_t aFileLength, bool adc)
 
 		if(ou->getIdentity().getBytesShared() > 0) {
 			if((RSXSETTING(MAXIMUM_FILELIST_SIZE) > 0) && (aFileLength > RSXSETTING(MAXIMUM_FILELIST_SIZE)) && RSXSETTING(FILELIST_TOO_SMALL_BIG)) {
-				ou->getIdentity().setCheatMsg(ou->getClient(), "Too large filelist - %[listsize] for the specified share of " + Util::formatBytes(ou->getIdentity().getBytesShared()), false, true, RSXBOOLSETTING(FILELIST_TOO_SMALL_BIG));
+				ou->getIdentity().setCheatMsg(ou->getClient(), "Too large filelist - %[userLSshort] for the specified share of %[userSSshort]", false, true, RSXBOOLSETTING(FILELIST_TOO_SMALL_BIG));
 				ou->getClient().updated(*ou);
 				sendAction(*ou, RSXSETTING(FILELIST_TOO_SMALL_BIG));
 			} else if((aFileLength < RSXSETTING(MINIMUM_FILELIST_SIZE) && RSXSETTING(FILELIST_TOO_SMALL_BIG)) || (aFileLength < 100)) {
-				ou->getIdentity().setCheatMsg(ou->getClient(), "Too small filelist - %[listsize] for the specified share of %[statedshareformat]", false, true, RSXBOOLSETTING(FILELIST_TOO_SMALL_BIG));
+				ou->getIdentity().setCheatMsg(ou->getClient(), "Too small filelist - %[userLSshort] for the specified share of %[userSSshort]", false, true, RSXBOOLSETTING(FILELIST_TOO_SMALL_BIG));
 				ou->getClient().updated(*ou);
 				sendAction(*ou, RSXSETTING(FILELIST_TOO_SMALL_BIG));
 			}
 		} else if(adc == false) {
 			int64_t listLength = (!ou->getIdentity().get("LL").empty()) ? Util::toInt64(ou->getIdentity().get("LL")) : -1;
 			if(p->isSet(User::DCPLUSPLUS) && (listLength != -1) && (listLength * 3 < aFileLength) && (ou->getIdentity().getBytesShared() > 0)) {
-				ou->getIdentity().setCheatMsg(ou->getClient(), "Fake file list - ListLen = " + Util::toString(listLength) + " FileLength = %[userLS]", false, true, RSXBOOLSETTING(LISTLEN_MISMATCH));
+				ou->getIdentity().setCheatMsg(ou->getClient(), "Fake file list - ListLen = %[userLL], FileLength = %[userLS]", false, true, RSXBOOLSETTING(LISTLEN_MISMATCH));
 				ou->getClient().updated(*ou);
 				sendAction(*ou, RSXSETTING(LISTLEN_MISMATCH));
 			}

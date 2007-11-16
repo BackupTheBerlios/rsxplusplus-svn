@@ -24,7 +24,6 @@
 string RsxUtil::tmpTestSur;
 StringList RsxUtil::tags;
 StringList RsxUtil::adcTags;
-HFONT RsxUtil::settingsFont = NULL;
 
 const string defaultTestSURName = "TestSUR";
 
@@ -43,23 +42,9 @@ void RsxUtil::init() {
 	adcTags.push_back("<++ 0.696");
 	adcTags.push_back("<++ 0.697");
 	adcTags.push_back("<++ 0.698");
-
-    LOGFONT lfont;
-    memzero(&lfont, sizeof(lfont));
-	lstrcpy(lfont.lfFaceName, _T("Tahoma"));
-	lfont.lfHeight = 13;
-	lfont.lfWeight = FW_LIGHT;
-	lfont.lfItalic = FALSE;
-	lfont.lfCharSet = DEFAULT_CHARSET;
-	lfont.lfOutPrecision = OUT_DEFAULT_PRECIS;
-	lfont.lfClipPrecision = CLIP_DEFAULT_PRECIS;
-	lfont.lfQuality = DEFAULT_QUALITY; //CLEARTYPE_QUALITY;
-	lfont.lfPitchAndFamily = FF_MODERN;
-	settingsFont = CreateFontIndirect(&lfont);
 }
 
 void RsxUtil::uinit() {
-	DeleteObject(settingsFont);
 	tags.clear();
 	adcTags.clear();
 }
@@ -112,6 +97,18 @@ uint32_t RsxUtil::toIpNumber(const string& aIp) {
 		(Util::toUInt32(aIp.c_str() + a + 1) << 16) | 
 		(Util::toUInt32(aIp.c_str() + b + 1) << 8) | 
 		(Util::toUInt32(aIp.c_str() + c + 1) );
+}
+
+bool RsxUtil::isIpInRange(const string& aIp, const string& aRange) {
+	string::size_type j = aRange.find('-') + 1;
+	if(j == string::npos)
+		return false;
+	uint32_t upper = toIpNumber(aRange.substr(j, aRange.size() - j));
+	uint32_t lower = toIpNumber(aRange.substr(0, aRange.find('-')));
+	uint32_t ip = toIpNumber(aIp);
+	if(lower <= ip && ip <= upper)
+		return true;
+	return false;
 }
 
 uint32_t RsxUtil::getUpperRange(const string& aRange) {
@@ -232,7 +229,7 @@ const string RsxUtil::getOsVersion() {
 string RsxUtil::getUpdateFileNames(const int number) {
 	switch(number) {
 		case 1: return "MyinfoProfiles.xml";
-		case 2: return "ISPs.xml";
+		case 2: return "IPWatch.xml";
 		default: return "Profiles.xml";
 	}
 }
@@ -309,8 +306,4 @@ int RsxUtil::CalcContrastColor(int crBg) {
 		return (0x7F7F7F + crBg) & 0xFFFFFF;
     else 
 		return crBg ^ 0xFFFFFF;
-}
-
-HFONT RsxUtil::getSettingsFont() {
-	return settingsFont;
 }

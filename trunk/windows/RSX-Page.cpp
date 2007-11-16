@@ -41,9 +41,11 @@ PropPage::Item RSX::items[] = {
 	{ 0, 0, PropPage::T_END }
 };
 RSX::ListItem RSX::listItems[] = {
-	{ RSXSettingsManager::PARTIAL_FILE_SHARING,	ResourceManager::PARTIAL_FILE_SHARING },
+	{ RSXSettingsManager::AUTO_START, ResourceManager::SETTINGS_AUTO_START },
 	{ RSXSettingsManager::USE_FILTER_FAV, ResourceManager::USE_FILTER_FAV },
 	{ RSXSettingsManager::USE_HL_FAV, ResourceManager::USE_HL_FAV },
+	{ RSXSettingsManager::FLASH_WINDOW_ON_PM, ResourceManager::FLASH_WINDOW_ON_PM },
+	{ RSXSettingsManager::FLASH_WINDOW_ON_NEW_PM, ResourceManager::FLASH_WINDOW_ON_NEW_PM },
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
 
@@ -78,6 +80,19 @@ void RSX::write() {
 	PropPage::write((HWND)*this, items, listItems, GetDlgItem(IDC_RSX_BOOLEANS), true);
 	IgnoreManager::getInstance()->putIgnoredUsers(ignoreList);
 	RSXSettingsManager::getInstance()->set(RSXSettingsManager::DEFAULT_PRIO, ctrlPrio.GetCurSel());
+
+	HKEY hk;
+	tstring app = _T("\"") + Text::toT(Util::getSystemPath()) + _T("\"");
+
+	if(::RegOpenKeyEx(HKEY_CURRENT_USER, _T("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run"), 0, KEY_WRITE | KEY_READ, &hk) == ERROR_SUCCESS) {
+		if(RSXBOOLSETTING(AUTO_START)) {
+			::RegCreateKey(HKEY_CURRENT_USER, _T("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run"), &hk);
+			::RegSetValueEx(hk, _T(APPNAME), 0, REG_SZ, (LPBYTE)app.c_str(), sizeof(TCHAR) * (app.length() + 1));
+		} else {
+			::RegDeleteValue(hk, _T(APPNAME));
+		}
+		::RegCloseKey(hk);
+	}
 }
 
 LRESULT RSX::onEditChange(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {

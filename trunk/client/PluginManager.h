@@ -28,11 +28,11 @@ using std::vector;
 
 class iPluginAPICallBack : public iPluginAPI {
 public:
-	const std::wstring getHubName(Client& c) const;
-	const std::wstring getHubUrl(Client& c) const;
+	const std::wstring getHubName(Client* c) const;
+	const std::wstring getHubUrl(Client* c) const;
 
-	void sendHubMessage(Client& client, const std::wstring& aMsg);
-	void addHubLine(Client& client, const std::wstring& aMsg, int type = 0);
+	void sendHubMessage(Client* client, const std::wstring& aMsg);
+	void addHubLine(Client* client, const std::wstring& aMsg, int type = 0);
 
 	void logMessage(const std::wstring& aMsg);
 	int getIntSetting(const std::string& /*sName*/);
@@ -50,11 +50,28 @@ public:
 	const std::wstring getDataPath() const;
 };
 
+class PluginInfo {
+public:
+	typedef void (*PLUGIN_UNLOAD)();
+
+	PluginInfo(HMODULE _h, PluginAPI* _a, int _id, PLUGIN_UNLOAD _u) : h(_h), a(_a), id(_id), pluginUnloader(_u) { };
+	~PluginInfo();
+
+	HMODULE getModule() { return h; }
+	PluginAPI* getPluginAPI() { return a; }
+	int getId() { return id; }
+	PLUGIN_UNLOAD pluginUnloader;
+private:
+	HMODULE h;
+	PluginAPI* a;
+	int id;
+};
+
 class PluginManager : public Singleton<PluginManager> {
 public:
 	PluginManager();
 	~PluginManager();
-	typedef std::map<int, HBITMAP> ToolbarPlugInfo;
+	typedef std::vector<PluginInfo*> PluginsMap;
 
 	void loadPluginDir();
 	void loadPlugin(const string& flname);
@@ -63,11 +80,9 @@ public:
 	void reloadPlugins();
 	void startPlugins();
 
-	void getIcons(ToolbarPlugInfo& tmpMap);
-	const tstring getPluginNameById(int aId) const;
 	HWND getMainHwnd() { return mainHwnd; }
 	void setHwnd(HWND hWnd) { mainHwnd = hWnd; }
-
+	
 	//host -> plugin
 	bool onToolbarClick(int aId);
 	bool onHubEnter(Client* client, const string& aMsg);
@@ -78,6 +93,7 @@ public:
 	map<wstring, wstring> getPluginSettings(const wstring& pName) {
 		return settings[validateName(pName)];
 	}
+	PluginsMap getPlugins() { return plugins; }
 
 private:
 	friend class Singleton<PluginManager>;
@@ -94,24 +110,7 @@ private:
 	typedef PluginAPI* (__cdecl *PLUGIN_LOAD)();
 	typedef int (*PLUGIN_ID)();
 	typedef int (*PLUGIN_API_VERSION)();
-	typedef void (*PLUGIN_UNLOAD)();
-	
-	class PluginInfo {
-	public:
-		PluginInfo(HMODULE _h, PluginAPI* _a, int _id, PLUGIN_UNLOAD _u) : h(_h), a(_a), id(_id), pluginUnloader(_u) { };
-		~PluginInfo();
 
-		HMODULE getModule() { return h; }
-		PluginAPI* getPluginAPI() { return a; }
-		int getId() { return id; }
-		PLUGIN_UNLOAD pluginUnloader;
-	private:
-		HMODULE h;
-		PluginAPI* a;
-		int id;
-	};
-
-	typedef std::vector<PluginInfo*> PluginsMap;
 	PluginsMap plugins;
 
 	typedef std::map<wstring, wstring> SettingItem;

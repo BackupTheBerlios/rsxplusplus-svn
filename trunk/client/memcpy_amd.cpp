@@ -87,6 +87,7 @@ static unsigned long CPU_Type = 0;
 // 5 = SSE2 (only for Pentium 4 detection, the optimization used is SSE)
 unsigned long get_cpu_type()
 {
+#ifndef _WIN64
   __asm
   {
 	mov			eax, [CPU_Type]
@@ -145,6 +146,7 @@ cpu_done:
 	mov			[CPU_Type], eax
 ret_eax:
   }
+#endif
 }
 
 static unsigned long memcpyProc = 0;
@@ -153,6 +155,7 @@ static unsigned long memzeroProc = 0;
 
 void* __stdcall memcpy2(void *dest, const void *src, size_t n)
 {
+#ifndef _WIN64
   __asm
   {
 	mov			ebx, [n]		; number of bytes to copy
@@ -526,10 +529,12 @@ $memcpy_last_few:			; dword aligned from before movsd's
 $memcpy_exit:
 	pop			eax // [dest]	; ret value = destination pointer
     }
+#endif
 }
 
 void* __stdcall memset2(void *dest, int c, size_t n)
 {
+#ifndef _WIN64
   __asm
   {
 	mov			ebx, [n]	; number of bytes to fill
@@ -763,10 +768,12 @@ $memset_last_few:		; dword aligned from before stosd's
 $memset_exit:
 	pop			eax // [dest]	; ret value = destination pointer
     }
+#endif
 }
 
 void __stdcall memzero2(void *dest, size_t n)
 {
+#ifndef _WIN64
   __asm
   {
 	mov			ebx, [n]	; number of bytes to fill
@@ -983,4 +990,5 @@ $memzero_last_few:		; dword aligned from before stosd's
 
 $memzero_exit:
     }
+#endif
 }

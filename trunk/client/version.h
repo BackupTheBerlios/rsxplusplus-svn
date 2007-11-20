@@ -23,10 +23,10 @@
 #define DCVERSIONSTRING "0.703"
 #define DCVERSIONFLOAT 0.7031
 
-#define SVNVERSION "svn335"
+#define SVNVERSION "svn336"
 //RSX++ //////////////////////////////////////////////////////////
-#define SVN_REVISION_STR "43"
-#define SVN_REVISION 43
+#define SVN_REVISION_STR "44"
+#define SVN_REVISION 44
 
 #define __HOMESITE "http://rsxplusplus.sf.net/"
 #define __WIKI "http://rsxplusplus.wiki.sourceforge.net/"

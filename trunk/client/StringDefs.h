@@ -1046,6 +1046,6 @@ enum Strings { // @DontAdd
 	PLUGIN_NOT_VALID, // "It's not a valid RSX++ Plugin!"
 	PLUGIN_LOAD_FAIL, // "Failed to load plugin!"
 	PLUGIN_USING_OLD_API, // "Plugin is using too old API revision!"
-
+	PLUGIN_ALREADY_LOADED, // "Plugin is already loaded!"
 	LAST // @DontAdd
 };

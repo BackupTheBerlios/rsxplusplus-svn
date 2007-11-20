@@ -443,9 +443,7 @@ LRESULT PropPageTextStyles::onImport(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*
 			importData("FileListAndClientCheckedColour", FULL_CHECKED_COLOUR);
 			importData("BadClientColour", BAD_CLIENT_COLOUR);
 			importData("BadFilelistColour", BAD_FILELIST_COLOUR);
-			importData("ProgressbaroDCStyle", PROGRESSBAR_ODC_STYLE);
 			importData("OdcStyleBumped", PROGRESSBAR_ODC_BUMPED);
-			importData("StealthyStyle", STEALTHY_STYLE);
 			importData("StealthyIndicateSpeeds", STEALTHY_INDICATE_SPEEDS);
 		}
 		xml.resetCurrentChild();
@@ -556,9 +554,7 @@ LRESULT PropPageTextStyles::onExport(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*
 	exportData("FileListAndClientCheckedColour", FULL_CHECKED_COLOUR);
 	exportData("BadClientColour", BAD_CLIENT_COLOUR);
 	exportData("BadFilelistColour", BAD_FILELIST_COLOUR);
-	exportData("ProgressbaroDCStyle", PROGRESSBAR_ODC_STYLE);
 	exportData("OdcStyleBumped", PROGRESSBAR_ODC_BUMPED);
-	exportData("StealthyStyle", STEALTHY_STYLE);
 	exportData("StealthyIndicateSpeeds", STEALTHY_INDICATE_SPEEDS);
 	
 	try {

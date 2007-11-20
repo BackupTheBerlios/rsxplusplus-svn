@@ -1046,5 +1046,6 @@ Default: %H:%M:%S</String>
 		<String Name="PluginNotValid">It's not a valid RSX++ Plugin!</String>
 		<String Name="PluginLoadFail">Failed to load plugin!</String>
 		<String Name="PluginUsingOldApi">Plugin is using too old API revision!</String>
+		<String Name="PluginAlreadyLoaded">Plugin is already loaded!</String>
 	</Strings>
 </Language>

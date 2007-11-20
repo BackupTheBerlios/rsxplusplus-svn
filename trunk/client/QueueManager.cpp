@@ -1980,7 +1980,6 @@ void QueueManager::removeOfflineChecks() {
 				if(i->second->countOnlineUsers() == 0) {
 					try {
 						remove(i->second->getTarget());
-						//fire(QueueManagerListener::Removed(), i->second);
 					} catch(...) {
 						//...
 					}

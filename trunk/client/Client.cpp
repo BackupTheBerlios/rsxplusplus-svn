@@ -382,7 +382,7 @@ void Client::sendActionCommand(const OnlineUser& ou, int actionId) {
 									insertRaw(formattedCmd);
 								}
 							}
-							if(SETTING(RAW_CMD_LOG)) {
+							if(SETTING(LOG_RAW_CMD)) {
 								params["rawCommand"] = formattedCmd;
 								LOG(LogManager::RAW, params);
 							}

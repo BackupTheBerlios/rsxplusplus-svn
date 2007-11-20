@@ -1159,7 +1159,7 @@ LRESULT PrivateFrame::onCopyUserInfo(WORD /*wNotifyCode*/, WORD wID, HWND /*hWnd
 					sCopy += Text::toT(ui->getIdentity().getNick()) + _T(" ") + Text::toT(ui->getIdentity().getMyInfoType());
 					break;
 				case IDC_COPY_SUB_CLIENT:
-					sCopy += Text::toT(ui->getIdentity().getNick()) + _T(" ") + Text::toT(ui->getIdentity().get("CT"));
+					sCopy += Text::toT(ui->getIdentity().getNick()) + _T(" ") + Text::toT(ui->getIdentity().get("CL"));
 					break;
 				case IDC_COPY_SUB_CHEAT:
 					sCopy += Text::toT(ui->getIdentity().getNick()) + _T(" ") + Text::toT(ui->getIdentity().get("CS"));
@@ -1177,7 +1177,7 @@ LRESULT PrivateFrame::onCopyUserInfo(WORD /*wNotifyCode*/, WORD wID, HWND /*hWnd
 					sCopy += Text::toT(ui->getIdentity().getMyInfoType());
 					break;
 				case IDC_COPY_CLIENT:
-					sCopy += Text::toT(ui->getIdentity().get("CT"));
+					sCopy += Text::toT(ui->getIdentity().get("CL"));
 					break;
 				case IDC_COPY_CHEAT:
 					sCopy += Text::toT(ui->getIdentity().get("CS"));
@@ -1196,7 +1196,7 @@ LRESULT PrivateFrame::onCopyUserInfo(WORD /*wNotifyCode*/, WORD wID, HWND /*hWnd
 						_T("\tTag: ") + Text::toT(ui->getIdentity().getTag()) + _T("\r\n") +
 						_T("\tConnection: ") + Text::toT(ui->getIdentity().getConnection()) + _T("\r\n") + 
 						_T("\tE-Mail: ") + Text::toT(ui->getIdentity().getEmail()) + _T("\r\n") +
-						_T("\tClient: ") + Text::toT(ui->getIdentity().get("CT")) + _T("\r\n") + 
+						_T("\tClient: ") + Text::toT(ui->getIdentity().get("CL")) + _T("\r\n") + 
 						_T("\tMyInfo: ") + Text::toT(ui->getIdentity().getMyInfoType()) + _T("\r\n")+
 						_T("\tVersion: ") + Text::toT(ui->getIdentity().get("VE")) + _T("\r\n") +
 						_T("\tMode: ") + ui->getText(OnlineUser::COLUMN_MODE) + _T("\r\n") +

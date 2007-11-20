@@ -803,9 +803,8 @@ void NmdcHub::onLine(const string& aLine) throw() {
 				if(ou.getUser() == getMyIdentity().getUser()) {
 					setMyIdentity(ou.getIdentity());
 					//RSX++
-					users.initClientCheck(this);
 					if(getCheckOnConnect()) {
-						users.startCheckOnConnect(getCheckClients(), getCheckFilelists());
+						users.startCheck(getCheckClients(), getCheckFilelists(), true);
 					}
 					users.startMyINFOCheck(getCheckFakeShare(), getCheckMyInfo());
 					//END
@@ -981,7 +980,6 @@ void NmdcHub::myInfo(bool alwaysSend) {
 		}
 	}
 
-	dcdebug("Throttle: %d, Limit: %d\n", BOOLSETTING(THROTTLE_ENABLE), SETTING(MAX_UPLOAD_SPEED_LIMIT));
 	if (BOOLSETTING(THROTTLE_ENABLE) && SETTING(MAX_UPLOAD_SPEED_LIMIT) != 0) {
 		snprintf(tag, sizeof(tag), "%s V:%s,M:%c,H:%s,S:%d,L:%d>", dc.c_str(), version.c_str(), modeChar, getCounts().c_str(), UploadManager::getInstance()->getSlots(), SETTING(MAX_UPLOAD_SPEED_LIMIT));
 	} else {

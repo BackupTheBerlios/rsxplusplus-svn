@@ -61,8 +61,6 @@ OperaColorsPage* current_page;
 LPCCHOOKPROC color_proc;
 
 PropPage::Item OperaColorsPage::items[] = {
-	//{ IDC_ODC_STYLE, SettingsManager::PROGRESSBAR_ODC_STYLE, PropPage::T_BOOL },
-	//{ IDC_STEALTHY_STYLE, SettingsManager::STEALTHY_STYLE, PropPage::T_BOOL },
 	{ IDC_INDICATE_SPEEDS, SettingsManager::STEALTHY_INDICATE_SPEEDS, PropPage::T_BOOL },
 	{ IDC_PROGRESS_BUMPED, SettingsManager::PROGRESSBAR_ODC_BUMPED, PropPage::T_BOOL },
 	{ IDC_PROGRESS_OVERRIDE, SettingsManager::PROGRESS_OVERRIDE_COLORS, PropPage::T_BOOL },

@@ -687,7 +687,7 @@ tstring HubFrame::copyUserInfo(const OnlineUser* ui, WORD wID) {
 				sCopy += Text::toT(ui->getIdentity().getNick()) + _T(" ") + Text::toT(ui->getIdentity().getMyInfoType());
 				break;
 			case IDC_COPY_SUB_CLIENT:
-				sCopy += Text::toT(ui->getIdentity().getNick()) + _T(" ") + Text::toT(ui->getIdentity().get("CT"));
+				sCopy += Text::toT(ui->getIdentity().getNick()) + _T(" ") + Text::toT(ui->getIdentity().get("CL"));
 				break;
 			case IDC_COPY_SUB_CHEAT:
 				sCopy += Text::toT(ui->getIdentity().getNick()) + _T(" ") + Text::toT(ui->getIdentity().get("CS"));
@@ -705,7 +705,7 @@ tstring HubFrame::copyUserInfo(const OnlineUser* ui, WORD wID) {
 				sCopy += Text::toT(ui->getIdentity().getMyInfoType());
 				break;
 			case IDC_COPY_CLIENT:
-				sCopy += Text::toT(ui->getIdentity().get("CT"));
+				sCopy += Text::toT(ui->getIdentity().get("CL"));
 				break;
 			case IDC_COPY_CHEAT:
 				sCopy += Text::toT(ui->getIdentity().get("CS"));
@@ -724,7 +724,7 @@ tstring HubFrame::copyUserInfo(const OnlineUser* ui, WORD wID) {
 					_T("\tTag: ") + Text::toT(ui->getIdentity().getTag()) + _T("\r\n") +
 					_T("\tConnection: ") + Text::toT(ui->getIdentity().getConnection()) + _T("\r\n") + 
 					_T("\tE-Mail: ") + Text::toT(ui->getIdentity().getEmail()) + _T("\r\n") +
-					_T("\tClient: ") + Text::toT(ui->getIdentity().get("CT")) + _T("\r\n") + 
+					_T("\tClient: ") + Text::toT(ui->getIdentity().get("CL")) + _T("\r\n") + 
 					_T("\tMyInfo: ") + Text::toT(ui->getIdentity().getMyInfoType()) + _T("\r\n")+
 					_T("\tVersion: ") + Text::toT(ui->getIdentity().get("VE")) + _T("\r\n") +
 					_T("\tMode: ") + ui->getText(OnlineUser::COLUMN_MODE) + _T("\r\n") +
@@ -2869,6 +2869,7 @@ void HubFrame::on(AddClientLine, const Client*, const string& aMsg, int mType) t
 		case 2: addLine(Text::toT(aMsg), WinUtil::m_ChatTextServer); break;
 		case 3: addLine(Text::toT(aMsg), WinUtil::m_ChatTextSystem); break;
 		case 4: addLine(Text::toT(aMsg), WinUtil::m_ChatTextLog); break;
+		case 5: displayCheat(Text::toT(aMsg)); break;
 		default: addLine(Text::toT(aMsg));
 	}
 }
@@ -2880,11 +2881,9 @@ void HubFrame::displayCheat(const tstring& aMessage) {
 	cf.dwMask = CFM_BACKCOLOR | CFM_COLOR | CFM_BOLD;
 	cf.crBackColor = SETTING(BACKGROUND_COLOR);
 	cf.crTextColor = SETTING(ERROR_COLOR);
-
 	addLine(aMessage, cf);
 }
 //END
-
 LRESULT HubFrame::onMatchQueue(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
 	if(!ChatCtrl::sSelectedUser.empty()) {
 		OnlineUser* ui = client->findUser(Text::fromT(ChatCtrl::sSelectedUser));

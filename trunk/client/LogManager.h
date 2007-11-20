@@ -106,8 +106,8 @@ private:
 		//RSX++
 		logOptions[PGUARDIAN][FILE]		= SettingsManager::PG_LOG_FILE;
 		logOptions[PGUARDIAN][FORMAT]	= SettingsManager::PG_LOG_FORMAT;
-		logOptions[RAW][FILE]			= SettingsManager::RAW_LOG_FILE;
-		logOptions[RAW][FORMAT]			= SettingsManager::RAW_LOG_FORMAT;
+		logOptions[RAW][FILE]			= SettingsManager::LOG_RAW_CMD_FILE;
+		logOptions[RAW][FORMAT]			= SettingsManager::LOG_RAW_CMD_FORMAT;
 		//END
 	}
 	~LogManager() throw() { }

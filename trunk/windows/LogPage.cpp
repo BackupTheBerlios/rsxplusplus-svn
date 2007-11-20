@@ -50,7 +50,7 @@ PropPage::ListItem LogPage::listItems[] = {
 	{ SettingsManager::LOG_STATUS_MESSAGES,		ResourceManager::SETTINGS_LOG_STATUS_MESSAGES },
 	{ SettingsManager::LOG_WEBSERVER,			ResourceManager::SETTINGS_LOG_WEBSERVER },
 	{ SettingsManager::PG_LOG,					ResourceManager::PG_LOG },
-	{ SettingsManager::RAW_CMD_LOG,				ResourceManager::SETTINGS_RAW_CMD_LOG },
+	{ SettingsManager::LOG_RAW_CMD,				ResourceManager::SETTINGS_RAW_CMD_LOG },
 	{ SettingsManager::LOG_FILELIST_TRANSFERS,	ResourceManager::SETTINGS_LOG_FILELIST_TRANSFERS },
 	{ 0,										ResourceManager::SETTINGS_AUTO_AWAY }
 };

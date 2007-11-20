@@ -44,8 +44,10 @@ public:
 		AWAY		= 0x80,
 		SERVER		= 0x100,
 		FIREBALL	= 0x200,
-		PROTECTED 	= 0x400, //< User protected [rsx]
+		//RSX++
+		PROTECTED 	= 0x400, //< User protected
 		PG_BLOCK 	= 0x800, //< Blocked by PeerGuardian
+		//END
 	};
 
 	struct Hash {
@@ -74,6 +76,13 @@ private:
 /** One of possibly many identities of a user, mainly for UI purposes */
 class Identity {
 public:
+	enum ClientType {
+		CT_BOT = 1,
+		CT_REGGED = 2,
+		CT_OP = 4,
+		CT_OWNER = 8,
+		CT_HUB = 16
+	};
 
 	Identity() { }
 	Identity(const UserPtr& ptr, uint32_t aSID) : user(ptr) { setSID(aSID); }
@@ -109,11 +118,11 @@ public:
 	void setHidden(bool hidden) { set("HI", hidden ? "1" : Util::emptyString); }
 	const string getTag() const;
 	bool supports(const string& name) const;
-	bool isHub() const { return !get("HU").empty(); }
-	bool isOp() const { return !get("OP").empty(); }
-	bool isRegistered() const { return !get("RG").empty(); }
+	bool isHub() const { return isClientType(CT_HUB) || !get("HU").empty(); }
+	bool isOp() const { return isClientType(CT_OP) || !get("OP").empty(); }
+	bool isRegistered() const { return isClientType(CT_REGGED) || !get("RG").empty(); }
 	bool isHidden() const { return !get("HI").empty(); }
-	bool isBot() const { return !get("BO").empty(); }
+	bool isBot() const { return isClientType(CT_BOT) || !get("BO").empty(); }
 	bool isAway() const { return !get("AW").empty(); }
 	bool isTcpActive() const { return (!user->isSet(User::NMDC) && !getIp().empty()) || !user->isSet(User::PASSIVE); }
 	bool isUdpActive() const { return !getIp().empty() && !getUdpPort().empty(); }
@@ -129,6 +138,8 @@ public:
 	
 	uint32_t getSID() const { return Util::toUInt32(get("SI")); }
 	void setSID(uint32_t sid) { if(sid != 0) set("SI", Util::toString(sid)); }
+
+	bool isClientType(ClientType ct) const;
 
 	const string getReport() const;
 	void getParams(StringMap& map, const string& prefix, bool compatibility) const;
@@ -156,7 +167,7 @@ public:
 	GETSET(UserPtr, user, User);
 	GETSET(uint64_t, loggedIn, LoggedIn); //RSX++
 private:
-	typedef map<short, string> InfMap;
+	typedef std::tr1::unordered_map<short, string> InfMap;
 	typedef InfMap::const_iterator InfIter;
 	InfMap info;
 	/** @todo there are probably more threading issues here ...*/
@@ -271,5 +282,5 @@ private:
 
 /**
  * @file
- * $Id: User.h 334 2007-11-04 13:04:34Z bigmuscle $
+ * $Id: User.h 336 2007-11-18 13:26:41Z bigmuscle $
  */

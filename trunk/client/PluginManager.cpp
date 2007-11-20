@@ -44,7 +44,7 @@ PluginManager::~PluginManager() {
 	unloadAll();
 }
 
-PluginManager::PluginInfo::~PluginInfo(){
+PluginInfo::~PluginInfo(){
 	if(a != NULL) {
 		a->onUnload();
 		a->setInterface(NULL);
@@ -61,7 +61,7 @@ PluginManager::PluginInfo::~PluginInfo(){
 
 void PluginManager::loadPluginDir() {
 	Lock l(cs);
-	StringList libs = File::findFiles(Util::getDataPath() + "Plugins\\", "*.dll");
+	StringList libs = File::findFiles(Util::getDataPath() + "Plugins" PATH_SEPARATOR_STR, "*.dll");
 	for(StringIter i = libs.begin(); i != libs.end(); ++i) {
 		loadPlugin((*i));
 	}
@@ -86,20 +86,16 @@ void PluginManager::loadPlugin(const string& flname) {
 		if(!isLoaded(pId)) {
 			if(apiVer == API_VERSION) {
 				PLUGIN_LOAD api = (PLUGIN_LOAD)::GetProcAddress(h, "pluginLoad");
-				PLUGIN_UNLOAD ul = (PLUGIN_UNLOAD)::GetProcAddress(h, "pluginUnload");
+				PluginInfo::PLUGIN_UNLOAD ul = (PluginInfo::PLUGIN_UNLOAD)::GetProcAddress(h, "pluginUnload");
 				if(api != NULL && ul != NULL) {
 					PluginAPI* a = api();
 					a->setInterface(new iPluginAPICallBack());
 					plugins.push_back(new PluginInfo(h, a, pId, ul));
 					return;
 				}
-			} else {
-				LogManager::getInstance()->message(STRING(PLUGIN_USING_OLD_API) + " (" + Util::getFileName(flname) + ")");
-			}
-		}
-	} else {
-		LogManager::getInstance()->message(STRING(PLUGIN_NOT_VALID) + " (" + Util::getFileName(flname) + ")");
-	}
+			} else { LogManager::getInstance()->message(STRING(PLUGIN_USING_OLD_API) + " (" + Util::getFileName(flname) + ")"); }
+		} else { LogManager::getInstance()->message(STRING(PLUGIN_ALREADY_LOADED) + " (" + Util::getFileName(flname) + ")"); }
+	} else { LogManager::getInstance()->message(STRING(PLUGIN_NOT_VALID) + " (" + Util::getFileName(flname) + ")"); }
 	FreeLibrary(h);
 }
 
@@ -127,7 +123,8 @@ void PluginManager::unloadAll() {
 }
 
 void PluginManager::reloadPlugins() {
-	unloadAll();
+	if(plugins.size() > 0)
+		unloadAll();
 	loadPluginDir();
 	startPlugins();
 }
@@ -138,25 +135,6 @@ void PluginManager::startPlugins() {
 	for(PluginsMap::const_iterator i = plugins.begin(); i != plugins.end(); ++i) {
 		(*i)->getPluginAPI()->onLoad();
 	}
-}
-
-void PluginManager::getIcons(ToolbarPlugInfo& tmpMap) {
-	Lock l(cs);
-	tmpMap.clear();
-	for(PluginsMap::const_iterator i = plugins.begin(); i != plugins.end(); ++i) {
-		if((*i)->getPluginAPI()->getPluginID() > 0 && (*i)->getPluginAPI()->getPluginIcon() != NULL) {
-			tmpMap.insert(make_pair((*i)->getPluginAPI()->getPluginID(), (*i)->getPluginAPI()->getPluginIcon()));
-		}
-	}
-}
-
-const tstring PluginManager::getPluginNameById(int aId) const {
-	for(PluginsMap::const_iterator i = plugins.begin(); i != plugins.end(); ++i) {
-		if((*i)->getPluginAPI()->getPluginID() == aId) {
-			return (*i)->getPluginAPI()->getPluginName().c_str();
-		}
-	}
-	return Util::emptyStringT;
 }
 
 bool PluginManager::onToolbarClick(int aId) {
@@ -172,9 +150,11 @@ bool PluginManager::onToolbarClick(int aId) {
 
 bool PluginManager::onHubEnter(Client* client, const string& aMsg) {
 	Lock l(cs);
+	Lock lc(client->cs);
+
 	bool drop = false;
 	for(PluginsMap::iterator i = plugins.begin(); i != plugins.end(); ++i) {
-		if(client && (*i)->getPluginAPI()->onHubEnter(*client, Text::toT(aMsg)))
+		if((*i)->getPluginAPI()->onHubEnter(client, Text::toT(aMsg)))
 			drop = true;
 	}
 	return drop;
@@ -182,9 +162,11 @@ bool PluginManager::onHubEnter(Client* client, const string& aMsg) {
 
 bool PluginManager::onHubMessage(Client* client, const string& aMsg) {
 	Lock l(cs);
+	Lock lc(client->cs);
+
 	bool drop = false;
 	for(PluginsMap::iterator i = plugins.begin(); i != plugins.end(); ++i) {
-		if(client && (*i)->getPluginAPI()->onHubMessage(*client, Text::toT(aMsg)))
+		if((*i)->getPluginAPI()->onHubMessage(client, Text::toT(aMsg)))
 			drop = true;
 	}
 	return drop;
@@ -219,7 +201,6 @@ bool PluginManager::isLoaded(const int aPluginId) {
 
 void PluginManager::loadSettings() {
 	Lock l(cs);
-	dontSave = true;
 	try {
 		SimpleXML xml;
 		xml.fromXML(File(Util::getConfigPath() + "PluginSettings.xml", File::READ, File::OPEN).read());
@@ -250,36 +231,34 @@ void PluginManager::loadSettings() {
 	} catch(const Exception& e) {
 		dcdebug("PluginManager::loadSettings: %s\n", e.getError().c_str());
 	}	
-	dontSave = false;
 }
 
 void PluginManager::saveSettings() {
-	if(dontSave)
-		return;
-
 	Lock l(cs);
 	try {
 		SimpleXML xml;
 		xml.addTag("PluginSettings");
 		xml.stepIn();
-		xml.addTag("Plugins");
-		xml.stepIn();
-		for(PluginsMap::const_iterator i = plugins.begin(); i != plugins.end(); ++i) {
-			const wstring& validName = validateName((*i)->getPluginAPI()->getPluginName());
-			xml.addTag(Text::fromT(validName));
+		{
+			xml.addTag("Plugins");
 			xml.stepIn();
-			SettingItem tempMap = getPluginSettings(validName);
-			for(SettingItem::const_iterator j = tempMap.begin(); j != tempMap.end(); ++j) {
-				xml.addTag(Text::fromT(j->first), Text::fromT(j->second));
+			{
+				for(PluginsMap::const_iterator i = plugins.begin(); i != plugins.end(); ++i) {
+					const wstring& validName = validateName((*i)->getPluginAPI()->getPluginName());
+					xml.addTag(Text::fromT(validName));
+					xml.stepIn();
+					SettingItem tempMap = getPluginSettings(validName);
+					for(SettingItem::const_iterator j = tempMap.begin(); j != tempMap.end(); ++j) {
+						xml.addTag(Text::fromT(j->first), Text::fromT(j->second));
+					}
+					xml.stepOut();
+				}
 			}
 			xml.stepOut();
 		}
-
-		xml.stepOut();
 		xml.stepOut();
 
 		string fname = Util::getConfigPath() + "PluginSettings.xml";
-
 		File f(fname + ".tmp", File::WRITE, File::CREATE | File::TRUNCATE);
 		f.write(SimpleXML::utf8Header);
 		f.write(xml.toXML());
@@ -291,26 +270,30 @@ void PluginManager::saveSettings() {
 	}
 }
 //CallBack //Hub Interface
-const std::wstring iPluginAPICallBack::getHubName(Client& c) const {
-	Lock l(c.cs);
-	return Text::toT(c.getHubName());
+const std::wstring iPluginAPICallBack::getHubName(Client* c) const {
+	if(!c) return Util::emptyStringW;
+	Lock l(c->cs);
+	return Text::toT(c->getHubName());
 }
 
-const std::wstring iPluginAPICallBack::getHubUrl(Client& c) const {
-	Lock l(c.cs);
-	return Text::toT(c.getHubUrl());
+const std::wstring iPluginAPICallBack::getHubUrl(Client* c) const {
+	if(!c) return Util::emptyStringW;
+	Lock l(c->cs);
+	return Text::toT(c->getHubUrl());
 }
 
-void iPluginAPICallBack::sendHubMessage(Client& client, const std::wstring& aMsg) { 
-	Lock l(client.cs);
-	if(&client && client.isConnected())
-		client.hubMessage(Text::fromT(aMsg));
+void iPluginAPICallBack::sendHubMessage(Client* client, const std::wstring& aMsg) { 
+	if(!client) return;
+	Lock l(client->cs);
+	if(client->isConnected())
+		client->hubMessage(Text::fromT(aMsg));
 }
 
-void iPluginAPICallBack::addHubLine(Client& client, const std::wstring& aMsg, int type) { 
-	Lock l(client.cs);
-	if(&client && client.isConnected())
-		client.addHubLine(Text::fromT(aMsg), type);
+void iPluginAPICallBack::addHubLine(Client* client, const std::wstring& aMsg, int type) {
+	if(!client) return;
+	Lock l(client->cs);
+	if(client->isConnected())
+		client->addHubLine(Text::fromT(aMsg), type);
 }
 //CallBack //Random Functions Interface
 void iPluginAPICallBack::logMessage(const std::wstring& aMsg) { 

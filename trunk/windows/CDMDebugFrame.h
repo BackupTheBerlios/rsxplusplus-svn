@@ -144,6 +144,8 @@ private:
 			}
 			addLine(x);
 		}
+		
+		stop = false;
 		return 0;
 	}
 

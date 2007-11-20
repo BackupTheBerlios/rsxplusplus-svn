@@ -1059,7 +1059,7 @@ bool WinUtil::checkCommand(tstring& cmd, tstring& param, tstring& message, tstri
 		} else {
 			status = TSTRING(SHUTDOWN_OFF);
 		}
-	} else if(Util::stricmp(cmd.c_str(), _T("tvtome")) == 0) {
+	/*} else if(Util::stricmp(cmd.c_str(), _T("tvtome")) == 0) {
 		if(param.empty()) {
 			status = TSTRING(SPECIFY_SEARCH_STRING);
 		} else
@@ -1069,7 +1069,7 @@ bool WinUtil::checkCommand(tstring& cmd, tstring& param, tstring& message, tstri
 			status = TSTRING(SPECIFY_SEARCH_STRING);
 		} else {
 			WinUtil::openLink(_T("http://www.csfd.cz/search.php?search=") + Text::toT(Util::encodeURI(Text::fromT(param))));
-		}
+		}*/
 	//RSX++
 	} else if(Util::stricmp(cmd.c_str(), _T("lua")) == 0) {
 		ScriptManager::getInstance()->EvaluateChunk(Text::fromT(param));

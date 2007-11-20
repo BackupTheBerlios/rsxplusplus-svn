@@ -135,7 +135,7 @@ LONG __stdcall DCUnhandledExceptionFilter( LPEXCEPTION_POINTERS e )
 	DWORD exceptionCode = e->ExceptionRecord->ExceptionCode ;
 
 	sprintf(buf, "Code: %x\r\nVersion: %s\r\nException code: %s\r\n", 
-		exceptionCode, getExceptionName(exceptionCode).c_str(), VERSIONSTRING);
+		exceptionCode, VERSIONSTRING, getExceptionName(exceptionCode).c_str());
 
 	f.write(buf, strlen(buf));
 #if defined(SVN_REVISION_STR)

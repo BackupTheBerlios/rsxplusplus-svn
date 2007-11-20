@@ -97,7 +97,7 @@ private:
 	void stopChecking()	{ users.stopCheck(); }
 	bool isDetectorRunning() { return users.isDetectorRunning(); }
 	void stopMyINFOCheck() { users.stopMyINFOCheck(); }
-	void startCustomCheck(bool clients, bool filelists) { users.startCustomCheck(clients, filelists); }
+	void startCustomCheck(bool clients, bool filelists) { users.startCheck(clients, filelists); }
 	//END
 
 	string lastMyInfo;

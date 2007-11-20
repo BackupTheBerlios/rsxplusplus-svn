@@ -26,25 +26,16 @@
 template<bool isADC, typename BaseMap>
 class UserMap : public BaseMap {
 public:
-	UserMap() : client(NULL), clientEngine(NULL) { };
-	virtual ~UserMap() throw() { 
+	UserMap() : client(NULL) { };
+	virtual ~UserMap() { 
 		stopMyINFOCheck();
-		uinitClientCheck();
+		stopCheck();
 		QueueManager::getInstance()->removeOfflineChecks();
+		client = NULL;
 	};
 
-	void initClientCheck(Client* client) {
-		if(clientEngine == NULL) {
-			clientEngine = new ThreadedCheck(client, this);
-		}
-	}
-
-	void uinitClientCheck() {
-		stopCheck();
-		if(clientEngine != NULL) {
-			delete clientEngine;
-			clientEngine = NULL;
-		}
+	void setClient(Client* cl) { 
+		client = cl; 
 	}
 
 	//myinfo start/stop functions
@@ -59,50 +50,46 @@ public:
 	}
 
 	//clients check start/stop functions
-	void startCheck(bool cc, bool cf) {
-		if(clientEngine && !clientEngine->isChecking()) {
-			clientEngine->setCheckClients(cc);
-			clientEngine->setCheckFilelists(cf);
-			clientEngine->setKeepChecking(true);
-			clientEngine->startCheck();
+	void startCheck(bool cc, bool cf, bool cOnConnect = false) {
+		if(!clientEngine.isChecking()) {
+			clientEngine.setCheckClients(cc);
+			clientEngine.setCheckFilelists(cf);
+			if(cOnConnect)
+				clientEngine.setCheckOnConnect(true);
+			else
+				clientEngine.setKeepChecking(true);
+			clientEngine.startCheck(this);
 		}
 	}
 
-	void startCustomCheck(bool checkClient, bool checkFileList) {
-		if(clientEngine && !clientEngine->isChecking()) {
-			clientEngine->setCheckClients(checkClient);
-			clientEngine->setCheckFilelists(checkFileList);
-			clientEngine->setKeepChecking(true);
-			clientEngine->startCheck();
-		}
+	void stopCheck() { 
+		clientEngine.cancel(); 
 	}
 
-	void stopCheck() { if(clientEngine) clientEngine->cancel(); }
-
-	bool isDetectorRunning() { return clientEngine && clientEngine->isChecking(); }
-
-	void startCheckOnConnect(bool cc, bool cf) {
-		if(clientEngine && !clientEngine->isChecking()) {
-			clientEngine->setCheckClients(cc);
-			clientEngine->setCheckFilelists(cf);
-			clientEngine->setCheckOnConnect(true);
-			clientEngine->startCheck();
-		}
+	bool isDetectorRunning() { 
+		return clientEngine.isChecking();
 	}
-	void setClient(Client* cl) { client = cl; }
+
 private:
 	Client* client;
 	Client* getClient() { return client; }
-	CriticalSection cs;
+
+	/*
+	 * probably reference would be more safe than pointers
+	 * specially when I don't care if pointer is destroyed with delete operator
+	 * client (nmdchub/adchub) class do it for me :)
+	 */
 
 	//myinfo check engine
 	class ThreadedMyINFOCheck : public Thread {
 	public:
 		ThreadedMyINFOCheck() : client(NULL), users(NULL), inThread(false), checkFakeShare(false), checkMyInfo(false) { };
-		~ThreadedMyINFOCheck() throw() { cancel(); }
+		~ThreadedMyINFOCheck() { cancel(); }
+
 		bool isChecking() { 
 			return inThread; 
 		}
+
 		void cancel() { 
 			inThread = false;
 			join();
@@ -111,40 +98,40 @@ private:
 		void startCheck(UserMap* map, bool cfs, bool myInfo) {
 			users = map;
 			client = map->getClient();
+			if(!client) {
+				users = NULL;
+				return;
+			}
 			checkFakeShare = cfs;
 			checkMyInfo = myInfo;
 			if(!inThread)
 				start();
 		}
 
-		int run() throw() {
+		int run() {
 			inThread = true;
 			setThreadPriority(Thread::LOW);
 			//Thread::sleep(100);
-			//Lock l(client->cs);
-			//if(client && client->isConnected()) {
-			Lock l(cs);
-				for(BaseMap::const_iterator i = users->begin(); i != users->end(); ++i) {
-					if(!inThread || !(client && client->isConnected())) 
-						break;
-					i->second->inc();
+			client->setCheckedAtConnect(true);
+			for(BaseMap::iterator i = users->begin(); i != users->end(); ++i) {
+				if(!inThread || !(client && client->isConnected())) 
+					break;
+				try {
 					if(!i->second->isHidden()) {
-						try {
-							if(checkMyInfo) {
-								i->second->getIdentity().myInfoDetect((*i->second));
-							}
-							if(checkFakeShare) {
-								i->second->getIdentity().isFakeShare((*i->second));
-							}
-						} catch(...) {
-							//...
+						i->second->inc();
+						if(checkMyInfo) {
+							i->second->getIdentity().myInfoDetect((*i->second));
 						}
+						if(checkFakeShare) {
+							i->second->getIdentity().isFakeShare((*i->second));
+						}
+						i->second->dec();
+						Thread::sleep(1);
 					}
-					i->second->dec();
-					Thread::sleep(1);
+				} catch(...) {
+					//...
 				}
-				client->setCheckedAtConnect(true);
-			//}
+			}
 			inThread = false;
 			return 0;
 		}
@@ -159,18 +146,29 @@ private:
 	//clients check engine
 	class ThreadedCheck : public Thread {
 	public:
-		ThreadedCheck(Client* cl, UserMap* um) : client(cl), users(um), keepChecking(false), canCheckFilelist(false), inThread(false), checkOnConnect(false) { };
-		~ThreadedCheck() throw() { cancel(); join(); }
+		ThreadedCheck() : client(NULL), users(NULL), keepChecking(false), canCheckFilelist(false), 
+			inThread(false), checkOnConnect(false) { };
+		~ThreadedCheck() { cancel(); }
 
 		bool isChecking() { 
 			return inThread && keepChecking; 
 		}
 
 		void cancel() { 
-			keepChecking = inThread = false; 
+			keepChecking = inThread = false;
+			join();
 		}
 
-		void startCheck() { start(); }
+		void startCheck(UserMap* um) {
+			users = um;
+			client = users->getClient();
+			if(!client) {
+				users = NULL;
+				return;
+			}
+			inThread = true; 
+			start(); 
+		}
 
 		int run() {
 			OnlineUser* ou = NULL;
@@ -182,18 +180,20 @@ private:
 				checkOnConnect = false;
 				client->setCheckOnConnect(false);
 			}
+
 			canCheckFilelist = !checkClients || !RSXBOOLSETTING(CHECK_ALL_CLIENTS_BEFORE_FILELISTS);
 
 			bool iterBreak;
 			const uint64_t	sleepTime =	static_cast<uint64_t>(RSXSETTING(SLEEP_TIME));
-			uint8_t			secs =		0;
+			uint8_t	secs = 0;
 
-			inThread = true;
 			if((client && !client->isConnected()) || (!checkClients && !checkFilelists)) { 
 				keepChecking = false; 
 			}
 
 			while(keepChecking) {
+				if(!inThread)
+					break;
 				if(client && client->isConnected()) {
 					uint8_t t = 0;
 					uint8_t f = 0;
@@ -213,64 +213,61 @@ private:
 						Lock l(client->cs);
 						iterBreak = false;
 
-						for(BaseMap::const_iterator i = users->begin(); i != users->end(); ++i) {
+						for(BaseMap::iterator i = users->begin(); i != users->end(); ++i) {
+							if(!inThread)
+								break;
+							i->second->inc();
 							ou = i->second;
-							if(!inThread || !ou) break;
-							ou->inc();
 							iterBreak = false;
 							if(!ou->isHidden()) {
-								if(checkClients) {
-									if(ou->isCheckable()) {
-										if(ou->shouldTestSUR()) {
-											if(!ou->getChecked()) {
-												iterBreak = true;
-												try {
-													if(isADC && RsxUtil::checkVersion(ou->getIdentity().getTag(), true)) {
-														ou->setTestSURComplete();
-														ou->setFileListComplete();
-														ou->dec();
-														break;
-													}
-													QueueManager::getInstance()->addTestSUR(ou->getUser());
-													ou->getIdentity().setTestSURQueued("1");
-													ou->dec();
-													break;
-												} catch(...) {
-													//...
-												}
-											}
-										} else if(!ou->getIdentity().getTestSURQueued().empty()) {
+								if(checkClients && ou->isCheckable()) {
+									if(ou->shouldTestSUR()) {
+										if(!ou->getChecked()) {
+											iterBreak = true;
 											try {
-												if(!QueueManager::getInstance()->isTestSURinQueue(ou->getUser())) {
-													iterBreak = true;
-													ou->getIdentity().setTestSURQueued(Util::emptyString);
+												if(isADC && RsxUtil::checkVersion(ou->getIdentity().getTag(), true)) {
+													ou->setTestSURComplete();
+													ou->setFileListComplete();
 													ou->dec();
 													break;
 												}
+												QueueManager::getInstance()->addTestSUR(ou->getUser());
+												ou->getIdentity().setTestSURQueued("1");
+												ou->dec();
+												break;
 											} catch(...) {
 												//...
 											}
+										}
+									} else if(!ou->getIdentity().getTestSURQueued().empty()) {
+										try {
+											if(!QueueManager::getInstance()->isTestSURinQueue(ou->getUser())) {
+												iterBreak = true;
+												ou->getIdentity().setTestSURQueued(Util::emptyString);
+												ou->dec();
+												break;
+											}
+										} catch(...) {
+											//...
 										}
 									}
 								}
 								if(checkFilelists) {
 									if(canCheckFilelist && f < RSXSETTING(MAX_FILELISTS)) {
-										if(ou->shouldCheckFileList(!checkClients)) {
-											if(!ou->getChecked(true)) {
-												try {
-													if(isADC && RsxUtil::checkVersion(ou->getIdentity().getTag(), true)) {
-														ou->setTestSURComplete();
-														ou->setFileListComplete();
-														ou->dec();
-														break;
-													}
-													QueueManager::getInstance()->addList(ou->getUser(), QueueItem::FLAG_CHECK_FILE_LIST);
-													ou->getIdentity().setFileListQueued("1");
+										if(ou->shouldCheckFileList(!checkClients) && !ou->getChecked(true)) {
+											try {
+												if(isADC && RsxUtil::checkVersion(ou->getIdentity().getTag(), true)) {
+													ou->setTestSURComplete();
+													ou->setFileListComplete();
 													ou->dec();
 													break;
-												} catch(...) {
-													//...
 												}
+												QueueManager::getInstance()->addList(ou->getUser(), QueueItem::FLAG_CHECK_FILE_LIST);
+												ou->getIdentity().setFileListQueued("1");
+												ou->dec();
+												break;
+											} catch(...) {
+												//...
 											}
 										}
 									}
@@ -278,8 +275,10 @@ private:
 							}
 							ou->dec();
 						}
-						if(!canCheckFilelist)
+						ou = NULL;
+						if(!canCheckFilelist) {
 							canCheckFilelist = !iterBreak;
+						}
 					}
 					if(secs >= 30) {
 						try {
@@ -295,7 +294,7 @@ private:
 					sleep(sleepTime);
 				}
 			}
-			inThread = false;
+			inThread = keepChecking = false;
 			return 0;
 		}
 	private:
@@ -308,6 +307,6 @@ private:
 
 		Client* client;
 		UserMap* users;
-	} *clientEngine;
+	}clientEngine;
 };
 #endif

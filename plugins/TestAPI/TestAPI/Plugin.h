@@ -41,8 +41,8 @@ public:
 	void setDefaults();
 
 	void onToolbarClick();
-	bool onHubEnter(Client& client, const wstring& aMessage);
-	bool onHubMessage(Client& client, const wstring& aMessage);
+	bool onHubEnter(Client* client, const wstring& aMessage);
+	bool onHubMessage(Client* client, const wstring& aMessage);
 
 	void setInstance(HINSTANCE& i) { hInstance = i; }
 private:

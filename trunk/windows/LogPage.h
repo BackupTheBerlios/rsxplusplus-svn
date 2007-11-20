@@ -16,14 +16,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#if !defined(LOG_PAGE_H)
+#ifndef LOG_PAGE_H
 #define LOG_PAGE_H
 
-#if _MSC_VER > 1000
-#pragma once
-#endif // _MSC_VER > 1000
-
-#include <atlcrack.h>
 #include "PropPage.h"
 #include "ExListViewCtrl.h"
 

@@ -47,8 +47,6 @@
 #include "CDMDebugFrame.h"
 #include "InputBox.h"
 #include "PopupManager.h"
-#include "../rsx/RsxUtil.h" //RSX++
-#include "UpdateDialog.h" //RSX++
 
 #include "../client/ConnectionManager.h"
 #include "../client/DownloadManager.h"
@@ -60,13 +58,14 @@
 #include "../client/LogManager.h"
 #include "../client/WebServerManager.h"
 #include "../client/Thread.h"
-
 //RSX++
+#include "../rsx/RsxUtil.h"
+#include "../rsx/UpdateManager.h"
 #include "../client/ScriptManager.h" // Lua
 #include "../client/ClientProfileManager.h"
-#include "ToolbarManager.h"
-#include "../rsx/UpdateManager.h"
 #include "../client/PluginManager.h"
+#include "ToolbarManager.h"
+#include "UpdateDialog.h"
 //END
 
 MainFrame* MainFrame::anyMF = NULL;
@@ -241,7 +240,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	//END
 
 	CreateSimpleReBar(ATL_SIMPLE_REBAR_NOBORDER_STYLE);
-	AddSimpleReBarBand(hWndPluginToolBar, NULL, FALSE, 0, FALSE); //RSX++
+	AddSimpleReBarBand(hWndPluginToolBar, NULL, FALSE, 0, TRUE); //RSX++
 	AddSimpleReBarBand(hWndCmdBar);
 	AddSimpleReBarBand(hWndToolBar, NULL, TRUE);
 	AddSimpleReBarBand(hWndQuicSearchkBar, NULL, FALSE, 200, TRUE); //RSX++
@@ -292,7 +291,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	pLoop->AddMessageFilter(this);
 	pLoop->AddIdleHandler(this);
 
-//RSX++ //Process Priority
+	//RSX++ //Process Priority
 	prioMenu.CreatePopupMenu();
 	prioMenu.AppendMenu(MF_STRING, IDC_CHANGE_PRIO_ABOVE,		CTSTRING(MENU_PRIO_ABOVE));
 	prioMenu.AppendMenu(MF_STRING, IDC_CHANGE_PRIO_NORMAL,		CTSTRING(MENU_PRIO_NORMAL));
@@ -301,7 +300,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	prioMenu.AppendMenu(MF_STRING, IDC_CHANGE_PRIO_IDLE,		CTSTRING(MENU_PRIO_IDLE));
 	prioMenu.AppendMenu(MF_STRING, IDC_CHANGE_PRIO_HIGH,		CTSTRING(MENU_PRIO_HIGH));
 	prioMenu.AppendMenu(MF_STRING, IDC_CHANGE_PRIO_REALTIME,	CTSTRING(MENU_PRIO_REALTIME));
-//END
+	//END
 
 	trayMenu.CreatePopupMenu();
 	trayMenu.AppendMenu(MF_STRING, IDC_TRAY_SHOW, CTSTRING(MENU_SHOW));
@@ -357,6 +356,10 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 
 	try {
 		File::ensureDirectory(SETTING(LOG_DIRECTORY));
+		//RSX++
+		File::ensureDirectory(Util::getDataPath() + "Plugins" PATH_SEPARATOR_STR);
+		File::ensureDirectory(Util::getDataPath() + "scripts" PATH_SEPARATOR_STR);
+		//END
 	} catch (const FileException) {	}
 
 	startSocket();
@@ -566,7 +569,7 @@ HWND MainFrame::createToolbar() {
 		else
 			largeImagesHot.CreateFromImage(Text::toT(SETTING(TOOLBARHOTIMAGE)).c_str(), 20, 0, CLR_DEFAULT, IMAGE_BITMAP, LR_CREATEDIBSECTION | LR_SHARED | LR_LOADFROMFILE);
 
-		ctrlToolbar.Create(m_hWnd, NULL, NULL, ATL_SIMPLE_CMDBAR_PANE_STYLE | TBSTYLE_FLAT | TBSTYLE_TOOLTIPS, 0, ATL_IDW_TOOLBAR);
+		ctrlToolbar.Create(m_hWnd, NULL, NULL, ATL_SIMPLE_CMDBAR_PANE_STYLE | TBSTYLE_FLAT | TBSTYLE_TOOLTIPS | TBSTYLE_LIST, 0, ATL_IDW_TOOLBAR);
 		ctrlToolbar.SetExtendedStyle(TBSTYLE_EX_MIXEDBUTTONS);
 		ctrlToolbar.SetImageList(largeImages);
 		ctrlToolbar.SetHotImageList(largeImagesHot);
@@ -593,7 +596,7 @@ HWND MainFrame::createToolbar() {
 			nTB.idCommand = WinUtil::ToolbarButtons[i].id;
 			nTB.fsState = TBSTATE_ENABLED;
 			nTB.fsStyle = TBSTYLE_AUTOSIZE | ((WinUtil::ToolbarButtons[i].check == true)? TBSTYLE_CHECK : TBSTYLE_BUTTON);
-			nTB.iString = WinUtil::ToolbarButtons[i].tooltip;
+			nTB.iString = ctrlToolbar.AddStrings(CTSTRING_I((ResourceManager::Strings)WinUtil::ToolbarButtons[i].tooltip));
 		}
 		ctrlToolbar.AddButtons(1, &nTB);
 	}	
@@ -604,33 +607,34 @@ HWND MainFrame::createToolbar() {
 }
 //RSX++
 HWND MainFrame::createPluginsToolbar() {
-	PluginManager::ToolbarPlugInfo plugins;
-	PluginManager::getInstance()->getIcons(plugins);
+	PluginManager::PluginsMap p = PluginManager::getInstance()->getPlugins();
 
 	if(!ptbarcreated) {
-		ctrlPluginToolbar.Create(m_hWnd, NULL, NULL, ATL_SIMPLE_CMDBAR_PANE_STYLE | TBSTYLE_FLAT | TBSTYLE_TOOLTIPS, 0, ATL_IDW_TOOLBAR);
+		ctrlPluginToolbar.Create(m_hWnd, NULL, NULL, ATL_SIMPLE_CMDBAR_PANE_STYLE | TBSTYLE_FLAT | TBSTYLE_LIST | TBSTYLE_TOOLTIPS, 0, ATL_IDW_TOOLBAR);
 		ctrlPluginToolbar.SetExtendedStyle(TBSTYLE_EX_MIXEDBUTTONS);
 		ctrlPluginToolbar.SetBitmapSize(12, 12);
 		ptbarcreated = true;
 	}
 
-	while(ctrlPluginToolbar.GetButtonCount() > 0)
+	while(ctrlPluginToolbar.GetButtonCount() > 0) {
 		ctrlPluginToolbar.DeleteButton(0);
+	}
 
 	ctrlPluginToolbar.SetButtonStructSize();
 	int n = 0;
-	for(PluginManager::ToolbarPlugInfo::const_iterator i = plugins.begin(); i != plugins.end(); ++i, n++) {
-		ctrlPluginToolbar.AddBitmap(1, i->second);
-		TBBUTTON tb;
-		memzero(&tb, sizeof(TBBUTTON));
-		tb.iBitmap = n;
-		tb.idCommand = i->first;
-		tb.fsState = TBSTATE_ENABLED;
-		tb.fsStyle = TBSTYLE_AUTOSIZE | TBSTYLE_BUTTON;
-		tb.iString = NULL;
-		ctrlPluginToolbar.AddButtons(1, &tb);
+	for(PluginManager::PluginsMap::const_iterator i = p.begin(); i != p.end(); ++i, n++) {
+		if((*i)->getPluginAPI()->getPluginIcon() != NULL) {
+			ctrlPluginToolbar.AddBitmap(1, (*i)->getPluginAPI()->getPluginIcon());
+			const wstring& pToolTip = 
+				_T("Name: ") + (*i)->getPluginAPI()->getPluginName() + 
+				_T("\nVersion: ") + (*i)->getPluginAPI()->getPluginVersion() +
+				_T("\nAuthor: ") + (*i)->getPluginAPI()->getPluginAuthor() + 
+				_T("\nDescription: ") + (*i)->getPluginAPI()->getPluginDescription();
+			int nStringId = ctrlPluginToolbar.AddStrings(pToolTip.c_str());
+			ctrlPluginToolbar.InsertButton(n, (*i)->getId(), TBSTYLE_AUTOSIZE | TBSTYLE_BUTTON, TBSTATE_ENABLED, n, nStringId, NULL);
+		}
 	}
-	plugins.clear();
+	p.clear();
 	ctrlPluginToolbar.AutoSize();
 	return ctrlPluginToolbar.m_hWnd;
 }
@@ -961,26 +965,8 @@ LRESULT MainFrame::onGetToolTip(int idCtrl, LPNMHDR pnmh, BOOL& /*bHandled*/) {
 	LPNMTTDISPINFO pDispInfo = (LPNMTTDISPINFO)pnmh;
 	pDispInfo->szText[0] = 0;
 
-	if((idCtrl != 0) && !(pDispInfo->uFlags & TTF_IDISHWND))
-	{
-		int stringId = -1;
-
-		for(int i = 0; WinUtil::ToolbarButtons[i].id != 0; i++) {
-			if(WinUtil::ToolbarButtons[i].id == idCtrl) {
-				stringId = WinUtil::ToolbarButtons[i].tooltip;
-				break;
-			}
-		}
-		if(stringId != -1) {
-			_tcsncpy(pDispInfo->lpszText, CTSTRING_I((ResourceManager::Strings)stringId), 79);
-			pDispInfo->uFlags |= TTF_DI_SETITEM;
-
-		}
-		//const tstring& pInfo = PluginManager::getInstance()->getPluginNameById(idCtrl);
-		//if(!pInfo.empty()) {
-		//	_tcsncpy(pDispInfo->lpszText, pInfo.c_str(), 85);
-		//	pDispInfo->uFlags |= TTF_DI_SETITEM;
-		//}
+	if((idCtrl != 0) && !(pDispInfo->uFlags & TTF_IDISHWND)) {
+		//...
 	} else { // if we're really in the status bar, this should be detected intelligently
 		lastLines.clear();
 		for(TStringIter i = lastLinesList.begin(); i != lastLinesList.end(); ++i) {

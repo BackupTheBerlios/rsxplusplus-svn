@@ -12,8 +12,7 @@
 
 #define ATTACH(id, var) var.Attach(GetDlgItem(id))
 
-LRESULT FileListDetectorDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
-{
+LRESULT FileListDetectorDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
 	if(currentProfileId != -1) {
 		// FIXME disable this for now to stop potential dupes (ahh. fuck it, leave it enabled :p)
 		//::EnableWindow(GetDlgItem(IDC_FILELIST_PROFILE_NAME), false);
@@ -31,19 +30,14 @@ LRESULT FileListDetectorDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPAR
 	ATTACH(IDC_FILELIST_PROFILE_DETECT, ctrlDetect);
 	ATTACH(IDC_FILELIST_PROFILE_CHEAT, ctrlCheatingDescription);
 
-	//Zion++ //Raw Manager //DEBUT
 	createList();
-
 	ATTACH(IDC_FILELIST_PROFILE_RAW, cRaw);
 	for(ActionList::const_iterator i = idAction.begin(); i != idAction.end(); ++i) {
 		cRaw.AddString(RawManager::getInstance()->getNameActionId(i->second).c_str());
 	}
-	//Zion++ //Raw Manager //FIN
 
 	ATTACH(IDC_BAD_CLIENT, ctrlBadClient);
-
 	updateControls();
-	
 	CenterWindow(GetParent());
 	return FALSE;
 }

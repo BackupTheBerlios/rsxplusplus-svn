@@ -25,11 +25,11 @@ class Client;
 
 class iClient {
 public:
-	virtual const std::wstring getHubName(Client& /*c*/) const { return _T(""); }
-	virtual const std::wstring getHubUrl(Client& /*c*/) const { return _T(""); }
+	virtual const std::wstring getHubName(Client* /*c*/) const { return _T(""); }
+	virtual const std::wstring getHubUrl(Client* /*c*/) const { return _T(""); }
 
-	virtual void sendHubMessage(Client& /*client*/, const std::wstring& /*aMsg*/) { }
-	virtual void addHubLine(Client& /*client*/, const std::wstring& /*aMsg*/, int /*type*/ = 0) { }
+	virtual void sendHubMessage(Client* /*client*/, const std::wstring& /*aMsg*/) { }
+	virtual void addHubLine(Client* /*client*/, const std::wstring& /*aMsg*/, int /*type*/ = 0) { }
 };
 
 class iPluginAPI : public iClient {
@@ -67,8 +67,8 @@ public:
 	virtual void setDefaults() = 0;
 
 	virtual void onToolbarClick() = 0;
-	virtual bool onHubEnter(Client& client, const wstring& aMessage) = 0;
-	virtual bool onHubMessage(Client& client, const wstring& aMessage) = 0;
+	virtual bool onHubEnter(Client* client, const wstring& aMessage) = 0;
+	virtual bool onHubMessage(Client* client, const wstring& aMessage) = 0;
 
 	void setInterface(iPluginAPI* i) {
 		if(i == NULL && iApi != NULL) {
@@ -87,7 +87,7 @@ public:
 		return getAPI()->getSetting(getPluginName(), settingName);
 	}
 
-	std::map<wstring, wstring> getSettings() {
+	map<wstring, wstring> getSettings() {
 		return getAPI()->getSettings(getPluginName());
 	}
 private:

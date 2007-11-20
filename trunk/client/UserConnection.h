@@ -53,8 +53,10 @@ public:
 	static const string FEATURE_ZLIB_GET;
 	static const string FEATURE_TTHL;
 	static const string FEATURE_TTHF;
+	static const string FEATURE_ADC_BAS0;
 	static const string FEATURE_ADC_BASE;
 	static const string FEATURE_ADC_BZIP;
+	static const string FEATURE_ADC_TIGR;
 
 	static const string FILE_NOT_AVAILABLE;
 	
@@ -135,6 +137,7 @@ public:
 	void supports(const StringList& feat);
 	void getListLen() { send("$GetListLen|"); }
 	void shareHidden() { isSet(FLAG_NMDC) ? send("$Error: No sharing in this hub|") : send(AdcCommand(AdcCommand::SEV_RECOVERABLE, AdcCommand::ERROR_GENERIC, "No sharing in this hub")); }
+	void sendRaw(const string& raw) { send(raw); } //RSX++ // Lua
 
 	// ADC Stuff
 	void sup(const StringList& features);
@@ -146,7 +149,6 @@ public:
 	void setDataMode(int64_t aBytes = -1) { dcassert(socket); socket->setDataMode(aBytes); }
 	void setLineMode(size_t rollback) { dcassert(socket); socket->setLineMode(rollback); }
 
-	void sendRaw(const string& raw) { send(raw); } //RSX++ // Lua
 	void connect(const string& aServer, uint16_t aPort) throw(SocketException, ThreadException);
 	void accept(const Socket& aServer) throw(SocketException, ThreadException);
 
@@ -257,5 +259,5 @@ private:
 
 /**
  * @file
- * $Id: UserConnection.h 335 2007-11-10 13:01:41Z bigmuscle $
+ * $Id: UserConnection.h 336 2007-11-18 13:26:41Z bigmuscle $
  */

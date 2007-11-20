@@ -83,7 +83,7 @@ private:
 	void stopChecking()	{ users.stopCheck(); }
 	bool isDetectorRunning() { return users.isDetectorRunning(); }
 	void stopMyINFOCheck() { users.stopMyINFOCheck(); }
-	void startCustomCheck(bool clients, bool filelists) { users.startCustomCheck(clients, filelists); }
+	void startCustomCheck(bool clients, bool filelists) { users.startCheck(clients, filelists); }
 	//END
 
 	void getUserList(OnlineUser::List& list) const {
@@ -106,6 +106,9 @@ private:
 	static const string ADCS_FEATURE;
 	static const string TCP4_FEATURE;
 	static const string UDP4_FEATURE;
+	static const string BASE_SUPPORT;
+	static const string BAS0_SUPPORT;
+	static const string TIGR_SUPPORT;
 
 	string checkNick(const string& nick);
 
@@ -158,5 +161,5 @@ private:
 
 /**
  * @file
- * $Id: AdcHub.h 326 2007-09-01 16:55:01Z bigmuscle $
+ * $Id: AdcHub.h 336 2007-11-18 13:26:41Z bigmuscle $
  */

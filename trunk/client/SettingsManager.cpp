@@ -47,8 +47,7 @@ const string SettingsManager::settingTags[] =
 	"KickMsgRecent06", "KickMsgRecent07", "KickMsgRecent08", "KickMsgRecent09", "KickMsgRecent10", 
 	"KickMsgRecent11", "KickMsgRecent12", "KickMsgRecent13", "KickMsgRecent14", "KickMsgRecent15", 
 	"KickMsgRecent16", "KickMsgRecent17", "KickMsgRecent18", "KickMsgRecent19", "KickMsgRecent20",
-	"Toolbar", "ToolbarImage", "ToolbarHot", "UserListImage",
-	"UploadQueueFrameOrder", "UploadQueueFrameWidths", "DownSpeed", "UpSpeed",
+	"Toolbar", "ToolbarImage", "ToolbarHot", "UserListImage", "UploadQueueFrameOrder", "UploadQueueFrameWidths",
 	"UpdateURL", "SoundTTH", "SoundException", "SoundHubConnected", "SoundHubDisconnected", "SoundFavUserOnline", "SoundTypingNotify",
 	"WebServerLogFormat", "WebServerUser", "WebServerPass", "LogFileMainChat", 
 	"LogFilePrivateChat", "LogFileStatus", "LogFileUpload", "LogFileDownload", "LogFileSystem", "LogFormatSystem", 
@@ -58,8 +57,8 @@ const string SettingsManager::settingTags[] =
 	"FinishedVisible", "FinishedULVisible", "DirectoryListingFrameVisible",
 	"RecentFrameOrder", "RecentFrameWidths",
 	//RSX++
-	"PGLogFormat", "PGLogFile", "PGUpdateURL", "PGFile"
-	"RawLogFormat", "RawLogFile", "BetaUser", "BetaPass",
+	"PGLogFormat", "PGLogFile", "PGUpdateURL", "PGFile",
+	"RawLogFormat", "RawLogFile", "DownSpeed", "UpSpeed",
 	//END
 	"SENTRY", 
 	// Ints
@@ -117,7 +116,7 @@ const string SettingsManager::settingTags[] =
 	"ConfirmHubRemoval", "SuppressMainChat", "ProgressBackColor", "ProgressCompressColor", "ProgressSegmentColor",
 	"UseVerticalView", "OpenNewWindow", "FileSlots",  "UDPPort", "MultiChunk",
  	"UserListDoubleClick", "TransferListDoubleClick", "ChatDoubleClick", "AdcDebug",
-	"ToggleActiveWindow", "ProgressbaroDCStyle", "SearchHistory", 
+	"ToggleActiveWindow", /*"ProgressbaroDCStyle",*/ "SearchHistory", 
 	"BadSoftDetections", "DetectBadSoft", "AcceptedDisconnects", "AcceptedTimeouts",
 	"OpenPublic", "OpenFavoriteHubs", "OpenFavoriteUsers", "OpenQueue", "OpenFinishedDownloads",
 	"OpenFinishedUploads", "OpenSearchSpy", "OpenNetworkStatistics", "OpenNotepad", "OutgoingConnections",
@@ -128,9 +127,8 @@ const string SettingsManager::settingTags[] =
  	"AllowUntrustedHubs", "AllowUntrustedClients", "TLSPort", "FastHash", "DownConnPerSec",
 	"HighestPrioSize", "HighPrioSize", "NormalPrioSize", "LowPrioSize", "LowestPrio",
 	"FilterEnter", "SortFavUsersFirst", "ShowShellMenu", "EnableRealUploadQueue",
-
 	//RSX++
-	"UseTransparentWindow", "TransparentLevel", "UseStealthlyStyle", "TopSpeed", "TopUpSpeed", "OdcStyleBumped",
+	"TopSpeed", "TopUpSpeed", "OdcStyleBumped",
 	"StealthyIndicateSpeeds", "PGEnable", "PGUp", "PGDown", "PGSearch", "PGLog", "ProgressBarMode",
 	"ShowPluginToolbar", "RawCmdLog",
 	//END
@@ -343,9 +341,6 @@ SettingsManager::SettingsManager()
 
 	setDefault(BACKGROUND_COLOR, RGB(0,0,0));
 	setDefault(TEXT_COLOR, 12632256);
-	setDefault(USE_TRANSPARENT, false);
-	setDefault(TRANSPARENT_LEVEL, 80);
-	setDefault(STEALTHY_STYLE, true);
 	setDefault(TOP_SPEED, 100);
 	setDefault(TOP_UP_SPEED, 50);
 	setDefault(PROGRESSBAR_ODC_BUMPED, true);
@@ -429,11 +424,9 @@ SettingsManager::SettingsManager()
 	setDefault(PG_UPDATE_URL, "");
 	setDefault(PROGRESSBAR_MODE, 2);
 	setDefault(SHOW_PLUGIN_TOOLBAR, true);
-	setDefault(RAW_LOG_FILE, "RawCommands.log");
-	setDefault(RAW_LOG_FORMAT, "[%Y-%m-%d %H:%M] %[userNI] %[userI4] (%[userCS]) : %[rawCommand]");
-	setDefault(RAW_CMD_LOG, true);
-	setDefault(BETAUSR, "");
-	setDefault(BETAPASS, "");
+	setDefault(LOG_RAW_CMD_FORMAT, "[%Y-%m-%d %H:%M] %[userNI] %[userI4] (%[userCS])");
+	setDefault(LOG_RAW_CMD_FILE, "RawCommands.log");
+	setDefault(LOG_RAW_CMD, true);
 	//END
 	setDefault(PROGRESS_TEXT_COLOR_DOWN, RGB(255, 255, 255));
 	setDefault(PROGRESS_TEXT_COLOR_UP, RGB(255, 255, 255));
@@ -507,7 +500,6 @@ SettingsManager::SettingsManager()
 	setDefault(AWAY, false);
 	setDefault(SHUTDOWN_ACTION, 0);
 	setDefault(MINIMUM_SEARCH_INTERVAL, 30);
-	setDefault(PROGRESSBAR_ODC_STYLE, true);
 
 	setDefault(PROGRESS_3DDEPTH, 4);
 	setDefault(PROGRESS_OVERRIDE_COLORS, true);
@@ -601,7 +593,6 @@ void SettingsManager::load(string const& aFileName)
 					set(StrSetting(i), xml.getChildData());
 				xml.resetCurrentChild();
 			}
-
 			for(i=INT_FIRST; i<INT_LAST; i++)
 			{
 				const string& attr = settingTags[i];
@@ -769,5 +760,5 @@ const string SettingsManager::getString(const string& sname) const {
 //END
 /**
  * @file
- * $Id: SettingsManager.cpp 323 2007-08-19 18:51:47Z bigmuscle $
+ * $Id: SettingsManager.cpp 330 2007-10-13 22:26:06Z bigmuscle $
  */

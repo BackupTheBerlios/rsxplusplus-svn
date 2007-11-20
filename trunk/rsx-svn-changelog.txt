@@ -1,3 +1,15 @@
+** SVN 44
+ ** [TestAPI] code cleanup (ups...)
+ ** ensure plugin dir
+ ** workaround for saving plugin settings on unload -> reload
+ ** played with toolbars and tooltips for it ;)
+ ** fixed ensuring plugins dir + added scripts' dir ensure
+ ** some pointers changed to reference here and back there
+ ** DC++ SVN merge
+ ** QueueFrame shouldn't display weird TTH strings for filelists/testsurs
+ ** hopefully fixed crash on exit with opened debug window
+ ** removed unused settings + bugfix
+
 ** SVN 43
  ** [PluginAPI] fixed setSetting
  ** next missing file...

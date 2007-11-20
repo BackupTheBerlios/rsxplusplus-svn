@@ -447,7 +447,7 @@ void ClientManager::sendRawCommand(const UserPtr& user, const string& aRaw, bool
 			::UserCommand uc = ::UserCommand(0, 0, 0, 0, "", aRaw, "");
 			userCommand(user, uc, ucParams, true);
 			RSXS_SET(TOTAL_RAW_COMMANDS_SENT, RSXSETTING(TOTAL_RAW_COMMANDS_SENT)+1); //important stuff ;p
-			if(SETTING(RAW_CMD_LOG)) {
+			if(SETTING(LOG_RAW_CMD)) {
 				LOG(LogManager::RAW, ucParams);
 			}
 		}

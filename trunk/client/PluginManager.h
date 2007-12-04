@@ -19,9 +19,6 @@
 #ifndef PLUGIN_MANAGER_H
 #define PLUGIN_MANAGER_H
 
-#include <vector>
-using std::vector;
-
 #include "Singleton.h"
 #include "CriticalSection.h"
 #include "PluginAPI.h"
@@ -38,7 +35,7 @@ public:
 	int getIntSetting(const std::string& /*sName*/);
 	int64_t getInt64Setting(const std::string& /*sName*/);
 	std::wstring getStringSetting(const std::string& /*sName*/);
-	HWND getMainWnd();
+	const HWND getMainWnd() const;
 	int getSVNRevision();
 	const std::wstring getClientProfileVersion() const;
 	const std::wstring getMyInfoProfileVersion() const;
@@ -52,17 +49,20 @@ public:
 
 class PluginInfo {
 public:
-	typedef void (*PLUGIN_UNLOAD)();
+	typedef void (__cdecl * PLUGIN_UNLOAD)();
 
-	PluginInfo(HMODULE _h, PluginAPI* _a, int _id, PLUGIN_UNLOAD _u) : h(_h), a(_a), id(_id), pluginUnloader(_u) { };
+	PluginInfo(HINSTANCE _h, PluginAPI* _a, int _id, PLUGIN_UNLOAD _u) : h(_h), a(_a), id(_id), pluginUnloader(_u) { };
 	~PluginInfo();
 
 	HMODULE getModule() { return h; }
 	PluginAPI* getPluginAPI() { return a; }
 	int getId() { return id; }
-	PLUGIN_UNLOAD pluginUnloader;
+	void stopPlugin();
+
 private:
-	HMODULE h;
+	CriticalSection cs;
+	PLUGIN_UNLOAD pluginUnloader;
+	HINSTANCE h;
 	PluginAPI* a;
 	int id;
 };
@@ -71,14 +71,13 @@ class PluginManager : public Singleton<PluginManager> {
 public:
 	PluginManager();
 	~PluginManager();
-	typedef std::vector<PluginInfo*> PluginsMap;
+	typedef vector<PluginInfo*> PluginsMap;
 
-	void loadPluginDir();
-	void loadPlugin(const string& flname);
-	void unloadPlugin(const wstring& name);
-	void unloadAll();
-	void reloadPlugins();
+	//void unloadAll();
+	//void reloadPlugins();
 	void startPlugins();
+	void stopPlugins();
+	void saveSettings();
 
 	HWND getMainHwnd() { return mainHwnd; }
 	void setHwnd(HWND hWnd) { mainHwnd = hWnd; }
@@ -90,15 +89,16 @@ public:
 
 	void setSetting(const wstring& pName, const wstring& stgName, const wstring& stgVal);
 	wstring getSetting(const wstring& pName, const wstring& stgName);
-	map<wstring, wstring> getPluginSettings(const wstring& pName) {
+	map<wstring, wstring>& getPluginSettings(const wstring& pName) {
 		return settings[validateName(pName)];
 	}
-	PluginsMap getPlugins() { return plugins; }
+	PluginsMap& getPlugins() { return plugins; }
 
 private:
 	friend class Singleton<PluginManager>;
 	HWND mainHwnd;
 
+	void loadPlugin(const string& flname);
 	bool isLoaded(const int aPluginId);
 	wstring validateName(wstring name) {
 		wstring::size_type i;
@@ -107,9 +107,9 @@ private:
 		return name;
 	}
 
-	typedef PluginAPI* (__cdecl *PLUGIN_LOAD)();
-	typedef int (*PLUGIN_ID)();
-	typedef int (*PLUGIN_API_VERSION)();
+	typedef PluginAPI* (__cdecl * PLUGIN_LOAD)();
+	typedef int (__cdecl * PLUGIN_ID)();
+	typedef int (__cdecl * PLUGIN_API_VERSION)();
 
 	PluginsMap plugins;
 
@@ -118,7 +118,7 @@ private:
 	SettingsMap settings;
 
 	void loadSettings();
-	void saveSettings();
+	void loadPluginDir();
 
 	CriticalSection cs;
 	bool dontSave;

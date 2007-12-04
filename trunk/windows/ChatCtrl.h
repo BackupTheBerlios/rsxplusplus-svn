@@ -48,7 +48,7 @@ public:
 	tstring LineFromPos(POINT p) const;
 
 	void AdjustTextSize();
-	void AppendText(const Identity& i, const tstring& sMyNick, const tstring& sTime, const LPCTSTR sMsg, CHARFORMAT2& cf, bool bUseEmo = true, bool useHL = true);
+	void AppendText(const Identity& i, const tstring& sMyNick, const tstring& sTime, const LPCTSTR sMsg, CHARFORMAT2& cf, bool bUseEmo = true, bool useHL = true, const tstring& aIpCc = Util::emptyStringT);
 	void AppendTextOnly(const tstring& sMyNick, const LPCTSTR sMsg, CHARFORMAT2& cf, bool bMyMess, const tstring& sAuthor, bool useHL = true);
 
 	void GoToEnd();

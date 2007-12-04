@@ -17,17 +17,11 @@
 #ifndef FAKE_DETECT_PAGE_H
 #define FAKE_DETECT_PAGE_H
 
-#if _MSC_VER > 1000
-#pragma once
-#endif // _MSC_VER > 1000
-
-#include <atlcrack.h>
 #include "PropPage.h"
 #include "ExListViewCtrl.h"
 #include "../client/RawManager.h"
 
-class FakeDetect : public CPropertyPage<IDD_FAKEDETECT>, public PropPage, protected RawSelector
-{
+class FakeDetect : public CPropertyPage<IDD_FAKEDETECT>, public PropPage, protected RawSelector {
 public:
 	FakeDetect(SettingsManager *s) : PropPage(s) {
 		title = _tcsdup((TSTRING(SETTINGS_RSX) + _T('\\') + TSTRING(SETTINGS_FAKEDETECT)).c_str());
@@ -60,19 +54,39 @@ public:
 	PROPSHEETPAGE *getPSP() { return (PROPSHEETPAGE *)*this; }
 	void write();
 
-protected:
+private:
+	struct DetectorItem {
+		DetectorItem(int rpos, int cpos) : rawPos(rpos), dcPos(cpos) {
+			rawId = RSXSettingsManager::getInstance()->get((RSXSettingsManager::IntSetting)rpos);
+			displayCheat = RSXSettingsManager::getInstance()->getBool((RSXSettingsManager::IntSetting)cpos);
+		};
+
+		~DetectorItem() {
+			RSXSettingsManager::getInstance()->set((RSXSettingsManager::IntSetting)rawPos, rawId);
+			RSXSettingsManager::getInstance()->set((RSXSettingsManager::IntSetting)dcPos, displayCheat);
+		};
+
+		int rawId;
+		bool displayCheat;
+		int rawPos;
+		int dcPos;
+	};
+
+	void addItem(const tstring& aName, int rawId, int cheatId);
+	void setSpinRange(int ctrl, int rMin, int rMax) {
+		CUpDownCtrl updown;
+		updown.Attach(GetDlgItem(ctrl));
+		updown.SetRange32(rMin, rMax);
+		updown.Detach();
+	}
+
 	static TextItem texts[];
+	static Item items[];
 
 	ExListViewCtrl ctrlList;
 	CComboBox cRaw;
 	CComboBox cShowCheat;
 
-	void insertAllItem();
-	void insertItem(const tstring& a, int b, int showCheat);
-	int settingRaw[19];
-	int showCheat[19];
-
-	static Item items[];
 	TCHAR* title;
 };
 

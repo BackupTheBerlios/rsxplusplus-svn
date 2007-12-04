@@ -1404,11 +1404,12 @@ void HubFrame::addLine(const Identity& i, const tstring& aLine, CHARFORMAT2& cf,
 		client->getMyIdentity().getParams(params, "my", true);
 		LOG(LogManager::CHAT, params);
 	}
-
+	//@todo fav setting
+	const tstring& extraInfo = RsxUtil::formatAdditionalInfo(i.getIp(), RSXBOOLSETTING(IP_IN_CHAT), RSXBOOLSETTING(COUNTRY_IN_CHAT));
 	if(timeStamps) {
-		ctrlClient.AppendText(i, Text::toT(client->getCurrentNick()), Text::toT("[" + Util::getShortTimeString() + "] "), aLine.c_str(), cf, bUseEmo, useHL);
+		ctrlClient.AppendText(i, Text::toT(client->getCurrentNick()), Text::toT("[" + Util::getShortTimeString() + "] "), aLine.c_str(), cf, bUseEmo, useHL, extraInfo);
 	} else {
-		ctrlClient.AppendText(i, Text::toT(client->getCurrentNick()), _T(""), aLine.c_str(), cf, bUseEmo, useHL);
+		ctrlClient.AppendText(i, Text::toT(client->getCurrentNick()), _T(""), aLine.c_str(), cf, bUseEmo, useHL, extraInfo);
 	}
 	if (BOOLSETTING(BOLD_HUB)) {
 		setDirty();

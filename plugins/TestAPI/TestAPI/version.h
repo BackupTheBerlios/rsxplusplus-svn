@@ -22,9 +22,9 @@
 #define PLUGIN_AUTHOR "adrian_007"
 
 /* unique value - one per project */
-#define PLUGIN_ID 14
+#define PLUGIN_ID 10
 /* API version */
-#define PLUGIN_USED_API_VERSION 1004
+#define PLUGIN_USED_API_VERSION 1005
 
 /**
  * @file

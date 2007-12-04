@@ -101,6 +101,7 @@ void DownloadManager::on(TimerManagerListener::Second, uint64_t aTick) throw() {
 							const string cheat = "too low download speed (" + spd;
 							ClientManager::getInstance()->setCheating(d->getUser(), "", cheat, RSXSETTING(SDL_RAW), false, true, RSXBOOLSETTING(SHOW_SDL_RAW));
 							QueueManager::getInstance()->removeSource(d->getPath(), d->getUser(), QueueItem::Source::FLAG_SLOW);
+							//fire(DownloadManagerListener::CheckComplete(), d->getUserConnection());
 							continue;
 						}
 					}
@@ -181,6 +182,7 @@ void DownloadManager::addConnection(UserConnectionPtr conn) {
 		} catch(...) {
 			//...
 		}
+
 		fire(DownloadManagerListener::CheckComplete(), conn);
 		//END
 		conn->getUser()->setFlag(User::OLD_CLIENT);
@@ -544,7 +546,7 @@ void DownloadManager::handleEndData(UserConnection* aSource) {
 		fire(DownloadManagerListener::CheckComplete(), aSource);
 		aSource->setDownload(NULL);
 		QueueManager::getInstance()->putDownload(d, true, false);
-		checkDownloads(aSource, reconn);
+		checkDownloads(aSource);
 		return;
 	}
 	//END
@@ -602,9 +604,7 @@ void DownloadManager::failDownload(UserConnection* aSource, const string& reason
 		if ( d->getType() == Transfer::TYPE_FULL_LIST ) {
 			if (reason.find("File Not Available") != string::npos || reason.find("File non disponibile") != string::npos ) {
 				ClientManager::getInstance()->setCheating(aSource->getUser(), "", "filelist not available", RSXSETTING(FILELIST_NA), false, true, RSXBOOLSETTING(SHOW_FILELIST_NA), false, true);
-
 				fire(DownloadManagerListener::CheckComplete(), aSource); //RSX++
-
 				QueueManager::getInstance()->putDownload(d, true, false);
 				removeConnection(aSource);
 				return;
@@ -616,9 +616,7 @@ void DownloadManager::failDownload(UserConnection* aSource, const string& reason
 				ClientManager::getInstance()->setCheating(aSource->getUser(), "MaxedOut", "No slots for TestSUR", -1, true);
 			else
 				ClientManager::getInstance()->setCheating(aSource->getUser(), reason, "", -1, true);
-
 			fire(DownloadManagerListener::CheckComplete(), aSource); //RSX++
-
 			QueueManager::getInstance()->putDownload(d, true, false);
 			removeConnection(aSource);
 			return;

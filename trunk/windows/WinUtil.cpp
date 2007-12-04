@@ -958,10 +958,6 @@ _T("/hubsstats\t\t\t\tshow connected hubs statistics\n")
 _T("/ignorelist\t\t\t\t\tshow ignorelist\n")
 _T("/clear /c\t\t\t\t\tclear chat\n\n")
 
-//_T("/winamp /w\t\t\t\tspam info from Winamp\n")
-//_T("/wmp\t\t\t\t\tspam info from Windows Media Player\n")
-//_T("/mpc\t\t\t\t\tspam info from Media Player Classic\n")
-//_T("/iTunes\t\t\t\t\tspam info from iTunes\n")
 _T("/stats\t\t\t\t\tspam some client & system info (send message only when OP)\n")
 _T("/rsx++\t\t\t\t\tspam some info about RSX++\n\n")
 
@@ -972,6 +968,10 @@ _T("----------------------------------------------------------------------------
 _T("\tOPerators specifics\n")
 _T("------------------------------------------------------------------------------------------------------------------------------------------------------------\n")
 _T("/sc \t\t\t\t\tstart/stop checking users on hub\n")
+
+_T("------------------------------------------------------------------------------------------------------------------------------------------------------------\n")
+_T("\tLua commands\n")
+_T("------------------------------------------------------------------------------------------------------------------------------------------------------------\n")
 _T("/lua <code>	\t\t\tinterpret specified chunk of lua code\n")
 _T("/luafile <file> \t\t\t\tload and interpret specified file\n")
 
@@ -1075,21 +1075,6 @@ bool WinUtil::checkCommand(tstring& cmd, tstring& param, tstring& message, tstri
 		ScriptManager::getInstance()->EvaluateChunk(Text::fromT(param));
 	} else if(Util::stricmp(cmd.c_str(), _T("luafile")) == 0) {
 		ScriptManager::getInstance()->EvaluateFile(Text::fromT(param));
-	} else if(Util::stricmp(cmd.c_str(), _T("punload")) == 0) {
-		if(param.empty()) {
-			PluginManager::getInstance()->unloadAll();
-		} else {
-			PluginManager::getInstance()->unloadPlugin(param);
-		}
-		::SendMessage(mainWnd, IDC_REBUILD_PLUGIN_TOOLBAR, 0, 0);
-	} else if(Util::stricmp(cmd.c_str(), _T("preload")) == 0) {
-		PluginManager::getInstance()->reloadPlugins();
-		::SendMessage(mainWnd, IDC_REBUILD_PLUGIN_TOOLBAR, 0, 0);
-	} else if(Util::stricmp(cmd.c_str(), _T("pload")) == 0) {
-		if(!param.empty()) {
-			PluginManager::getInstance()->loadPlugin(Util::getDataPath() + "Plugins\\" + Text::fromT(param));
-			::SendMessage(mainWnd, IDC_REBUILD_PLUGIN_TOOLBAR, 0, 0);
-		}
 	//END
 	} else {
 		return false;

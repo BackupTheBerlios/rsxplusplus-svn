@@ -147,6 +147,8 @@
 #define IDD_MYINFO_PROFILE              320
 #define IDD_FAKE_SHARES                 322
 #define IDD_ADD_FAKE_SHARES             323
+#define IDC_FAV_GROUPS                  324
+#define IDD_FAV_TAB_RAW                 324
 #define IDC_REFRESH                     1000
 #define IDC_NICK                        1001
 #define IDC_EMAIL                       1002
@@ -841,6 +843,7 @@
 #define IDC_VIEW_BL                     1372
 #define IDC_AS_FILETYPE                 1373
 #define IDC_PD_LIMITER                  1374
+#define IDC_RSX_FAV_GROUPS              1374
 #define IDC_RADIO1                      1375
 #define IDC_SKIPLIST_DL_GP              1376
 #define IDC_SKIPLIST_DOWNLOAD           1377
@@ -947,6 +950,12 @@
 #define IDC_IPW_ISP                     1475
 #define IDC_UPDATE_VERSION_CURRENT_IPW  1476
 #define IDC_UPDATE_VERSION_LATEST_IPW   1477
+#define IDC_FAV_DLG_GROUP               1478
+#define IDC_RSX_FAV_EDIT                1483
+#define IDC_RSX_FAV_ADD                 1484
+#define IDC_RSX_FAV_REMOVE              1485
+#define IDC_ABOUT_LINK                  1486
+#define IDC_FAV_TABS                    1487
 #define IDC_PERCENT_FAKE_SHARE_TOLERATED 1504
 #define IDC_TIMEOUTS_NO                 1505
 #define IDC_DISCONNECTS_NO              1506
@@ -1062,7 +1071,10 @@
 #define IDD_ADD_ADLSP_RANGE             10051
 #define IDC_COPY_ACTUAL_LINE            10052
 #define IDC_SDL_TIME_SPIN               10052
+#define IDD_FAV_TAB_OP                  10052
 #define IDC_COPY_DESCRIPTION            10053
+#define IDD_FAV_TAB_RAW1                10053
+#define IDD_FAV_TAB_CUSTOM              10053
 #define IDC_COPY_EMAIL_ADDRESS          10054
 #define IDC_AUTOSCROLL_CHAT             10055
 #define IDC_WHOIS_IP                    10056
@@ -1213,9 +1225,9 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        322
+#define _APS_NEXT_RESOURCE_VALUE        325
 #define _APS_NEXT_COMMAND_VALUE         32806
-#define _APS_NEXT_CONTROL_VALUE         1478
+#define _APS_NEXT_CONTROL_VALUE         1488
 #define _APS_NEXT_SYMED_VALUE           134
 #endif
 #endif

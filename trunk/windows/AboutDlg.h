@@ -16,19 +16,16 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#if !defined(ABOUT_DLG_H)
+#ifndef ABOUT_DLG_H
 #define ABOUT_DLG_H
-
-#if _MSC_VER > 1000
-#pragma once
-#endif // _MSC_VER > 1000
 
 #include "../client/HttpConnection.h"
 #include "../client/SimpleXML.h"
+#include <atlctrlx.h>
 
 static const TCHAR thanks[] = _T("I.nfraR.ed, Kulmegil, Crise\r\nKeep it coming!");
 
-class AboutDlg : public CDialogImpl<AboutDlg>, private HttpConnectionListener
+class AboutDlg : public CDialogImpl<AboutDlg>, private HttpConnectionListener, private TimerManagerListener
 {
 public:
 	enum { IDD = IDD_ABOUTBOX };
@@ -42,10 +39,11 @@ public:
 		MESSAGE_HANDLER(WM_VERSIONDATA, onVersionData)
 		COMMAND_ID_HANDLER(IDOK, OnCloseCmd)
 		COMMAND_ID_HANDLER(IDCANCEL, OnCloseCmd)
+		COMMAND_ID_HANDLER(IDC_ABOUT_LINK, onLink)
 	END_MSG_MAP()
 
 	LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
-		SetDlgItemText(IDC_VERSION, _T("RSX++ v") _T(VERSIONSTRING) _T(" (c) Copyright 2007 adrian_007\nBased on: StrongDC++ 2.05 (c) Copyright 2001-2007 Big Muscle\n\nhttp://rsxplusplus.sf.net/"));
+		SetDlgItemText(IDC_VERSION, _T("RSX++ v") _T(VERSIONSTRING) _T(" (c) Copyright 2007 adrian_007\nBased on: StrongDC++ 2.06 (c) Copyright 2001-2007 Big Muscle\n"));
 		CEdit ctrlThanks(GetDlgItem(IDC_THANKS));
 		ctrlThanks.FmtLines(TRUE);
 		ctrlThanks.AppendText(thanks, TRUE);
@@ -55,16 +53,21 @@ public:
 		SetDlgItemText(IDC_TOTALS, (_T("Upload: ") + Util::formatBytesW(SETTING(TOTAL_UPLOAD)) + _T(", Download: ") + 
 			Util::formatBytesW(SETTING(TOTAL_DOWNLOAD))).c_str());
 
-		if(SETTING(TOTAL_DOWNLOAD) > 0) {
-			TCHAR buf[64];
-			snwprintf(buf, sizeof(buf), _T("Ratio (up/down): %.2f"), ((double)SETTING(TOTAL_UPLOAD)) / ((double)SETTING(TOTAL_DOWNLOAD)));
+		SetDlgItemText(IDC_ABOUT_LINK, Text::toT(__HOMESITE).c_str());
+		url.SubclassWindow(GetDlgItem(IDC_ABOUT_LINK));
+		url.SetHyperLinkExtendedStyle(HLINK_COMMANDBUTTON|HLINK_UNDERLINEHOVER);
+		url.m_tip.AddTool(url, Text::toT(__HOMESITE).c_str(), &url.m_rcLink, 1);
 
+		TCHAR buf[128];
+		if(SETTING(TOTAL_DOWNLOAD) > 0) {
+			snwprintf(buf, sizeof(buf), _T("Ratio (up/down): %.2f"), ((double)SETTING(TOTAL_UPLOAD)) / ((double)SETTING(TOTAL_DOWNLOAD)));
 			SetDlgItemText(IDC_RATIO, buf);
-		/*	sprintf(buf, "Uptime: %s", Util::formatTime(Util::getUptime()));
-			SetDlgItemText(IDC_UPTIME, Text::toT(buf).c_str());*/
 		}
 		SetDlgItemText(IDC_COMPILE_TIME, Text::toT("Compiled: " + WinUtil::getCompileDate()).c_str()); //RSX++
+		snwprintf(buf, sizeof(buf), _T("Uptime: %s"), Text::toT(WinUtil::formatTime(Util::getUptime())).c_str());
+		SetDlgItemText(IDC_UPTIME, buf);
 
+		TimerManager::getInstance()->addListener(this);
 		CenterWindow(GetParent());
 		c.addListener(this);
 		c.downloadFile(VERSION_URL);
@@ -79,12 +82,19 @@ public:
 	}
 		
 	LRESULT OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+		TimerManager::getInstance()->removeListener(this);
 		EndDialog(wID);
+		return 0;
+	}
+
+	LRESULT onLink(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+		WinUtil::openLink(Text::toT(__HOMESITE).c_str());
 		return 0;
 	}
 
 private:
 	HttpConnection c;
+	CHyperLink url;
 
 	AboutDlg(const AboutDlg&) { dcassert(0); }
 	
@@ -111,6 +121,12 @@ private:
 		tstring* x = new tstring(Text::toT(aLine));
 		PostMessage(WM_VERSIONDATA, (WPARAM) x);
 		conn->removeListener(this);
+	}
+
+	void on(TimerManagerListener::Second /*type*/, uint64_t /*aTick*/) throw() {
+		TCHAR buf[128];
+		snwprintf(buf, sizeof(buf), _T("Uptime: %s"), Text::toT(WinUtil::formatTime(Util::getUptime())).c_str());
+		SetDlgItemText(IDC_UPTIME, buf);
 	}
 
 	string downBuf;

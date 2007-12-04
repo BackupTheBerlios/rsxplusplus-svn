@@ -19,27 +19,19 @@
 #if !defined(FAV_HUB_PROPERTIES_H)
 #define FAV_HUB_PROPERTIES_H
 
-#if _MSC_VER > 1000
-#pragma once
-#endif // _MSC_VER > 1000
-
 #include <atlcrack.h>
 //RSX++
-#include "../client/RawManager.h"
-#include "ExListViewCtrl.h"
+#include "FavTabPages.h"
+#include "DlgTabCtrl.h"
 //END
 
 class FavoriteHubEntry;
 
-class FavHubProperties : public CDialogImpl<FavHubProperties>
-{
+class FavHubProperties : public CDialogImpl<FavHubProperties> {
 public:
 	FavHubProperties::FavHubProperties(FavoriteHubEntry *_entry) : entry(_entry) { }
-	FavHubProperties() : nosave(true) { };
-	~FavHubProperties() {
-		ctrlAction.Detach();
-		ctrlRaw.Detach();
-	};
+	FavHubProperties() { };
+	~FavHubProperties() { };
 
 	enum { IDD = IDD_FAVORITEHUB };
 	
@@ -48,33 +40,23 @@ public:
 		COMMAND_HANDLER(IDC_HUBNICK, EN_CHANGE, OnTextChanged)
 		COMMAND_HANDLER(IDC_HUBPASS, EN_CHANGE, OnTextChanged)
 		COMMAND_HANDLER(IDC_HUBUSERDESCR, EN_CHANGE, OnTextChanged)
-		//RSX++
-		NOTIFY_HANDLER(IDC_FH_ACTION, LVN_ITEMCHANGED, onItemChanged)
-		NOTIFY_HANDLER(IDC_FH_ACTION, NM_DBLCLK, onDoubleClick)
-		NOTIFY_HANDLER(IDC_FH_RAW, NM_DBLCLK, onDoubleClick)
-		//END
 		COMMAND_ID_HANDLER(IDOK, OnCloseCmd)
 		COMMAND_ID_HANDLER(IDCANCEL, OnCloseCmd)
+		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
 	
 	LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 	LRESULT OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT OnTextChanged(WORD /*wNotifyCode*/, WORD wID, HWND hWndCtl, BOOL& /*bHandled*/);
-	LRESULT onItemChanged(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/); //adrian edit
-	LRESULT onDoubleClick(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/);
 
 protected:
 	FavoriteHubEntry *entry;
 	//RSX++
-	string ProtectedUsers;
-	ExListViewCtrl ctrlAction;
-	ExListViewCtrl ctrlRaw;
-
-	bool nosave, gotFocusOnAction;
-
-	void addEntryAction(int id, const string name, bool actif, int pos);
-	void addEntryRaw(const Action::Raw& ra, int pos, int actionId);
-//	void fixControls();
+	CDialogTabCtrl ctrlTabs;
+	CFavTabRaw ctrlRaws;
+	CFavTabOp ctrlOpTab;
+	CCustomTab ctrlCustomTab;
+	CImageList images;
 	//END
 };
 

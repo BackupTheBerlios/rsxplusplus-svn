@@ -437,6 +437,7 @@ void FavoriteManager::save() {
 			xml.addChildAttrib("UseAutosearch", (*i)->getAutosearch());
 			xml.addChildAttrib("UseHighLight", (*i)->getUseHL());
 			xml.addChildAttrib("UsersLimitToUseActions", (*i)->getUsersLimit());
+			xml.addChildAttrib("GroupID", (*i)->getGroupId());
 			//END
 			//Zion++ //Raw Manager //DEBUT
 			xml.stepIn();
@@ -495,7 +496,14 @@ void FavoriteManager::save() {
 			xml.addChildAttrib("Name", i->second);
 		}
 		xml.stepOut();
-
+		//RSX++ //FavGroups
+		xml.addTag("FavoriteHubGroups");
+		xml.stepIn();
+		StringList lst = getFavGroups();
+		for(StringIter g = lst.begin(); g != lst.end(); ++g)
+			xml.addTag("GroupName", (*g));
+		xml.stepOut();
+		//END
 		xml.stepOut();
 
 		string fname = getConfigFile();
@@ -605,6 +613,7 @@ void FavoriteManager::filtersSave() {
 		dcdebug("FavoriteManager::recentsave: %s\n", e.getError().c_str());
 	}
 }
+
 void FavoriteManager::loadFilters(SimpleXML& aXml){
 	dontSave = true;
 	aXml.resetCurrentChild();
@@ -745,6 +754,7 @@ void FavoriteManager::load(SimpleXML& aXml) {
 			e->setAutosearch(aXml.getBoolChildAttrib("UseAutosearch"));
 			e->setUseHL(aXml.getBoolChildAttrib("UseHighLight"));
 			e->setUsersLimit(aXml.getIntChildAttrib("UsersLimitToUseActions"));
+			e->setGroupId(aXml.getIntChildAttrib("GroupID"));
 			//END
 			e->setMode(Util::toInt(aXml.getChildAttrib("Mode")));
 			e->setIP(aXml.getChildAttrib("IP"));
@@ -811,7 +821,16 @@ void FavoriteManager::load(SimpleXML& aXml) {
 		}
 		aXml.stepOut();
 	}
-
+	//RSX++ //FavHubGroups
+	aXml.resetCurrentChild();
+	if(aXml.findChild("FavoriteHubGroups")) {
+		aXml.stepIn();
+		while(aXml.findChild("GroupName")) {
+			favGroups.push_back(aXml.getChildData());
+		}
+		aXml.stepOut();
+	}
+	//END
 	dontSave = false;
 }
 

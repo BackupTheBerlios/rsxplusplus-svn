@@ -101,7 +101,7 @@ void AutoSearchManager::on(TimerManagerListener::Minute, uint64_t /*aTick*/) thr
 
 		if(endOfList) {
 			recheckTime++;
-			if(recheckTime <= RSXSETTING(AUTOSEARCH_RECHECK_TIME)) {
+			if(recheckTime < RSXSETTING(AUTOSEARCH_RECHECK_TIME)) {
 				return;
 			} else {
 				endOfList = false; //time's up, search for items again ;]

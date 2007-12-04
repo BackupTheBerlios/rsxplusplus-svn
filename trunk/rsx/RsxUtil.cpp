@@ -20,6 +20,7 @@
 #include "RsxUtil.h"
 #include "../client/Util.h"
 #include "../client/Text.h"
+#include "rsx-settings/rsx-SettingsManager.h"
 
 string RsxUtil::tmpTestSur;
 StringList RsxUtil::tags;
@@ -306,4 +307,22 @@ int RsxUtil::CalcContrastColor(int crBg) {
 		return (0x7F7F7F + crBg) & 0xFFFFFF;
     else 
 		return crBg ^ 0xFFFFFF;
+}
+
+tstring RsxUtil::formatAdditionalInfo(const string& aIp, bool sIp, bool sCC) {
+	string ret = Util::emptyString;
+
+	if(!aIp.empty()) {
+		string cc = Util::getIpCountry(aIp);
+		bool showIp = RSXBOOLSETTING(IP_IN_CHAT) || sIp;
+		bool showCc = (RSXBOOLSETTING(COUNTRY_IN_CHAT) || sCC) && !cc.empty();
+
+		if(showIp) {
+			ret = "[ " + aIp + " ] ";
+		}
+		if(showCc) {
+			ret += "[ " + cc + " ] ";
+		}
+	}
+	return Text::toT(ret);
 }

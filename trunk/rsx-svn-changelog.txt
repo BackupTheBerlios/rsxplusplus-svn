@@ -1,3 +1,20 @@
+** SVN 45
+ ** changed password character to arial's black circle (xp style, unicode)
+ ** [PluginAPI] some changed due to mem heap corruption in some cases
+ ** added favorite hubs grouping
+ ** added tabs to fav hub dlg to make it nicer and to have more space ;)
+ ** removed option to reload/unload plugin at runtime due to crashes [temp]
+ ** fixed pm tab context menu
+ ** played with about dialog
+ ** added option to show ip and country code in chat
+ ** fake page rewritten
+ ** some translations stuff
+ ** workaround for disconnects without real reason (15sec delay due to broken average speed)
+ ** some workarounds for app freezes
+ ** fixed time delay between autsearches
+ ** some other minor stuff that I can't remember ;)
+ NOTE: if plugins don't work, don't use them till' next commit
+
 ** SVN 44
  ** [TestAPI] code cleanup (ups...)
  ** ensure plugin dir

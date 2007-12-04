@@ -27,7 +27,7 @@
 #include "../client/ResourceManager.h"
 //#include "../client/pme.h" //RSX++
 #include "../client/StringTokenizer.h"
-#include "../rsx/RsxUtil.h"
+//#include "../rsx/RsxUtil.h"
 
 LRESULT FavHubProperties::OnInitDialog(UINT, WPARAM, LPARAM, BOOL&)
 {
@@ -54,24 +54,36 @@ LRESULT FavHubProperties::OnInitDialog(UINT, WPARAM, LPARAM, BOOL&)
 	SetDlgItemText(IDC_HUBPASS, Text::toT(entry->getPassword()).c_str());
 	SetDlgItemText(IDC_HUBUSERDESCR, Text::toT(entry->getUserDescription()).c_str());
 	SetDlgItemText(IDC_SERVER, Text::toT(entry->getIP()).c_str());
-//RSX++
+	//RSX++
 	SetDlgItemText(IDC_FAV_EMAIL, Text::toT(entry->getFavEmail()).c_str());
 	SetDlgItemText(IDC_FAV_AWAY_MSG, Text::toT(entry->getAwayMsg()).c_str());
-	SetDlgItemText(IDC_CHECK_PROTECTED_USER, Text::toT(entry->getUserProtected()).c_str());
-	SetDlgItemText(IDC_FAV_MIN_USERS_LIMIT, Util::toStringW(entry->getUsersLimit()).c_str());
-	ProtectedUsers = entry->getUserProtected();
 
-	::CheckDlgButton(*this, IDC_STEALTH, entry->getStealth()					? BST_CHECKED : BST_UNCHECKED);
-	::CheckDlgButton(*this, IDC_CHECK_ON_CONNECT, entry->getCheckOnConnect()	? BST_CHECKED : BST_UNCHECKED);
-	::CheckDlgButton(*this, IDC_CHECK_CLIENTS, entry->getCheckClients()			? BST_CHECKED : BST_UNCHECKED);
-	::CheckDlgButton(*this, IDC_CHECK_FILELISTS, entry->getCheckFilelists()		? BST_CHECKED : BST_UNCHECKED);
-	::CheckDlgButton(*this, IDC_CHECK_MYINFO, entry->getCheckMyInfo()			? BST_CHECKED : BST_UNCHECKED);
-	::CheckDlgButton(*this, IDC_HIDE_SHARE, entry->getHideShare()				? BST_CHECKED : BST_UNCHECKED);
-	::CheckDlgButton(*this, IDC_CHECK_FAKE_SHARE, entry->getCheckFakeShare()	? BST_CHECKED : BST_UNCHECKED);
-	::CheckDlgButton(*this, IDC_USE_FILTER_FAV, entry->getUseFilter()			? BST_CHECKED : BST_UNCHECKED);
-	::CheckDlgButton(*this, IDC_USE_HIGHLIGHT_FAV, entry->getUseHL()			? BST_CHECKED : BST_UNCHECKED);
-	::CheckDlgButton(*this, IDC_CHECK_AUTOSEARCH, entry->getAutosearch()		? BST_CHECKED : BST_UNCHECKED);
-//END
+	ctrlTabs.SubclassWindow(GetDlgItem(IDC_FAV_TABS));
+
+	ctrlOpTab.setHub(entry);
+	ctrlRaws.setHub(entry);
+	ctrlCustomTab.setHub(entry);
+	ctrlOpTab.Create(m_hWnd);
+	ctrlRaws.Create(m_hWnd);
+	ctrlCustomTab.Create(m_hWnd);
+
+	ctrlTabs.AddTab(_T("Custom"), ctrlCustomTab, 0, true);
+	ctrlTabs.AddTab(_T("Actions and Raws"), ctrlRaws,  1, true);
+	ctrlTabs.AddTab(_T("Detector"), ctrlOpTab, 2, true);
+	//@todo waitin' for icons for it ;)
+	//images.CreateFromImage(IDB_SEARCH_TYPES, 16, 0, CLR_DEFAULT, IMAGE_BITMAP, LR_CREATEDIBSECTION | LR_SHARED);
+	//ctrlTabs.SetImageList(images);
+	ctrlTabs.SetCurSel(0);
+
+	StringList& glst = FavoriteManager::getInstance()->getFavGroups();
+	CComboBox combo;
+	combo.Attach(GetDlgItem(IDC_FAV_DLG_GROUP));
+	combo.AddString(_T("No Group"));
+	for(StringIter i = glst.begin(); i != glst.end(); ++i)
+		combo.AddString(Text::toT((*i)).c_str());
+	combo.SetCurSel(entry->getGroupId());
+	combo.Detach();
+	//END
 	if(entry->getMode() == 0)
 		CheckRadioButton(IDC_ACTIVE, IDC_DEFAULT, IDC_DEFAULT);
 	else if(entry->getMode() == 1)
@@ -91,7 +103,7 @@ LRESULT FavHubProperties::OnInitDialog(UINT, WPARAM, LPARAM, BOOL&)
 	tmp.LimitText(50);
 	tmp.Detach();
 	tmp.Attach(GetDlgItem(IDC_HUBPASS));
-	tmp.SetPasswordChar('*');
+	tmp.SetPasswordChar(0x25CF);
 	tmp.Detach();
 	//RSX++
 	tmp.Attach(GetDlgItem(IDC_FAV_EMAIL));
@@ -100,42 +112,14 @@ LRESULT FavHubProperties::OnInitDialog(UINT, WPARAM, LPARAM, BOOL&)
 	tmp.Attach(GetDlgItem(IDC_FAV_AWAY_MSG));
 	tmp.LimitText(2048);
 	tmp.Detach();
-
-	CUpDownCtrl spin;
-	spin.Attach(GetDlgItem(IDC_FAV_MIN_USERS_LIMIT_SPIN));
-	spin.SetRange32(0, 1024*1024);
-	spin.Detach();
 	//END
 	CenterWindow(GetParent());
-
-	//RSX++ //Raw Manager
-	CRect rc1, rc2;
-
-	ctrlAction.Attach(GetDlgItem(IDC_FH_ACTION));
-	ctrlAction.GetClientRect(rc1);
-	ctrlAction.InsertColumn(0, CTSTRING(ACTION), LVCFMT_LEFT, rc1.Width() - 20, 0);
-	ctrlAction.SetExtendedListViewStyle(LVS_EX_CHECKBOXES | LVS_EX_FULLROWSELECT);
-
-	Action::List lst = RawManager::getInstance()->getActionList();
-
-	for(Action::List::const_iterator i = lst.begin(); i != lst.end(); ++i) {
-		addEntryAction(i->first, i->second->getName(), FavoriteManager::getInstance()->getActifAction(entry, i->second->getActionId()), ctrlAction.GetItemCount());
-	}
-
-	ctrlRaw.Attach(GetDlgItem(IDC_FH_RAW));
-	ctrlRaw.GetClientRect(rc2);
-	ctrlRaw.InsertColumn(0, _T("Raw"), LVCFMT_LEFT, rc2.Width() - 20, 0);
-	ctrlRaw.SetExtendedListViewStyle(LVS_EX_CHECKBOXES | LVS_EX_FULLROWSELECT);
-	::EnableWindow(GetDlgItem(IDC_FH_RAW), false);
-
-	nosave = false;
-	gotFocusOnAction = false;
-	//END
 	return FALSE;
 }
 
 LRESULT FavHubProperties::OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
+	images.Destroy();
 	if(wID == IDOK)
 	{
 		TCHAR buf[512];
@@ -155,49 +139,21 @@ LRESULT FavHubProperties::OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWnd
 		entry->setPassword(Text::fromT(buf));
 		GetDlgItemText(IDC_HUBUSERDESCR, buf, 256);
 		entry->setUserDescription(Text::fromT(buf));
-		
 		//RSX++
-		GetDlgItemText(IDC_CHECK_PROTECTED_USER, buf, 512);
-		entry->setUserProtected(Text::fromT(buf));
-
 		GetDlgItemText(IDC_FAV_EMAIL, buf, 256);
 		entry->setFavEmail(Text::fromT(buf));
 
 		GetDlgItemText(IDC_FAV_AWAY_MSG, buf, 256);
 		entry->setAwayMsg(Text::fromT(buf));
 
-		GetDlgItemText(IDC_FAV_MIN_USERS_LIMIT, buf, 128);
-		entry->setUsersLimit(Util::toInt(Text::fromT(buf)));
-
-		CButton btn = ::GetDlgItem(m_hWnd, IDC_STEALTH);
-		entry->setStealth(RsxUtil::toBool(btn.GetCheck()));
-
-		btn = ::GetDlgItem(m_hWnd, IDC_CHECK_ON_CONNECT);
-		entry->setCheckOnConnect(RsxUtil::toBool(btn.GetCheck()));
-
-		btn = ::GetDlgItem(m_hWnd, IDC_CHECK_CLIENTS);
-		entry->setCheckClients(RsxUtil::toBool(btn.GetCheck()));
-
-		btn = ::GetDlgItem(m_hWnd, IDC_CHECK_FILELISTS);
-		entry->setCheckFilelists(RsxUtil::toBool(btn.GetCheck()));
-
-		btn = ::GetDlgItem(m_hWnd, IDC_CHECK_MYINFO);
-		entry->setCheckMyInfo(RsxUtil::toBool(btn.GetCheck()));
-
-		btn = ::GetDlgItem(m_hWnd, IDC_HIDE_SHARE);
-		entry->setHideShare(RsxUtil::toBool(btn.GetCheck()));
-
-		btn = ::GetDlgItem(m_hWnd, IDC_CHECK_FAKE_SHARE);
-		entry->setCheckFakeShare(RsxUtil::toBool(btn.GetCheck()));
-
-		btn = ::GetDlgItem(m_hWnd, IDC_USE_FILTER_FAV);
-		entry->setUseFilter(RsxUtil::toBool(btn.GetCheck()));
-
-		btn = ::GetDlgItem(m_hWnd, IDC_CHECK_AUTOSEARCH);
-		entry->setAutosearch(RsxUtil::toBool(btn.GetCheck()));
-
-		btn = ::GetDlgItem(m_hWnd, IDC_USE_HIGHLIGHT_FAV);
-		entry->setUseHL(RsxUtil::toBool(btn.GetCheck()));
+		CComboBox combo;
+		combo.Attach(GetDlgItem(IDC_FAV_DLG_GROUP));
+		entry->setGroupId(combo.GetCurSel());
+		combo.Detach();
+		//init close and save values
+		ctrlOpTab.prepareClose();
+		ctrlRaws.prepareClose();
+		ctrlCustomTab.prepareClose();
 		//END
 
 		GetDlgItemText(IDC_SERVER, buf, 512);
@@ -211,21 +167,7 @@ LRESULT FavHubProperties::OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWnd
 		else if(IsDlgButtonChecked(IDC_PASSIVE))
 			ct = 2;
 
-		entry->setMode(ct);
-
-		//RSX++ //Raw Manager
-		int i;
-		for(i = 0; i < ctrlAction.GetItemCount(); i++) {
-			FavoriteManager::getInstance()->setActifAction(entry, RawManager::getInstance()->getActionId(ctrlAction.GetItemData(i)), RsxUtil::toBool(ctrlAction.GetCheckState(i)));
-		}
-		if(ctrlAction.GetSelectedCount() == 1) {
-			int j = ctrlAction.GetNextItem(-1, LVNI_SELECTED);
-			int l;
-			for(l = 0; l < ctrlRaw.GetItemCount(); l++) {
-				FavoriteManager::getInstance()->setActifRaw(entry, RawManager::getInstance()->getActionId(ctrlAction.GetItemData(j)), ctrlRaw.GetItemData(l), RsxUtil::toBool(ctrlRaw.GetCheckState(l)));
-			}
-		}
-		//END	
+		entry->setMode(ct);	
 
 		FavoriteManager::getInstance()->save();
 	}
@@ -266,67 +208,7 @@ LRESULT FavHubProperties::OnTextChanged(WORD /*wNotifyCode*/, WORD wID, HWND hWn
 
 	return TRUE;
 }
-//RSX++ //Raw Manager
-void FavHubProperties::addEntryAction(int id, const string name, bool actif, int pos) {
-	TStringList lst;
 
-	lst.push_back(Text::toT(name));
-	int i = ctrlAction.insert(pos, lst, 0, (LPARAM)id);
-	ctrlAction.SetCheckState(i, actif);
-}
-
-void FavHubProperties::addEntryRaw(const Action::Raw& ra, int pos, int actionId) {
-	TStringList lst;
-
-	lst.push_back(Text::toT(ra.getName()));
-	int i = ctrlRaw.insert(pos, lst, 0, (LPARAM)ra.getRawId());
-	ctrlRaw.SetCheckState(i, FavoriteManager::getInstance()->getActifRaw(entry, actionId, ra.getRawId()));
-}
-
-LRESULT FavHubProperties::onItemChanged(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/) {
-	NMITEMACTIVATE* l = (NMITEMACTIVATE*)pnmh;
-	gotFocusOnAction = (l->uNewState & LVIS_FOCUSED) || ((l->uNewState & LVIS_STATEIMAGEMASK) && ctrlAction.GetSelectedIndex() != -1);
-	::EnableWindow(GetDlgItem(IDC_FH_RAW), gotFocusOnAction);
-
-	if(!nosave && l->iItem != -1 && ((l->uNewState & LVIS_STATEIMAGEMASK) == (l->uOldState & LVIS_STATEIMAGEMASK))) {
-		int j;
-		for(j = 0; j < ctrlRaw.GetItemCount(); j++) {
-			FavoriteManager::getInstance()->setActifRaw(entry, RawManager::getInstance()->getActionId(ctrlAction.GetItemData(l->iItem)), ctrlRaw.GetItemData(j), RsxUtil::toBool(ctrlRaw.GetCheckState(j)));
-		}
-		ctrlRaw.SetRedraw(FALSE);
-		ctrlRaw.DeleteAllItems();
-		if(ctrlAction.GetSelectedCount() == 1) {
-			Action::RawsList lst = RawManager::getInstance()->getRawList(ctrlAction.GetItemData(l->iItem));
-
-			for(Action::RawsList::const_iterator i = lst.begin(); i != lst.end(); ++i) {
-				const Action::Raw& ra = *i;
-				addEntryRaw(ra, ctrlRaw.GetItemCount(), RawManager::getInstance()->getActionId(ctrlAction.GetItemData(l->iItem)));
-			}
-		} else {
-			::EnableWindow(GetDlgItem(IDC_FH_RAW), false);
-		}
-		ctrlRaw.SetRedraw(TRUE);
-	}
-	return 0;
-}
-
-LRESULT FavHubProperties::onDoubleClick(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/) {
-	NMITEMACTIVATE* item = (NMITEMACTIVATE*)pnmh;
-
-	if(GetFocus() == ctrlAction.m_hWnd) {
-		if(ctrlAction.GetCheckState(item->iItem))
-			ctrlAction.SetCheckState(item->iItem, false);
-		else
-			ctrlAction.SetCheckState(item->iItem, true);
-	} else if(GetFocus() == ctrlRaw.m_hWnd) {
-		if(ctrlRaw.GetCheckState(item->iItem))
-			ctrlRaw.SetCheckState(item->iItem,  false);
-		else
-			ctrlRaw.SetCheckState(item->iItem,  true);
-	}
-	return 0;
-}
-//END
 /**
  * @file
  * $Id: FavHubProperties.cpp 234 2006-08-06 17:51:36Z bigmuscle $

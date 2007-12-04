@@ -76,30 +76,19 @@ public:
 	typedef vector<Ptr> List;
 	typedef List::const_iterator Iter;
 
-	FavoriteHubEntry() throw() : connect(false), encoding(Text::systemCharset), chatusersplit(0), stealth(false), userliststate(true)
+	FavoriteHubEntry() throw() : connect(false), encoding(Text::systemCharset), chatusersplit(0), stealth(false), userliststate(true), mode(0), ip(Util::emptyString)
 		//RSX++
-		, favEmail(Util::emptyString)
-		, awayMsg(Util::emptyString)
-		, userProtected(Util::emptyString)
-		, checkOnConnect(false)
-		, checkClients(false)
-		, checkFilelists(false)
-		, checkMyInfo(false)
-		, hideShare(false)
-		, checkFakeShare(false)
-		, useFilter(RSXBOOLSETTING(USE_FILTER_FAV))
-		, autosearch(false)
-		, useHL(RSXBOOLSETTING(USE_HL_FAV))
-		, usersLimit(0)
+		, favEmail(Util::emptyString), awayMsg(Util::emptyString), userProtected(Util::emptyString), checkOnConnect(false),
+		checkClients(false), checkFilelists(false), checkMyInfo(false), hideShare(false), checkFakeShare(false),
+		useFilter(RSXBOOLSETTING(USE_FILTER_FAV)), autosearch(false), useHL(RSXBOOLSETTING(USE_HL_FAV)), usersLimit(0), groupId(0)
 		//END
-		, mode(0)
-		, ip(Util::emptyString) { }
+		{ }
 	FavoriteHubEntry(const HubEntry& rhs) throw() : name(rhs.getName()), server(rhs.getServer()), encoding(Text::systemCharset),
 		description(rhs.getDescription()), connect(false), chatusersplit(0), stealth(false), userliststate(true), mode(0), ip(Util::emptyString),
 		//RSX++
 		favEmail(Util::emptyString), awayMsg(Util::emptyString), userProtected(Util::emptyString), checkOnConnect(false), 
 		checkClients(false), checkFilelists(false), checkMyInfo(false), hideShare(false), checkFakeShare(false),
-		useFilter(RSXBOOLSETTING(USE_FILTER_FAV)), autosearch(false), useHL(RSXBOOLSETTING(USE_HL_FAV)), usersLimit(0)
+		useFilter(RSXBOOLSETTING(USE_FILTER_FAV)), autosearch(false), useHL(RSXBOOLSETTING(USE_HL_FAV)), usersLimit(0), groupId(0)
 		//END
 		{ }
 	FavoriteHubEntry(const FavoriteHubEntry& rhs) throw() : userdescription(rhs.userdescription), name(rhs.getName()), 
@@ -109,7 +98,8 @@ public:
 		//RSX++
 		favEmail(rhs.favEmail), awayMsg(rhs.awayMsg), userProtected(rhs.userProtected) , checkOnConnect(rhs.checkOnConnect), 
 		checkClients(rhs.checkClients),checkFilelists(rhs.checkFilelists), checkMyInfo(rhs.checkMyInfo), hideShare(rhs.hideShare), 
-		checkFakeShare(rhs.checkFakeShare), useFilter(rhs.useFilter), autosearch(rhs.autosearch), useHL(rhs.useHL), usersLimit(rhs.usersLimit)
+		checkFakeShare(rhs.checkFakeShare), useFilter(rhs.useFilter), autosearch(rhs.autosearch), useHL(rhs.useHL), usersLimit(rhs.usersLimit),
+		groupId(rhs.groupId)
 		//END
 		{ }
 	~FavoriteHubEntry() throw() { 
@@ -139,6 +129,8 @@ public:
 	GETSET(int, chatusersplit, ChatUserSplit);
 	GETSET(bool, stealth, Stealth);
 	GETSET(bool, userliststate, UserListState);	
+	GETSET(int, mode, Mode); // 0 = default, 1 = active, 2 = passive
+	GETSET(string, ip, IP);
 	//RSX++
 	GETSET(string, favEmail, FavEmail);
 	GETSET(string, awayMsg, AwayMsg);
@@ -153,9 +145,8 @@ public:
 	GETSET(bool, autosearch, Autosearch);
 	GETSET(bool, useHL, UseHL);
 	GETSET(int, usersLimit, UsersLimit);
+	GETSET(int, groupId, GroupId);
 	//END
-	GETSET(int, mode, Mode); // 0 = default, 1 = active, 2 = passive
-	GETSET(string, ip, IP);
 
 	//RSX++ //Raw Manager
 	struct Action {
@@ -328,7 +319,6 @@ public:
 	
 // Favorite Hubs
 	FavoriteHubEntry::List& getFavoriteHubs() { return favoriteHubs; }
-
 	void addFavorite(const FavoriteHubEntry& aEntry);
 	void removeFavorite(const FavoriteHubEntry* entry);
 	bool checkFavHubExists(const FavoriteHubEntry& aEntry);
@@ -357,76 +347,87 @@ public:
 		return NULL;
 	}
 
-//RSX++
+	//RSX++ //dependent dirs
 	DirectoriesEx::List& getDirectoriesEx() { return dirsEx; }
-
 	DirectoriesEx* addDirEx(string name, string path, string extension){
 		DirectoriesEx* dx = new DirectoriesEx(name, path, extension);
 		dirsEx.push_back(dx);
 		return dx;
 	}
 
-	DirectoriesEx* removeDirEx(unsigned int index){
+	void removeDirEx(unsigned int index){
 		if(dirsEx.size() > index)
 			dirsEx.erase(dirsEx.begin() + index);	
-		return NULL;
 	}
 
-	DirectoriesEx* getDirEx(unsigned int index, DirectoriesEx &dx){
+	void getDirEx(unsigned int index, DirectoriesEx &dx){
 		if(dirsEx.size() > index)
 			dx = *dirsEx[index];	
-		return NULL;
 	}
 	
-	DirectoriesEx* updateDirEx(int index, DirectoriesEx &dx){
+	void updateDirEx(int index, DirectoriesEx &dx){
 		*dirsEx[index] = dx;
-		return NULL;
 	}
 
-//RSX++ //HighLight
+	//RSX++ //HighLight
 	HighLight* addHighLight(const string& stm, bool hFC, bool hBGC, int fc, int bc, bool bf, bool iF, bool uf, bool sf,
 		bool dp, bool fw, bool ps, const string& sfp) {
 		HighLight* hl = new HighLight(stm, hFC, hBGC, fc, bc, bf, iF, uf, sf, dp, fw, ps, sfp);
 		hls.push_back(hl);
 		return hl;
 	}
-	HighLight* getHighLight(unsigned int index, HighLight &hl) {
+	void getHighLight(unsigned int index, HighLight &hl) {
 		if(hls.size() > index)
 			hl = *hls[index];
-		return NULL;
 	}
-	HighLight* updateHighLight(int index, HighLight &hl) {
+	void updateHighLight(int index, HighLight &hl) {
 		*hls[index] = hl;
-		return NULL;
 	}
-	HighLight* removeHighLight(unsigned int index) {
+	void removeHighLight(unsigned int index) {
 		if(hls.size() > index)
 			hls.erase(hls.begin() + index);
-		return NULL;
 	}
-//RSX++ //Filters
+	//RSX++ //Filters
 	Filters* addFilter(const string& fstring, bool useColor, bool hFC, bool hBGC, int fc, int bc, bool bf, bool iF, bool uF, bool sF) {
 		Filters* fs = new Filters(fstring, useColor, hFC, hBGC, fc, bc, bf, iF, uF, sF);
 		filters.push_back(fs);
 		return fs;
 	}
-	Filters* getFilter(unsigned int index, Filters &fs) {
+	void getFilter(unsigned int index, Filters &fs) {
 		if(filters.size() > index)
 			fs = *filters[index];
-		return NULL;
 	}
-	Filters* updateFilter(int index, Filters &fs) {
+	void updateFilter(int index, Filters &fs) {
 		*filters[index] = fs;
-		return NULL;
 	}
-	Filters* removeFilter(unsigned int index) {
+	void removeFilter(unsigned int index) {
 		if(filters.size() > index)
 			filters.erase(filters.begin() + index);
-		return NULL;
 	}
 	//RSX++ //away msg string
 	string getAwayMessage(const string& aServer);
-//END
+	//RSX++ //FavHubGroups
+	StringList& getFavGroups() { return favGroups; }
+	bool addFavGroup(const string& gName) {
+		for(StringIter i = favGroups.begin(); i != favGroups.end(); ++i) {
+			if(gName.compare((*i)) == 0) return false;
+		}
+		favGroups.push_back(gName);
+		return true;
+	}
+	void removeFavGroup(uint8_t pos) {
+		Lock l(cs);
+		StringIter i = favGroups.begin() + pos;
+		if(i != favGroups.end())
+			favGroups.erase(i);
+	}
+	bool editFavGroup(uint8_t pos, const string& gName) {
+		for(StringIter i = favGroups.begin(); i != favGroups.end(); ++i)
+			if(gName.compare((*i)) == 0) return false;
+		favGroups[pos] = gName;
+		return true;
+	}
+	//END
 	PreviewApplication* addPreviewApp(string name, string application, string arguments, string extension){
 		PreviewApplication* pa = new PreviewApplication(name, application, arguments, extension);
 		previewApplications.push_back(pa);
@@ -496,9 +497,12 @@ private:
 	int lastId;
 
 	FavoriteMap users;
-	Filters::List filters; //RSX++ //Filters
-	DirectoriesEx::List dirsEx; //RSX++
-	HighLight::List hls; //RSX++ //HighLight
+	//RSX++
+	Filters::List filters;
+	DirectoriesEx::List dirsEx;
+	HighLight::List hls;
+	StringList favGroups;
+	//END
 
 	mutable CriticalSection cs;
 

@@ -56,7 +56,8 @@ LRESULT RawPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 
 	ctrlRaw.Attach(GetDlgItem(IDC_RAW_PAGE_RAW));
 	ctrlRaw.GetClientRect(rc2);
-	ctrlRaw.InsertColumn(0, _T("Dummy"), LVCFMT_LEFT, rc2.Width() - 20, 0);
+	ctrlRaw.InsertColumn(0, _T("Raw Name"), LVCFMT_LEFT, (rc2.Width()/6)*5, 0);
+	ctrlRaw.InsertColumn(1, _T("Lua"), LVCFMT_LEFT, (rc2.Width()/6) - 17, 1);
 	ctrlRaw.SetExtendedListViewStyle(LVS_EX_CHECKBOXES | LVS_EX_FULLROWSELECT);
 
 	nosave = false;
@@ -160,6 +161,7 @@ LRESULT RawPage::onChangeRaw(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*
 				if(raw.DoModal() == IDOK) {
 					RawManager::getInstance()->changeRaw(ctrlAction.GetItemData(j), name, raw.name, raw.raw, raw.time, raw.useLua);
 					ctrlRaw.SetItemText(i, 0, Text::toT(raw.name).c_str());
+					ctrlRaw.SetItemText(i, 1, raw.useLua ? CTSTRING(YES) : CTSTRING(NO));
 				}
 			} catch(const Exception& e) {
 				MessageBox(Text::toT(e.getError()).c_str(), _T(APPNAME) _T(" ") _T(VERSIONSTRING), MB_ICONSTOP | MB_OK);
@@ -235,6 +237,7 @@ void RawPage::addEntryRaw(const Action::Raw& ra, int pos) {
 	TStringList lst;
 
 	lst.push_back(Text::toT(ra.getName()));
+	lst.push_back(ra.getLua() ? CTSTRING(YES) : CTSTRING(NO));
 	int i = ctrlRaw.insert(pos, lst, 0, (LPARAM)ra.getId());
 	ctrlRaw.SetCheckState(i, ra.getActif());
 }
@@ -248,6 +251,7 @@ LRESULT RawPage::onItemChangedRaw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled
 	::EnableWindow(GetDlgItem(IDC_MOVE_RAW_DOWN), gotFocusOnRaw && gotFocusOnAction); 
 	return 0;
 }
+
 LRESULT RawPage::onItemChanged(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/) {
 	NMITEMACTIVATE* l = (NMITEMACTIVATE*)pnmh;
 	gotFocusOnAction = (l->uNewState & LVIS_FOCUSED) || ((l->uNewState & LVIS_STATEIMAGEMASK) && ctrlAction.GetSelectedIndex() != -1);
@@ -277,6 +281,19 @@ LRESULT RawPage::onItemChanged(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
 			}
 		}
 		ctrlRaw.SetRedraw(TRUE);
+	}
+	return 0;
+}
+
+LRESULT RawPage::onDblClick(int idCtrl, LPNMHDR pnmh, BOOL& bHandled) {
+	NMITEMACTIVATE* l = (NMITEMACTIVATE*)pnmh;
+	bool tmp = !(l->uNewState & LVIS_STATEIMAGEMASK);
+	if(tmp) {
+		if(idCtrl == IDC_RAW_PAGE_RAW) {
+			return onChangeRaw(0, 0, 0, bHandled);
+		} else if(idCtrl == IDC_RAW_PAGE_ACTION) {
+			return onRenameAction(0, 0, 0, bHandled);
+		}
 	}
 	return 0;
 }

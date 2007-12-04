@@ -34,29 +34,36 @@
 #include "SimpleXML.h"
 #include "version.h"
 
-#define API_VERSION 1004
+#define API_VERSION 1005
 
 PluginManager::PluginManager() : mainHwnd(NULL), dontSave(false) {
 	loadPluginDir();
 }
 
 PluginManager::~PluginManager() {
-	unloadAll();
+	for_each(plugins.begin(), plugins.end(), DeleteFunction());
+	plugins.clear();
 }
 
 PluginInfo::~PluginInfo(){
-	if(a != NULL) {
-		a->onUnload();
-		a->setInterface(NULL);
-	}
-	pluginUnloader();
-	a = NULL;
-	pluginUnloader = NULL;
+	stopPlugin();
 
 	if(h != NULL) {
 		::FreeLibrary(h);
 		h = NULL;
 	}
+}
+
+void PluginInfo::stopPlugin() {
+	Lock l(cs);
+	if(a != NULL) {
+		a->onUnload();
+		a->setInterface(NULL);
+	}
+	if(pluginUnloader != NULL)
+		pluginUnloader();
+	a = NULL;
+	pluginUnloader = NULL;
 }
 
 void PluginManager::loadPluginDir() {
@@ -69,7 +76,7 @@ void PluginManager::loadPluginDir() {
 
 void PluginManager::loadPlugin(const string& flname) {
 	Lock l(cs);
-	HMODULE h = LoadLibrary(Text::toT(flname).c_str());
+	HINSTANCE h = LoadLibrary(Text::toT(flname).c_str());
 
 	if(h == NULL) {
 		LogManager::getInstance()->message(STRING(PLUGIN_LOAD_FAIL) + " (" + Util::getFileName(flname) + ")");
@@ -78,7 +85,7 @@ void PluginManager::loadPlugin(const string& flname) {
 	}
 
 	PLUGIN_ID pid = (PLUGIN_ID)GetProcAddress(h, "pluginId");
-	PLUGIN_API_VERSION pav = (PLUGIN_API_VERSION)::GetProcAddress(h, "pluginAPIVersion");
+	PLUGIN_API_VERSION pav = (PLUGIN_API_VERSION)GetProcAddress(h, "pluginAPIVersion");
 
 	if(pid != NULL && pav != NULL) {
 		int pId = pid();
@@ -98,22 +105,7 @@ void PluginManager::loadPlugin(const string& flname) {
 	} else { LogManager::getInstance()->message(STRING(PLUGIN_NOT_VALID) + " (" + Util::getFileName(flname) + ")"); }
 	FreeLibrary(h);
 }
-
-void PluginManager::unloadPlugin(const wstring& name) {
-	Lock l(cs);
-	for(PluginsMap::iterator i = plugins.begin(); i != plugins.end(); ++i) {
-		if((*i)->getPluginAPI()->getPluginName().compare(name) == 0) {
-			PluginInfo* p = (*i);
-			plugins.erase(i);
-			if(p) {
-				delete p;
-				p = NULL;
-			}
-			return;
-		}
-	}
-}
-
+/*
 void PluginManager::unloadAll() {
 	Lock l(cs);
 	saveSettings();
@@ -128,12 +120,19 @@ void PluginManager::reloadPlugins() {
 	loadPluginDir();
 	startPlugins();
 }
-
+*/
 void PluginManager::startPlugins() {
 	Lock l(cs);
 	loadSettings();
 	for(PluginsMap::const_iterator i = plugins.begin(); i != plugins.end(); ++i) {
 		(*i)->getPluginAPI()->onLoad();
+	}
+}
+
+void PluginManager::stopPlugins() {
+	Lock l(cs);
+	for(PluginsMap::reverse_iterator i = plugins.rbegin(); i != plugins.rend(); ++i) {
+		(*i)->stopPlugin();
 	}
 }
 
@@ -235,6 +234,8 @@ void PluginManager::loadSettings() {
 
 void PluginManager::saveSettings() {
 	Lock l(cs);
+	if(!plugins.size())
+		return;
 	try {
 		SimpleXML xml;
 		xml.addTag("PluginSettings");
@@ -243,16 +244,19 @@ void PluginManager::saveSettings() {
 			xml.addTag("Plugins");
 			xml.stepIn();
 			{
+				cs.enter();
 				for(PluginsMap::const_iterator i = plugins.begin(); i != plugins.end(); ++i) {
 					const wstring& validName = validateName((*i)->getPluginAPI()->getPluginName());
 					xml.addTag(Text::fromT(validName));
 					xml.stepIn();
-					SettingItem tempMap = getPluginSettings(validName);
+					SettingItem& tempMap = getPluginSettings(validName);
 					for(SettingItem::const_iterator j = tempMap.begin(); j != tempMap.end(); ++j) {
 						xml.addTag(Text::fromT(j->first), Text::fromT(j->second));
 					}
+					tempMap.clear();
 					xml.stepOut();
 				}
+				cs.leave();
 			}
 			xml.stepOut();
 		}
@@ -312,7 +316,7 @@ wstring iPluginAPICallBack::getStringSetting(const std::string& sName) {
 	return Text::toT(SettingsManager::getInstance()->getString(sName));
 }
 
-HWND iPluginAPICallBack::getMainWnd() {
+const HWND iPluginAPICallBack::getMainWnd() const {
 	return PluginManager::getInstance()->getMainHwnd();
 }
 

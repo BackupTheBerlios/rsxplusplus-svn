@@ -38,7 +38,7 @@ public:
 	virtual int getIntSetting(const std::wstring& /*sName*/) { return 0; }
 	virtual int64_t getInt64Setting(const std::wstring& /*sName*/) { return 0; }
 	virtual std::wstring getStringSetting(const std::wstring& /*sName*/) { return _T(""); }
-	virtual HWND getMainWnd() { return NULL; }
+	virtual const HWND getMainWnd() const { return NULL; }
 	virtual int getSVNRevision() { return 0; }
 	virtual const std::wstring getClientProfileVersion() const { return _T(""); }
 	virtual const std::wstring getMyInfoProfileVersion() const { return _T(""); }
@@ -78,12 +78,13 @@ public:
 	}
 
 	iPluginAPI* getAPI() { return iApi; }
+	const iPluginAPI* getAPI() const { return iApi; }
 
 	void setSetting(const std::wstring& settingName, const std::wstring& settingVal) {
 		getAPI()->setSetting(getPluginName(), settingName, settingVal);
 	}
 
-	std::wstring getSetting(const std::wstring& settingName) {
+	std::wstring getSetting(const std::wstring& settingName) const {
 		return getAPI()->getSetting(getPluginName(), settingName);
 	}
 

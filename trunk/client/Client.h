@@ -132,10 +132,26 @@ public:
 	GETSET(string, currentNick, CurrentNick);
 	GETSET(string, currentDescription, CurrentDescription);
 	//RSX++
-	GETSET(string, currentEmail, CurrentEmail);
-	GETSET(bool, useFilter, UseFilter);
-	GETSET(bool, useAutosearch, UseAutosearch);
-	GETSET(bool, useHL, UseHL);
+	//we can use unused by protocol variables to stroe our settings
+	//it will give a little amount of free memory... it's always something ;)
+	//most common types are string and bool
+#define GSS(n, x) string get##n() const { return hubIdentity.get(x); } \
+	void set##n(const string& v) { hubIdentity.set(x, v); }
+#define GSB(n, x) bool get##n() const { return !hubIdentity.get(x).empty(); } \
+	void set##n(bool v) { hubIdentity.set(x, v ? "1" : Util::emptyString); }
+
+	GSS(CurrentEmail, "11");
+	GSS(UserProtected, "12");
+	GSB(UseFilter, "13");
+	GSB(UseAutosearch, "14");
+	GSB(UseHL, "15");
+	GSB(CheckClients, "51");
+	GSB(CheckFilelists, "52");
+	GSB(CheckOnConnect, "53");
+	GSB(CheckMyInfo, "54");
+	GSB(HideShare, "55");
+	GSB(CheckFakeShare, "56");
+	GSB(CheckedAtConnect, "57");
 	//END
 	GETSET(string, favIp, FavIp);
 	
@@ -193,16 +209,7 @@ protected:
 	virtual void on(Failed, const string&) throw();
 
 	//RSX++
-	GETSET(string, userProtected, UserProtected);
-	GETSET(bool, checkClients, CheckClients);
-	GETSET(bool, checkFilelists, CheckFilelists);
-	GETSET(bool, checkOnConnect, CheckOnConnect);
-	GETSET(bool, checkMyInfo, CheckMyInfo);
-	GETSET(bool, hideShare, HideShare);
-	GETSET(bool, checkFakeShare, CheckFakeShare);
-	GETSET(bool, checkedAtConnect, CheckedAtConnect);
 	GETSET(uint16_t, usersLimit, UsersLimit);
-
 	void insertRaw(const string& aRawCmd);
 	//END
 	mutable CriticalSection cs;

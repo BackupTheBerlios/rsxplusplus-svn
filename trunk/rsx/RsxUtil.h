@@ -50,6 +50,7 @@ public:
 	static bool				compareLower(const tstring& firstStr, const tstring& secondStr);
 	static int				CalcContrastColor(int crBg);
 	static bool				isIpInRange(const string& aIp, const string& aRange);
+	static tstring			formatAdditionalInfo(const string& aIp, bool sIp, bool sCC);
 
 private:
 	static string tmpTestSur;

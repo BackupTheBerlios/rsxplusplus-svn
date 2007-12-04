@@ -597,6 +597,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\windows\FavTabPages.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\windows\FileListDetectorDlg.cpp"
 				>
 			</File>
@@ -990,6 +994,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\windows\FavTabPages.h"
+				>
+			</File>
+			<File
 				RelativePath=".\windows\FileListDetectorDlg.h"
 				>
 			</File>
@@ -1219,6 +1227,10 @@
 			</File>
 			<File
 				RelativePath=".\windows\StatsFrame.h"
+				>
+			</File>
+			<File
+				RelativePath=".\stdafx.h"
 				>
 			</File>
 			<File

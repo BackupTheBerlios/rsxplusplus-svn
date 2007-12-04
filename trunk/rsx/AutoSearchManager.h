@@ -61,19 +61,16 @@ public:
 		as.push_back(ipw);
 		return ipw;
 	}
-	Autosearch* getAutosearch(unsigned int index, Autosearch &ipw) {
+	void getAutosearch(unsigned int index, Autosearch &ipw) {
 		if(as.size() > index)
 			ipw = *as[index];
-		return NULL;
 	}
-	Autosearch* updateAutosearch(unsigned int index, Autosearch &ipw) {
+	void updateAutosearch(unsigned int index, Autosearch &ipw) {
 		*as[index] = ipw;
-		return NULL;
 	}
-	Autosearch* removeAutosearch(unsigned int index) {
+	void removeAutosearch(unsigned int index) {
 		if(as.size() > index)
 			as.erase(as.begin() + index);
-		return NULL;
 	}
 	Autosearch::List& getAutosearch() { 
 		Lock l(acs);

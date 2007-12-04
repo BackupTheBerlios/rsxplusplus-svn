@@ -81,7 +81,7 @@ PropertiesDlg::PropertiesDlg(HWND parent, SettingsManager *s) : TreePropertyShee
 	pages[n++] = new LimitPage(s);
 	pages[n++] = new CertificatesPage(s);
 	//RSX++
-	pages[n++] = new RSX(s);
+	pages[n++] = new RSXPage(s);
 	pages[n++] = new FilterPage(s);
 	pages[n++] = new FakeDetect(s);
 	pages[n++] = new ClientsPage(s);

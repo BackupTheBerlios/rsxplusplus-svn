@@ -150,7 +150,12 @@ void startup(void (*f)(void*, const tstring&), void* p) {
 }
 
 void shutdown() {
-	RsxUtil::uinit(); //RSX++
+	//RSX++
+	RsxUtil::uinit();
+	PluginManager::getInstance()->saveSettings();
+	PluginManager::getInstance()->stopPlugins();
+	AutoSearchManager::deleteInstance();
+	//END
 
 	TimerManager::getInstance()->shutdown();
 	HashManager::getInstance()->shutdown();
@@ -163,11 +168,9 @@ void shutdown() {
 	RSXSettingsManager::getInstance()->save(); //RSX++
 
 	//RSX++
-	PluginManager::deleteInstance();
 	IpManager::deleteInstance();
 	PGManager::deleteInstance();
 	UpdateManager::deleteInstance();
-	AutoSearchManager::deleteInstance();
 	ToolbarManager::deleteInstance();
 	//--
 	ADLSearchManager::deleteInstance();
@@ -197,6 +200,7 @@ void shutdown() {
 #ifdef _WIN32	
 	::WSACleanup();
 #endif
+	PluginManager::deleteInstance();
 }
 
 /**

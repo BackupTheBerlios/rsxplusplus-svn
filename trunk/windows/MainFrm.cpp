@@ -1110,7 +1110,6 @@ LRESULT MainFrame::onEndSession(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 	QueueManager::getInstance()->saveQueue();
 	SettingsManager::getInstance()->save();
 	RSXSettingsManager::getInstance()->save(); //RSX++
-	
 	return 0;
 }
 
@@ -1161,6 +1160,7 @@ LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 
 			DWORD id;
 			stopperThread = CreateThread(NULL, 0, stopper, this, 0, &id);
+
 			closing = true;
 		}
 		bHandled = TRUE;

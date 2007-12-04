@@ -27,7 +27,7 @@ template<bool isADC, typename BaseMap>
 class UserMap : public BaseMap {
 public:
 	UserMap() : client(NULL) { };
-	virtual ~UserMap() { 
+	~UserMap() { 
 		stopMyINFOCheck();
 		stopCheck();
 		QueueManager::getInstance()->removeOfflineChecks();
@@ -136,7 +136,6 @@ private:
 			return 0;
 		}
 	private:
-		CriticalSection cs;
 		bool inThread;
 		bool checkFakeShare, checkMyInfo;
 		Client* client;
@@ -192,8 +191,6 @@ private:
 			}
 
 			while(keepChecking) {
-				if(!inThread)
-					break;
 				if(client && client->isConnected()) {
 					uint8_t t = 0;
 					uint8_t f = 0;

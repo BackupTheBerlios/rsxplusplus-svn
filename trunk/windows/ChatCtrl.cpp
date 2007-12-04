@@ -67,7 +67,7 @@ void ChatCtrl::AdjustTextSize() {
 	}
 }
 
-void ChatCtrl::AppendText(const Identity& i, const tstring& sMyNick, const tstring& sTime, const LPCTSTR sMsg, CHARFORMAT2& cf, bool bUseEmo/* = true*/, bool useHL/* = true*/) {
+void ChatCtrl::AppendText(const Identity& i, const tstring& sMyNick, const tstring& sTime, const LPCTSTR sMsg, CHARFORMAT2& cf, bool bUseEmo/* = true*/, bool useHL/* = true*/, const tstring& aIpCc) {
 	SetRedraw(FALSE);
 	long lSelBeginSaved, lSelEndSaved;
 	GetSel(lSelBeginSaved, lSelEndSaved);
@@ -91,10 +91,28 @@ void ChatCtrl::AppendText(const Identity& i, const tstring& sMyNick, const tstri
 		pf.dxStartIndent = 0;
 		SetParaFormat(pf);
 	}
+	//RSX++
+	bool bMyMess = i.getUser() == ClientManager::getInstance()->getMe();
+
+	if(!aIpCc.empty()) {
+		lSelEnd = lSelBegin = GetTextLengthEx(GTL_NUMCHARS);
+		SetSel(lSelEnd, lSelEnd);
+		ReplaceSel(aIpCc.c_str(), false);
+		lSelEnd = GetTextLengthEx(GTL_NUMCHARS);
+		SetSel(lSelBegin, lSelEnd - 1);
+		SetSelectionCharFormat(bMyMess ? WinUtil::m_ChatTextMyOwn : WinUtil::m_ChatTextGeneral);
+
+		PARAFORMAT2 pf;
+		memzero(&pf, sizeof(PARAFORMAT2));
+		pf.dwMask = PFM_STARTINDENT; 
+		pf.dxStartIndent = 0;
+		SetParaFormat(pf);
+	}
+	//END
 
 	CAtlString sText;
 	tstring sAuthor = Text::toT(i.getNick());
-	bool bMyMess = i.getUser() == ClientManager::getInstance()->getMe();
+	//bool bMyMess = i.getUser() == ClientManager::getInstance()->getMe();
 	if(!sAuthor.empty()) {
 		size_t iLen = (sMsg[0] == _T('*')) ? 1 : 0;
 		size_t iAuthorLen = _tcslen(sAuthor.c_str())+1;

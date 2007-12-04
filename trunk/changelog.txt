@@ -1,0 +1,19 @@
+** RSX++ 1.00 Beta 2 ** xx/xx/xxxx
+ ** improved Client & MyINFO detector (fixed some crashes)
+ ** removed ISP List
+ ** extended IP Watch
+	- match methods: wildcards, regexp, range check
+	- option to check ip or host name
+	- option to set isp after detection
+ ** added favorite hubs grouping
+ ** removed favorite importer (now it's stand-alone application)
+ ** removed media players support
+ ** added support for plugins + plugin's toolbar
+ ** some GUI changes/improvements
+ ** added raw commands logging
+ ** added option to sort protected users first/after favs (depending on other settings)
+ ** option to color cdm debug frame content via lua function Colorize
+ ** threaded raw sender rewritten
+ ** PCRE updated to 7.4
+ ** removed option to disable PFs - now it's always enabled
+ ** added option to show ip and/or country in chat

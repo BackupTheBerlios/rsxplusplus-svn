@@ -21,12 +21,17 @@
 
 HINSTANCE hInstance = NULL;
 
-BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID /*reserved*/) {
+BOOL APIENTRY DllMain(HANDLE hInst, DWORD reason, LPVOID /*reserved*/) {
 	switch(reason) {
 		case DLL_PROCESS_ATTACH:
-			hInstance = hInst;
+			hInstance = (HINSTANCE)hInst;
 			break;
 		case DLL_PROCESS_DETACH:
+			hInstance = NULL;
+			break;
+		case DLL_THREAD_ATTACH:
+			break;
+		case DLL_THREAD_DETACH:
 			break;
 	}
 	return TRUE;
@@ -35,22 +40,22 @@ BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID /*reserved*/) {
 //init and uinit functions
 extern "C" {
 	//this must be unique, if not, host won't load plug-in
-	EXPORT int pluginId() {
+	int EXPORT pluginId() {
 		return PLUGIN_ID;
 	}
 	//user api version
-	EXPORT int pluginAPIVersion() {
+	int EXPORT pluginAPIVersion() {
 		return PLUGIN_USED_API_VERSION;
 	}
 	//pointer to main class
-	EXPORT PluginAPI* pluginLoad() {
+	PluginAPI EXPORT *pluginLoad() {
 		Plugin::newInstance();
-		//need to load plugin icon
+		//need it to load plugin icon
 		Plugin::getInstance()->setInstance(hInstance);
 		return Plugin::getInstance();
 	}
 	//called on host exit/plugin reload
-	EXPORT void pluginUnload() {
+	void EXPORT pluginUnload() {
 		Plugin::deleteInstance();
 	}
 }

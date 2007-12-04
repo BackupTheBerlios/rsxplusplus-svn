@@ -450,8 +450,9 @@ LRESULT PrivateFrame::onTabContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM 
 
 	OMenu tabMenu;
 	tabMenu.CreatePopupMenu();	
+	selUser = replyTo;
 
-	tabMenu.InsertSeparatorFirst(Text::toT(ClientManager::getInstance()->getNicks(getSelectedUser()->getCID())[0]));
+	tabMenu.InsertSeparatorFirst(Text::toT(ClientManager::getInstance()->getNicks(replyTo->getCID())[0]));
 	if(BOOLSETTING(LOG_PRIVATE_CHAT)) {
 		tabMenu.AppendMenu(MF_STRING, IDC_OPEN_USER_LOG,  CTSTRING(OPEN_USER_LOG));
 		tabMenu.AppendMenu(MF_SEPARATOR);
@@ -649,7 +650,7 @@ LRESULT PrivateFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
 	}
 	//RSX++ //give pms some colors and rclick menus! :)
 	if(reinterpret_cast<HWND>(wParam) == ctrlClient) { 
-		ChatCtrl::sSelectedUser = Text::toT(ClientManager::getInstance()->getFirstNick(replyTo->getCID()));
+		ChatCtrl::sSelectedUser = Text::toT(ClientManager::getInstance()->getFirstNick(getSelectedUser()->getCID()));
 
 		if(pt.x == -1 && pt.y == -1) {
 			CRect erc;

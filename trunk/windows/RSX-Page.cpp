@@ -16,40 +16,43 @@
 
 #include "stdafx.h"
 #include "../client/DCPlusPlus.h"
-#include "Resource.h"
-#include "../rsx/rsx-settings/rsx-SettingsManager.h"
 #include "../client/IgnoreManager.h"
+#include "../client/FavoriteManager.h"
+#include "../client/version.h"
+#include "../rsx/rsx-settings/rsx-SettingsManager.h"
 
 #include "RSX-Page.h"
-#include "CommandDlg.h"
-#include "../client/version.h"
+#include "LineDlg.h"
 
-#include "WinUtil.h"
-#include "MainFrm.h"
-
-PropPage::TextItem RSX::texts[] = {
+PropPage::TextItem RSXPage::texts[] = {
 	{ IDC_IGNORE_ADD,			ResourceManager::ADD },
 	{ IDC_IGNORE_REMOVE,		ResourceManager::REMOVE },
+	{ IDC_RSX_FAV_ADD,			ResourceManager::ADD },
+	{ IDC_RSX_FAV_EDIT,			ResourceManager::EDIT_ACCEL },
+	{ IDC_RSX_FAV_REMOVE,		ResourceManager::REMOVE },
 	{ IDC_IGNORE_CLEAR,			ResourceManager::IGNORE_CLEAR },
 	{ IDC_MISC_IGNORE,			ResourceManager::IGNORED_USERS },
 	{ IDC_USE_REGEXP_OR_WILD,	ResourceManager::USE_REGEXP_OR_WC },
+	{ IDC_STARTUP_PRIO_TEXT,	ResourceManager::SETTINGS_STARTUP_PRIORITY },
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
 
-PropPage::Item RSX::items[] = {
+PropPage::Item RSXPage::items[] = {
 	{ IDC_USE_REGEXP_OR_WILD,	RSXSettingsManager::IGNORE_USE_REGEXP_OR_WC,	PropPage::T_BOOL_RSX },
 	{ 0, 0, PropPage::T_END }
 };
-RSX::ListItem RSX::listItems[] = {
+RSXPage::ListItem RSXPage::listItems[] = {
 	{ RSXSettingsManager::AUTO_START, ResourceManager::SETTINGS_AUTO_START },
 	{ RSXSettingsManager::USE_FILTER_FAV, ResourceManager::USE_FILTER_FAV },
 	{ RSXSettingsManager::USE_HL_FAV, ResourceManager::USE_HL_FAV },
 	{ RSXSettingsManager::FLASH_WINDOW_ON_PM, ResourceManager::FLASH_WINDOW_ON_PM },
 	{ RSXSettingsManager::FLASH_WINDOW_ON_NEW_PM, ResourceManager::FLASH_WINDOW_ON_NEW_PM },
+	{ RSXSettingsManager::IP_IN_CHAT, ResourceManager::IP_IN_CHAT },
+	{ RSXSettingsManager::COUNTRY_IN_CHAT, ResourceManager::COUNTRY_IN_CHAT },
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
 
-LRESULT RSX::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
+LRESULT RSXPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
 	PropPage::translate((HWND)(*this), texts);
 	PropPage::read((HWND)*this, items, listItems, GetDlgItem(IDC_RSX_BOOLEANS), true);
 
@@ -65,6 +68,13 @@ LRESULT RSX::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, B
 		ignoreListCtrl.insert(ignoreListCtrl.GetItemCount(), *i);
 	}
 
+	ctrlFavGroups.Attach(GetDlgItem(IDC_RSX_FAV_GROUPS));
+	ctrlFavGroups.InsertColumn(0, _T("Dummy"), LVCFMT_LEFT, (rc.Width() - 17), 0);
+	ctrlFavGroups.SetExtendedListViewStyle(LVS_EX_FULLROWSELECT | LVS_EX_INFOTIP);
+	StringList& lst = FavoriteManager::getInstance()->getFavGroups();
+	for(StringIter j = lst.begin(); j != lst.end(); ++j)
+		ctrlFavGroups.insert(ctrlFavGroups.GetItemCount(), Text::toT((*j)));
+
 	ctrlPrio.Attach(GetDlgItem(IDC_STARTUP_PRIO));
 	ctrlPrio.AddString(CTSTRING(MENU_PRIO_REALTIME));
 	ctrlPrio.AddString(CTSTRING(MENU_PRIO_HIGH));
@@ -76,14 +86,17 @@ LRESULT RSX::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, B
 	return TRUE;
 }
 
-void RSX::write() {
+void RSXPage::write() {
 	PropPage::write((HWND)*this, items, listItems, GetDlgItem(IDC_RSX_BOOLEANS), true);
 	IgnoreManager::getInstance()->putIgnoredUsers(ignoreList);
 	RSXSettingsManager::getInstance()->set(RSXSettingsManager::DEFAULT_PRIO, ctrlPrio.GetCurSel());
-
+	
+	StringList& lst = FavoriteManager::getInstance()->getFavGroups();
+	if(!lst.size()) FavoriteManager::getInstance()->addFavGroup("All Hubs");
+	FavoriteManager::getInstance()->save();
+	
 	HKEY hk;
 	tstring app = _T("\"") + Text::toT(Util::getSystemPath()) + _T("\"");
-
 	if(::RegOpenKeyEx(HKEY_CURRENT_USER, _T("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run"), 0, KEY_WRITE | KEY_READ, &hk) == ERROR_SUCCESS) {
 		if(RSXBOOLSETTING(AUTO_START)) {
 			::RegCreateKey(HKEY_CURRENT_USER, _T("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run"), &hk);
@@ -95,19 +108,19 @@ void RSX::write() {
 	}
 }
 
-LRESULT RSX::onEditChange(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+LRESULT RSXPage::onEditChange(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
 	if(wID == IDC_IGNORELIST_EDIT)
 		::EnableWindow(GetDlgItem(IDC_IGNORE_ADD), (::GetWindowTextLength(GetDlgItem(IDC_IGNORELIST_EDIT)) > 0));
 	return 0;
 }
 
-LRESULT RSX::onItemchanged(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/) {
+LRESULT RSXPage::onItemchanged(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/) {
 	NM_LISTVIEW* lv = (NM_LISTVIEW*) pnmh;
 	::EnableWindow(GetDlgItem(IDC_IGNORE_REMOVE), (lv->uNewState & LVIS_FOCUSED));
 	return 0;
 }
 
-LRESULT RSX::onIgnoreAdd(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndCtl */, BOOL& /* bHandled */) {
+LRESULT RSXPage::onIgnoreAdd(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndCtl */, BOOL& /* bHandled */) {
 	TCHAR buf[256];
 	if(GetDlgItemText(IDC_IGNORELIST_EDIT, buf, 256)) {
 		pair<TStringHashIter, bool> p = ignoreList.insert(buf);
@@ -123,7 +136,7 @@ LRESULT RSX::onIgnoreAdd(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndCtl *
 	return 0;
 }
 
-LRESULT RSX::onIgnoreRemove(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndCtl */, BOOL& /* bHandled */) {
+LRESULT RSXPage::onIgnoreRemove(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndCtl */, BOOL& /* bHandled */) {
 	int i = -1;
 	
 	TCHAR buf[256];
@@ -138,8 +151,65 @@ LRESULT RSX::onIgnoreRemove(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndCt
 	return 0;
 }
 
-LRESULT RSX::onIgnoreClear(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndCtl */, BOOL& /* bHandled */) {
+LRESULT RSXPage::onIgnoreClear(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndCtl */, BOOL& /* bHandled */) {
 	ignoreListCtrl.DeleteAllItems();
 	ignoreList.clear();
+	return 0;
+}
+
+LRESULT RSXPage::onFavGroupBtn(WORD /* wNotifyCode */, WORD wID, HWND /* hWndCtl */, BOOL&  bHandled) {
+	switch(wID) {
+		case IDC_RSX_FAV_ADD: {
+			LineDlg dlg;
+			dlg.title = _T("Add Favorite Hub Group");
+			while(true) {
+				if(dlg.DoModal() == IDOK) {
+					if(!FavoriteManager::getInstance()->addFavGroup(Text::fromT(dlg.line))) {
+						MessageBox(_T("This group already exist!"));
+					} else {
+						ctrlFavGroups.insert(ctrlFavGroups.GetItemCount(), dlg.line);
+						break;
+					}						
+				} else {
+					break;
+				}
+			}
+			return 0;
+		}
+		case IDC_RSX_FAV_EDIT: {
+			if(ctrlFavGroups.GetSelectedCount() == 1) {
+				int sel = ctrlFavGroups.GetSelectedIndex();
+				TCHAR buf[256];
+				ctrlFavGroups.GetItemText(sel, 0, buf, 256);
+
+				LineDlg dlg;
+				dlg.title = _T("Edit Favorite Hub Group");
+				dlg.line = buf;
+				while(true) {
+					if(dlg.DoModal() == IDOK) {
+						if(!FavoriteManager::getInstance()->editFavGroup((uint8_t)sel, Text::fromT(dlg.line))) {
+							MessageBox(_T("This group already exist!"));
+						} else {
+							ctrlFavGroups.SetItemText(sel, 0, (dlg.line).c_str());
+							break;
+						}						
+					} else {
+						break;
+					}
+				}
+			}
+			return 0;
+		}
+		case IDC_RSX_FAV_REMOVE: {
+			if(ctrlFavGroups.GetSelectedCount() == 1) {
+				int pos = ctrlFavGroups.GetSelectedIndex();
+				FavoriteManager::getInstance()->removeFavGroup((uint8_t)pos);
+				ctrlFavGroups.DeleteItem(pos);
+			}
+			return 0;
+		}
+		default: break;
+	}
+	bHandled = FALSE;
 	return 0;
 }

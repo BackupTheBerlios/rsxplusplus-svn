@@ -899,6 +899,8 @@ Default: %H:%M:%S</String>
 		<String Name="ProgressbarStealthyStyle">Stealthy Style</String>
 		<String Name="TicksSpeedDown">5 ticks down speed:</String>
 		<String Name="TicksSpeedUp">5 ticks up speed:</String>
+		<String Name="IpInChat">Attempt to show users IP in chat</String>
+		<String Name="CountryInChat">Attempt to show users country in chat</String>
 		<String Name="Incoming">incoming</String>
 		<String Name="Outgoing">outgoing</String>
 		<String Name="Begin">Begin</String>
@@ -947,6 +949,7 @@ Default: %H:%M:%S</String>
 		<String Name="SettingsLogWebserver">Log webserver</String>
 		<String Name="SettingsRawCmdLog">Log Raw Commands</String>
 		<String Name="SettingsSortProtectedAfterFav">Sort protected after favorite users</String>
+		<String Name="SettingsStartupPriority">Startup process priority:</String>
 		<String Name="SettingsFstring">Line</String>
 		<String Name="SettingsIpwAction">Action</String>
 		<String Name="SettingsIpwIp">IP</String>
@@ -1047,5 +1050,24 @@ Default: %H:%M:%S</String>
 		<String Name="PluginLoadFail">Failed to load plugin!</String>
 		<String Name="PluginUsingOldApi">Plugin is using too old API revision!</String>
 		<String Name="PluginAlreadyLoaded">Plugin is already loaded!</String>
+		<String Name="AdlRawLow">Forbidden Files (1-499 points)</String>
+		<String Name="AdlRawMedium">Forbidden Files (500-4999 points)</String>
+		<String Name="AdlRawHigh">Forbidden Files (5000+ points)</String>
+		<String Name="SdlRaw">Slow download</String>
+		<String Name="TimeoutRaw">Connection timeout</String>
+		<String Name="DisconnectRaw">TestSUR Disconnect</String>
+		<String Name="FakeSlotCount">Fake Slot count</String>
+		<String Name="FakeshareRaw">Fake Share</String>
+		<String Name="ListlenMismatch">ListLen mis-match</String>
+		<String Name="FilelistTooSmallBig">FileList too small or big</String>
+		<String Name="FilelistNa">FileList Unavailable</String>
+		<String Name="NoTthf">No TTHF/ADCGET support</String>
+		<String Name="VersionMismatch">Version mis-match</String>
+		<String Name="FilelistVersionMismatch">FileList Version mis-match</String>
+		<String Name="RmdcRaw">rmDC++</String>
+		<String Name="DcppEmulationRaw">DC++ Emulation</String>
+		<String Name="MyinfoSpamKick">$MyINFO Flood</String>
+		<String Name="CtmSpamKick">$ConnectToMe Flood</String>
+		<String Name="PmSpamKick">PM Flood</String>
 	</Strings>
 </Language>

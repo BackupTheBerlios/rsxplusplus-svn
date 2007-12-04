@@ -875,6 +875,8 @@ enum Strings { // @DontAdd
 	PROGRESSBAR_STEALTHY_STYLE, // "Stealthy Style"
 	TICKS_SPEED_DOWN, // "5 ticks down speed:"
 	TICKS_SPEED_UP, // "5 ticks up speed:"
+	IP_IN_CHAT, // "Attempt to show users IP in chat"
+	COUNTRY_IN_CHAT, // "Attempt to show users country in chat"
 
 	INCOMING, // "incoming"
 	OUTGOING, // "outgoing"
@@ -930,6 +932,7 @@ enum Strings { // @DontAdd
 	SETTINGS_LOG_WEBSERVER, // "Log webserver"
 	SETTINGS_RAW_CMD_LOG, // "Log Raw Commands"
 	SETTINGS_SORT_PROTECTED_AFTER_FAV, // "Sort protected after favorite users"
+	SETTINGS_STARTUP_PRIORITY, // "Startup process priority:"
 
 	SETTINGS_FSTRING, // "Line"
 	SETTINGS_IPW_ACTION, // "Action"
@@ -1047,5 +1050,27 @@ enum Strings { // @DontAdd
 	PLUGIN_LOAD_FAIL, // "Failed to load plugin!"
 	PLUGIN_USING_OLD_API, // "Plugin is using too old API revision!"
 	PLUGIN_ALREADY_LOADED, // "Plugin is already loaded!"
+
+	// @DontAdd // FakeDetect page cheat's names
+	ADL_RAW_LOW, // "Forbidden Files (1-499 points)"
+	ADL_RAW_MEDIUM, // "Forbidden Files (500-4999 points)"
+	ADL_RAW_HIGH, // "Forbidden Files (5000+ points)"
+	SDL_RAW, // "Slow download"
+	TIMEOUT_RAW, // "Connection timeout"
+	DISCONNECT_RAW, // "TestSUR Disconnect"
+	FAKE_SLOT_COUNT, // "Fake Slot count"
+	FAKESHARE_RAW, // "Fake Share"
+	LISTLEN_MISMATCH, // "ListLen mis-match"
+	FILELIST_TOO_SMALL_BIG, // "FileList too small or big"
+	FILELIST_NA, // "FileList Unavailable"
+	NO_TTHF, // "No TTHF/ADCGET support"
+	VERSION_MISMATCH, // "Version mis-match"
+	FILELIST_VERSION_MISMATCH, // "FileList Version mis-match"
+	RMDC_RAW, // "rmDC++"
+	DCPP_EMULATION_RAW, // "DC++ Emulation"
+	MYINFO_SPAM_KICK, // "$MyINFO Flood"
+	CTM_SPAM_KICK, // "$ConnectToMe Flood"
+	PM_SPAM_KICK, // "PM Flood"
+
 	LAST // @DontAdd
 };

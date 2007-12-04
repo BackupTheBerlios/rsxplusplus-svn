@@ -857,22 +857,23 @@ bool ClientManager::canCheckHim(const UserPtr& p) {
 }
 void ClientManager::addCheckToQueue(const UserPtr& p, bool filelist) {
 	Lock l(cs);
-	OnlineIter i = onlineUsers.find(p->getCID());
-	if(i == onlineUsers.end()) return;
-
-	if(i->second->getClient().isOp()) {
-		if(filelist && !i->second->getIdentity().isFileListQueued() && !i->second->getChecked(true)) {
+	OnlineIterC i = onlineUsers.find(p->getCID());
+	if(i == onlineUsers.end())
+		return;
+	OnlineUser& ou = (*i->second);
+	if(ou.getClient().isOp() && !ou.getChecked(filelist)) {
+		if(filelist && !ou.getIdentity().isFileListQueued()) {
 			try {
-				QueueManager::getInstance()->addList(p, QueueItem::FLAG_CHECK_FILE_LIST);
-				i->second->getIdentity().setFileListQueued("1");
+				QueueManager::getInstance()->addList(ou.getUser(), QueueItem::FLAG_CHECK_FILE_LIST);
+				ou.getIdentity().setFileListQueued("1");
 			} catch(...) {
 				//...
 			}
-		} else {
-			if(!i->second->getIdentity().isTestSURQueued() && !i->second->getChecked()) {
+		} else if(!filelist) {
+			if(!ou.getIdentity().isTestSURQueued()) {
 				try {
-					QueueManager::getInstance()->addTestSUR(p);
-					i->second->getIdentity().setTestSURQueued("1");
+					QueueManager::getInstance()->addTestSUR(ou.getUser());
+					ou.getIdentity().setTestSURQueued("1");
 				} catch(...) {
 					//...
 				}

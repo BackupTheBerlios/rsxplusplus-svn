@@ -996,7 +996,7 @@ void TransferView::on(DownloadManagerListener::Tick, const DownloadList& dl) {
 		}
 		statusString += buf;
 		ui->setStatusString(statusString);
-		if((d->getAverageSpeed() < 1) && ((GET_TICK() - d->getStart()) > 1000)) {
+		if((d->getAverageSpeed() < 1) && ((GET_TICK() - d->getStart()) > 15000)) {
 			d->getUserConnection().disconnect();
 		}
 			
@@ -1043,8 +1043,7 @@ void TransferView::on(DownloadManagerListener::Status, const UserConnection* uc,
 void TransferView::on(DownloadManagerListener::CheckComplete, const UserConnection* conn) {
 	UpdateInfo* ui = new UpdateInfo(conn->getUser(), true);
 	//to avoid no pk&lock bug in special cases ;)
-	(*const_cast<UserConnection*>(conn)).disconnect(true);
-	ui->setStatus(ItemInfo::STATUS_WAITING);	
+	(const_cast<UserConnection*>(conn))->disconnect();
 	speak(REMOVE_ITEM, ui);
 }
 //END
@@ -1115,7 +1114,7 @@ void TransferView::on(UploadManagerListener::Tick, const UploadList& ul) {
 		ui->setStatusString(statusString);
 					
 		tasks.add(UPDATE_ITEM, ui);
-		if((u->getAverageSpeed() < 1) && ((GET_TICK() - u->getStart()) > 1000)) {
+		if((u->getAverageSpeed() < 1) && ((GET_TICK() - u->getStart()) > 15000)) {
 			u->getUserConnection().disconnect(true);
 		}
 	}

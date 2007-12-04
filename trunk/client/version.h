@@ -18,15 +18,15 @@
 
 #define APPNAME "RSX++"
 #define VERSIONSTRING "1.00B2"
-#define VERSIONFLOAT 1.001
+#define VERSIONFLOAT 1.002
 
 #define DCVERSIONSTRING "0.703"
 #define DCVERSIONFLOAT 0.7031
 
 #define SVNVERSION "svn336"
 //RSX++ //////////////////////////////////////////////////////////
-#define SVN_REVISION_STR "44"
-#define SVN_REVISION 44
+#define SVN_REVISION_STR "45"
+#define SVN_REVISION 45
 
 #define __HOMESITE "http://rsxplusplus.sf.net/"
 #define __WIKI "http://rsxplusplus.wiki.sourceforge.net/"

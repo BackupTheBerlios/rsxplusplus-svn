@@ -14,37 +14,38 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef RSX_H
-#define RSX_H
+#ifndef RSXPAGE_H
+#define RSXPAGE_H
 
-#include <atlcrack.h>
 #include "PropPage.h"
-#include <atlctrlx.h>
 #include "ExListViewCtrl.h"
 
-class RSX : public CPropertyPage<IDD_RSX>, public PropPage {
+class RSXPage : public CPropertyPage<IDD_RSX>, public PropPage {
 public:
 
-	RSX(SettingsManager *s) : PropPage(s) {
+	RSXPage(SettingsManager *s) : PropPage(s) {
 		title = _tcsdup(TSTRING(SETTINGS_RSX).c_str());
 		SetTitle(title);
 		m_psp.dwFlags |= PSP_RTLREADING;
 	}
-	~RSX() {
+	~RSXPage() {
 		free(title);
 		ignoreListCtrl.Detach();
+		ctrlFavGroups.Detach();
 	}
 
-	BEGIN_MSG_MAP_EX(RSX)
+	BEGIN_MSG_MAP_EX(RSXPage)
 		MESSAGE_HANDLER(WM_INITDIALOG, onInitDialog)
 		COMMAND_ID_HANDLER(IDC_IGNORE_ADD, onIgnoreAdd)
 		COMMAND_ID_HANDLER(IDC_IGNORE_REMOVE, onIgnoreRemove)
 		COMMAND_ID_HANDLER(IDC_IGNORE_CLEAR, onIgnoreClear)
+		COMMAND_ID_HANDLER(IDC_RSX_FAV_ADD, onFavGroupBtn)
+		COMMAND_ID_HANDLER(IDC_RSX_FAV_REMOVE, onFavGroupBtn)
+		COMMAND_ID_HANDLER(IDC_RSX_FAV_EDIT, onFavGroupBtn)
 		COMMAND_CODE_HANDLER(EN_CHANGE, onEditChange)
 		NOTIFY_HANDLER(IDC_IGNORELIST, LVN_KEYDOWN, onKeyDown)
 		NOTIFY_HANDLER(IDC_IGNORELIST, LVN_ITEMCHANGED, onItemchanged)
 	END_MSG_MAP()
-
 
 	LRESULT onInitDialog(UINT, WPARAM, LPARAM, BOOL&);
 	LRESULT onIgnoreAdd(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndCtl */, BOOL& /* bHandled */);
@@ -52,15 +53,16 @@ public:
 	LRESULT onIgnoreClear(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndCtl */, BOOL& /* bHandled */);
 	LRESULT onEditChange(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT onItemchanged(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/);
+	LRESULT onFavGroupBtn(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndCtl */, BOOL& /* bHandled */);
 
 	LRESULT onKeyDown(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled) {
 		NMLVKEYDOWN* kd = (NMLVKEYDOWN*) pnmh;
 		switch(kd->wVKey) {
-		case VK_DELETE:
-			PostMessage(WM_COMMAND, IDC_IGNORE_REMOVE, 0);
-			break;
-		default:
-			bHandled = FALSE;
+			case VK_DELETE:
+				PostMessage(WM_COMMAND, IDC_IGNORE_REMOVE, 0);
+				break;
+			default:
+				bHandled = FALSE;
 		}
 		return 0;
 	}
@@ -75,7 +77,7 @@ protected:
 	typedef TStringHash::iterator TStringHashIter;
 
 	TStringHash ignoreList;
-	ExListViewCtrl ignoreListCtrl;
+	ExListViewCtrl ignoreListCtrl, ctrlFavGroups;
 
 	TCHAR* title;
 
@@ -87,4 +89,4 @@ protected:
 	int CurSel;
 };
 
-#endif //DCDMCOLOURSPAGE_H
+#endif //RSXPAGE_H

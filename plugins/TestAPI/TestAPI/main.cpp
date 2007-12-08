@@ -17,45 +17,27 @@
  */
 
 #include "stdafx.h"
+#include "PluginAPI.h"
 #include "Plugin.h"
+#include "version.h"
 
-HINSTANCE hInstance = NULL;
+#pragma comment(lib, "RSXPlusPlus.lib")
 
-BOOL APIENTRY DllMain(HANDLE hInst, DWORD reason, LPVOID /*reserved*/) {
-	switch(reason) {
-		case DLL_PROCESS_ATTACH:
-			hInstance = (HINSTANCE)hInst;
-			break;
-		case DLL_PROCESS_DETACH:
-			hInstance = NULL;
-			break;
-		case DLL_THREAD_ATTACH:
-			break;
-		case DLL_THREAD_DETACH:
-			break;
-	}
+BOOL APIENTRY DllMain(HANDLE /*hInst*/, DWORD /*reason*/, LPVOID /*reserved*/) {
 	return TRUE;
 }
-
-//init and uinit functions
+//obligatory functions for load
 extern "C" {
-	//this must be unique, if not, host won't load plug-in
-	int EXPORT pluginId() {
+	__declspec(dllexport) int __cdecl pluginId() {
 		return PLUGIN_ID;
 	}
-	//user api version
-	int EXPORT pluginAPIVersion() {
-		return PLUGIN_USED_API_VERSION;
-	}
-	//pointer to main class
-	PluginAPI EXPORT *pluginLoad() {
+
+	__declspec(dllexport) iPlugin* __cdecl pluginLoad() {
 		Plugin::newInstance();
-		//need it to load plugin icon
-		Plugin::getInstance()->setInstance(hInstance);
 		return Plugin::getInstance();
 	}
-	//called on host exit/plugin reload
-	void EXPORT pluginUnload() {
+
+	__declspec(dllexport) void __cdecl pluginUnload() {
 		Plugin::deleteInstance();
 	}
 }

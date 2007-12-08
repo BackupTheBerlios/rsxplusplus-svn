@@ -63,7 +63,7 @@
 #include "../rsx/UpdateManager.h"
 #include "../client/ScriptManager.h" // Lua
 #include "../client/ClientProfileManager.h"
-#include "../client/PluginManager.h"
+#include "../rsx/PluginAPI/PluginsManager.h"
 #include "ToolbarManager.h"
 #include "UpdateDialog.h"
 //END
@@ -172,8 +172,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 		case 5:	RsxUtil::changeProcessPriority(RsxUtil::IDLE);			break;
 		default: break;
 	}
-	PluginManager::getInstance()->setHwnd(m_hWnd);
-	PluginManager::getInstance()->startPlugins();
+	PluginsManager::getInstance()->startPlugins();
 	//END
 	WinUtil::init(m_hWnd);
 
@@ -607,8 +606,6 @@ HWND MainFrame::createToolbar() {
 }
 //RSX++
 HWND MainFrame::createPluginsToolbar() {
-	PluginManager::PluginsMap p = PluginManager::getInstance()->getPlugins();
-
 	if(!ptbarcreated) {
 		ctrlPluginToolbar.Create(m_hWnd, NULL, NULL, ATL_SIMPLE_CMDBAR_PANE_STYLE | TBSTYLE_FLAT | TBSTYLE_LIST | TBSTYLE_TOOLTIPS, 0, ATL_IDW_TOOLBAR);
 		ctrlPluginToolbar.SetExtendedStyle(TBSTYLE_EX_MIXEDBUTTONS);
@@ -622,19 +619,16 @@ HWND MainFrame::createPluginsToolbar() {
 
 	ctrlPluginToolbar.SetButtonStructSize();
 	int n = 0;
-	for(PluginManager::PluginsMap::const_iterator i = p.begin(); i != p.end(); ++i, n++) {
-		if((*i)->getPluginAPI()->getPluginIcon() != NULL) {
-			ctrlPluginToolbar.AddBitmap(1, (*i)->getPluginAPI()->getPluginIcon());
-			const wstring& pToolTip = 
-				_T("Name: ") + (*i)->getPluginAPI()->getPluginName() + 
-				_T("\nVersion: ") + (*i)->getPluginAPI()->getPluginVersion() +
-				_T("\nAuthor: ") + (*i)->getPluginAPI()->getPluginAuthor() + 
-				_T("\nDescription: ") + (*i)->getPluginAPI()->getPluginDescription();
-			int nStringId = ctrlPluginToolbar.AddStrings(pToolTip.c_str());
+	PluginsManager::Plugins& p = PluginsManager::getInstance()->getPlugins();
+	for(PluginsManager::Plugins::iterator i = p.begin(); i != p.end(); ++i, n++) {
+		if((*i)->getIcon() > 0) {
+			HBITMAP b = (HBITMAP)::LoadImage((*i)->getHandle(), MAKEINTRESOURCE((*i)->getIcon()), IMAGE_BITMAP, 12, 12, LR_SHARED);
+			ctrlPluginToolbar.AddBitmap(1, b);
+			const string& pToolTip =  (*i)->getName() + " v" + (*i)->getVersion();
+			int nStringId = ctrlPluginToolbar.AddStrings(Text::toT(pToolTip).c_str());
 			ctrlPluginToolbar.InsertButton(n, (*i)->getId(), TBSTYLE_AUTOSIZE | TBSTYLE_BUTTON, TBSTATE_ENABLED, n, nStringId, NULL);
 		}
 	}
-	p.clear();
 	ctrlPluginToolbar.AutoSize();
 	return ctrlPluginToolbar.m_hWnd;
 }
@@ -642,7 +636,7 @@ HWND MainFrame::createPluginsToolbar() {
 LRESULT MainFrame::onBnClick(WORD /*wNotifyCode*/, WORD wID, HWND hWndCtl, BOOL& bHandled) {
 	//maybe not the best way, but, at least, it does the job
 	if(hWndCtl == ctrlPluginToolbar.m_hWnd) {
-		PluginManager::getInstance()->onToolbarClick(wID);
+		PluginsManager::getInstance()->onToolbarClick(wID);
 		bHandled = TRUE;
 		return 0;
 	}

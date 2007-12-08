@@ -18,8 +18,8 @@
 
 #include "stdafx.h"
 
-#ifndef UNICODE
-#error "Plugin must be compiled with Unicode support!";
+#ifndef _STLPORT_VERSION
+#error "You need STLPort 5.2.x to compile plugin"
 #endif
 
 /**

@@ -84,7 +84,7 @@ public:
 	void addHubLine(const string& aMsg, int mType) { fire(ClientListener::AddClientLine(), this, aMsg, mType); }
 	void sendActionCommand(const OnlineUser& ou, int actionId);
 	//void statusMessage(const string& aLine) { fire(ClientListener::StatusMessage(), this, aLine); }
-	void putDetectors() { Lock l(cs); stopMyINFOCheck(); stopChecking(); setCheckedAtConnect(false); }
+	void putDetectors() { /*Lock l(cs);*/ stopMyINFOCheck(); stopChecking(); setCheckedAtConnect(false); }
 	//END
 
 	static int getTotalCounts() {

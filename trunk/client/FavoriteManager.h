@@ -319,6 +319,7 @@ public:
 	
 // Favorite Hubs
 	FavoriteHubEntry::List& getFavoriteHubs() { return favoriteHubs; }
+
 	void addFavorite(const FavoriteHubEntry& aEntry);
 	void removeFavorite(const FavoriteHubEntry* entry);
 	bool checkFavHubExists(const FavoriteHubEntry& aEntry);
@@ -466,7 +467,7 @@ public:
 // User Commands
 	UserCommand addUserCommand(int type, int ctx, Flags::MaskType flags, const string& name, const string& command, const string& hub);
 	bool getUserCommand(int cid, UserCommand& uc);
-	int findUserCommand(const string& aName);
+	int findUserCommand(const string& aName, const string& aUrl);
 	bool moveUserCommand(int cid, int pos);
 	void updateUserCommand(const UserCommand& uc);
 	void removeUserCommand(int cid);
@@ -475,19 +476,18 @@ public:
 
 	UserCommand::List getUserCommands() { Lock l(cs); return userCommands; }
 	UserCommand::List getUserCommands(int ctx, const StringList& hub, bool& op);
-	Filters::List& getFilters() { Lock l(cs); return filters; } //RSX++ //Filters
-	HighLight::List& getHLs() { Lock l(cs); return hls; } //RSX++ //HighLight
+	//RSX++
+	Filters::List& getFilters() { Lock l(cs); return filters; }
+	HighLight::List& getHLs() { Lock l(cs); return hls; }
 
+	void loadFilters();
+	void filtersSave();
+	void saveHL();
+	//END
 	void load();
 	void save();
 	void recentsave();
-
-	//RSX++ //Filters
-	void loadFilters();
-	void filtersSave();
-	//RSX++ //HighLight
-	void saveHL();
-	//END
+	
 private:
 	FavoriteHubEntry::List favoriteHubs;
 	StringPairList favoriteDirs;
@@ -589,5 +589,5 @@ private:
 
 /**
  * @file
- * $Id: FavoriteManager.h 330 2007-10-13 22:26:06Z bigmuscle $
+ * $Id: FavoriteManager.h 338 2007-12-06 20:44:27Z bigmuscle $
  */

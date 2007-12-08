@@ -1,6 +1,4 @@
-/*
- * Copyright (C) 2007 adrian_007, adrian-007 on o2 point pl
- *
+/* 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -16,33 +14,20 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef PLUGIN_H
-#define PLUGIN_H
+#ifndef PLUGIN_INTERFACE
+#define PLUGIN_INTERFACE
 
-#include "Singleton.h"
-#include "PluginAPI.h"
-#include "PluginInterface.h"
+class Client;
+/* via this interface plugin recive:
+ * 1. gui events
+ * 2. hub incomming commands
+ * 3. user outgoing commands (from hub frame)
+ */
 
-#include "version.h"
-
-class Plugin : public iPlugin, public Singleton<Plugin> {
+class iPlugin {
 public:
-	Plugin();
-	~Plugin();
-	
-	bool onIncommingMessage(Client* c, const string& msg);
-	bool onOutgoingMessage(Client* c, const string& msg);
-	void onToolbarClick();
-
-	void setHWND(HWND& h) { r_hwnd = h; }
-
-private:
-	HWND r_hwnd;
-	friend class Singleton<Plugin>;
+	virtual bool onIncommingMessage(Client* c, const string& msg) = 0;
+	virtual bool onOutgoingMessage(Client* c, const string& msg) = 0;
+	virtual void onToolbarClick() = 0;
 };
 #endif
-
-/**
- * @file
- * $Id: Plugin.h 42 2007-10-31 18:27:40Z adrian_007 $
- */

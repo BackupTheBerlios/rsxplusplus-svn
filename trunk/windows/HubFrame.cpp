@@ -42,7 +42,7 @@
 #include "../rsx/Wildcards.h"
 #include "../rsx/RsxUtil.h"
 #include "../client/ClientManager.h"
-#include "../client/PluginManager.h"
+#include "../rsx/PluginAPI/PluginsManager.h"
 //END
 HubFrame::FrameMap HubFrame::frames;
 HubFrame::IgnoreMap HubFrame::ignoreList;
@@ -290,7 +290,7 @@ void HubFrame::onEnter() {
 		//RSX++
 		bool dropMessageLua = client->onHubFrameEnter(client, Text::fromT(s));
 		//@todo execute last, not first when using addHubLine
-		bool dropMessagePlugin = PluginManager::getInstance()->onHubEnter(client, Text::fromT(s));
+		bool dropMessagePlugin = PluginsManager::getInstance()->onOutgoingMessage(client, Text::fromT(s));
 		//END
 		// Special command
 		if(s[0] == _T('/')) {

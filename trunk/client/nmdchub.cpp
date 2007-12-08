@@ -36,7 +36,7 @@
 #include "ZUtils.h"
 #include "ClientProfileManager.h" //RSX++
 #include "PGManager.h" //RSX++
-#include "PluginManager.h" //RSX++
+#include "../rsx/PluginAPI/PluginsManager.h" //RSX++
 #include "version.h"
 
 NmdcHub::NmdcHub(const string& aHubURL) : Client(aHubURL, '|', false), supportFlags(0),
@@ -1028,7 +1028,7 @@ void NmdcHub::search(int aSizeType, int64_t aSize, int aFileType, const string& 
 bool NmdcHubScriptInstance::onClientMessage(NmdcHub* aClient, const string& aLine) {
 	Lock l(scs);
 	MakeCall("nmdch", "DataArrival", 1, aClient, aLine);
-	return GetLuaBool() || PluginManager::getInstance()->onHubMessage(aClient, aLine);
+	return GetLuaBool() || PluginsManager::getInstance()->onIncommingMessage(aClient, aLine);
 }
 //END
 string NmdcHub::validateMessage(string tmp, bool reverse) {

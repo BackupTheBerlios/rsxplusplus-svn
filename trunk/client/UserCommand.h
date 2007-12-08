@@ -30,7 +30,8 @@ public:
 		TYPE_SEPARATOR,
 		TYPE_RAW,
 		TYPE_RAW_ONCE,
-		TYPE_CLEAR = 255
+		TYPE_REMOVE,
+		TYPE_CLEAR = 255		// In a momentary lapse of reason, 255 was chosen in the nmdc version of usercommand for clearing them all
 	};
 
 	enum {
@@ -74,5 +75,5 @@ public:
 
 /**
  * @file
- * $Id: UserCommand.h 298 2007-07-06 13:59:59Z bigmuscle $
+ * $Id: UserCommand.h 338 2007-12-06 20:44:27Z bigmuscle $
  */

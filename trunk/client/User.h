@@ -44,9 +44,12 @@ public:
 		AWAY		= 0x80,
 		SERVER		= 0x100,
 		FIREBALL	= 0x200,
+		NO_ADC_1_0_PROTOCOL = 0x400,	//< Doesn't support "ADC/1.0" (dc++ <=0.703)
+		NO_ADC_0_10_PROTOCOL = 0x800,	//< Doesn't support "ADC/0.10"
+		NO_ADCS_0_10_PROTOCOL = 0x1000,	//< Doesn't support "ADCS/0.10"
 		//RSX++
-		PROTECTED 	= 0x400, //< User protected
-		PG_BLOCK 	= 0x800, //< Blocked by PeerGuardian
+		PROTECTED 	= 0x2000, //< User protected
+		PG_BLOCK 	= 0x4000 //< Blocked by PeerGuardian
 		//END
 	};
 
@@ -80,8 +83,9 @@ public:
 		CT_BOT = 1,
 		CT_REGGED = 2,
 		CT_OP = 4,
-		CT_OWNER = 8,
-		CT_HUB = 16
+		CT_SU = 8,
+		CT_OWNER = 16,
+		CT_HUB = 32
 	};
 
 	Identity() { }
@@ -282,5 +286,5 @@ private:
 
 /**
  * @file
- * $Id: User.h 336 2007-11-18 13:26:41Z bigmuscle $
+ * $Id: User.h 338 2007-12-06 20:44:27Z bigmuscle $
  */

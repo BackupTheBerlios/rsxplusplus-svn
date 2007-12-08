@@ -23,7 +23,7 @@ typedef pair<wstring, wstring> WStringPair;
 typedef vector<WStringPair> WStringPairList;
 typedef WStringPairList::iterator WStringPairIter;
 
-typedef std::map<wstring, wstring> WStringMap;
+typedef std::tr1::unordered_map<wstring, wstring> WStringMap;
 typedef WStringMap::iterator WStringMapIter;
 */
 #if defined(_MSC_VER)

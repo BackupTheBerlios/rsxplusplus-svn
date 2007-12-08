@@ -695,18 +695,15 @@ ShareManager::Directory* ShareManager::buildTree(const string& aName, Directory*
 
 		if(name == "." || name == "..")
 			continue;
-		if(name.find('$') != string::npos) {
-			LogManager::getInstance()->message(STRING(FORBIDDEN_DOLLAR_FILE) + name + " (" + STRING(SIZE) + ": " + Util::toString(File::getSize(name)) + " " + STRING(B) + ") (" + STRING(DIRECTORY) + ": \"" + aName + "\")");
-			continue;
-		}
+
 		//RSX++ //Share skiplist
 		if(Wildcard::patternMatch(name, RSXSETTING(SKIPLIST_SHARE), ';')) {
 			LogManager::getInstance()->message("User has choosen not to share file: " + name + " (" + STRING(SIZE) + ": " + Util::toString(File::getSize(name)) + " " + STRING(B) + ") (" + STRING(DIRECTORY) + ": \"" + aName + "\")");
 			continue;
 		}
 		//END
-		if(BOOLSETTING(REMOVE_FORBIDDEN)) {
 		//check for forbidden file patterns
+		if(BOOLSETTING(REMOVE_FORBIDDEN)) {
 			string::size_type nameLen = name.size();
 			string fileExt = Util::getFileExt(name);
 			if ((Util::stricmp(fileExt.c_str(), ".tdc") == 0) ||
@@ -903,7 +900,7 @@ void ShareManager::generateXmlList() {
 				bzXmlRoot = bzTree.getFilter().getTree().getRoot();
 			}
 
-//RSX++ //Hide Share
+			//RSX++ //Hide Share
 			if(!Util::fileExists(Util::getDataPath() + "Settings\\Emptyfiles.xml.bz2")) {
 					string emptyXmlName = Util::getDataPath() + "Settings\\Emptyfiles.xml.bz2";
 					FilteredOutputStream<BZFilter, true> emptyXmlFile(new File(emptyXmlName, File::WRITE, File::TRUNCATE | File::CREATE));
@@ -912,7 +909,7 @@ void ShareManager::generateXmlList() {
 					emptyXmlFile.write("</FileListing>");
 					emptyXmlFile.flush();
 			}
-//END
+			//END
 			if(bzXmlRef.get()) {
 				bzXmlRef.reset();
 				File::deleteFile(getBZXmlFile());
@@ -1582,5 +1579,5 @@ int64_t ShareManager::removeExcludeFolder(const string &path, bool returnSize /*
 
 /**
  * @file
- * $Id: ShareManager.cpp 327 2007-10-07 12:46:45Z bigmuscle $
+ * $Id: ShareManager.cpp 338 2007-12-06 20:44:27Z bigmuscle $
  */

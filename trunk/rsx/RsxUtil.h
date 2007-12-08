@@ -51,6 +51,7 @@ public:
 	static int				CalcContrastColor(int crBg);
 	static bool				isIpInRange(const string& aIp, const string& aRange);
 	static tstring			formatAdditionalInfo(const string& aIp, bool sIp, bool sCC);
+	static string			getSlowDLCheat(double dlSpeed);
 
 private:
 	static string tmpTestSur;

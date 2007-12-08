@@ -1,3 +1,9 @@
+** SVN 46
+ ** back to idea with plugin lib (pdc way cause maaany bugs/freezes/crashes) (rev 1.1.0.0)
+ ** probably fixed bug with freezing window on check
+ ** fixed removing from transferview slow filelists checks
+ ** TestAPI updated
+
 ** SVN 45
  ** changed password character to arial's black circle (xp style, unicode)
  ** [PluginAPI] some changed due to mem heap corruption in some cases

@@ -92,22 +92,23 @@ void DownloadManager::on(TimerManagerListener::Second, uint64_t aTick) throw() {
 					d->setLastTick(aTick);
 				}
 			}
-		} else { //RSX++ //Slow Download kick
+		} 
+		//RSX++ //Slow Download kick
+		else {
 			if(RSXBOOLSETTING(USE_SDL_KICK)) {
 				if(d->isSet(Download::FLAG_CHECK_FILE_LIST) && d->getActual() > 0) {
 					if((d->getAverageSpeed() < RSXSETTING(SDL_SPEED))) {
 						if(((aTick - d->getLastTick()) / 1000) > ((uint64_t)RSXSETTING(SDL_TIME))) {
-							string spd = d->getAverageSpeed() > 1024 ? (Util::toString(d->getAverageSpeed()/1024) + " kB/s)") : (Util::toString(d->getAverageSpeed()) + " B/s)");
-							const string cheat = "too low download speed (" + spd;
-							ClientManager::getInstance()->setCheating(d->getUser(), "", cheat, RSXSETTING(SDL_RAW), false, true, RSXBOOLSETTING(SHOW_SDL_RAW));
+							ClientManager::getInstance()->setCheating(d->getUser(), "", RsxUtil::getSlowDLCheat(d->getAverageSpeed()), RSXSETTING(SDL_RAW), false, true, RSXBOOLSETTING(SHOW_SDL_RAW));
 							QueueManager::getInstance()->removeSource(d->getPath(), d->getUser(), QueueItem::Source::FLAG_SLOW);
-							//fire(DownloadManagerListener::CheckComplete(), d->getUserConnection());
+							fire(DownloadManagerListener::CheckComplete(), &d->getUserConnection());
 							continue;
 						}
 					}
 				}
 			}
-		} //END
+		}
+		//END
 	}
 	
 	if(tickList.size() > 0)

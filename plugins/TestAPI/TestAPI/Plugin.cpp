@@ -17,56 +17,44 @@
  */
 
 #include "stdafx.h"
-#include "pluginDefs.h"
-
 #include "Plugin.h"
 #include "resource.h"
+#include "PluginAPI.h"
+#include "version.h"
 
-Plugin::Plugin() : hInstance(NULL) { /*at this point iPluginAPI == NULL! */ }
-Plugin::~Plugin() { }
-
-void Plugin::onLoad() {
-	getAPI()->logMessage(_T("*** TestAPI.dll loaded"));
+Plugin::Plugin() {
+	//set some info about plugin... name, version and icon id (if you dont' want icon, set -1)
+	PluginAPI::setPluginInfo(PLUGIN_ID, "TestAPI v2", "2.00", IDB_BITMAP);
+	//get a handle to window
+	PluginAPI::getMainWnd(r_hwnd);
+	PluginAPI::logMessage("*** TestAPI v2 loaded");
+	PluginAPI::setSetting(PLUGIN_ID, "setting123", "Test of RSX++ PluginAPI");
 }
 
-void Plugin::onUnload() {
-	getAPI()->logMessage(_T("*** TestAPI.dll unloaded"));
+Plugin::~Plugin() {
+	PluginAPI::logMessage("*** TestAPI v2 unloaded");
 }
 
-void Plugin::setDefaults() {
-	setSetting(_T("Setting"), _T("this text is stored in PluginSettings.xml ;)"));
+bool Plugin::onIncommingMessage(Client* /*c*/, const string& /*msg*/) {
+	return false;
 }
 
-HBITMAP Plugin::getPluginIcon() {
-	//return NULL if you don't want to be in plugins toolbar ;)
-	return (HBITMAP)::LoadImage(hInstance, MAKEINTRESOURCE(IDB_BITMAP), IMAGE_BITMAP, 12, 12, LR_SHARED);
-}
-
-void Plugin::onToolbarClick() {
-	wchar_t buf[16];
-	snwprintf(buf, sizeof(buf), L"Client SVN Revision: %d", getAPI()->getSVNRevision());
-
-	std::wstring tmp = buf;
-	tmp += _T("\r\nClient profiles version: ") + getAPI()->getClientProfileVersion();
-	tmp += _T("\r\nMyINFO profiles version: ") + getAPI()->getMyInfoProfileVersion();
-	tmp += _T("\r\n\r\nSetting str: ") + getSetting(_T("Setting"));
-	MessageBox(getAPI()->getMainWnd(), tmp.c_str(), _T(PLUGIN_NAME), 0);
-}
-
-bool Plugin::onHubEnter(Client* client, const wstring& aMessage) {
-	if(aMessage == _T("/plugin")) {
-		getAPI()->addHubLine(client, _T("*** Hello world! I'm working on ") + getAPI()->getHubName(client), 3);
+bool Plugin::onOutgoingMessage(Client* c, const string& msg) {
+	if(msg.compare("/plugin") == 0) {
+		const wstring& tmp = _T("Test of RSX++ PluginAPI");
+		PluginAPI::addHubLine(c, PluginAPI::fromW(tmp), PluginAPI::STYLE_GENERAL);
 		return true;
-	} else if(aMessage == _T("/help")) {
-		getAPI()->addHubLine(client, _T("*** some help info from plugin"), 3);
+	} else if(msg.compare("/psend") == 0) {
+		PluginAPI::sendHubMessage(c, "I'm a message from plugin! :>");
 		return true;
 	}
 	return false;
 }
 
-bool Plugin::onHubMessage(Client* /*client*/, const wstring& /*aMessage*/) {
-	//raw data from hub
-	return false;
+void Plugin::onToolbarClick() {
+	const string& tmp = PluginAPI::getSetting(PLUGIN_ID, "setting123");
+	MessageBox(r_hwnd, PluginAPI::toW(tmp).c_str(), _T("iPlugin"), 0);
+	PluginAPI::showToolTip("TestAPI Popup", "This is a test of RSX++ PluginAPI ;)", PluginAPI::TT_INFO);
 }
 
 /**

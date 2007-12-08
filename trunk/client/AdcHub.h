@@ -94,6 +94,7 @@ private:
 		}
 	}
 
+	bool oldPassword;
 	Socket udp;
 	StringMap lastInfoMap;
 	//mutable CriticalSection cs; //rsx++
@@ -102,13 +103,15 @@ private:
 	uint32_t sid;
 
 	static const string CLIENT_PROTOCOL;
-	static const string SECURE_CLIENT_PROTOCOL;
+	static const string CLIENT_PROTOCOL_TEST;
+	static const string SECURE_CLIENT_PROTOCOL_TEST;
 	static const string ADCS_FEATURE;
 	static const string TCP4_FEATURE;
 	static const string UDP4_FEATURE;
 	static const string BASE_SUPPORT;
 	static const string BAS0_SUPPORT;
 	static const string TIGR_SUPPORT;
+	static const string UCM0_SUPPORT;
 
 	string checkNick(const string& nick);
 
@@ -161,5 +164,5 @@ private:
 
 /**
  * @file
- * $Id: AdcHub.h 336 2007-11-18 13:26:41Z bigmuscle $
+ * $Id: AdcHub.h 338 2007-12-06 20:44:27Z bigmuscle $
  */

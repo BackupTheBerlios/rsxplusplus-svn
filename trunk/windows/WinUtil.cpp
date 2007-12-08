@@ -46,7 +46,7 @@
 //RSX++
 #include "../client/ScriptManager.h"
 #include "../rsx/RsxUtil.h"
-#include "../client/PluginManager.h"
+#include "../rsx/PluginAPI/PluginsManager.h"
 #include "KickDlg.h"
 //END
 #include "HubFrame.h"
@@ -1034,22 +1034,6 @@ bool WinUtil::checkCommand(tstring& cmd, tstring& param, tstring& message, tstri
 			status = TSTRING(AWAY_MODE_ON) + Text::toT(Util::getAwayMessage());
 		}
 		ClientManager::getInstance()->infoUpdated();
-	/*} else if(Util::stricmp(cmd.c_str(), _T("g")) == 0) {
-		if(param.empty()) {
-			status = TSTRING(SPECIFY_SEARCH_STRING);
-		} else {
-			WinUtil::openLink(_T("http://www.google.com/search?q=") + Text::toT(Util::encodeURI(Text::fromT(param))));
-		}
-	} else if(Util::stricmp(cmd.c_str(), _T("imdb")) == 0) {
-		if(param.empty()) {
-			status = TSTRING(SPECIFY_SEARCH_STRING);
-		} else {
-			WinUtil::openLink(_T("http://www.imdb.com/find?q=") + Text::toT(Util::encodeURI(Text::fromT(param))));
-		}
-	} else if(Util::stricmp(cmd.c_str(), _T("u")) == 0) {
-		if (!param.empty()) {
-			WinUtil::openLink(Text::toT(Util::encodeURI(Text::fromT(param))));
-		}*/
 	} else if(Util::stricmp(cmd.c_str(), _T("rebuild")) == 0) {
 		HashManager::getInstance()->rebuild();
 	} else if(Util::stricmp(cmd.c_str(), _T("shutdown")) == 0) {
@@ -1059,18 +1043,22 @@ bool WinUtil::checkCommand(tstring& cmd, tstring& param, tstring& message, tstri
 		} else {
 			status = TSTRING(SHUTDOWN_OFF);
 		}
-	/*} else if(Util::stricmp(cmd.c_str(), _T("tvtome")) == 0) {
-		if(param.empty()) {
-			status = TSTRING(SPECIFY_SEARCH_STRING);
-		} else
-			WinUtil::openLink(_T("http://www.tvtome.com/tvtome/servlet/Search?searchType=all&searchString=") + Text::toT(Util::encodeURI(Text::fromT(param))));
-	} else if(Util::stricmp(cmd.c_str(), _T("csfd")) == 0) {
-		if(param.empty()) {
-			status = TSTRING(SPECIFY_SEARCH_STRING);
-		} else {
-			WinUtil::openLink(_T("http://www.csfd.cz/search.php?search=") + Text::toT(Util::encodeURI(Text::fromT(param))));
-		}*/
 	//RSX++
+	} else if(Util::stricmp(cmd.c_str(), _T("punload")) == 0) {
+		PluginsManager::getInstance()->unloadPlugins();
+		::SendMessage(WinUtil::mainWnd, IDC_REBUILD_PLUGIN_TOOLBAR, 0, 0);
+	} else if(Util::stricmp(cmd.c_str(), _T("preload")) == 0) {
+		PluginsManager::getInstance()->reloadPlugins();
+		::SendMessage(WinUtil::mainWnd, IDC_REBUILD_PLUGIN_TOOLBAR, 0, 0);
+	} else if(Util::stricmp(cmd.c_str(), _T("pinfo")) == 0) {
+		PluginsManager::Plugins& p = PluginsManager::getInstance()->getPlugins();
+		string pinfo = "Active Plugins Info\nLoaded plugins: " + Util::toString(p.size());
+		for(PluginsManager::Plugins::const_iterator i = p.begin(); i != p.end(); ++i) {
+			pinfo += "\n-- Plugin Name: " + (*i)->getName();
+			pinfo += "\n-- Plugin Version: " + (*i)->getVersion();
+			pinfo += "\n";
+		}
+		status = Text::toT(pinfo);
 	} else if(Util::stricmp(cmd.c_str(), _T("lua")) == 0) {
 		ScriptManager::getInstance()->EvaluateChunk(Text::fromT(param));
 	} else if(Util::stricmp(cmd.c_str(), _T("luafile")) == 0) {
@@ -1091,7 +1079,7 @@ void WinUtil::bitziLink(const TTHValue& aHash) {
 	openLink(_T("http://bitzi.com/lookup/tree:tiger:") + Text::toT(aHash.toBase32()));
 }
 
- void WinUtil::copyMagnet(const TTHValue& aHash, const tstring& aFile, int64_t aSize) {
+void WinUtil::copyMagnet(const TTHValue& aHash, const tstring& aFile, int64_t aSize) {
 	if(!aFile.empty()) {
 		setClipboard(Text::toT("magnet:?xt=urn:tree:tiger:" + aHash.toBase32() + "&xl=" + Util::toString(aSize) + "&dn=" + Util::encodeURI(Text::fromT(aFile))));
 	}

@@ -19,11 +19,11 @@
 
 #include "PluginInterface.h"
 
-//#define HOST //undef it when compiling plugin
+#define HOST
 #ifdef HOST
 #define EXIMP __declspec(dllexport)
 #else
-#define EXIMP
+#define EXIMP __declspec(dllimport)
 #endif
 
 class PluginAPI {
@@ -72,3 +72,8 @@ public:
 
 };
 #endif
+
+/**
+ * @file
+ * $Id: MainFrm.cpp,v 1.20 2004/07/21 13:15:15 bigmuscle Exp
+ */

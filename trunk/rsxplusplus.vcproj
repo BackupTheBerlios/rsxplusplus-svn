@@ -218,7 +218,7 @@
 				EnableCOMDATFolding="2"
 				OptimizeForWindows98="1"
 				SetChecksum="true"
-				ImportLibrary=""
+				ImportLibrary="$(SolutionDir)compiled/$(ProjectName).lib"
 				TargetMachine="1"
 				FixedBaseAddress="0"
 			/>
@@ -705,6 +705,30 @@
 				>
 			</File>
 			<File
+				RelativePath=".\rsx\PluginAPI\PluginAPI.cpp"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						PrecompiledHeaderThrough="../../windows/stdafx.h"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\rsx\PluginAPI\PluginsManager.cpp"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						PrecompiledHeaderThrough="../../windows/stdafx.h"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath=".\windows\PopupManager.cpp"
 				>
 			</File>
@@ -1130,6 +1154,18 @@
 				>
 			</File>
 			<File
+				RelativePath=".\rsx\PluginAPI\PluginAPI.h"
+				>
+			</File>
+			<File
+				RelativePath=".\rsx\PluginAPI\PluginInterface.h"
+				>
+			</File>
+			<File
+				RelativePath=".\rsx\PluginAPI\PluginsManager.h"
+				>
+			</File>
+			<File
 				RelativePath=".\windows\PopupDlg.h"
 				>
 			</File>
@@ -1230,11 +1266,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\stdafx.h"
+				RelativePath=".\windows\stdafx.h"
 				>
 			</File>
 			<File
-				RelativePath=".\windows\stdafx.h"
+				RelativePath=".\stdafx.h"
 				>
 			</File>
 			<File

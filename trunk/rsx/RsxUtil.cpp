@@ -326,3 +326,9 @@ tstring RsxUtil::formatAdditionalInfo(const string& aIp, bool sIp, bool sCC) {
 	}
 	return Text::toT(ret);
 }
+
+string RsxUtil::getSlowDLCheat(double dlSpeed) {
+	string ret =  "too low download speed (";
+	ret += dlSpeed > 1024 ? (Util::toString(dlSpeed/1024) + " kB/s)") : (Util::toString(dlSpeed) + " B/s)");
+	return ret;
+}

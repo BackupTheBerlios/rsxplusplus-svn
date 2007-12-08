@@ -14,17 +14,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* informations about plugin ;) */
-
-#define PLUGIN_NAME "TestAPI"
-#define PLUGIN_VERSION "1.00"
-#define PLUGIN_DESCRIPTION "Test of RSX++ PluginAPI"
-#define PLUGIN_AUTHOR "adrian_007"
-
-/* unique value - one per project */
+/* Plugin ID, unique value - one per project */
 #define PLUGIN_ID 10
-/* API version */
-#define PLUGIN_USED_API_VERSION 1005
 
 /**
  * @file

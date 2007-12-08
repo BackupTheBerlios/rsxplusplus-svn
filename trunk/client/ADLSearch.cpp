@@ -260,16 +260,6 @@ void ADLSearchManager::MatchesFile(DestDirList& destDirVector, DirectoryListing:
 		}
 		if(is->MatchesFile(currentFile->getName(), filePath, currentFile->getSize(), /*RSX++*/currentFile->getTTH()/*END*/)) {
 			DirectoryListing::File *copyFile = new DirectoryListing::File(*currentFile, true);
-/*			if(is->isForbidden && !getSentRaw()) {
-				char buf[128];
-				snprintf(buf, sizeof(buf), CSTRING(CHECK_FORBIDDEN), currentFile->getName().c_str());
-				
-				ClientManager::getInstance()->setCheating(user, "", buf, is->raw, false);
-
-				setSentRaw(true);
-
-			}
-*/
 			if(is->isForbidden) {
 				copyFile->setPoints(is->adlsPoints);
 				copyFile->setAdlsComment(is->adlsComment);

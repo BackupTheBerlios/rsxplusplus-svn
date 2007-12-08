@@ -39,9 +39,9 @@
 #include "../rsx/IpManager.h"
 #include "../rsx/RsxUtil.h"
 #include "../rsx/AutoSearchManager.h"
+#include "../rsx/PluginAPI/PluginsManager.h"
 #include "RawManager.h"
 #include "ScriptManager.h"
-#include "PluginManager.h"
 ////////////////////////////////////////////////////////////
 #include "IgnoreManager.h"
 #include "PGManager.h"
@@ -106,7 +106,7 @@ void startup(void (*f)(void*, const tstring&), void* p) {
 	AutoSearchManager::newInstance();
 	IpManager::newInstance();
 	PGManager::newInstance();
-	PluginManager::newInstance();
+	PluginsManager::newInstance();
 	//END
 
 	SettingsManager::getInstance()->load();
@@ -152,8 +152,6 @@ void startup(void (*f)(void*, const tstring&), void* p) {
 void shutdown() {
 	//RSX++
 	RsxUtil::uinit();
-	PluginManager::getInstance()->saveSettings();
-	PluginManager::getInstance()->stopPlugins();
 	AutoSearchManager::deleteInstance();
 	//END
 
@@ -172,6 +170,7 @@ void shutdown() {
 	PGManager::deleteInstance();
 	UpdateManager::deleteInstance();
 	ToolbarManager::deleteInstance();
+	PluginsManager::deleteInstance();
 	//--
 	ADLSearchManager::deleteInstance();
 	WebServerManager::deleteInstance();
@@ -200,7 +199,6 @@ void shutdown() {
 #ifdef _WIN32	
 	::WSACleanup();
 #endif
-	PluginManager::deleteInstance();
 }
 
 /**

@@ -16,11 +16,13 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#ifndef STDAFX_H
+#define STDAFX_H
+
 #define _WIN32_WINNT 0x0501
 #define STRICT
 #define WIN32_LEAN_AND_MEAN
 
-#define EXPORT __declspec(dllexport)
 #ifdef _MSC_VER
 typedef signed __int8 int8_t;
 typedef signed __int16 int16_t;
@@ -41,12 +43,12 @@ typedef unsigned __int64 uint64_t;
 #include <map>
 #include <set>
 
-#ifdef _STLPORT_VERSION
 #include <unordered_map>
 #include <unordered_set>
-#endif
 
 using namespace std;
+
+#endif
 
 /**
  * @file

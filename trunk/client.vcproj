@@ -336,10 +336,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\client\PluginManager.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\client\pme.cpp"
 				>
 			</File>
@@ -746,10 +742,6 @@
 			</File>
 			<File
 				RelativePath=".\client\PGManager.h"
-				>
-			</File>
-			<File
-				RelativePath=".\client\PluginManager.h"
 				>
 			</File>
 			<File

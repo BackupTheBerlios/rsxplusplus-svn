@@ -36,6 +36,7 @@
 #include "../client/QueueManager.h"
 #include "../client/StringTokenizer.h"
 #include "../client/IgnoreManager.h" //RSX++
+#include "../rsx/PluginAPI/PluginsManager.h"
 
 PrivateFrame::FrameMap PrivateFrame::frames;
 tstring pSelectedLine = Util::emptyStringT;
@@ -87,13 +88,8 @@ LRESULT PrivateFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 	readLog();
 
 	//RSX++
-	setClient(replyTo);  //find user and get his client ;] ... case sensitive, specialy when user reconnect or back online
-	if(client) {
-		//just in case...
-		isOp = getClient()->isOp();
-		hubName = getClient()->getHubName();
-		myNick = getClient()->getMyNick();
-	}
+	setClient(replyTo);  //find user and get his client ;]
+
 	customProtection = false;
 	if(RSXBOOLSETTING(PROTECT_PM_USERS)) {
 		if(!replyTo->isSet(User::PROTECTED)) {
@@ -118,13 +114,16 @@ void PrivateFrame::gotMessage(const Identity& from, const UserPtr& to, const Use
 		frames[user] = p;
 		p->addLine(from, aMessage);
 		if(Util::getAway()) {
-			if(!(BOOLSETTING(NO_AWAYMSG_TO_BOTS) && (user->isSet(User::BOT) || from.isBot() || from.isHub())))
-				p->sendMessage(Text::toT(p->getCustomAway()));
+			if(!(BOOLSETTING(NO_AWAYMSG_TO_BOTS) && (user->isSet(User::BOT) || from.isBot() || from.isHub()))) {
+				if(!myPM) {
+					p->sendMessage(Text::toT(p->getCustomAway()));
+				}
+			}
 		}
 
 		if(BOOLSETTING(POPUP_NEW_PM)) {
 			pair<tstring, bool> hubs = WinUtil::getHubNames(replyTo);
-			MainFrame::getMainFrame()->ShowBalloonTip((WinUtil::getNicks(replyTo) + _T(" - ") + hubs.first).c_str(), CTSTRING(PRIVATE_MESSAGE));
+			MainFrame::getMainFrame()->ShowBalloonTip(WinUtil::getNicks(replyTo) + _T(" - ") + hubs.first, TSTRING(PRIVATE_MESSAGE));
 		}
 
 		if((BOOLSETTING(PRIVATE_MESSAGE_BEEP) || BOOLSETTING(PRIVATE_MESSAGE_BEEP_OPEN)) && (!BOOLSETTING(SOUNDS_DISABLED)) && user->getSoundActive()) { //RSX++
@@ -141,7 +140,7 @@ void PrivateFrame::gotMessage(const Identity& from, const UserPtr& to, const Use
 		if(!myPM) {
 			if(BOOLSETTING(POPUP_PM)) {
 				pair<tstring, bool> hubs = WinUtil::getHubNames(replyTo);
-				MainFrame::getMainFrame()->ShowBalloonTip((WinUtil::getNicks(replyTo) + _T(" - ") + hubs.first).c_str(), CTSTRING(PRIVATE_MESSAGE));
+				MainFrame::getMainFrame()->ShowBalloonTip(WinUtil::getNicks(replyTo) + _T(" - ") + hubs.first, TSTRING(PRIVATE_MESSAGE));
 			}
 
 			if((BOOLSETTING(PRIVATE_MESSAGE_BEEP)) && (!BOOLSETTING(SOUNDS_DISABLED)) && user->getSoundActive()) { //RSX++
@@ -285,6 +284,12 @@ void PrivateFrame::onEnter()
 			prevCommands.push_back(s);
 		}
 		currentCommand = Util::emptyStringT;
+		bool dropMessage = false;
+		if(client) {
+			iUser* iu = client->getUserByNick(replyTo->getFirstNick());
+			if(iu != NULL)
+				dropMessage = PluginsManager::getInstance()->onOutgoingPM(iu, Text::fromT(s));
+		}
 
 		// Process special commands
 		if(s[0] == '/') {
@@ -328,7 +333,7 @@ void PrivateFrame::onEnter()
 			} else if(Util::stricmp(s.c_str(), _T("help")) == 0) {
 				addLine(_T("*** ") + WinUtil::commands + _T(", /getlist, /clear, /grant, /close, /favorite, /winamp"), WinUtil::m_ChatTextSystem);
 			} else {
-				if(replyTo->isOnline()) {
+				if(replyTo->isOnline() && !dropMessage) {
 					sendMessage(tstring(m));
 				} else {
 					ctrlStatus.SetText(0, CTSTRING(USER_WENT_OFFLINE));
@@ -339,8 +344,9 @@ void PrivateFrame::onEnter()
 			if(replyTo->isOnline()) {
 				if(BOOLSETTING(CZCHARS_DISABLE))
 					s = WinUtil::disableCzChars(s);
-
-				sendMessage(s);
+				
+				if(!dropMessage)
+					sendMessage(s);
 			} else {
 				ctrlStatus.SetText(0, CTSTRING(USER_WENT_OFFLINE));
 				resetText = false;
@@ -447,10 +453,10 @@ LRESULT PrivateFrame::onCopyActualLine(WORD /*wNotifyCode*/, WORD /*wID*/, HWND 
 
 LRESULT PrivateFrame::onTabContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/) {
 	POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };        // location of mouse click 
+	selUser = replyTo;
 
 	OMenu tabMenu;
 	tabMenu.CreatePopupMenu();	
-	selUser = replyTo;
 
 	tabMenu.InsertSeparatorFirst(Text::toT(ClientManager::getInstance()->getNicks(replyTo->getCID())[0]));
 	if(BOOLSETTING(LOG_PRIVATE_CHAT)) {
@@ -650,7 +656,7 @@ LRESULT PrivateFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
 	}
 	//RSX++ //give pms some colors and rclick menus! :)
 	if(reinterpret_cast<HWND>(wParam) == ctrlClient) { 
-		ChatCtrl::sSelectedUser = Text::toT(ClientManager::getInstance()->getFirstNick(getSelectedUser()->getCID()));
+		ChatCtrl::sSelectedUser = Text::toT(ClientManager::getInstance()->getNicks(getSelectedUser()->getCID())[0]);
 
 		if(pt.x == -1 && pt.y == -1) {
 			CRect erc;
@@ -777,7 +783,7 @@ LRESULT PrivateFrame::onOpenUserLog(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
 	params["hubNI"] = Util::toString(ClientManager::getInstance()->getHubNames(getSelectedUser()->getCID()));
 	params["hubURL"] = Util::toString(ClientManager::getInstance()->getHubs(getSelectedUser()->getCID()));
 	params["userCID"] = getSelectedUser()->getCID().toBase32(); 
-	params["userNI"] = ClientManager::getInstance()->getFirstNick(getSelectedUser()->getCID());
+	params["userNI"] = ClientManager::getInstance()->getNicks(getSelectedUser()->getCID())[0];
 	params["myCID"] = ClientManager::getInstance()->getMe()->getCID().toBase32();
 
 	string file = Util::validateFileName(SETTING(LOG_DIRECTORY) + Util::formatParams(SETTING(LOG_FILE_PRIVATE_CHAT), params, false));
@@ -905,7 +911,7 @@ bool PrivateFrame::PreparePopupMenu(const tstring& sNick, OMenu& pMenu ) {
 				}
 			}
 
-			if(Text::toLower(sNick) != Text::toLower(Text::toT(ClientManager::getInstance()->getFirstNick(replyTo->getCID())))) {
+			if(Text::toLower(sNick) != Text::toLower(Text::toT(ClientManager::getInstance()->getNicks(replyTo->getCID())[0]))) {
 				pMenu.AppendMenu(MF_SEPARATOR);
 				pMenu.AppendMenu(MF_STRING, IDC_PRIVATEMESSAGE, CTSTRING(SEND_PRIVATE_MESSAGE));
 			}
@@ -1243,7 +1249,18 @@ LRESULT PrivateFrame::onMultihubKick(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*
 	}
 	return 0;
 }
+
+string PrivateFrame::getCustomAway() const {
+	string retAway = Util::getAwayMessage();
+	if(client != NULL) {
+		if((retAway.compare(SETTING(DEFAULT_AWAY_MESSAGE)) != 0))
+			return retAway; //might be custom away but not from favs :P
+		return FavoriteManager::getInstance()->getAwayMessage(client->getHubUrl());
+	}
+	return retAway;
+}
 //END
+
 /**
  * @file
  * $Id: PrivateFrame.cpp 312 2007-07-25 20:49:11Z bigmuscle $

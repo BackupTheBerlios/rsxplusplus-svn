@@ -43,6 +43,7 @@ ConnectionManager::ConnectionManager() : floodCounter(0), server(0), secureServe
 	features.push_back(UserConnection::FEATURE_TTHF);
 
 	adcFeatures.push_back("AD" + UserConnection::FEATURE_ADC_BAS0);
+	adcFeatures.push_back("AD" + UserConnection::FEATURE_ADC_BASE);
 	adcFeatures.push_back("AD" + UserConnection::FEATURE_ADC_TIGR);
 	adcFeatures.push_back("AD" + UserConnection::FEATURE_ADC_BZIP);
 }
@@ -160,7 +161,7 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) throw()
 					continue;
 				}
 
-				if(cqi->getLastAttempt() == 0 || (((cqi->getLastAttempt() + 60*1000) < aTick) && ((SETTING(DOWNCONN_PER_SEC)== 0) || (attempts < SETTING(DOWNCONN_PER_SEC))))) {
+				if(cqi->getLastAttempt() == 0 || (((cqi->getLastAttempt() + 60*1000) < aTick) && ((SETTING(DOWNCONN_PER_SEC) == 0) || (attempts < SETTING(DOWNCONN_PER_SEC))))) {
 					cqi->setLastAttempt(aTick);
 
 					QueueItem::Priority prio = QueueManager::getInstance()->hasDownload(cqi->getUser());
@@ -209,7 +210,7 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) throw()
 	}
 }
 
-void ConnectionManager::on(TimerManagerListener::Minute, uint64_t aTick) throw() {	
+void ConnectionManager::on(TimerManagerListener::Minute, uint64_t aTick) throw() {
 	Lock l(cs);
 
 	for(UserConnectionList::const_iterator j = userConnections.begin(); j != userConnections.end(); ++j) {
@@ -288,7 +289,7 @@ void ConnectionManager::accept(const Socket& sock, bool secure) throw() {
 bool ConnectionManager::checkIpFlood(const string& aServer, uint16_t aPort) {
 	Lock l(cs);
 
-	// We don't want to be used as flooding instruments
+	// We don't want to be used as a flooding instrument
 	uint8_t count = 0;
 	for(UserConnectionList::const_iterator j = userConnections.begin(); j != userConnections.end(); ++j) {
 		if((*j)->getRemoteIp() == aServer && (*j)->getPort() == aPort) {
@@ -358,7 +359,7 @@ void ConnectionManager::disconnect() throw() {
 void ConnectionManager::on(AdcCommand::SUP, UserConnection* aSource, const AdcCommand& cmd) throw() {
 	if(aSource->getState() != UserConnection::STATE_SUPNICK) {
 		// Already got this once, ignore...@todo fix support updates
-		dcdebug("CM::onMyNick %p sent nick twice\n", (void*)aSource);
+		dcdebug("CM::onSUP %p sent sup twice\n", (void*)aSource);
 		return;
 	}
 
@@ -410,7 +411,7 @@ void ConnectionManager::on(AdcCommand::SUP, UserConnection* aSource, const AdcCo
 	aSource->setState(UserConnection::STATE_INF);
 }
 
-void ConnectionManager::on(AdcCommand::STA, UserConnection*, const AdcCommand&) throw() {
+void ConnectionManager::on(AdcCommand::STA, UserConnection*, const AdcCommand& /*cmd*/) throw() {
 	
 }
 
@@ -422,7 +423,7 @@ void ConnectionManager::on(UserConnectionListener::Connected, UserConnection* aS
 	}
 
 	dcassert(aSource->getState() == UserConnection::STATE_CONNECT);
-	if (SETTING(GARBAGE_COMMAND_OUTGOING))
+	if (SETTING(GARBAGE_COMMAND_OUTGOING) && !aSource->isSet(UserConnection::FLAG_STEALTH))
 		aSource->garbageCommand();
 	if(aSource->isSet(UserConnection::FLAG_NMDC)) {
 		aSource->myNick(aSource->getToken());
@@ -459,8 +460,11 @@ void ConnectionManager::on(UserConnectionListener::MyNick, UserConnection* aSour
 		}
         aSource->setToken(i.first);	
 		aSource->setHubUrl(i.second);
+		aSource->setEncoding(const_cast<string*>(&ClientManager::getInstance()->findHubEncoding(i.second)));
 	}
-	CID cid = ClientManager::getInstance()->makeCid(aNick, aSource->getHubUrl());
+
+	string nick = Text::toUtf8(aNick, *(aSource->getEncoding()));
+	CID cid = ClientManager::getInstance()->makeCid(nick, aSource->getHubUrl());
 
 	// First, we try looking in the pending downloads...hopefully it's one of them...
 	{
@@ -481,7 +485,7 @@ void ConnectionManager::on(UserConnectionListener::MyNick, UserConnection* aSour
 
 		aSource->setUser(ClientManager::getInstance()->findUser(cid));
 		if(!aSource->getUser() || !ClientManager::getInstance()->isOnline(aSource->getUser())) {
-			dcdebug("CM::onMyNick Incoming connection from unknown user %s\n", aNick.c_str());
+			dcdebug("CM::onMyNick Incoming connection from unknown user %s\n", nick.c_str());
 			putConnection(aSource);
 			return;
 		}
@@ -646,9 +650,7 @@ void ConnectionManager::on(UserConnectionListener::Key, UserConnection* aSource,
 
 void ConnectionManager::on(AdcCommand::INF, UserConnection* aSource, const AdcCommand& cmd) throw() {
 	if(aSource->getState() != UserConnection::STATE_INF) {
-		// Already got this once, ignore...
 		aSource->send(AdcCommand(AdcCommand::SEV_FATAL, AdcCommand::ERROR_PROTOCOL_GENERIC, "Expecting INF"));
-		dcdebug("CM::onINF %p sent INF twice\n", (void*)aSource);
 		aSource->disconnect();
 		return;
 	}
@@ -687,9 +689,10 @@ void ConnectionManager::on(AdcCommand::INF, UserConnection* aSource, const AdcCo
 		ConnectionQueueItem::Iter i = find(downloads.begin(), downloads.end(), aSource->getUser());
 		
 		if(i != downloads.end()) {
-			// Last compare for compatibility with pre-0.700
 			const string& to = (*i)->getToken();
-			if(to == token || (to.size() > 2 && to.compare(0, 2, "TO") == 0 && to.compare(2, to.size() - 2, token) == 0)) {
+			
+			// 0.698 would send an empty token in some cases...remove this bugfix at some point
+			if(to == token || token.empty()) {
 				down = true;
 			}
 		}
@@ -796,5 +799,5 @@ void ConnectionManager::on(UserConnectionListener::Supports, UserConnection* con
 
 /**
  * @file
- * $Id: ConnectionManager.cpp 336 2007-11-18 13:26:41Z bigmuscle $
+ * $Id: ConnectionManager.cpp 355 2008-01-05 14:43:39Z bigmuscle $
  */

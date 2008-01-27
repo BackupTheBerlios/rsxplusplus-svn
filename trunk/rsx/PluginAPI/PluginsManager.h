@@ -1,4 +1,6 @@
-/* 
+/*
+ * Copyright (C) 2007-2008 adrian_007, adrian-007 on o2 point pl
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -33,10 +35,9 @@ public:
 	~PluginsManager();
 
 	void loadPlugins();
-	void unloadPlugins();
 
 	void startPlugins();
-	void reloadPlugins() { unloadPlugins(); loadPlugins(); startPlugins(); }
+	void stopPlugins();
 
 	void saveSettings();
 	void loadSettings();
@@ -46,14 +47,17 @@ public:
 	void setPluginInfo(int pId, const string& pn, const string& pv, int icon);
 
 	//events
-	bool onIncommingMessage(Client* client, const string& aMsg);
-	bool onOutgoingMessage(Client* client, const string& aMsg);
-	void onToolbarClick(int pluginId);
+	bool onIncommingMessage(iClient* client, const string& aMsg);
+	bool onOutgoingMessage(iClient* client, const string& aMsg);
 
+	bool onIncommingPM(iUser* from, const string& aMsg);
+	bool onOutgoingPM(iUser* to, const string& aMsg);
+
+	void onToolbarClick(int pluginId);
 private:
 	void loadPlugin(const string& pPath);
 	bool isLoaded(int pId);
-	
+
 	string validateName(string name) {
 		string::size_type i;
 		while((i = name.find(' ')) != string::npos) 

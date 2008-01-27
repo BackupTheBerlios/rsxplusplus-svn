@@ -24,6 +24,7 @@
 #include "TimerManager.h"
 #include "Util.h"
 #include "CriticalSection.h"
+#include "Segment.h"
 
 class Transfer {
 public:
@@ -45,10 +46,8 @@ public:
 	~Transfer() { };
 
 	int64_t getPos() const { return pos; }
-	void setPos(int64_t aPos) { pos = aPos; }
 
-	void setStartPos(int64_t aPos) { startPos = aPos; pos = aPos; }
-	int64_t getStartPos() const { return startPos; }
+	int64_t getStartPos() const { return getSegment().getStart(); }
 
 	void addPos(int64_t aBytes, int64_t aActual) { pos += aBytes; actual+= aActual; }
 
@@ -57,18 +56,14 @@ public:
 	/** Record a sample for average calculation */
 	void tick();
 
-	int64_t getTotal() const { return getPos() - getStartPos(); }
 	int64_t getActual() const { return actual; }
 
-	int64_t getSize() const { return size; }
-	void setSize(int64_t aSize) { size = aSize; }
+	int64_t getSize() const { return getSegment().getSize(); }
+	void setSize(int64_t size) { segment.setSize(size); }
 
 	double getAverageSpeed() const;
 
-	int64_t getSecondsLeft(bool wholeFile = false) {
-		int64_t avg = static_cast<int64_t>(getAverageSpeed());
-		return (avg > 0) ? ((wholeFile ? getFileSize() : getBytesLeft()) / avg) : 0;
-	}
+	int64_t getSecondsLeft(bool wholeFile = false);
 
 	int64_t getBytesLeft() const {
 		return getSize() - getPos();
@@ -85,10 +80,10 @@ public:
 	UserConnection& getUserConnection() { return userConnection; }
 	const UserConnection& getUserConnection() const { return userConnection; }
 
+	GETSET(Segment, segment, Segment);
 	GETSET(Type, type, Type);
 	GETSET(uint64_t, start, Start);
 	GETSET(uint64_t, lastTick, LastTick);
-	GETSET(int64_t, fileSize, FileSize);
 private:
 	
 	typedef std::pair<uint64_t, int64_t> Sample;
@@ -104,14 +99,10 @@ private:
 	string path;
 	/** TTH of the file being transferred */
 	TTHValue tth;
-	/** Total actual bytes transfered this session (compression?) */
+	/** Bytes transferred over socket */
 	int64_t actual;
-	/** Write position in file */
+	/** Bytes transferred to/from file */
 	int64_t pos;
-	/** Starting position */
-	int64_t startPos;
-	/** Target size of this transfer */
-	int64_t size;
 
 	UserConnection& userConnection;
 };

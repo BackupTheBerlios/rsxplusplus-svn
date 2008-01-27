@@ -27,12 +27,14 @@
 
 RawManager::RawManager() : lastAction(0) {
 	loadActionRaws(); 
-	TimerManager::getInstance()->addListener(this); 
+	TimerManager::getInstance()->addListener(this);
+	RSXSettingsManager::getInstance()->addListener(this);
 }
 
 RawManager::~RawManager() {
 	saveActionRaws();
 	TimerManager::getInstance()->removeListener(this);
+	RSXSettingsManager::getInstance()->removeListener(this);
 	for(Action::List::const_iterator i = action.begin(); i != action.end(); ++i) {
 		delete i->second;
 	}
@@ -387,6 +389,28 @@ void RawManager::on(TimerManagerListener::Second, uint64_t aTick) throw() {
 			raw.erase(i);
 		}
 	}
+}
+
+void RawManager::on(RSXSettingsManagerListener::Load, SimpleXML& xml) throw() {
+	if(xml.findChild("ADLSPoints")) {
+		xml.stepIn();
+		while(xml.findChild("PointsSetting")) {
+			addADLPoints(xml.getIntChildAttrib("Points"), xml.getIntChildAttrib("Action"), xml.getBoolChildAttrib("DisplayCheat"));
+		}
+		xml.stepOut();
+	}
+}
+
+void RawManager::on(RSXSettingsManagerListener::Save, SimpleXML& xml) throw() {
+	xml.addTag("ADLSPoints");
+	xml.stepIn();
+	for(ADLPoints::const_iterator i = points.begin(); i != points.end(); ++i) {
+		xml.addTag("PointsSetting");
+		xml.addChildAttrib("Points", i->first);
+		xml.addChildAttrib("Action", i->second.first);
+		xml.addChildAttrib("DisplayCheat", i->second.second);
+	}
+	xml.stepOut();
 }
 //Raw Selector class
 void RawSelector::createList() {

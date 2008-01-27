@@ -84,7 +84,6 @@ void Identity::getParams(StringMap& sm, const string& prefix, bool compatibility
 				sm["adlForbiddenSize"] =		get("A5");
 				sm["adlTotalPoints"] =			get("A6");
 				sm["adlFilesCount"] =			get("A7");
-				sm["adlAllFileNames"] =			get("A8");
 				sm["adlFileSizeShort"] =		Util::formatBytes(get("A3"));
 				sm["adlForbiddenSizeShort"] =	Util::formatBytes(get("A5"));
 			}
@@ -114,10 +113,11 @@ const string Identity::get(const char* name) const {
 
 void Identity::set(const char* name, const string& val) {
 	Lock l(cs);
-	if(val.empty())
+	if(val.empty()) {
 		info.erase(*(short*)name);
-	else
+	} else {
 		info[*(short*)name] = val;
+	}
 }
 
 bool Identity::supports(const string& name) const {
@@ -156,21 +156,22 @@ void FavoriteUser::update(const OnlineUser& info) {
 }
 //RSX++
 void Identity::setCheatMsg(Client& c, const string& aCheatDescription, bool aBadClient, bool aBadFilelist /*=false*/, bool aDisplayCheat /*=true*/) {
-	if(!c.isOp() || isOp()) {
+	if(!RSXBOOLSETTING(DISPLAY_CHEATS_IN_MAIN_CHAT) || !c.isOp() || isOp()) {
 		return;
 	}
 
 	StringMap ucParams;
 	getParams(ucParams, "user", true);
-	string cheat = Util::formatParams(aCheatDescription, ucParams, false);
+	const string& cheat = Util::formatParams(aCheatDescription, ucParams, false);
 
 	StringTokenizer<string> st(get("CS"), ';');
 	StringList& sl = st.getTokens();
 	string newCheat = Util::emptyString;
+
 	bool newOne = true;
 	for(StringIter i = sl.begin(); i != sl.end(); ++i) {
 		if((*i).find(cheat) == string::npos) {
-			newCheat += *i + ";";
+			newCheat += (*i) + ";";
 		} else {
 			newOne = false;
 		}
@@ -182,8 +183,8 @@ void Identity::setCheatMsg(Client& c, const string& aCheatDescription, bool aBad
 		if((!SETTING(FAKERFILE).empty()) && (!BOOLSETTING(SOUNDS_DISABLED)))
 			PlaySound(Text::toT(SETTING(FAKERFILE)).c_str(), NULL, SND_FILENAME | SND_ASYNC);
 
-		if(aDisplayCheat && RSXBOOLSETTING(DISPLAY_CHEATS_IN_MAIN_CHAT))
-			c.cheatMessage("*** " + STRING(USER) + " " + getNick() + " - " + cheat);
+		if(aDisplayCheat)
+			c.cheatMessage("*** " + STRING(USER) + " " + getNick() + " - " + cheat.c_str());
 	}
 
 	if(!cheat.empty())
@@ -212,7 +213,7 @@ const string Identity::getReport() const {
 	report += "\r\n-]> Logged in:	" +				get("LT") + " (" + Text::fromT(Util::formatSeconds((GET_TICK() - loggedIn) / 1000)) + ')';
 
 	report += "\r\n\r\n *** Client Info:";
-	report += "\r\n-]> Client:		" +				(get("CL").empty() ? static_cast<const string>("N/A") : get("CL") + "\t[" + Util::formatTime("%d-%m %H:%M:%S", Util::toInt64(get("TC"))) + ']');
+	report += "\r\n-]> Client:		" +				(getClientType().empty() ? static_cast<const string>("N/A") : getClientType() + "\t[" + Util::formatTime("%d-%m %H:%M:%S", Util::toInt64(get("TC"))) + ']');
 	report += "\r\n-]> Client $MyINFO:	" +			isEmpty(get("MT"));
 	report += "\r\n-]> Lock:		" +				isEmpty(get("LO"));
 	report += "\r\n-]> Pk:		" +					isEmpty(get("PK"));
@@ -227,7 +228,7 @@ const string Identity::getReport() const {
 	report += "\r\n-]> Comment:	" +					isEmpty(get("CM"));
 
 	report += "\r\n\r\n *** FileList\\Share Info";
-	report += "\r\n-]> XML Generator:	" +			isEmpty(get("GE"));
+	report += "\r\n-]> XML Generator:	" +			isEmpty(get("FG"));
 	report += "\r\n-]> Last downspd:	" +			Util::formatBytes(getUser()->getLastDownloadSpeed()) + "/s";
 	report += "\r\n-]> FileList CID:	" +			isEmpty(get("FI"));
 	report += "\r\n-]> FileList Base:	" +			isEmpty(get("FB"));
@@ -248,7 +249,7 @@ const string Identity::getReport() const {
 
 bool Identity::updateClientType(OnlineUser& ou) {
 	if(getUser()->isSet(User::DCPLUSPLUS) && (get("LL") == "11") && (getBytesShared() > 0)) {
-		set("CL", "DC++ Stealth");
+		setClientType("DC++ Stealth");
 		setCheatMsg(ou.getClient(), "Fake FileList - ListLen = 11B", true, true, RSXBOOLSETTING(SHOW_LISTLEN_MISMATCH));
 		ClientManager::getInstance()->sendAction(ou, RSXSETTING(LISTLEN_MISMATCH));
 		logDetect(true);
@@ -257,7 +258,7 @@ bool Identity::updateClientType(OnlineUser& ou) {
 		//(strncmp(getTag().c_str(), "<++ V:0.69", 10) == 0) &&
 		RsxUtil::checkVersion(getTag()) &&
 		get("LL") != "42" && !get("LL").empty()) {
-			set("CL", "Faked DC++");
+			setClientType("Faked DC++");
 			set("CM", "Supports corrupted files...");
 			setCheatMsg(ou.getClient(), "ListLen mis-match (V:0.69+)", true, false, RSXBOOLSETTING(SHOW_LISTLEN_MISMATCH));
 			ClientManager::getInstance()->sendAction(ou, RSXSETTING(LISTLEN_MISMATCH));
@@ -297,15 +298,15 @@ bool Identity::updateClientType(OnlineUser& ou) {
 
 		DETECTION_DEBUG("\tChecking profile: " + cp.getName());
 
-		if(!RegexpHandler::matchProfile(get("LO"), cp.getLock()))									{ continue; }
-		if(!RegexpHandler::matchProfile(getTag(), formattedTagExp))									{ continue; } 
-		if(!RegexpHandler::matchProfile(get("PK"), formattedPkExp))									{ continue; }
+		if(!RegexpHandler::matchProfile(getTag(), formattedTagExp))									{ continue; }
 		if(!RegexpHandler::matchProfile(get("SU"), cp.getSupports()))								{ continue; }
+		if(!RegexpHandler::matchProfile(getDescription(), formattedExtTagExp))						{ continue; }
 		if(!RegexpHandler::matchProfile(get("TS"), cp.getTestSUR()))								{ continue; }
+		if(!RegexpHandler::matchProfile(get("LO"), cp.getLock()))									{ continue; }
+		if(!RegexpHandler::matchProfile(get("PK"), formattedPkExp))									{ continue; }
+		if(!RegexpHandler::matchProfile(getConnection(), cp.getConnection()))						{ continue; }
 		if(!RegexpHandler::matchProfile(getStatus(), cp.getStatus()))								{ continue; }
 		if(!RegexpHandler::matchProfile(get("UC"), cp.getUserConCom()))								{ continue; }
-		if(!RegexpHandler::matchProfile(getDescription(), formattedExtTagExp))						{ continue; }
-		if(!RegexpHandler::matchProfile(getConnection(), cp.getConnection()))						{ continue; }
 
 		if(verTagExp.find("%[version]") != string::npos) { version = RegexpHandler::getVersion(verTagExp, getTag()); }
 		if(extTagExp.find("%[version2]") != string::npos) { extraVersion = RegexpHandler::getVersion(extTagExp, getDescription()); }
@@ -315,15 +316,15 @@ bool Identity::updateClientType(OnlineUser& ou) {
 		
 		DETECTION_DEBUG("Client found: " + cp.getName() + " time taken: " + Util::toString(GET_TICK()-tick) + " milliseconds");
 
-		cp.getUseExtraVersion() ? set("CL", cp.getName() + " " + extraVersion ) : set("CL", cp.getName() + " " + version);
+		cp.getUseExtraVersion() ? setClientType(cp.getName() + " " + extraVersion ) : setClientType(cp.getName() + " " + version);
 		set("CM", cp.getComment());
 		set("BC", cp.getCheatingDescription().empty() ? Util::emptyString : "1");
 		logDetect(true);
 
 		if (cp.getCheckMismatch() && version.compare(pkVersion) != 0) { 
-			set("CL", get("CL") + " Version mis-match");
+			setClientType(getClientType() + " Version mis-match");
 
-			setCheatMsg(ou.getClient(), get("CL"), true, false, RSXBOOLSETTING(SHOW_VERSION_MISMATCH));
+			setCheatMsg(ou.getClient(), getClientType(), true, false, RSXBOOLSETTING(SHOW_VERSION_MISMATCH));
 			ClientManager::getInstance()->sendAction(ou, RSXSETTING(VERSION_MISMATCH));
 			return false;
 		}
@@ -337,7 +338,7 @@ bool Identity::updateClientType(OnlineUser& ou) {
 		return cp.getRecheck() ? shouldRecheck() : false;
 	}
 	logDetect(false);
-	set("CL", "Unknown");
+	setClientType("Unknown");
 	set("CS", Util::emptyString);
 	set("BC", Util::emptyString);
 
@@ -348,7 +349,7 @@ void Identity::myInfoDetect(OnlineUser& ou) {
 	StringMap params;
 	MyinfoProfile::List lst = ClientProfileManager::getInstance()->getMyinfoProfiles(params);
 	
-	//sempty status = adc user, here status is empty till user change it
+	//empty status = adc user, here status is empty till user change it
 	string fixed_status = getStatus().empty() ? "0" : getStatus(); 
 	checkTagState(ou);
 
@@ -374,11 +375,11 @@ void Identity::myInfoDetect(OnlineUser& ou) {
 		}
 
 		if(!RegexpHandler::matchProfile(getTag(), formattedTagExp))									{ continue; }
-		if(!RegexpHandler::matchProfile(fixed_status, cq.getStatus()))								{ continue; }
 		if(!RegexpHandler::matchProfile(getDescription(), formattedExtTagExp))						{ continue; }
 		if(!RegexpHandler::matchProfile(getConnection(), cq.getConnection()))						{ continue; }
-		if(!RegexpHandler::matchProfile(getNick(), cq.getNick()))									{ continue; } 
+		if(!RegexpHandler::matchProfile(fixed_status, cq.getStatus()))								{ continue; }
 		if(!RegexpHandler::matchProfile(get("SS"), cq.getShared()))									{ continue; } 
+		if(!RegexpHandler::matchProfile(getNick(), cq.getNick()))									{ continue; } 
 		if(!RegexpHandler::matchProfile(getEmail(), cq.getEmail()))									{ continue; } 
 
 		if(verTagExp.find("%[version]") != string::npos) {	version = RegexpHandler::getVersion(verTagExp, getTag()); }
@@ -409,7 +410,7 @@ void Identity::isFakeShare(OnlineUser& ou) {
 		ou.updateUser();
 		ClientManager::getInstance()->sendAction(ou, RSXSETTING(FAKESHARE_RAW));
 	} else {
-		Lock l(cs);
+		//Lock l(cs);
 		FakeShares::List& ul = ClientProfileManager::getInstance()->getFakeShares();
 		for(FakeShares::List::const_iterator j = ul.begin(); j != ul.end(); ++j) {
 			if(j->getExact()) {
@@ -417,7 +418,7 @@ void Identity::isFakeShare(OnlineUser& ou) {
 			} else {
 				if(shared.find(j->getValue()) == string::npos) { continue; }
 			}
-			setCheatMsg(ou.getClient(), STRING(FAKE_SHARE) + " : " + shared + " " + STRING(B), false, true, RSXBOOLSETTING(SHOW_FAKESHARE_RAW));
+			setCheatMsg(ou.getClient(), STRING(FAKE_SHARE) + " : " + shared + " " + STRING(B), true, true, RSXBOOLSETTING(SHOW_FAKESHARE_RAW));
 			ou.updateUser();
 			ClientManager::getInstance()->sendAction(ou, RSXSETTING(FAKESHARE_RAW));
 			return;
@@ -426,8 +427,6 @@ void Identity::isFakeShare(OnlineUser& ou) {
 }
 //RSX++ //Protected users
 bool Identity::isProtectedUser(const Client& c, bool OpBotHubCheck) const {
-	Lock l(cs);
-
 	string RegProtect;
 	if(!c.getUserProtected().empty()) {
 		RegProtect = c.getUserProtected();
@@ -456,11 +455,11 @@ bool Identity::isProtectedUser(const Client& c, bool OpBotHubCheck) const {
 void OnlineUser::updateUser() { getClient().updated(*this); }
 //RSX++ //checking stuff
 bool OnlineUser::isCheckable(bool delay/* = true*/) const {
-	return (!identity.isHub() && !identity.isBot() && !identity.isOp()) && (!delay || (GET_TICK() - identity.getLoggedIn()) > RSXSETTING(CHECK_DELAY));
+	return (!identity.isHub() && !identity.isBot() && !identity.isOp() && !identity.isHidden()) && (!delay || (GET_TICK() - identity.getLoggedIn()) > RSXSETTING(CHECK_DELAY));
 }
 
 bool OnlineUser::shouldCheckFileList(bool onlyFilelist /*= false*/) const {
-	if(identity.isFileListQueued() || identity.isFileListChecked() || identity.isTestSURQueued())
+	if(identity.isFileListQueued() || identity.isFileListChecked() || (!onlyFilelist && identity.isTestSURQueued()))
 		return false;
 	return ((GET_TIME() - Util::toInt64(identity.getTestSURChecked()) > 10) || onlyFilelist);
 }
@@ -468,22 +467,22 @@ bool OnlineUser::shouldCheckFileList(bool onlyFilelist /*= false*/) const {
 bool OnlineUser::getChecked(bool filelist/* = false*/) {
 	if(isProtectedUser()) {
 		if((RSXSETTING(UNCHECK_CLIENT_PROTECTED_USER) && !filelist) || (RSXSETTING(UNCHECK_LIST_PROTECTED_USER) && filelist)) {
-			identity.set("CL", "[Protected]");
+			identity.setClientType("[Protected]");
 			setTestSURComplete();
 			setFileListComplete();
-			updateUser();
+			//updateUser();
 			return true;
 		}
 	} else if(!identity.isTcpActive() && !getClient().isActive()) {
-		identity.set("CL", "[Passive]");
+		identity.setClientType("[Passive]");
 		setTestSURComplete();
 		setFileListComplete();
-		updateUser();
+		//updateUser();
 		return true;
-	} else if(getUser()->isSet(User::OLD_CLIENT) || getUser()->isSet(User::PG_BLOCK)) {
+	} else if(getUser()->isSet(User::OLD_CLIENT)) {
 		return true;
 	}
-	return filelist ? !identity.getFileListChecked().empty() : !identity.getTestSURChecked().empty();
+	return filelist ? identity.isFileListChecked() : identity.isClientChecked();
 }
 //RSX++ //$MyINFO Flood
 bool Identity::isMyInfoSpamming() {
@@ -536,7 +535,7 @@ bool Identity::isPmSpamming() {
 	}
 	return false;
 }
-//RSX++ //ISP Check
+//RSX++ //IP Check
 void Identity::checkIP(OnlineUser& ou) {
 	if(RSXBOOLSETTING(USE_IPWATCH)) {
 		set("IC", "1"); //ip checked, to avoid cheat spam caused by search
@@ -576,7 +575,7 @@ void Identity::checkIP(OnlineUser& ou) {
 				switch((*j)->getTask()) {
 					case 0:  {
 						getUser()->setFlag(User::PROTECTED);
-						set("CL", "[Protected IP]");
+						setClientType("[Protected IP]");
 						break;
 					}
 					case 1: { 
@@ -601,10 +600,10 @@ void Identity::checkIP(OnlineUser& ou) {
 //RSX++ //Filelist Detector
 void Identity::checkFilelistGenerator(OnlineUser& ou) {
 	PME reg("^<StrgDC\\+\\+ V:1.00 RC([89]){1}");
-	if((get("GE") == "DC++ 0.403")) {
+	if((get("FG") == "DC++ 0.403")) {
 		if(reg.match(getTag())) {
 			setCheatMsg(ou.getClient(), "rmDC++ in StrongDC++ %[userVE] emulation mode" , true, false, RSXBOOLSETTING(SHOW_RMDC_RAW));
-			set("CL", "rmDC++");
+			setClientType("rmDC++");
 			ou.updateUser();
 			logDetect(true);
 			ClientManager::getInstance()->sendAction(ou, RSXSETTING(RMDC_RAW));
@@ -633,7 +632,7 @@ void Identity::checkFilelistGenerator(OnlineUser& ou) {
 	}
 
 	PME reg2("^DC\\+\\+.*");
-	if(reg2.IsValid() && reg2.match(get("GE"))) {
+	if(reg2.match(get("FG"))) {
 		if(!get("VE").empty() && (get("VE") != getFilelistGeneratorVer())) {
 			setCheatMsg(ou.getClient(), "Filelist Version mis-match", false, true, RSXBOOLSETTING(SHOW_FILELIST_VERSION_MISMATCH));
 			ou.updateUser();
@@ -646,10 +645,10 @@ void Identity::checkFilelistGenerator(OnlineUser& ou) {
 	FileListDetectorProfile::List& lst = ClientProfileManager::getInstance()->getFileListDetectors();
 	for(FileListDetectorProfile::List::const_iterator i = lst.begin(); i != lst.end(); ++i) {
 		const FileListDetectorProfile& fd = *i;	
-		if(!RegexpHandler::matchProfile(get("GE"), fd.getDetect())) { continue; }
+		if(!RegexpHandler::matchProfile(get("FG"), fd.getDetect())) { continue; }
 
 		if(fd.getBadClient()) {
-			if(!fd.getName().empty()) set("CL", fd.getName());
+			if(!fd.getName().empty()) setClientType(fd.getName());
 			setCheatMsg(ou.getClient(), fd.getCheatingDescription(), false, true, fd.getCheatingDescription().empty()?false:true);
 		}
 		ou.updateUser();
@@ -673,8 +672,8 @@ string Identity::getVersion() const {
 }
 
 string Identity::getFilelistGeneratorVer() const {
-	if(!get("GE").empty()) {
-		string genVer = get("GE");
+	if(!get("FG").empty()) {
+		string genVer = get("FG");
 		string::size_type i = genVer.find(' ');
 		if(i != string::npos ) {
 			genVer = genVer.substr(i+1);
@@ -689,7 +688,7 @@ void Identity::checkrmDC(OnlineUser& ou) {
 	PME reg("^0.40([0123]){1}$");
 	if(reg.match(getVersion())) {
 		setCheatMsg(ou.getClient(), "rmDC++ in DC++ %[userVE] emulation mode" , true, false, RSXBOOLSETTING(SHOW_RMDC_RAW));
-		set("CL", "rmDC++");
+		setClientType("rmDC++");
 		ClientManager::getInstance()->sendAction(ou, RSXSETTING(RMDC_RAW));
 		ou.getClient().updated(ou);
 		return;
@@ -720,7 +719,7 @@ void Identity::checkTagState(OnlineUser& ou) {
 void Identity::cleanUser() {
 	set("MT", Util::emptyString); //MyINFO client type
 	set("I4", Util::emptyString); //IP
-	set("CL", Util::emptyString); //Client Type
+	setClientType(Util::emptyString); //Client Type
 	set("BC", Util::emptyString); //Bad Client
 	set("BF", Util::emptyString); //Bad FileList
 	set("TC", Util::emptyString); //Client checked
@@ -731,7 +730,7 @@ void Identity::cleanUser() {
 	set("PK", Util::emptyString); //PK string
 	set("SU", Util::emptyString); //Supports
 	set("LO", Util::emptyString); //Lock
-	set("GE", Util::emptyString); //XML Generator
+	set("FG", Util::emptyString); //XML Generator
 	set("TS", Util::emptyString); //TestSUR string
 	set("FD", Util::emptyString); //Disconnects
 	set("TO", Util::emptyString); //Timeouts
@@ -765,6 +764,15 @@ void Identity::checkSlotsCount(OnlineUser& ou, int realSlots) {
 		ClientManager::getInstance()->sendAction(ou, RSXSETTING(FAKE_SLOT_COUNT));
 	}
 }
+//iUser methods
+void OnlineUser::sendPM(const std::string& aMsg) {
+	ClientManager::getInstance()->privateMessage(identity.getUser(), aMsg);
+}
+
+iClient* OnlineUser::getUserClient() { 
+	return &getClient(); 
+}
+
 //END
 int OnlineUser::compareItems(const OnlineUser* a, const OnlineUser* b, uint8_t col)  {
 	if(col == COLUMN_NICK) {
@@ -820,7 +828,7 @@ const tstring OnlineUser::getText(uint8_t col) const {
 			else if(identity.isOp())
 				return _T("OP");
 			else
-				return Text::toT(identity.get("CL"));
+				return Text::toT(identity.getClientType());
 		}
 		case COLUMN_MYINFOS: {
 			if(identity.isBot() || identity.isHub())

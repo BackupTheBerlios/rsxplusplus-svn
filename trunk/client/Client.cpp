@@ -30,10 +30,10 @@
 //RSX++
 #include "RawManager.h"
 #include "pme.h"
-#include "PGManager.h"
 #include "version.h"
 #include "Thread.h"
 #include "LogManager.h"
+#include "../rsx/PluginAPI/PluginsManager.h"
 //END
 Client::Counts Client::counts;
 
@@ -42,7 +42,8 @@ Client::Client(const string& hubURL, char separator_, bool secure_) :
 	reconnDelay(120), lastActivity(GET_TICK()), registered(false), autoReconnect(false),
 	encoding(const_cast<string*>(&Text::systemCharset)), state(STATE_DISCONNECTED), socket(0),
 	hubUrl(hubURL), port(0), separator(separator_),
-	secure(secure_), countType(COUNT_UNCOUNTED), availableBytes(0), usersLimit(0)
+	secure(secure_), countType(COUNT_UNCOUNTED), availableBytes(0)
+	, usersLimit(0) //RSX++
 {
 	string file;
 	Util::decodeUrl(hubURL, address, port, file);
@@ -168,19 +169,6 @@ void Client::connect() {
 	setHubIdentity(Identity());
 
 	try {
-		//RSX++
-		if(SETTING(PG_ENABLE)) {
-			// suerly people don't want to connect to hubs which is in their blocklist, well
-			// and if they do that's just too bad (this is done this way to prevent abuse)
-			string company = PGManager::getInstance()->getIPBlock(Socket::resolve(address));
-			if(!company.empty()) {
-				if(SETTING(PG_LOG)) {
-					PGManager::getInstance()->log("Blocked outgoing hub connection to: " + address + " (" + company + ")");
-				}
-				throw Exception(STRING(PG_BLOCKED) + ": " + company);
-			}
-		}
-		//END
 		socket = BufferedSocket::getSocket(separator);
 		socket->addListener(this);
 		socket->connect(address, port, secure, BOOLSETTING(ALLOW_UNTRUSTED_HUBS), true);
@@ -252,7 +240,7 @@ void Client::updateCounts(bool aRemove) {
 string Client::getLocalIp() const {
 	// Favorite hub Ip
 	if(!getFavIp().empty())
-		return getFavIp();
+		return Socket::resolve(getFavIp());
 
 	// Best case - the server detected it
 	if((!BOOLSETTING(NO_IP_OVERRIDE) || SETTING(EXTERNAL_IP).empty()) && !getMyIdentity().getIp().empty()) {
@@ -285,9 +273,25 @@ void Client::on(Second, uint64_t aTick) throw() {
 }
 //RSX++ // Lua
 bool ClientScriptInstance::onHubFrameEnter(Client* aClient, const string& aLine) {
-	Lock l(scs);
-	MakeCall("dcpp", "OnCommandEnter", 1, aClient, aLine);
-	return GetLuaBool();
+	bool r1 = false;
+	{
+		Lock l(ScriptInstance::cs);
+		MakeCall("dcpp", "OnCommandEnter", 1, aClient, aLine);
+		r1 = GetLuaBool();
+	}
+	bool r2 = PluginsManager::getInstance()->onOutgoingMessage(aClient, aLine);
+	return r1 || r2;
+}
+
+bool ClientScriptInstance::onClientMessage(Client* aClient, const string& prot, const string& aLine) {
+	bool r1 = false;
+	{
+		Lock l(ScriptInstance::cs);
+		MakeCall(prot, "DataArrival", 1, aClient, aLine);
+		r1 = GetLuaBool();
+	}
+	bool r2 = PluginsManager::getInstance()->onIncommingMessage(aClient, aLine);
+	return r1 || r2;
 }
 //RSX++ //Threaded Raw Sender
 class RawSender : public Thread {
@@ -309,7 +313,7 @@ public:
 		join();
 	}
 	int run() {
-		setThreadPriority(Thread::LOW);
+		setThreadPriority(Thread::HIGH);
 		const uint64_t sleepTime = static_cast<uint64_t>(RSXSETTING(RAW_SENDER_SLEEP_TIME));
 		while(true) {
 			//s.wait(1000);
@@ -318,12 +322,15 @@ public:
 			{
 				Lock l(cs);
 				string& cmd = rawQueue.front();
-				if(!cmd.empty() && c->isConnected())
-					c->sendUserCmd(cmd);
+				if(c) {
+					//Lock lc(c->cs);
+					if(!cmd.empty() && c->isConnected())
+						c->sendUserCmd(cmd);
+				}
 				rawQueue.pop_front();
 				sleep(sleepTime);
-				RSXS_SET(TOTAL_RAW_COMMANDS_SENT, RSXSETTING(TOTAL_RAW_COMMANDS_SENT)+1);
 			}
+			RSXS_SET(TOTAL_RAW_COMMANDS_SENT, RSXSETTING(TOTAL_RAW_COMMANDS_SENT)+1);
 		}
 		stop = true;
 		return 0;
@@ -345,13 +352,16 @@ void Client::insertRaw(const string& aRawCmd) {
 }
 
 void Client::putSender(bool clear /*= false*/) {
-	if(clear)
-		sender.rawQueue.clear();
+	if(clear) {
+		{
+			Lock l(sender.cs);
+			sender.rawQueue.clear();
+		}
+	}
 	sender.shutdown();
 }
 
 void Client::sendActionCommand(const OnlineUser& ou, int actionId) {
-	Lock l(cs);
 	if(!isConnected() || (getUserCount() < getUsersLimit()))
 		return;
 
@@ -397,5 +407,5 @@ void Client::sendActionCommand(const OnlineUser& ou, int actionId) {
 
 /**
  * @file
- * $Id: Client.cpp 317 2007-08-04 14:52:24Z bigmuscle $
+ * $Id: Client.cpp 355 2008-01-05 14:43:39Z bigmuscle $
  */

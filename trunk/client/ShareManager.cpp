@@ -26,16 +26,18 @@
 #include "ClientManager.h"
 #include "LogManager.h"
 #include "HashManager.h"
+#include "DownloadManager.h"
 
 #include "SimpleXML.h"
 #include "StringTokenizer.h"
 #include "File.h"
 #include "FilteredFile.h"
 #include "BZUtils.h"
-#include "../rsx/Wildcards.h" //RSX++
 #include "Transfer.h"
 #include "UserConnection.h"
 #include "Download.h"
+#include "HashBloom.h"
+#include "../rsx/Wildcards.h" //RSX++
 
 #ifndef _WIN32
 #include <sys/types.h>
@@ -143,9 +145,9 @@ string ShareManager::toReal(const string& virtualFile, bool isInSharingHub) thro
 	} else if(virtualFile == Transfer::USER_LIST_NAME_BZ || virtualFile == Transfer::USER_LIST_NAME) {
 		generateXmlList();
 		//RSX++ //Hide Share
-			if (!isInSharingHub) {
-				return (Util::getDataPath() + "Settings\\Emptyfiles.xml.bz2");
-			}
+		if(!isInSharingHub) {
+			return (Util::getDataPath() + "Settings\\Emptyfiles.xml.bz2");
+		}
 		//END
 		return getBZXmlFile();
 	} else {
@@ -181,7 +183,7 @@ MemoryInputStream* ShareManager::getTree(const string& virtualFile) const {
 		}
 	}
 
-	vector<uint8_t> buf = tree.getLeafData();
+	ByteVector buf = tree.getLeafData();
 	return new MemoryInputStream(&buf[0], buf.size());
 }
 
@@ -306,6 +308,7 @@ void ShareManager::load(SimpleXML& aXml) {
 		aXml.stepOut();
 	}
 }
+
 
 static const string SDIRECTORY = "Directory";
 static const string SFILE = "File";
@@ -578,6 +581,10 @@ public:
 			return ((dwFileAttributes & FILE_ATTRIBUTE_HIDDEN) || (cFileName[0] == L'.'));
 		}
 
+		bool isLink() {
+			return false;
+		}
+
 		int64_t getSize() {
 			return (int64_t)nFileSizeLow | ((int64_t)nFileSizeHigh)<<32;
 		}
@@ -646,6 +653,12 @@ public:
 		bool isHidden() {
 			if (!ent) return false;
 			return ent->d_name[0] == '.';
+		}
+		bool isLink() {
+			struct stat inode;
+			if (!ent) return false;
+			if (lstat((base + PATH_SEPARATOR + ent->d_name).c_str(), &inode) == -1) return false;
+			return S_ISLNK(inode.st_mode);
 		}
 		int64_t getSize() {
 			struct stat inode;
@@ -717,9 +730,11 @@ ShareManager::Directory* ShareManager::buildTree(const string& aName, Directory*
 					continue;
 			}
 		}
-		if(!BOOLSETTING(SHARE_HIDDEN) && i->isHidden() )
+		if(!BOOLSETTING(SHARE_HIDDEN) && i->isHidden())
 			continue;
-
+		if(i->isLink())
+ 			continue;
+ 			
 		if(i->isDirectory()) {
 			string newName = aName + name + PATH_SEPARATOR;
 			if((Util::stricmp(newName, SETTING(TEMP_DOWNLOAD_DIRECTORY)) != 0) && shareFolder(newName)) {
@@ -865,6 +880,18 @@ int ShareManager::run() {
 	return 0;
 }
 		
+void ShareManager::getBloom(ByteVector& v, size_t k, size_t m, size_t h) const {
+	dcdebug("Creating bloom filter, k=%u, m=%u, h=%u\n", k, m, h);
+	Lock l(cs);
+	
+	HashBloom bloom;
+	bloom.reset(k, m, h);
+	for(HashFileMap::const_iterator i = tthIndex.begin(); i != tthIndex.end(); ++i) {
+		bloom.add(i->first);
+	}
+	bloom.copy_to(v);
+}
+
 void ShareManager::generateXmlList() {
 	Lock l(cs);
 	if(xmlDirty && (lastXmlUpdate + 15 * 60 * 1000 < GET_TICK() || lastXmlUpdate < lastFullUpdate)) {
@@ -1579,5 +1606,5 @@ int64_t ShareManager::removeExcludeFolder(const string &path, bool returnSize /*
 
 /**
  * @file
- * $Id: ShareManager.cpp 338 2007-12-06 20:44:27Z bigmuscle $
+ * $Id: ShareManager.cpp 358 2008-01-17 10:48:01Z bigmuscle $
  */

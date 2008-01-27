@@ -49,9 +49,9 @@ class SimpleXML;
 class IpManager : public Singleton<IpManager>, private HttpConnectionListener {
 public:
 	void load() { WatchLoad(); }
-	void WatchLoad();
+	void WatchLoad(const string& p = Util::emptyString);
 	void WatchSave();
-	void reloadIpWatch();
+	void reloadIpWatch(const string& filePath);
 
 	IPWatch* addWatch(int m, const string& pat, int task, int act, bool disp, const string& cheat, int mt, const string& i) {
 		IPWatch* ipw = new IPWatch(m, pat, task, act, disp, cheat, mt, i);

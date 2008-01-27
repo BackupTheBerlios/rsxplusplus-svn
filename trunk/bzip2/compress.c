@@ -21,7 +21,7 @@
 
 /* CHANGES
     0.9.0    -- original version.
-    0.9.0a/b -- no changes in this file.
+   0.9.0a/b -- no changes in this file.
     0.9.0c   -- changed setting of nGroups in sendMTFValues() 
                 so as to do a bit better on small files
 */

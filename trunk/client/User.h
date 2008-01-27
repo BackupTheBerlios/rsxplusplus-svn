@@ -26,7 +26,10 @@
 #include "CriticalSection.h"
 #include "Flags.h"
 #include "forward.h"
-#include "TimerManager.h" //RSX++
+//RSX++
+#include "TimerManager.h"
+#include "../rsx/PluginAPI/UserInterface.h"
+//END
 
 /** A user connected to one or more hubs. */
 class User : public FastAlloc<User>, public PointerBase, public Flags
@@ -48,8 +51,7 @@ public:
 		NO_ADC_0_10_PROTOCOL = 0x800,	//< Doesn't support "ADC/0.10"
 		NO_ADCS_0_10_PROTOCOL = 0x1000,	//< Doesn't support "ADCS/0.10"
 		//RSX++
-		PROTECTED 	= 0x2000, //< User protected
-		PG_BLOCK 	= 0x4000 //< Blocked by PeerGuardian
+		PROTECTED 	= 0x2000 //< User protected
 		//END
 	};
 
@@ -57,7 +59,7 @@ public:
 		size_t operator()(const UserPtr& x) const { return ((size_t)(&(*x)))/sizeof(User); }
 	};
 
-	User(const CID& aCID) : cid(aCID), lastDownloadSpeed(0), soundActive(true) { }
+	User(const CID& aCID) : cid(aCID), lastDownloadSpeed(0), firstNick(Util::emptyString), soundActive(true) { }
 
 	~User() throw() { }
 
@@ -67,6 +69,7 @@ public:
 	bool isOnline() const { return isSet(ONLINE); }
 	bool isNMDC() const { return isSet(NMDC); }
 
+	GETSET(string, firstNick, FirstNick);
 	GETSET(size_t, lastDownloadSpeed, LastDownloadSpeed);
 	GETSET(bool, soundActive, SoundActive); //RSX++
 private:
@@ -90,12 +93,11 @@ public:
 
 	Identity() { }
 	Identity(const UserPtr& ptr, uint32_t aSID) : user(ptr) { setSID(aSID); }
-	Identity(const Identity& rhs) : user(rhs.user), info(rhs.info) { }
+	Identity(const Identity& rhs) : user(rhs.user) { Lock l(rhs.cs); info = rhs.info; }
 	Identity& operator=(const Identity& rhs) { Lock l1(cs); Lock l2(rhs.cs); user = rhs.user; info = rhs.info; return *this; }
 	~Identity() { }
 
 #define GS(n, x) string get##n() const { return get(x); } void set##n(const string& v) { set(x, v); }
-	GS(Nick, "NI")
 	GS(Description, "DE")
 	GS(Ip, "I4")
 	GS(UdpPort, "U4")
@@ -108,7 +110,25 @@ public:
 	GS(TestSURChecked, "TC")
 	GS(FileListQueued, "FQ")
 	GS(FileListChecked, "FC")
+	GS(ClientType, "CL")
+	GS(ClientComment, "CM")
 	//END
+
+	void setNick(const string& aNick) {
+		if(!user || !user->isSet(User::NMDC)) {
+			set("NI", aNick);
+		}
+	}
+
+	const string& getNick() const {
+		if(user && user->isSet(User::NMDC)) {
+			return user->getFirstNick();
+		} else {
+			Lock l(cs);
+			InfMap::const_iterator i = info.find(*(short*)"NI");
+			return i == info.end() ? Util::emptyString : i->second;
+		}
+	}
 
 	void setBytesShared(const string& bs) { set("SS", bs); }
 	int64_t getBytesShared() const { return Util::toInt64(get("SS")); }
@@ -176,7 +196,6 @@ private:
 	InfMap info;
 	/** @todo there are probably more threading issues here ...*/
 	mutable CriticalSection cs;
-
 	//RSX++
 	//Flood stuff
 	uint16_t myinfoFloodCounter;	
@@ -205,7 +224,7 @@ private:
 class NmdcHub;
 #include "UserInfoBase.h"
 
-class OnlineUser : public FastAlloc<OnlineUser>, public PointerBase, public UserInfoBase {
+class OnlineUser : public FastAlloc<OnlineUser>, public PointerBase, public UserInfoBase, public iUser {
 public:
 	enum {
 		COLUMN_FIRST,
@@ -271,6 +290,19 @@ public:
 	void setTestSURComplete() { identity.setTestSURChecked(Util::toString(GET_TIME())); }
 	void setFileListComplete() { identity.setFileListChecked(Util::toString(GET_TIME())); }
 	void updateUser();
+	
+	/** User Interface **/
+	string iGet(const char* name) const { 
+		return getIdentity().get(name); 
+	}
+	// get field value from user identity
+	string iGetNick() const { 
+		return getNick(); 
+	}
+	// send private message to user
+	void sendPM(const std::string& aMsg);
+	//get user client
+	iClient* getUserClient();
 	//END
 	GETSET(Identity, identity, Identity);
 private:
@@ -286,5 +318,5 @@ private:
 
 /**
  * @file
- * $Id: User.h 338 2007-12-06 20:44:27Z bigmuscle $
+ * $Id: User.h 355 2008-01-05 14:43:39Z bigmuscle $
  */

@@ -36,7 +36,7 @@ public:
 		m_psh.pfnCallback = &PropSheetProc;
 		m_psh.dwFlags |= PSH_RTLREADING;
 	}
-
+	
 	typedef CPropertySheetImpl<TreePropertySheet> baseClass;
 	BEGIN_MSG_MAP(TreePropertySheet)
 		MESSAGE_HANDLER(WM_COMMAND, baseClass::OnCommand)
@@ -63,6 +63,7 @@ public:
 
 	static int CALLBACK PropSheetProc(HWND hwndDlg, UINT uMsg, LPARAM lParam);
 private:
+
 	enum {
 		SPACE_MID = 5,
 		SPACE_TOP = 10,

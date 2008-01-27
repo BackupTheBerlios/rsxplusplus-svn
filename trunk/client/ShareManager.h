@@ -83,6 +83,8 @@ public:
 	string getShareSizeString() const { return Util::toString(getShareSize()); }
 	string getShareSizeString(const string& aDir) const { return Util::toString(getShareSize(aDir)); }
 	
+	void getBloom(ByteVector& v, size_t k, size_t m, size_t h) const;
+
 	SearchManager::TypeModes getType(const string& fileName) const throw();
 
 	string validateVirtual(const string& /*aVirt*/) const throw();
@@ -263,7 +265,7 @@ private:
 	// Map real name to directory structure
 	Directory::Map directories;
 
-	typedef unordered_map<TTHValue, Directory::File::Set::const_iterator, TTHValue::Hash> HashFileMap;
+	typedef unordered_map<TTHValue, Directory::File::Set::const_iterator> HashFileMap;
 	typedef HashFileMap::const_iterator HashFileIter;
 
 	HashFileMap tthIndex;
@@ -313,5 +315,5 @@ private:
 
 /**
  * @file
- * $Id: ShareManager.h 326 2007-09-01 16:55:01Z bigmuscle $
+ * $Id: ShareManager.h 358 2008-01-17 10:48:01Z bigmuscle $
  */

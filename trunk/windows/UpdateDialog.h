@@ -19,12 +19,11 @@
 #ifndef UPDATE_DIALOG_H
 #define UPDATE_DIALOG_H
 
-#include "../rsx/UpdateManager.h"
+#include "../rsx/UpdateManagerListener.h"
 #include "../windows/Resource.h"
-#include "../client/HttpConnection.h"
 #include "../client/SimpleXML.h"
 
-class UpdateDialog : public CDialogImpl<UpdateDialog>, private UpdateManagerListener, private HttpConnectionListener {
+class UpdateDialog : public CDialogImpl<UpdateDialog>, private UpdateManagerListener {
 public:
 	enum { IDD = IDD_UPDATE };
 
@@ -41,7 +40,8 @@ public:
 		COMMAND_ID_HANDLER(IDC_ISP_ACTIVE, OnButton)
 	END_MSG_MAP()
 
-	UpdateDialog(string xml = Util::emptyString) : xmlData(xml), c(NULL), prog(0), m_hIcon(NULL), reload(false) { };
+	UpdateDialog(string xml = Util::emptyString, string pXml = Util::emptyString) : 
+		xmlData(xml), profileXMLData(pXml), prog(0), m_hIcon(NULL), reload(false) { };
 	~UpdateDialog();
 
 	LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
@@ -67,15 +67,18 @@ private:
 	CProgressBarCtrl cProgress;
 	HICON m_hIcon;
 
+	typedef unordered_map<int, string> UpdateMap;
 	UpdateMap updateItems;
-	string xmlData, downloadUrl;
+	
+	string xmlData, profileXMLData, downloadUrl;
 	int xSVN;
 	bool reload;
 	uint8_t prog;
-	HttpConnection* c;
 
-	void updateStatus(const tstring& text);
+	void updateStatus(const tstring& text, bool history = false);
 	void versionXML();
+	void profileXML();
+
 	void initClose();
 	void prepareFiles();
 	void fixControls();
@@ -88,17 +91,10 @@ private:
 		tmp.Detach();
 	}
 
-	// UpdateManagerListener
-	void on(UpdateManagerListener::Complete, int file) throw();
-	void on(UpdateManagerListener::Failed, int file, const string& reason) throw();
+	void saveFile(const string& data, const string& fileName);
 
-	// HttpConnectionListener
-	void on(HttpConnectionListener::Complete, HttpConnection* /*conn*/, const string& /*aLine*/) throw();
-	void on(HttpConnectionListener::Failed, HttpConnection* /*conn*/, const string& aLine) throw();
-	void on(HttpConnectionListener::Data, HttpConnection* /*conn*/, const uint8_t* buf, size_t len) throw() {
-		if(xmlData.empty())
-			updateStatus(TSTRING(RETRIEVING_DATA) + _T("..."));
-		xmlData.append((char*)buf, len);
-	}
+	// UpdateManagerListener
+	void on(UpdateManagerListener::Complete, const string& /*content*/, int /*file*/) throw();
+	void on(UpdateManagerListener::Failed, const string& /*reason*/, int /*file*/) throw();
 };
 #endif

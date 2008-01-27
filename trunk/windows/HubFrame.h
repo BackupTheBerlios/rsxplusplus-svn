@@ -566,5 +566,5 @@ private:
 
 /**
  * @file
- * $Id: HubFrame.h 326 2007-09-01 16:55:01Z bigmuscle $
+ * $Id: HubFrame.h 330 2007-10-13 22:26:06Z bigmuscle $
  */

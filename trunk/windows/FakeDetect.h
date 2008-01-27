@@ -42,6 +42,7 @@ public:
 		COMMAND_ID_HANDLER(IDC_SHOW_CHEAT, onShowChanged)
 		NOTIFY_HANDLER(IDC_DETECTOR_ITEMS, LVN_ITEMCHANGED, onItemChanged)
 		NOTIFY_HANDLER(IDC_DETECTOR_ITEMS, NM_CUSTOMDRAW, onCustomDraw)
+		NOTIFY_HANDLER(IDC_DETECTOR_ITEMS, LVN_GETINFOTIP, onInfoTip)
 	END_MSG_MAP()
 
 	LRESULT onInitDialog(UINT, WPARAM, LPARAM, BOOL&);
@@ -49,6 +50,7 @@ public:
 	LRESULT onShowChanged(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT onItemChanged(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/);
 	LRESULT onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled);
+	LRESULT onInfoTip(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/);
 
 	// Common PropPage interface
 	PROPSHEETPAGE *getPSP() { return (PROPSHEETPAGE *)*this; }
@@ -56,7 +58,7 @@ public:
 
 private:
 	struct DetectorItem {
-		DetectorItem(int rpos, int cpos) : rawPos(rpos), dcPos(cpos) {
+		DetectorItem(int rpos, int cpos, tstring in) : rawPos(rpos), dcPos(cpos), itemName(in) {
 			rawId = RSXSettingsManager::getInstance()->get((RSXSettingsManager::IntSetting)rpos);
 			displayCheat = RSXSettingsManager::getInstance()->getBool((RSXSettingsManager::IntSetting)cpos);
 		};
@@ -65,7 +67,7 @@ private:
 			RSXSettingsManager::getInstance()->set((RSXSettingsManager::IntSetting)rawPos, rawId);
 			RSXSettingsManager::getInstance()->set((RSXSettingsManager::IntSetting)dcPos, displayCheat);
 		};
-
+		tstring itemName;
 		int rawId;
 		bool displayCheat;
 		int rawPos;

@@ -1,4 +1,6 @@
-/* 
+/*
+ * Copyright (C) 2007 adrian_007, adrian-007 on o2 point pl
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -19,7 +21,7 @@
 
 #include "PluginInterface.h"
 
-//#define HOST //undef it when compiling plugin
+#define HOST
 #ifdef HOST
 #define EXIMP __declspec(dllexport)
 #else
@@ -45,6 +47,16 @@ public:
 		TT_ERROR = 0x00000003,
 		TT_NOSOUND = 0x00000010
 	};
+	//versions
+	enum {
+		CLIENT_PROFILE = 0,
+		MYINFO_PROFILE,
+		IP_WATCH_PROFILE,
+		AUTOSEARCH_PROFILE,
+		ADLS_PROFILE,
+		RSX_VERSION,
+		RSX_REVISION
+	};
 
 	EXIMP static void setPluginInfo(int id, const string n, const string v, int i);
 
@@ -53,22 +65,24 @@ public:
 
 	EXIMP static string fromW(const wstring& aStr);
 	EXIMP static wstring toW(const string& aStr);
+	EXIMP static string formatParams(const string& frm, std::tr1::unordered_map<string, string>& params);
 
-	EXIMP static void addHubLine(Client* client, const string& aMsg, int mType = 0);
-	EXIMP static void addHubLine(Client* client, const wstring& aMsg, int mType = 0);
-
-	EXIMP static void sendHubMessage(Client* client, const string& aMsg);
-	EXIMP static void sendHubMessage(Client* client, const wstring& aMsg);
+	EXIMP static string getDataPath();
+	EXIMP static string getVersion(int type);
+	EXIMP static void getMainWnd(HWND& h);
 
 	EXIMP static const string& getSetting(int id, const string& aName);
 	EXIMP static void setSetting(int id, const string& aName, const string& aVal);
 
-	EXIMP static string formatParams(const string& frm, std::tr1::unordered_map<string, string>& params);
-
-	EXIMP static void getMainWnd(HWND& h);
+	EXIMP static const string& getClientSetting(const string& aName, bool rsxmng = false);
+	EXIMP static int getClientSettingInt(const string& aName, bool rsxmng = false);
 
 	EXIMP static void showToolTip(const string& pTitle, const string& pMsg, int pIcon);
 	EXIMP static void showToolTip(const wstring& pTitle, const wstring& pMsg, int pIcon);
-
 };
 #endif
+
+/**
+ * @file
+ * $Id: PluginAPI.h 32 2007-09-16 20:49:44Z adrian_007 $
+ */

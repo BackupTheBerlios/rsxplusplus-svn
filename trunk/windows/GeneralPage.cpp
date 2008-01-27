@@ -214,5 +214,5 @@ LRESULT GeneralPage::onClickedRadioButton(WORD /*wNotifyCode*/, WORD /*wID*/, HW
 //end
 /**
  * @file
- * $Id: GeneralPage.cpp 213 2006-05-08 08:36:23Z bigmuscle $
+ * $Id: GeneralPage.cpp 306 2007-07-10 19:46:55Z bigmuscle $
  */

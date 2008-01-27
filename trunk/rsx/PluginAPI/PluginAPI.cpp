@@ -1,4 +1,6 @@
-/* 
+/*
+ * Copyright (C) 2007-2008 adrian_007, adrian-007 on o2 point pl
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -20,9 +22,11 @@
 #include "PluginAPI.h"
 #include "PluginsManager.h"
 
-#include "../../client/Client.h"
 #include "../../client/Text.h"
 #include "../../client/LogManager.h"
+#include "../../client/ClientProfileManager.h"
+#include "../IpManager.h"
+#include "../AutoSearchManager.h"
 
 #include "../../windows/MainFrm.h"
 
@@ -44,26 +48,6 @@ void PluginAPI::logMessage(const string& aMsg) {
 
 void PluginAPI::logMessage(const wstring& aMsg) {
 	logMessage(Text::fromT(aMsg));
-}
-
-void PluginAPI::addHubLine(Client* client, const string& aMsg, int mType) {
-	if(!client) return;
-	Lock l(client->cs);
-	client->addHubLine(aMsg, mType);
-}
-
-void PluginAPI::addHubLine(Client* client, const wstring& aMsg, int mType) {
-	addHubLine(client, Text::fromT(aMsg), mType);
-}
-
-void PluginAPI::sendHubMessage(Client* client, const string& aMsg) {
-	if(!client) return;
-	Lock l(client->cs);
-	client->hubMessage(aMsg);
-}
-
-void PluginAPI::sendHubMessage(Client* client, const wstring& aMsg) {
-	sendHubMessage(client, Text::fromT(aMsg));
 }
 
 const string& PluginAPI::getSetting(int id, const string& aName) {
@@ -88,6 +72,39 @@ void PluginAPI::showToolTip(const string& pTitle, const string& pMsg, int pIcon)
 
 void PluginAPI::showToolTip(const wstring& pTitle, const wstring& pMsg, int pIcon) {
 	MainFrame::getMainFrame()->ShowBalloonTip(pMsg.c_str(), pTitle.c_str(), pIcon);
+}
+
+string PluginAPI::getVersion(int type) {
+	switch(type) {
+		case CLIENT_PROFILE: return ClientProfileManager::getInstance()->getProfileVersion();
+		case MYINFO_PROFILE: return ClientProfileManager::getInstance()->getMyinfoProfileVersion();
+		case IP_WATCH_PROFILE: return IpManager::getInstance()->getIpWatchVersion();
+		case AUTOSEARCH_PROFILE: return AutoSearchManager::getInstance()->getVersion();
+		case ADLS_PROFILE: return "1.00";
+		case RSX_VERSION: return VERSIONSTRING;
+		case RSX_REVISION: return "0";
+		default: return "0.00";
+	}
+}
+
+string PluginAPI::getDataPath() {
+	return Util::getDataPath();
+}
+
+const string& PluginAPI::getClientSetting(const string& aName, bool rsxmng/* = false*/) {
+	if(rsxmng) {
+		return RSXSettingsManager::getInstance()->getString(aName);
+	} else {
+		return SettingsManager::getInstance()->getString(aName);
+	}
+}
+
+int PluginAPI::getClientSettingInt(const string& aName, bool rsxmng/* = false*/) {
+	if(rsxmng) {
+		return RSXSettingsManager::getInstance()->getInt(aName);
+	} else {
+		return SettingsManager::getInstance()->getInt(aName);
+	}
 }
 
 /**

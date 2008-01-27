@@ -25,7 +25,6 @@
 #include "ClientManager.h"
 #include "ShareManager.h"
 #include "ResourceManager.h"
-#include "FileChunksInfo.h"
 #include "QueueManager.h"
 #include "../rsx/AutoSearchManager.h" //RSX++
 
@@ -601,5 +600,5 @@ void SearchManager::sendPSR(const string& ip, uint16_t port, bool wantResponse, 
 
 /**
  * @file
- * $Id: SearchManager.cpp 338 2007-12-06 20:44:27Z bigmuscle $
+ * $Id: SearchManager.cpp 344 2007-12-25 21:04:46Z bigmuscle $
  */

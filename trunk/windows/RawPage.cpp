@@ -49,7 +49,7 @@ LRESULT RawPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	ctrlAction.InsertColumn(0, _T("Dummy"), LVCFMT_LEFT, rc1.Width() - 20, 0);
 	ctrlAction.SetExtendedListViewStyle(LVS_EX_CHECKBOXES | LVS_EX_FULLROWSELECT);
 
-	Action::List lst = RawManager::getInstance()->getActionList();
+	Action::List& lst = RawManager::getInstance()->getActionList();
 	for(Action::List::const_iterator i = lst.begin(); i != lst.end(); ++i) {
 		addEntryAction(i->first, i->second->getName(), i->second->getActif(), ctrlAction.GetItemCount());
 	}

@@ -20,11 +20,11 @@
 #include "RsxUtil.h"
 #include "../client/Util.h"
 #include "../client/Text.h"
+#include "../client/ResourceManager.h"
 #include "rsx-settings/rsx-SettingsManager.h"
 
 string RsxUtil::tmpTestSur;
 StringList RsxUtil::tags;
-StringList RsxUtil::adcTags;
 
 const string defaultTestSURName = "TestSUR";
 
@@ -32,36 +32,17 @@ void RsxUtil::init() {
 	generateTestSURString();
 	tags.push_back("<++ V:69");
 	//tags.push_back("<StrgDC++ V:2.00");
-
-	//we're able to download only from 0.699 and above
-	adcTags.push_back("<++ 0.68");
-	adcTags.push_back("<++ 0.691");
-	adcTags.push_back("<++ 0.692");
-	adcTags.push_back("<++ 0.693");
-	adcTags.push_back("<++ 0.694");
-	adcTags.push_back("<++ 0.695");
-	adcTags.push_back("<++ 0.696");
-	adcTags.push_back("<++ 0.697");
-	adcTags.push_back("<++ 0.698");
 }
 
 void RsxUtil::uinit() {
 	tags.clear();
-	adcTags.clear();
 }
 
-bool RsxUtil::checkVersion(const string& tag, bool adcT /*= false*/) {
+bool RsxUtil::checkVersion(const string& tag) {
 	//@todo - workaround, need to find a better way
-	if(adcT) {
-		for(StringIter i = adcTags.begin(); i != adcTags.end(); ++i) {
-			if(strncmp(tag.c_str(), (*i).c_str(), (*i).length()) == 0)
-				return true;
-		}
-	} else {
-		for(StringIter i = tags.begin(); i != tags.end(); ++i) {
-			if(strncmp(tag.c_str(), (*i).c_str(), (*i).length()) == 0)
-				return true;
-		}
+	for(StringIter i = tags.begin(); i != tags.end(); ++i) {
+		if(strncmp(tag.c_str(), (*i).c_str(), (*i).length()) == 0)
+			return true;
 	}
 	return false;
 }
@@ -328,7 +309,6 @@ tstring RsxUtil::formatAdditionalInfo(const string& aIp, bool sIp, bool sCC) {
 }
 
 string RsxUtil::getSlowDLCheat(double dlSpeed) {
-	string ret =  "too low download speed (";
-	ret += dlSpeed > 1024 ? (Util::toString(dlSpeed/1024) + " kB/s)") : (Util::toString(dlSpeed) + " B/s)");
-	return ret;
+	string spd = dlSpeed > 1024 ? (Util::toString(dlSpeed/1024) + " kB/s") : (Util::toString(dlSpeed) + " B/s");
+	return strFormat<512>(CSTRING(TOO_LOW_DOWNSPD), spd.c_str());
 }

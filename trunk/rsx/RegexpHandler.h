@@ -1,24 +1,32 @@
+/* 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
 // RegexpHandler.h Added by Sulan 2005-05-20
 // Pothead had a little play with it
 
-#if !defined(AFX_REGEXP_HANDLER_H__E9B493AC_97A7_4A18_AF7C_06BFE1926A52__INCLUDED_)
-#define AFX_REGEXP_HANDLER_H__E9B493AC_97A7_4A18_AF7C_06BFE1926A52__INCLUDED_
+#ifndef REGEXP_HANDLER_H
+#define REGEXP_HANDLER_H
 
 #include "../client/ResourceManager.h"
-//#include "DebugManager.h"
 #include "../client/pme.h"
 #include "RsxUtil.h"
 
-class RegexpHandler 
-{
+class RegexpHandler {
 public:
-/*	static bool isValid(const string& aString, const bool& caseSensative = true ) {
-		PME reg(aString, caseSensative ? "" : "i");
-		return Util::toBool(reg.IsValid());
-	}
-*/
 	static bool matchProfile(const string& aString, const string& aProfile, const bool& caseSensative = true) {
-		//DETECTION_DEBUG("\t\tMatching String: " + aString + " to Profile: " + aProfile);
 		PME reg(aProfile, caseSensative ? "" : "i");
 		return reg.IsValid() ? RsxUtil::toBool(reg.match(aString)) : false;
 	}
@@ -74,8 +82,4 @@ private:
 		return reg[part];
 	}
 };
-#endif // !defined(AFX_REGEXP_HANDLER_H__E9B493AC_97A7_4A18_AF7C_06BFE1926A52__INCLUDED_)
-/**
- * @file
- * $Id: RegexpHandler.h 1.0 2005-08-03 22:19:45 Virus27 $
- */
+#endif //REGEXP_HANDLER_H

@@ -29,7 +29,6 @@
 
 #include "ClientManagerListener.h"
 //RSX++
-#include "Thread.h"
 #include "../rsx/IpManager.h"
 //END
 
@@ -71,21 +70,19 @@ public:
 		return onlineUsers.find(aUser->getCID()) != onlineUsers.end();
 	}
 	
-	void setIPUser(const string& IP, const UserPtr user, const string& host = Util::emptyString) {
-		{
+	void setIPUser(const string& IP, const UserPtr& user, const string& host = Util::emptyString) {
 		Lock l(cs);
-//		OnlinePairC p = onlineUsers.equal_range(user->getCID());
-//		for (OnlineIterC i = p.first; i != p.second; i++) {
-		OnlineIterC i = onlineUsers.find(user->getCID());
-		if(i == onlineUsers.end()) return;
+		OnlinePairC p = onlineUsers.equal_range(user->getCID());
+		for(OnlineIterC i = p.first; i != p.second; i++) {
 			OnlineUser* ou = i->second;
+			//RSX++ //IP check
 			ou->getIdentity().setIp(IP);
 			if(!host.empty())
 				ou->getIdentity().set("HT", host);
 			if(ou->getIdentity().get("IC").empty())
 				ou->getIdentity().checkIP(*ou);
+			//END
 		}
-		//RSX++ //ISP & Host check && IP Watch
 	}
 	
 	const string getMyNMDCNick(const UserPtr& p) const {
@@ -111,11 +108,6 @@ public:
 		}
 		c->cheatMessage("*** Info on " + nick + " ***" + "\r\n" + report + "\r\n");
 	}
-	//RSX++
-	const string getFirstNick(const CID& cid) const {
-		StringList lst = getNicks(cid);
-		return lst.empty() ? Util::emptyString : lst[0];
-	}
 	//RSX++ // Clean User
 	void cleanUser(const UserPtr& p) {
 		Lock l(cs);
@@ -137,7 +129,7 @@ public:
 	//RSX++ //check slot count
 	void checkSlots(const UserPtr& p, int slots) {
 		Lock l(cs);
-		OnlineIterC i = onlineUsers.find(p->getCID());
+		OnlineIter i = onlineUsers.find(p->getCID());
 		if(i == onlineUsers.end()) return;
 
 		if(i->second->getIdentity().get("SC").empty())
@@ -217,21 +209,17 @@ public:
 	void sendAction(const UserPtr& p, const int aAction);
 	void sendAction(OnlineUser& ou, const int aAction);
 	void kickFromAutosearch(const UserPtr& p, int action, const string& cheat, const string& file, const string& size, const string& tth, bool display = false);
-	bool canCheckHim(const UserPtr& p);
 	Client* getUserClient(const UserPtr& p);
 	void multiHubKick(const UserPtr& p, const string& aRaw);
 	tstring getHubsLoadInfo() const;
 	//END
-
 	const string& getHubUrl(const UserPtr& aUser) const;
 
 	const Client::List& getClients() const { return clients; }
 
-	string getCachedIp() const { Lock l(cs); return cachedIp; }
-
 	CID getMyCID();
 	const CID& getMyPID();
-
+	
 	// fake detection methods
 	void setListLength(const UserPtr& p, const string& listLen);
 	void setListSize(const UserPtr& p, int64_t aFileLength, bool adc);
@@ -241,7 +229,6 @@ public:
 	void setCheating(const UserPtr& p, const string& aTestSURString, const string& aCheatString, const int aRawCommand, bool bc, bool bf = false, bool aDisplay = true, bool cc = false, bool cf = false);
 	//RSX++
 	void addCheckToQueue(const UserPtr& p, bool filelist);
-	//RSX++ // Lua
 	static bool ucExecuteLua(const string& cmd, StringMap& params);
 	//END
 
@@ -249,10 +236,10 @@ private:
 	//RSX++
 	bool compareUsers(const OnlineUser& ou1, const OnlineUser& ou2);
 	//END
-	typedef unordered_map<CID, UserPtr, CID::Hash> UserMap;
+	typedef unordered_map<CID, UserPtr> UserMap;
 	typedef UserMap::iterator UserIter;
 
-	typedef unordered_multimap<CID, OnlineUser*, CID::Hash> OnlineMap;
+	typedef unordered_multimap<CID, OnlineUser*> OnlineMap;
 	typedef OnlineMap::iterator OnlineIter;
 	typedef OnlineMap::const_iterator OnlineIterC;
 	typedef pair<OnlineIter, OnlineIter> OnlinePair;
@@ -266,7 +253,6 @@ private:
 
 	UserPtr me;
 	
-	string cachedIp;
 	CID pid;	
 
 	friend class Singleton<ClientManager>;
@@ -278,8 +264,6 @@ private:
 	~ClientManager() throw() {
 		TimerManager::getInstance()->removeListener(this); 
 	}
-
-	void updateCachedIp();
 
 	// ClientListener
 	void on(Connected, const Client* c) throw() { fire(ClientManagerListener::ClientConnected(), c); }
@@ -299,5 +283,5 @@ private:
 
 /**
  * @file
- * $Id: ClientManager.h 334 2007-11-04 13:04:34Z bigmuscle $
+ * $Id: ClientManager.h 355 2008-01-05 14:43:39Z bigmuscle $
  */

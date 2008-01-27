@@ -42,10 +42,11 @@ ResourceManager::TIME_LEFT, ResourceManager::SPEED, ResourceManager::FILENAME, R
 ResourceManager::IP_BARE, ResourceManager::RATIO};
 
 TransferView::~TransferView() {
-	arrows.Destroy();
 	OperaColors::ClearCache();
 	//RSX++
+	arrows.Destroy();
 	speedImages.Destroy();
+	speedImagesBW.Destroy();
 	DestroyIcon(user);
 	//END
 }
@@ -300,8 +301,8 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 			// Get the text to draw
 			// Get the color of this bar
 			COLORREF clr = SETTING(PROGRESS_OVERRIDE_COLORS) ? 
-				(ii->download ? (!ii->parent ? SETTING(DOWNLOAD_BAR_COLOR) : SETTING(PROGRESS_SEGMENT_COLOR)) : SETTING(UPLOAD_BAR_COLOR)) : 
-				GetSysColor(COLOR_HIGHLIGHT);
+				(ii->download ? (ii->parent ? SETTING(PROGRESS_SEGMENT_COLOR) : SETTING(DOWNLOAD_BAR_COLOR)) :
+				SETTING(UPLOAD_BAR_COLOR)) : GetSysColor(COLOR_HIGHLIGHT);
 
 			//this is just severely broken, msdn says GetSubItemRect requires a one based index
 			//but it wont work and index 0 gives the rect of the whole item
@@ -316,14 +317,10 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 			//RSX++
 			/* Thanks & credits for Stealthy style go to phaedrus */
 			bool useStealthyStyle = (SETTING(PROGRESSBAR_MODE) == 2);
-			//bool isSmaller = (!ii->parent && ii->collapsed == false);
-			//bool isMain = (!ii->parent || !ii->download);
 
 			// fixes issues with double border
 			if(useStealthyStyle) {
 				rc.top -= 1;
-				//if(isSmaller)
-					//rc.bottom -= 1;
 			}
 			//END
 			// Real rc, the original one.
@@ -336,32 +333,14 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 
 			HBITMAP pOldBmp = cdc.SelectBitmap(CreateCompatibleBitmap(cd->nmcd.hdc,  real_rc.Width(),  real_rc.Height()));
 			HDC& dc = cdc.m_hDC;
-			
-			COLORREF barPal[3] = { HLS_TRANSFORM(clr, -40, 50), clr, HLS_TRANSFORM(clr, 20, -30) };
-			COLORREF barPal2[3] = { HLS_TRANSFORM(clr, -15, 0), clr, HLS_TRANSFORM(clr, 15, 0) };
-			COLORREF oldcol;
 
-			HLSCOLOR hls = RGB2HLS(clr); // The value throws off, a bit
-			LONG top = rc.top + (rc.Height() - WinUtil::getTextHeight(cd->nmcd.hdc) - 1)/2 + (useStealthyStyle ? 0 : 1);
-			
 			HFONT oldFont = (HFONT)SelectObject(dc, WinUtil::font);
 			SetBkMode(dc, TRANSPARENT);
-
-			// Get the color of this text bar - this way it ends up looking nice imo.
-			if(!useStealthyStyle) {
-				oldcol = ::SetTextColor(dc, SETTING(PROGRESS_OVERRIDE_COLORS2) ? 
-				(ii->download ? SETTING(PROGRESS_TEXT_COLOR_DOWN) : SETTING(PROGRESS_TEXT_COLOR_UP)) : 
-				OperaColors::TextFromBackground(clr));
-			} else {
-				if(clr == RGB(255, 255, 255)) // see if user is using white as clr, rare but you may never know
-					oldcol = ::SetTextColor(dc, RGB(0, 0, 0));
-				else
-					oldcol = ::SetTextColor(dc, barPal2[1]);
-			}
 			
 			// Draw the background and border of the bar	
 			if(ii->size == 0) ii->size = 1;		
-			
+
+			COLORREF oldcol;
 			if((SETTING(PROGRESSBAR_MODE) == 1 )|| useStealthyStyle) {
 				// New style progressbar tweaks the current colors
 				HLSTRIPLE hls_bk = OperaColors::RGB2HLS(cd->clrTextBk);
@@ -373,7 +352,6 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 				// Draw the outline (but NOT the background) using pen
 				HBRUSH hBrOldBg = CreateSolidBrush(cd->clrTextBk);
 				hBrOldBg = (HBRUSH)::SelectObject(dc, hBrOldBg);
-
 				::Rectangle(dc, rc.left, rc.top, rc.right, rc.bottom);
 				DeleteObject(::SelectObject(dc, hBrOldBg));
 
@@ -384,51 +362,127 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 				// Draw the outline AND the background using pen+brush
 				::Rectangle(dc, rc.left, rc.top, rc.left + (LONG)(rc.Width() * ii->getRatio() + 0.5), rc.bottom);
 
-				if(useStealthyStyle) {
-					// Draw the text over entire item
-					::ExtTextOut(dc, BOOLSETTING(STEALTHY_INDICATE_SPEEDS) ? rc.left + 23 : rc.left + 6, top, ETO_CLIPPED, rc, ii->statusString.c_str(), ii->statusString.length(), NULL);
-
-					rc.right = rc.left + (int) (((int64_t)rc.Width()) * ii->actual / ii->size);
-				
-					if(ii->pos != 0)
-						rc.bottom -= 1;
-
-					rc.top += 1;
-				
-					// create bar pen
-					if(HLS_S(hls) <= 30) // good values would be 20-30
-						penBorder = ::CreatePen(PS_SOLID, 1, barPal2[0]);
-					else
-						penBorder = ::CreatePen(PS_SOLID, 1, barPal[0]);
-				
-					DeleteObject(::SelectObject(dc, penBorder));
-
-					// create bar brush
-					hBrDefBg = CreateSolidBrush(barPal[1]);
-				
-					DeleteObject(::SelectObject(dc, hBrDefBg));
-				
-					// draw bar
-					::Rectangle(dc, rc.left, rc.top, rc.right, rc.bottom);
-
-					// draw bar highlight
-					if(rc.Width() > 4){
-						DeleteObject(SelectObject(cdc, CreatePen(PS_SOLID,1,barPal[2])));
-						rc.top += 2;
-						::MoveToEx(cdc,rc.left+2,rc.top,(LPPOINT)NULL);
-						::LineTo(cdc,rc.right-2,rc.top);
-					}
-				}
 				// Reset pen
 				DeleteObject(::SelectObject(dc, pOldPen));
 				// Reset bg (brush)
 				DeleteObject(::SelectObject(dc, oldBg));
 
 				if(!useStealthyStyle) {
+					// Draw the text over the entire item
+                	oldcol = ::SetTextColor(dc, SETTING(PROGRESS_OVERRIDE_COLORS2) ? 
+						(ii->download ? SETTING(PROGRESS_TEXT_COLOR_DOWN) : SETTING(PROGRESS_TEXT_COLOR_UP)) : 
+						clr);
+					rc.left += 6;
+                	::DrawText(dc, ii->statusString.c_str(), ii->statusString.length(), rc, DT_LEFT | DT_NOPREFIX | DT_SINGLELINE | DT_VCENTER);
+					rc.left -= 6;
+
 					COLORREF a, b;
 					OperaColors::EnlightenFlood(clr, a, b);
 					OperaColors::FloodFill(cdc, rc.left+1, rc.top+1,  rc.left + (int) ((int64_t)rc.Width() * ii->actual / ii->size), rc.bottom-1, a, b, BOOLSETTING(PROGRESSBAR_ODC_BUMPED));
-				}
+				
+					// Draw the text only over the bar and with correct color
+					::SetTextColor(dc, SETTING(PROGRESS_OVERRIDE_COLORS2) ? 
+						(ii->download ? SETTING(PROGRESS_TEXT_COLOR_DOWN) : SETTING(PROGRESS_TEXT_COLOR_UP)) : 
+						OperaColors::TextFromBackground(clr));
+
+					rc.right = rc.left + (int) ((int64_t)rc.Width() * ii->actual / ii->size) + 1;
+					rc.left += 6;
+            	    ::DrawText(dc, ii->statusString.c_str(), ii->statusString.length(), rc, DT_LEFT | DT_NOPREFIX | DT_SINGLELINE | DT_VCENTER);
+            	} else {
+					bool indicateSpeeds = (BOOLSETTING(STEALTHY_INDICATE_SPEEDS) /*&& !BOOLSETTING(CHECK_NEW_USERS)*/);
+
+					// Draw the text over entire item
+					oldcol = ::SetTextColor(dc, (clr == RGB(255, 255, 255)) ? RGB(0, 0, 0) : clr);
+					rc.left += indicateSpeeds ? 24 : 6;
+					::DrawText(dc, ii->statusString.c_str(), ii->statusString.length(), rc, DT_LEFT | DT_NOPREFIX | DT_SINGLELINE | DT_VCENTER);
+					rc.left -= indicateSpeeds ? 24 : 6;
+
+					OperaColors::StealthyFill(cdc, rc.left + 1, rc.top + 1, rc.left + (int) ((int64_t)rc.Width() * ii->actual / ii->size), rc.bottom - 1, clr);
+
+					HLSCOLOR hls = RGB2HLS(clr);
+					if(indicateSpeeds) {
+						// Draw icon
+						// 007 - probably better way do not exist... :>
+						int8_t dlType = 0;
+						{
+							const QueueItem::StringMap& queue = QueueManager::getInstance()->lockQueue();
+							const string& filePath = Text::fromT(ii->target);
+							QueueItem::StringIter qi = queue.find(&filePath);
+							if(qi != queue.end()) {
+								if(qi->second->isSet(QueueItem::FLAG_CHECK_FILE_LIST)) {
+									dlType = 2;
+								} else if(qi->second->isSet(QueueItem::FLAG_USER_LIST)) {
+									dlType = 4;
+								}
+							}
+							QueueManager::getInstance()->unlockQueue();
+						}
+						if(dlType > 0) {
+							if(dlType == 2) {
+								//@todo add icon for filelist check... I.nfraR.ed have sth do deal with it... :)
+							} else if(dlType == 4) {
+								DrawIconEx(dc, rc.left + 4, rc.top + 1, user, 16, 16, NULL, NULL, DI_NORMAL | DI_COMPAT);
+							}
+						} else if(ii->status == ItemInfo::STATUS_RUNNING) {
+							RECT rc2 = rc;
+							rc2.left += 4;
+							rc2.top += 3;
+							rc2.right = rc2.left + 16;
+							rc2.bottom = rc2.top + 12;
+
+							int64_t speedkb = ii->speed / 1000;
+							int64_t speedmark;
+							if(!BOOLSETTING(THROTTLE_ENABLE)) {
+								if(!ii->download) {
+									speedmark = SETTING(TOP_UP_SPEED) / 5;
+								} else {
+									speedmark = SETTING(TOP_SPEED) / 5;
+								}
+							} else {
+								if(!ii->download) {
+									speedmark = SETTING(MAX_UPLOAD_SPEED_LIMIT) / 5;
+								} else {
+									speedmark = SETTING(MAX_DOWNLOAD_SPEED_LIMIT) / 5;
+								}
+							}
+
+							if((HLS_S(hls) > 30) || (HLS_L(hls) < 70)) {
+								if(speedkb >= (speedmark * 5))
+									speedImages.DrawEx(4, dc, rc2, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
+								else if(speedkb >= (speedmark * 4))
+									speedImages.DrawEx(3, dc, rc2, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
+								else if(speedkb >= (speedmark * 3))
+									speedImages.DrawEx(2, dc, rc2, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
+								else if(speedkb >= (speedmark * 2))
+									speedImages.DrawEx(1, dc, rc2, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
+								else
+									speedImages.DrawEx(0, dc, rc2, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
+							} else { // color can be assumed to be a shade of grey, use greyscale speedImages
+								if(speedkb >= (speedmark * 5))
+									speedImagesBW.DrawEx(4, dc, rc2, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
+								else if(speedkb >= (speedmark * 4))
+									speedImagesBW.DrawEx(3, dc, rc2, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
+								else if(speedkb >= (speedmark * 3))
+									speedImagesBW.DrawEx(2, dc, rc2, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
+								else if(speedkb >= (speedmark * 2))
+									speedImagesBW.DrawEx(1, dc, rc2, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
+								else
+									speedImagesBW.DrawEx(0, dc, rc2, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
+							}
+						}
+					}
+
+					// use white to as many colors as possible (values might need some tweaking), I didn't like TextFromBackground...
+					if(((HLS_L(hls) > 190) && (HLS_S(hls) <= 30)) || (HLS_L(hls) > 211)) {
+						oldcol = ::SetTextColor(dc, HLS_TRANSFORM(clr, -40, 0));
+					} else {
+						oldcol = ::SetTextColor(dc, RGB(255, 255, 255));
+					}
+
+					rc.right = rc.left + (int) (((int64_t)rc.Width()) * ii->actual / ii->size) + 1;
+					rc.left += indicateSpeeds ? 24 : 6;
+					::DrawText(dc, ii->statusString.c_str(), ii->statusString.length(), rc, DT_LEFT | DT_NOPREFIX | DT_SINGLELINE | DT_VCENTER);
+            	}
 			} else {
 				CBarShader statusBar(rc.bottom - rc.top, rc.right - rc.left, SETTING(PROGRESS_BACK_COLOR), ii->size);
 
@@ -436,88 +490,24 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 				if(!ii->download) {
 					statusBar.FillRange(0, ii->actual,  clr);
 				} else {
-					statusBar.FillRange(0, ii->actual, ii->parent ? SETTING(PROGRESS_SEGMENT_COLOR) : clr);
+					statusBar.FillRange(0, ii->actual, clr);
 				}
 				if(ii->pos > ii->actual)
 					statusBar.FillRange(ii->actual, ii->pos, SETTING(PROGRESS_COMPRESS_COLOR));
 
 				statusBar.Draw(cdc, rc.top, rc.left, SETTING(PROGRESS_3DDEPTH));
-			}
 
-			if(useStealthyStyle) {
-				if(BOOLSETTING(STEALTHY_INDICATE_SPEEDS)) {
-					// Draw icon - Nasty way to do the filelist icon, but couldn't get other ways to work well, TODO: do separating filelists from other transfers the proper way...
-					if(ii->getText(COLUMN_PATH).find(Text::toT(Util::getListPath())) != string::npos || ii->getText(COLUMN_PATH).find(Text::toT(Util::getConfigPath())) != string::npos) {
-						DrawIconEx(dc, rc.left + 3, top - 1, user, 16, 16, NULL, NULL, DI_NORMAL | DI_COMPAT);
-					} else if(ii->status == ItemInfo::STATUS_RUNNING) {
-						RECT rc2 = rc;
-						rc2.left += 3;
-						rc2.top = top + 1;
-						rc2.right = rc2.left + 16;
-						rc2.bottom = rc2.top + 12;
+				// Get the color of this text bar
+				oldcol = ::SetTextColor(dc, SETTING(PROGRESS_OVERRIDE_COLORS2) ? 
+					(ii->download ? SETTING(PROGRESS_TEXT_COLOR_DOWN) : SETTING(PROGRESS_TEXT_COLOR_UP)) : 
+					OperaColors::TextFromBackground(clr));
 
-						int64_t speedkb = ii->speed / 1000;
-						int64_t speedmark;
-						if(!BOOLSETTING(THROTTLE_ENABLE)) {
-							if(!ii->download) {
-								speedmark = SETTING(TOP_UP_SPEED) / 5;
-							} else {
-								speedmark = SETTING(TOP_SPEED) / 5;
-							}
-						} else {
-							if(!ii->download) {
-								speedmark = SETTING(MAX_UPLOAD_SPEED_LIMIT) / 5;
-							} else {
-								speedmark = SETTING(MAX_DOWNLOAD_SPEED_LIMIT) / 5;
-							}
-						}
-
-						if((HLS_S(hls) > 30) || (HLS_L(hls) < 70)) {
-							if(speedkb >= (speedmark * 5))
-								speedImages.DrawEx(4, dc, rc2, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
-							else if(speedkb >= (speedmark * 4))
-								speedImages.DrawEx(3, dc, rc2, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
-							else if(speedkb >= (speedmark * 3))
-								speedImages.DrawEx(2, dc, rc2, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
-							else if(speedkb >= (speedmark * 2))
-								speedImages.DrawEx(1, dc, rc2, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
-							else
-								speedImages.DrawEx(0, dc, rc2, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
-						} else { // color can be assumed to be a shade of grey, use greyscale speedImages
-							if(speedkb >= (speedmark * 5))
-								speedImagesBW.DrawEx(4, dc, rc2, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
-							else if(speedkb >= (speedmark * 4))
-								speedImagesBW.DrawEx(3, dc, rc2, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
-							else if(speedkb >= (speedmark * 3))
-								speedImagesBW.DrawEx(2, dc, rc2, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
-							else if(speedkb >= (speedmark * 2))
-								speedImagesBW.DrawEx(1, dc, rc2, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
-							else
-								speedImagesBW.DrawEx(0, dc, rc2, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
-						}
-					}
-
-					// adjust some rc's
-					rc.left += 23;
-					rc.right -= 2;
-				} else {
-					rc.left += 6;
-					rc.right -= 2;
-				}
-
-				// use white to as many colors as possible (values might need some tweaking), I didn't like TextFromBackground...
-				if(((HLS_L(hls) > 190) && (HLS_S(hls) <= 30)) || (HLS_L(hls) > 211))
-					oldcol = ::SetTextColor(dc, HLS_TRANSFORM(clr, -40, 0));
-				else
-					oldcol = ::SetTextColor(dc, RGB(255, 255, 255));
-			} else {
 				rc.left += 6;
 				rc.right -= 2;
+				LONG top = rc.top + (rc.Height() - WinUtil::getTextHeight(cd->nmcd.hdc) - 1)/2 + 1;
+				::ExtTextOut(dc, rc.left, top, ETO_CLIPPED, rc, ii->statusString.c_str(), ii->statusString.length(), NULL);
 			}
-			
-			// Draw the text, the other stuff here was moved upwards due to stealthy style being added 
-			::ExtTextOut(dc, rc.left, top, ETO_CLIPPED, rc, ii->statusString.c_str(), ii->statusString.length(), NULL);
-
+	
 			SelectObject(dc, oldFont);
 			::SetTextColor(dc, oldcol);
 
@@ -660,7 +650,6 @@ int TransferView::ItemInfo::compareItems(const ItemInfo* a, const ItemInfo* b, u
 	}
 }
 
-#pragma optimize("t", on)
 TransferView::ItemInfo* TransferView::findItem(const UpdateInfo& ui, int& pos) const {
 	for(int j = 0; j < ctrlTransfers.GetItemCount(); ++j) {
 		ItemInfo* ii = ctrlTransfers.getItemData(j);
@@ -772,7 +761,6 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 	
 	return 0;
 }
-#pragma optimize("", on)
 
 LRESULT TransferView::onSearchAlternates(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
 	int i = -1;
@@ -898,10 +886,6 @@ void TransferView::on(ConnectionManagerListener::Failed, const ConnectionQueueIt
 	UpdateInfo* ui = new UpdateInfo(aCqi->getUser(), aCqi->getDownload());
 	if(aCqi->getUser()->isSet(User::OLD_CLIENT)) {
 		ui->setStatusString(TSTRING(SOURCE_TOO_OLD));
-	//RSX++
-	} else if(aCqi->getUser()->isSet(User::PG_BLOCK)) {
-		ui->setStatusString(TSTRING(PG_BLOCKED));
-	//END
 	} else {
 		ui->setStatusString(Text::toT(aReason));
 	}
@@ -911,12 +895,10 @@ void TransferView::on(ConnectionManagerListener::Failed, const ConnectionQueueIt
 
 void TransferView::on(DownloadManagerListener::Starting, const Download* aDownload) {
 	UpdateInfo* ui = new UpdateInfo(aDownload->getUser(), true);
-
-	bool isFile = aDownload->getType() == Transfer::TYPE_FILE;
 	ui->setStatus(ItemInfo::STATUS_RUNNING);
-	ui->setPos(isFile ? 0 : aDownload->getPos());
-	ui->setActual(isFile ? 0 : aDownload->getStartPos() + aDownload->getActual());
-	ui->setSize(isFile ? aDownload->getChunkSize() : aDownload->getSize());
+	ui->setPos(aDownload->getPos());
+	ui->setActual(aDownload->getActual());
+	ui->setSize(aDownload->getSize());
 	ui->setTarget(Text::toT(aDownload->getPath()));
 	ui->setStatusString(TSTRING(DOWNLOAD_STARTING));
 
@@ -935,37 +917,20 @@ void TransferView::on(DownloadManagerListener::Starting, const Download* aDownlo
 }
 
 void TransferView::on(DownloadManagerListener::Tick, const DownloadList& dl) {
-	AutoArray<TCHAR> buf(TSTRING(DOWNLOADED_BYTES).size() + 64);
-
 	for(DownloadList::const_iterator j = dl.begin(); j != dl.end(); ++j) {
 		Download* d = *j;
 		
 		UpdateInfo* ui = new UpdateInfo(d->getUser(), true);
 		ui->setStatus(ItemInfo::STATUS_RUNNING);
+		ui->setActual(d->getActual());
+		ui->setPos(d->getPos());
+//			ui->setSize(d->getSize());
 		ui->setTimeLeft(d->getSecondsLeft());
 		ui->setSpeed(static_cast<int64_t>(d->getAverageSpeed()));
 
-		if(d->getType() == Transfer::TYPE_FILE) {
-			ui->setActual(d->getActual());
-			ui->setPos(d->getTotal());
-			ui->setSize(d->getChunkSize());
-			ui->timeLeft = (ui->speed > 0) ? ((ui->size - d->getTotal()) / ui->speed) : 0;
-
-			double progress = (double)(d->getTotal())*100.0/(double)ui->size;
-			_stprintf(buf, CTSTRING(DOWNLOADED_BYTES), Util::formatBytesW(d->getTotal()).c_str(), 
-				progress, Util::formatSeconds((GET_TICK() - d->getStart())/1000).c_str());
-			if(progress > 100) {
-				// workaround to fix > 100% percentage
-				d->getUserConnection().disconnect();
-				continue;
-			}
-		} else {
-			ui->setActual(d->getStartPos() + d->getActual());
-			ui->setPos(d->getPos());
-
-			_stprintf(buf, CTSTRING(DOWNLOADED_BYTES), Util::formatBytesW(d->getPos()).c_str(), 
-				(double)d->getPos()*100.0/(double)d->getSize(), Util::formatSeconds((GET_TICK() - d->getStart())/1000).c_str());
-		}
+		tstring pos = Util::formatBytesW(d->getPos());
+		double percent = (double)d->getPos()*100.0/(double)d->getSize();
+		tstring elapsed = Util::formatSeconds((GET_TICK() - d->getStart())/1000);
 
 		tstring statusString;
 
@@ -994,7 +959,7 @@ void TransferView::on(DownloadManagerListener::Tick, const DownloadList& dl) {
 		if(!statusString.empty()) {
 			statusString += _T(" ");
 		}
-		statusString += buf;
+		statusString += Text::tformat(TSTRING(DOWNLOADED_BYTES), pos.c_str(), percent, elapsed.c_str());
 		ui->setStatusString(statusString);
 		if((d->getAverageSpeed() < 1) && ((GET_TICK() - d->getStart()) > 15000)) {
 			d->getUserConnection().disconnect();
@@ -1022,10 +987,10 @@ void TransferView::on(DownloadManagerListener::Failed, const Download* aDownload
 		ui->setIP(Text::toT(country + " (" + ip + ")"), WinUtil::getFlagImage(country.c_str()));
 	}
 	if(BOOLSETTING(POPUP_DOWNLOAD_FAILED)) {
-		MainFrame::getMainFrame()->ShowBalloonTip((
+		MainFrame::getMainFrame()->ShowBalloonTip(
 			TSTRING(FILE) + _T(": ") + Util::getFileName(ui->target) + _T("\n")+
 			TSTRING(USER) + _T(": ") + WinUtil::getNicks(ui->user) + _T("\n")+
-			TSTRING(REASON) + _T(": ") + Text::toT(aReason)).c_str(), CTSTRING(DOWNLOAD_FAILED), NIIF_WARNING);
+			TSTRING(REASON) + _T(": ") + Text::toT(aReason), TSTRING(DOWNLOAD_FAILED), NIIF_WARNING);
 	}
 
 	speak(UPDATE_ITEM, ui);
@@ -1072,22 +1037,21 @@ void TransferView::on(UploadManagerListener::Starting, const Upload* aUpload) {
 }
 
 void TransferView::on(UploadManagerListener::Tick, const UploadList& ul) {
-	AutoArray<TCHAR> buf(TSTRING(UPLOADED_BYTES).size() + 64);
-
 	for(UploadList::const_iterator j = ul.begin(); j != ul.end(); ++j) {
 		Upload* u = *j;
 
-		if (u->getTotal() == 0) continue;
+		if (u->getPos() == 0) continue;
 
 		UpdateInfo* ui = new UpdateInfo(u->getUser(), false);
 		ui->setActual(u->getStartPos() + u->getActual());
-		ui->setPos(u->getPos());
+		ui->setPos(u->getStartPos() + u->getPos());
 		ui->setTimeLeft(u->getSecondsLeft(true)); // we are interested when whole file is finished and not only one chunk
 		ui->setSpeed(static_cast<int64_t>(u->getAverageSpeed()));
 
-		_stprintf(buf, CTSTRING(UPLOADED_BYTES), Util::formatBytesW(u->getPos()).c_str(), 
-			(double)u->getPos()*100.0/(double)(u->getType() == Transfer::TYPE_TREE ? u->getSize() : u->getFileSize()), Util::formatSeconds((GET_TICK() - u->getStart())/1000).c_str());
-
+		tstring pos = Util::formatBytesW(ui->pos);
+		double percent = (double)ui->pos*100.0/(double)(u->getType() == Transfer::TYPE_TREE ? u->getSize() : u->getFileSize());
+		tstring elapsed = Util::formatSeconds((GET_TICK() - u->getStart())/1000); 
+		
 		tstring statusString;
 
 		if(u->isSet(Upload::FLAG_PARTIAL)) {
@@ -1109,7 +1073,7 @@ void TransferView::on(UploadManagerListener::Tick, const UploadList& ul) {
 		if(!statusString.empty()) {
 			statusString += _T(" ");
 		}			
-		statusString += buf;
+		statusString += Text::tformat(TSTRING(UPLOADED_BYTES), pos.c_str(), percent, elapsed.c_str());
 
 		ui->setStatusString(statusString);
 					
@@ -1129,18 +1093,10 @@ void TransferView::onTransferComplete(const Transfer* aTransfer, bool isUpload, 
 	ui->setPos(0);
 	ui->setStatusString(isUpload ? TSTRING(UPLOAD_FINISHED_IDLE) : TSTRING(DOWNLOAD_FINISHED_IDLE));
 
-	if(!isUpload) {
-		if(BOOLSETTING(POPUP_DOWNLOAD_FINISHED) && !isTree) {
-			MainFrame::getMainFrame()->ShowBalloonTip((
-				TSTRING(FILE) + _T(": ") + Text::toT(aFileName) + _T("\n")+
-				TSTRING(USER) + _T(": ") + WinUtil::getNicks(aTransfer->getUser())).c_str(), CTSTRING(DOWNLOAD_FINISHED_IDLE));
-		}
-	} else {
-		if(BOOLSETTING(POPUP_UPLOAD_FINISHED) && !isTree) {
-			MainFrame::getMainFrame()->ShowBalloonTip((
-				TSTRING(FILE) + _T(": ") + Text::toT(aFileName) + _T("\n")+
-				TSTRING(USER) + _T(": ") + WinUtil::getNicks(aTransfer->getUser())).c_str(), CTSTRING(UPLOAD_FINISHED_IDLE));
-		}
+	if(isUpload && BOOLSETTING(POPUP_UPLOAD_FINISHED) && !isTree) {
+		MainFrame::getMainFrame()->ShowBalloonTip(
+			TSTRING(FILE) + _T(": ") + Text::toT(aFileName) + _T("\n")+
+			TSTRING(USER) + _T(": ") + WinUtil::getNicks(aTransfer->getUser()), TSTRING(UPLOAD_FINISHED_IDLE));
 	}
 	
 	speak(UPDATE_ITEM, ui);
@@ -1265,16 +1221,20 @@ void TransferView::on(QueueManagerListener::StatusUpdated, const QueueItem* qi) 
 		int16_t segs = 0;
 
 		for(DownloadList::const_iterator i = qi->getDownloads().begin(); i != qi->getDownloads().end(); i++) {
-			if((*i)->getStart() > 0) {
+			Download *d = *i;
+
+			if(d->getStart() > 0) {
 				segs++;
 
-				totalSpeed += static_cast<int64_t>((*i)->getAverageSpeed());
-				ratio += (*i)->getPos() > 0 ? (*i)->getActual() / (*i)->getPos() : 1.00;
+				totalSpeed += static_cast<int64_t>(d->getAverageSpeed());
+				ratio += d->getPos() > 0 ? (double)d->getActual() / (double)d->getPos() : 1.00;
 			}
 		}
 
 		ui->setRunning(segs);
 		if(segs > 0) {
+			ratio = ratio / segs;
+
 			ui->setStatus(ItemInfo::STATUS_RUNNING);
 			ui->setSize(qi->isSet(QueueItem::FLAG_USER_LIST) ? qi->getDownloads()[0]->getSize() : qi->getSize());
 			ui->setPos(qi->isSet(QueueItem::FLAG_USER_LIST) ? qi->getDownloads()[0]->getPos() : qi->getDownloadedBytes());
@@ -1291,8 +1251,7 @@ void TransferView::on(QueueManagerListener::StatusUpdated, const QueueItem* qi) 
 					PlaySound(Text::toT(SETTING(BEGINFILE)).c_str(), NULL, SND_FILENAME | SND_ASYNC);
 
 				if(BOOLSETTING(POPUP_DOWNLOAD_START)) {
-					MainFrame::getMainFrame()->ShowBalloonTip((
-						TSTRING(FILE) + _T(": ") + Util::getFileName(ui->target)).c_str(), CTSTRING(DOWNLOAD_STARTING));
+					MainFrame::getMainFrame()->ShowBalloonTip(TSTRING(FILE) + _T(": ") + Util::getFileName(ui->target), TSTRING(DOWNLOAD_STARTING));
 				}
 			} else {
 				uint64_t time = GET_TICK() - qi->getFileBegin();
@@ -1304,8 +1263,6 @@ void TransferView::on(QueueManagerListener::StatusUpdated, const QueueItem* qi) 
 					ui->setStatusString(tstring(buf));
 				}
 			}
-
-			ratio = ratio / segs;
 		}
 	} else {
 		const_cast<QueueItem*>(qi)->setFileBegin(0);
@@ -1328,6 +1285,10 @@ void TransferView::on(QueueManagerListener::Finished, const QueueItem* qi, const
 	ui->setStatus(ItemInfo::STATUS_WAITING);
 	ui->setRunning(0);
 	
+	if(BOOLSETTING(POPUP_DOWNLOAD_FINISHED)) {
+		MainFrame::getMainFrame()->ShowBalloonTip(TSTRING(FILE) + _T(": ") + Util::getFileName(ui->target), TSTRING(DOWNLOAD_FINISHED_IDLE));
+	}
+
 	speak(UPDATE_PARENT, ui);
 }
 
@@ -1346,5 +1307,5 @@ void TransferView::on(QueueManagerListener::Removed, const QueueItem* qi) throw(
 
 /**
  * @file
- * $Id: TransferView.cpp 335 2007-11-10 13:01:41Z bigmuscle $
+ * $Id: TransferView.cpp 355 2008-01-05 14:43:39Z bigmuscle $
  */

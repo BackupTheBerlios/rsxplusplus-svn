@@ -22,7 +22,8 @@
 class TigerHash {
 public:
 	/** Hash size in bytes */
-	enum { HASH_SIZE = 24 };
+	static const size_t BITS = 192;
+	static const size_t BYTES = BITS / 8;
 
 	TigerHash() : pos(0) {
 		res[0]=_ULL(0x0123456789ABCDEF);
@@ -57,5 +58,5 @@ private:
 
 /**
  * @file
- * $Id: TigerHash.h 317 2007-08-04 14:52:24Z bigmuscle $
+ * $Id: TigerHash.h 358 2008-01-17 10:48:01Z bigmuscle $
  */

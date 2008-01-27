@@ -20,42 +20,43 @@
 #define HASH_VALUE_H
 
 #include "FastAlloc.h"
+#include "Encoder.h"
 
 template<class Hasher>
 struct HashValue : FastAlloc<HashValue<Hasher> >{
-	static const size_t SIZE = Hasher::HASH_SIZE;
+	static const size_t BITS = Hasher::BITS;
+	static const size_t BYTES = Hasher::BYTES;
 
-	typedef HashValue* Ptr;
 	struct PtrHash {
-		size_t operator()(const Ptr rhs) const { return *(size_t*)rhs; }
-		bool operator()(const Ptr lhs, const Ptr rhs) const { return (*lhs) == (*rhs); }
+		size_t operator()(const HashValue* rhs) const { return *(size_t*)rhs; }
+		bool operator()(const HashValue* lhs, const HashValue* rhs) const { return (*lhs) == (*rhs); }
 	};
-	struct PtrLess {
-		bool operator()(const Ptr lhs, const Ptr rhs) const { return (*lhs) < (*rhs); }
-	};
-
-	struct Hash {
-		size_t operator()(const HashValue& rhs) const { return *(size_t*)&rhs; }
-	};
-
+	
 	HashValue() { }
-	explicit HashValue(uint8_t* aData) { memcpy(data, aData, SIZE); }
-	explicit HashValue(const string& base32) { Encoder::fromBase32(base32.c_str(), data, SIZE); }
-	HashValue(const HashValue& rhs) { memcpy(data, rhs.data, SIZE); }
-	HashValue& operator=(const HashValue& rhs) { memcpy(data, rhs.data, SIZE); return *this; }
+	explicit HashValue(uint8_t* aData) { memcpy(data, aData, BYTES); }
+	explicit HashValue(const std::string& base32) { Encoder::fromBase32(base32.c_str(), data, BYTES); }
+	HashValue(const HashValue& rhs) { memcpy(data, rhs.data, BYTES); }
+	HashValue& operator=(const HashValue& rhs) { memcpy(data, rhs.data, BYTES); return *this; }
 	bool operator!=(const HashValue& rhs) const { return !(*this == rhs); }
-	bool operator==(const HashValue& rhs) const { return memcmp(data, rhs.data, SIZE) == 0; }
-	bool operator<(const HashValue& rhs) const { return memcmp(data, rhs.data, SIZE) < 0; }
+	bool operator==(const HashValue& rhs) const { return memcmp(data, rhs.data, BYTES) == 0; }
+	bool operator<(const HashValue& rhs) const { return memcmp(data, rhs.data, BYTES) < 0; }
 
-	string toBase32() const { return Encoder::toBase32(data, SIZE); }
-	string& toBase32(string& tmp) const { return Encoder::toBase32(data, SIZE, tmp); }
+	std::string toBase32() const { return Encoder::toBase32(data, BYTES); }
+	std::string& toBase32(std::string& tmp) const { return Encoder::toBase32(data, BYTES, tmp); }
 
-	uint8_t data[SIZE];
+	uint8_t data[BYTES];
 };
+
+namespace std {
+template<typename T>
+struct hash<::HashValue<T> > {
+	size_t operator()(const ::HashValue<T>& rhs) const { return *(size_t*)rhs.data; }
+};
+}
 
 #endif // !defined(HASH_VALUE_H)
 
 /**
 * @file
-* $Id: HashValue.h 326 2007-09-01 16:55:01Z bigmuscle $
+* $Id: HashValue.h 358 2008-01-17 10:48:01Z bigmuscle $
 */

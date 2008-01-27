@@ -37,10 +37,10 @@ IpManager::~IpManager() {
 	}
 }
 
-void IpManager::reloadIpWatch() {
+void IpManager::reloadIpWatch(const string& filePath) {
 	Lock l(cs);
 	clearWatchList();
-	WatchLoad();
+	WatchLoad(filePath);
 }
 
 void IpManager::WatchSave() {
@@ -86,6 +86,7 @@ void IpManager::WatchSave() {
 		dcdebug("FavoriteManager::recentsave: %s\n", e.getError().c_str());
 	}
 }
+
 void IpManager::loadWatch(SimpleXML& aXml){
 	aXml.resetCurrentChild();
 	if(aXml.findChild("IPWatch")) {
@@ -107,10 +108,10 @@ void IpManager::loadWatch(SimpleXML& aXml){
 	}
 }
 
-void IpManager::WatchLoad() {
+void IpManager::WatchLoad(const string& p) {
 	try {
 		SimpleXML xml;
-		xml.fromXML(File(Util::getConfigPath() + "IPWatch.xml", File::READ, File::OPEN).read());
+		xml.fromXML(File(p.empty() ? Util::getConfigPath() + "IPWatch.xml" : p, File::READ, File::OPEN).read());
 		if(xml.findChild("IPWatch")) {
 			xml.stepIn();
 			loadWatch(xml);

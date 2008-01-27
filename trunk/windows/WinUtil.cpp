@@ -244,66 +244,79 @@ COLORREF HLS_TRANSFORM (COLORREF rgb, int percent_L, int percent_S) {
 }
 
 void UserInfoBase::matchQueue() {
-	try {
-		QueueManager::getInstance()->addList(getUser(), QueueItem::FLAG_MATCH_QUEUE);
-	} catch(const Exception& e) {
-		LogManager::getInstance()->message(e.getError());
+	if(getUser()) {
+		try {
+			QueueManager::getInstance()->addList(getUser(), QueueItem::FLAG_MATCH_QUEUE);
+		} catch(const Exception& e) {
+			LogManager::getInstance()->message(e.getError());
+		}
 	}
 }
 
 void UserInfoBase::getUserResponses() {
-	try {
-		QueueManager::getInstance()->addTestSUR(getUser());
-	} catch(const Exception& e) {
-		LogManager::getInstance()->message(e.getError());		
+	if(getUser()) {
+		try {
+			QueueManager::getInstance()->addTestSUR(getUser());
+		} catch(const Exception& e) {
+			LogManager::getInstance()->message(e.getError());		
+		}
 	}
 }
 //RSX++ //Clean User
 void UserInfoBase::cleanUser() {
-	ClientManager::getInstance()->cleanUser(getUser());
+	if(getUser())
+		ClientManager::getInstance()->cleanUser(getUser());
 }
 //custom protection
 void UserInfoBase::setProtected() {
-	if(!getUser()->isSet(User::PROTECTED))
+	if(getUser() && !getUser()->isSet(User::PROTECTED))
 		const_cast<UserPtr&>(getUser())->setFlag(User::PROTECTED);
 }
 
 void UserInfoBase::unsetProtected() {
-	if(getUser()->isSet(User::PROTECTED))
+	if(getUser() && getUser()->isSet(User::PROTECTED))
 		const_cast<UserPtr&>(getUser())->unsetFlag(User::PROTECTED);
 }
 //custom kick
 void UserInfoBase::customKick() {
-	RsxKickDlg dlg;
-	if(dlg.DoModal() == IDOK) {
-		if(!dlg.rawCommand.empty()) {
-			ClientManager::getInstance()->sendRawCommand(getUser(), Text::fromT(dlg.rawCommand));
+	if(getUser()) {
+		RsxKickDlg dlg;
+		if(dlg.DoModal() == IDOK) {
+			if(!dlg.rawCommand.empty()) {
+				ClientManager::getInstance()->sendRawCommand(getUser(), Text::fromT(dlg.rawCommand));
+			}
 		}
 	}
 }
 //multihub kick
 void UserInfoBase::multiHubKick() {
-	RsxKickDlg dlg;
-	if(dlg.DoModal() == IDOK) {
-		if(!dlg.rawCommand.empty()) {
-			ClientManager::getInstance()->multiHubKick(getUser(), Text::fromT(dlg.rawCommand));
+	if(getUser()) {
+		RsxKickDlg dlg;
+		if(dlg.DoModal() == IDOK) {
+			if(!dlg.rawCommand.empty()) {
+				ClientManager::getInstance()->multiHubKick(getUser(), Text::fromT(dlg.rawCommand));
+			}
 		}
 	}
 }
 //END
 void UserInfoBase::doReport() {
-	ClientManager::getInstance()->reportUser(getUser());
+	if(getUser()) {
+		ClientManager::getInstance()->reportUser(getUser());
+	}
 }
 
 void UserInfoBase::getList() {
-	try {
-		QueueManager::getInstance()->addList(getUser(), QueueItem::FLAG_CLIENT_VIEW);
-	} catch(const Exception& e) {
-		LogManager::getInstance()->message(e.getError());		
+	if(getUser()) {
+		try {
+			QueueManager::getInstance()->addList(getUser(), QueueItem::FLAG_CLIENT_VIEW);
+		} catch(const Exception& e) {
+			LogManager::getInstance()->message(e.getError());		
+		}
 	}
 }
 void UserInfoBase::browseList() {
-	if(getUser()->getCID().isZero())
+	if(!getUser() || getUser()->getCID().isZero())
 		return;
 	try {
 		QueueManager::getInstance()->addPfs(getUser(), "");
@@ -312,41 +325,61 @@ void UserInfoBase::browseList() {
 	}
 }
 void UserInfoBase::checkList() {
-	try {
-		QueueManager::getInstance()->addList(getUser(), QueueItem::FLAG_CHECK_FILE_LIST);
-	} catch(const Exception& e) {
-		LogManager::getInstance()->message(e.getError());		
+	if(getUser()) {
+		try {
+			QueueManager::getInstance()->addList(getUser(), QueueItem::FLAG_CHECK_FILE_LIST);
+		} catch(const Exception& e) {
+			LogManager::getInstance()->message(e.getError());		
+		}
 	}
 }
 void UserInfoBase::addFav() {
-	FavoriteManager::getInstance()->addFavoriteUser(getUser());
+	if(getUser()) {
+		FavoriteManager::getInstance()->addFavoriteUser(getUser());
+	}
 }
 void UserInfoBase::pm() {
-	PrivateFrame::openWindow(getUser());
+	if(getUser()) {
+		PrivateFrame::openWindow(getUser());
+	}
 }
 void UserInfoBase::connectFav() {
-	string url = FavoriteManager::getInstance()->getUserURL(getUser());
-	if(!url.empty()) {
-		HubFrame::openWindow(Text::toT(url));
+	if(getUser()) {
+		string url = FavoriteManager::getInstance()->getUserURL(getUser());
+		if(!url.empty()) {
+			HubFrame::openWindow(Text::toT(url));
+		}
 	}
 }
 void UserInfoBase::grant() {
-	UploadManager::getInstance()->reserveSlot(getUser(), 600);
+	if(getUser()) {
+		UploadManager::getInstance()->reserveSlot(getUser(), 600);
+	}
 }
 void UserInfoBase::removeAll() {
-	QueueManager::getInstance()->removeSource(getUser(), QueueItem::Source::FLAG_REMOVED);
+	if(getUser()) {
+		QueueManager::getInstance()->removeSource(getUser(), QueueItem::Source::FLAG_REMOVED);
+	}
 }
 void UserInfoBase::grantHour() {
-	UploadManager::getInstance()->reserveSlot(getUser(), 3600);
+	if(getUser()) {
+		UploadManager::getInstance()->reserveSlot(getUser(), 3600);
+	}
 }
 void UserInfoBase::grantDay() {
-	UploadManager::getInstance()->reserveSlot(getUser(), 24*3600);
+	if(getUser()) {
+		UploadManager::getInstance()->reserveSlot(getUser(), 24*3600);
+	}
 }
 void UserInfoBase::grantWeek() {
-	UploadManager::getInstance()->reserveSlot(getUser(), 7*24*3600);
+	if(getUser()) {
+		UploadManager::getInstance()->reserveSlot(getUser(), 7*24*3600);
+	}
 }
 void UserInfoBase::ungrant() {
-	UploadManager::getInstance()->unreserveSlot(getUser());
+	if(getUser()) {
+		UploadManager::getInstance()->unreserveSlot(getUser());
+	}
 }
 
 bool WinUtil::getVersionInfo(OSVERSIONINFOEX& ver) {
@@ -1044,12 +1077,6 @@ bool WinUtil::checkCommand(tstring& cmd, tstring& param, tstring& message, tstri
 			status = TSTRING(SHUTDOWN_OFF);
 		}
 	//RSX++
-	} else if(Util::stricmp(cmd.c_str(), _T("punload")) == 0) {
-		PluginsManager::getInstance()->unloadPlugins();
-		::SendMessage(WinUtil::mainWnd, IDC_REBUILD_PLUGIN_TOOLBAR, 0, 0);
-	} else if(Util::stricmp(cmd.c_str(), _T("preload")) == 0) {
-		PluginsManager::getInstance()->reloadPlugins();
-		::SendMessage(WinUtil::mainWnd, IDC_REBUILD_PLUGIN_TOOLBAR, 0, 0);
 	} else if(Util::stricmp(cmd.c_str(), _T("pinfo")) == 0) {
 		PluginsManager::Plugins& p = PluginsManager::getInstance()->getPlugins();
 		string pinfo = "Active Plugins Info\nLoaded plugins: " + Util::toString(p.size());
@@ -1419,7 +1446,11 @@ void WinUtil::parseMagnetUri(const tstring& aUrl, bool /*aOverride*/) {
 			if(!BOOLSETTING(MAGNET_ASK) && fsize > 0 && fname.length() > 0) {
 				switch(SETTING(MAGNET_ACTION)) {
 					case SettingsManager::MAGNET_AUTO_DOWNLOAD:
-						QueueManager::getInstance()->add(Text::fromT(fname), fsize, Text::fromT(fhash));
+						try {
+							QueueManager::getInstance()->add(SETTING(DOWNLOAD_DIRECTORY) + Text::fromT(fname), fsize, TTHValue(Text::fromT(fhash)), UserPtr());
+						} catch(const QueueException& e) {
+							LogManager::getInstance()->message(e.getError());
+						}
 						break;
 					case SettingsManager::MAGNET_AUTO_SEARCH:
 						SearchFrame::openWindow(fhash, 0, SearchManager::SIZE_DONTCARE, SearchManager::TYPE_TTH);
@@ -1658,7 +1689,7 @@ int WinUtil::SetupPreviewMenu(CMenu &previewMenu, string extension){
 	return PreviewAppsSize;
 }
 
-void WinUtil::RunPreviewCommand(unsigned int index, string target){
+void WinUtil::RunPreviewCommand(unsigned int index, string target) {
 	PreviewApplication::List lst = FavoriteManager::getInstance()->getPreviewApps();
 
 	if(index <= lst.size()) {
@@ -1666,6 +1697,15 @@ void WinUtil::RunPreviewCommand(unsigned int index, string target){
 		string arguments = lst[index]->getArguments();
 		StringMap ucParams;				
 	
+		if(!Util::fileExists(target)) {
+			// file not exists, using antifrag???
+			target += Download::ANTI_FRAG_EXT;
+			if(!Util::fileExists(target)) {
+				// neither antifrag exists, quit
+				return;
+			}
+		}
+
 		ucParams["file"] = "\"" + target + "\"";
 		ucParams["dir"] = "\"" + Util::getFilePath(target) + "\"";
 
@@ -1916,5 +1956,5 @@ string WinUtil::CPUInfo() {
 }
 /**
  * @file
- * $Id: WinUtil.cpp 334 2007-11-04 13:04:34Z bigmuscle $
+ * $Id: WinUtil.cpp 359 2008-01-17 17:53:50Z bigmuscle $
  */

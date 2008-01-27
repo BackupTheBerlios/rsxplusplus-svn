@@ -1,19 +1,29 @@
-** RSX++ 1.00 Beta 2 ** xx/xx/xxxx
+** RSX++ 1.00 Beta 2 ** xx/xx/2008
+ ** updated to StrongDC++ 2.11
+ ** PCRE updated to 7.5
+
+ ** added Custom ADLSearch Points
+ ** added favorite hubs grouping
+ ** added support for plugins + plugin's toolbar
+ ** added raw commands logging
+ ** added option to sort protected users first/after favs (depending on other settings)
+ ** added option to color cdm debug frame content via lua function Colorize
+ ** added option to show ip and/or country in chat
+ ** added option to use Lua in raws
+
+ ** some GUI changes/improvements
  ** improved Client & MyINFO detector (fixed some crashes)
- ** removed ISP List
  ** extended IP Watch
 	- match methods: wildcards, regexp, range check
 	- option to check ip or host name
 	- option to set isp after detection
- ** added favorite hubs grouping
+ ** threaded raw sender rewritten
+ ** fixed some deadlocks in special cases
+ ** fixes and improvements from ApexDC++ (progressbar mainly)
+ ** fixed lua functions in UserConnection class
+
+ ** removed ISP List (split with IPWatch)
  ** removed favorite importer (now it's stand-alone application)
  ** removed media players support
- ** added support for plugins + plugin's toolbar
- ** some GUI changes/improvements
- ** added raw commands logging
- ** added option to sort protected users first/after favs (depending on other settings)
- ** option to color cdm debug frame content via lua function Colorize
- ** threaded raw sender rewritten
- ** PCRE updated to 7.4
  ** removed option to disable PFs - now it's always enabled
- ** added option to show ip and/or country in chat
+ ** removed PeerGuardian support

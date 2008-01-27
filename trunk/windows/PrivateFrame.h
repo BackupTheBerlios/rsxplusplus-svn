@@ -292,19 +292,14 @@ private:
 	void setClient(const UserPtr& user) {
 		client = ClientManager::getInstance()->getUserClient(user);
 		ctrlClient.setClient(client);
+		if(client) {
+			isOp = getClient()->isOp();
+			hubName = getClient()->getHubName();
+			myNick = getClient()->getMyNick();
+		}
 	}
 	Client* getClient() { return client; }
-
-	string getCustomAway() {
-		string defAway = Util::getAwayMessage();
-		if(client) {
-			string customAway = FavoriteManager::getInstance()->getAwayMessage(client->getHubUrl());
-			if((defAway.compare(SETTING(DEFAULT_AWAY_MESSAGE)) != 0))
-				return defAway; //might be custom away but not from favs :P
-			return customAway;
-		}
-		return defAway;
-	}
+	string getCustomAway() const;
 	//END
 
 	UserPtr replyTo;
@@ -332,8 +327,10 @@ private:
 			PostMessage(WM_SPEAKER, USER_UPDATED);
 			//RSX++
 			setClient(aUser);
-			if(customProtection && !replyTo->isSet(User::PROTECTED)) //set protection ie after reconnect
+			if(customProtection && !replyTo->isSet(User::PROTECTED)) {//set protection ie after reconnect
 				replyTo->setFlag(User::PROTECTED);
+			}
+			//END
 		}
 	}
 	void on(ClientManagerListener::UserDisconnected, const UserPtr& aUser) throw() {

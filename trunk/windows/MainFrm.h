@@ -360,7 +360,6 @@ public:
 		createToolbar();
 		return S_OK;
 	}
-
 	static MainFrame* getMainFrame() { return anyMF; }
 	bool getAppMinimized() const { return bAppMinimized; }
 	CToolBarCtrl& getToolBar() { return ctrlToolbar; }
@@ -376,7 +375,7 @@ public:
 		anyMF->ctrlToolbar.CheckButton(IDC_AWAY, check);
 	}
 
-	void ShowBalloonTip(LPCTSTR szMsg, LPCTSTR szTitle, DWORD dwInfoFlags=NIIF_INFO);
+	void ShowBalloonTip(tstring szMsg, tstring szTitle, DWORD dwInfoFlags=NIIF_INFO);
 
 	CImageList largeImages, largeImagesHot;
 	int run();
@@ -507,7 +506,8 @@ private:
 	
 	// HttpConnectionListener
 	void on(HttpConnectionListener::Complete, HttpConnection* conn, string const& /*aLine*/) throw();
-	void on(HttpConnectionListener::Data, HttpConnection* /*conn*/, const uint8_t* buf, size_t len) throw();	
+	void on(HttpConnectionListener::Data, HttpConnection* /*conn*/, const uint8_t* buf, size_t len) throw();
+
 	// WebServerListener
 	void on(WebServerListener::Setup);
 	void on(WebServerListener::ShutdownPC, int);
@@ -525,5 +525,5 @@ private:
 
 /**
  * @file
- * $Id: MainFrm.h 308 2007-07-13 18:57:02Z bigmuscle $
+ * $Id: MainFrm.h 355 2008-01-05 14:43:39Z bigmuscle $
  */

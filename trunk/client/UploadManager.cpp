@@ -36,8 +36,6 @@
 #include "UserConnection.h"
 #include "QueueManager.h"
 #include "FinishedManager.h"
-#include "SharedFileStream.h"
-#include "PGManager.h" //RSX++
 
 static const string UPLOAD_AREA = "Uploads";
 
@@ -85,14 +83,14 @@ bool UploadManager::prepareFile(UserConnection& aSource, const string& aType, co
 
 	//RSX++
 	if(aFile.find("TestSUR") != string::npos) {
-		LogManager::getInstance()->message("User: " + ClientManager::getInstance()->getFirstNick(aSource.getUser()->getCID()) + " (" + aSource.getRemoteIp() + ") testing me!");
+		LogManager::getInstance()->message("User: " + aSource.getUser()->getFirstNick() + " (" + aSource.getRemoteIp() + ") testing me!");
 	}
 	//END
 
 	InputStream* is = 0;
 	int64_t start = 0;
-	int64_t bytesLeft = 0;
 	int64_t size = 0;
+	int64_t fileSize = 0;
 
 	bool userlist = (aFile == Transfer::USER_LIST_NAME_BZ || aFile == Transfer::USER_LIST_NAME);
 	bool free = userlist;
@@ -122,27 +120,27 @@ bool UploadManager::prepareFile(UserConnection& aSource, const string& aType, co
 				string().swap(bz2);
 				is = new MemoryInputStream(xml);
 				start = 0;
-				bytesLeft = size = xml.size();
+				fileSize = size = xml.size();
 			} else {
 				File* f = new File(sourceFile, File::READ, File::OPEN);
 
 				start = aStartPos;
-				size = f->getSize();
-				bytesLeft = (aBytes == -1) ? size : aBytes;
+				int64_t sz = f->getSize();
+				size = (aBytes == -1) ? sz - start : aBytes;
+				fileSize = sz;
 
-				if(size < (start + bytesLeft)) {
+				if((start + size) > sz) {
 					aSource.fileNotAvail();
 					delete f;
 					return false;
 				}
 
-				free = free || (size <= (int64_t)(SETTING(SET_MINISLOT_SIZE) * 1024) );
+				free = free || (fileSize <= (int64_t)(SETTING(SET_MINISLOT_SIZE) * 1024) );
 
 				f->setPos(start);
-
 				is = f;
-				if((start + bytesLeft) < size) {
-					is = new LimitedInputStream<true>(is, aBytes);
+				if((start + size) < sz) {
+					is = new LimitedInputStream<true>(is, size);
 				}
 			}
 			type = userlist ? Transfer::TYPE_FULL_LIST : Transfer::TYPE_FILE;			
@@ -156,7 +154,7 @@ bool UploadManager::prepareFile(UserConnection& aSource, const string& aType, co
 			}
 
 			start = 0;
-			bytesLeft = size = mis->getSize();
+			fileSize = size = mis->getSize();
 			is = mis;
 			free = true;
 			type = Transfer::TYPE_TREE;			
@@ -167,11 +165,9 @@ bool UploadManager::prepareFile(UserConnection& aSource, const string& aType, co
 				aSource.fileNotAvail();
 				return false;
 			}
-			// Some old dc++ clients err here...
-			aBytes = -1;
+			
 			start = 0;
-			bytesLeft = size = mis->getSize();
-	
+			fileSize = size = mis->getSize();
 			is = mis;
 			free = true;
 			type = Transfer::TYPE_PARTIAL_LIST;
@@ -181,79 +177,79 @@ bool UploadManager::prepareFile(UserConnection& aSource, const string& aType, co
 		}
 	} catch(const ShareException& e) {
 		// -- Added by RevConnect : Partial file sharing upload
-		if(aFile.compare(0, 4, "TTH/") == 0) {
+		if(aType == Transfer::names[Transfer::TYPE_FILE] && aFile.compare(0, 4, "TTH/") == 0) {
 
 			TTHValue fileHash(aFile.substr(4));
 
 			// find in download queue
 			string target;
-			string tempTarget;
 
-            if(QueueManager::getInstance()->getTargetByRoot(fileHash, target, tempTarget)){
-				if(aType == Transfer::names[Transfer::TYPE_FILE]) {
-					sourceFile = tempTarget;
-					// check start position and bytes
-					FileChunksInfo::Ptr chunksInfo = FileChunksInfo::Get(&fileHash);
-					if(chunksInfo && chunksInfo->isVerified(aStartPos, aBytes)){
-						try{
-							SharedFileStream* ss = new SharedFileStream(sourceFile, aStartPos);
-							is = ss;
-							start = aStartPos;
-							size = chunksInfo->fileSize;
-							bytesLeft = (aBytes == -1) ? size : aBytes;
+            if(QueueManager::getInstance()->isChunkDownloaded(fileHash, aStartPos, aBytes, target, fileSize)){
+				sourceFile = target;
 
-							if(size < (start + bytesLeft)) {
-								aSource.fileNotAvail();
-								delete is;
-								return false;
-							}
+				try {
+					File* f = new File(sourceFile, File::READ, File::OPEN | File::SHARED);
+					
+					is = f;
+					start = aStartPos;
+					int64_t sz = f->getSize();
+					size = (aBytes == -1) ? sz - start : aBytes;
+					fileSize = sz;
 
-							if((aStartPos + bytesLeft) < size) {
-								is = new LimitedInputStream<true>(is, aBytes);
-							}
-
-							partial = true;
-							type = Transfer::TYPE_FILE;
-							goto ok;
-						}catch(const Exception&) {
-							aSource.fileNotAvail();
-							//aSource.disconnect();
-							delete is;
-							return false;
-						}
+					if((start + size) > sz) {
+						aSource.fileNotAvail();
+						delete f;
+						return false;
 					}
+
+					f->setPos(start);
+					is = f;
+					if((start + size) < sz) {
+						is = new LimitedInputStream<true>(is, size);
+					}
+
+					partial = true;
+					type = Transfer::TYPE_FILE;
+					goto ok;
+				} catch(const Exception&) {
+					aSource.fileNotAvail();
+					//aSource.disconnect();
+					delete is;
+					return false;
 				}
-			// Share finished file
-			}else{
+			} else {
+				// Share finished file
 				target = FinishedManager::getInstance()->getTarget(fileHash.toBase32());
 
 				if(!target.empty() && Util::fileExists(target)){
-					if(aType == Transfer::names[Transfer::TYPE_FILE]) {
-						sourceFile = target;
-						try{
-							is = new SharedFileStream(sourceFile, aStartPos, 0, true);
-							start = aStartPos;
-							size = File::getSize(sourceFile);
-							bytesLeft = (aBytes == -1) ? size : aBytes;
+					sourceFile = target;
+					try {
+						File* f = new File(sourceFile, File::READ, File::OPEN | File::SHARED);
 
-							if(size < (start + bytesLeft)) {
-								aSource.fileNotAvail();
-								delete is;
-								return false;
-							}
+						start = aStartPos;
+						int64_t sz = f->getSize();
+						size = (aBytes == -1) ? sz - start : aBytes;
+						fileSize = sz;
 
-							if((aStartPos + bytesLeft) < size) {
-								is = new LimitedInputStream<true>(is, aBytes);
-							}
-
-							partial = true;
-							type = Transfer::TYPE_FILE;
-							goto ok;
-						}catch(const Exception&){
+						if((start + size) > sz) {
 							aSource.fileNotAvail();
-							delete is;
+							delete f;
 							return false;
 						}
+
+						f->setPos(start);
+						is = f;
+						if((start + size) < sz) {
+							is = new LimitedInputStream<true>(is, size);
+						}
+
+						partial = true;
+						type = Transfer::TYPE_FILE;
+						goto ok;
+					}catch(const Exception&){
+						aSource.fileNotAvail();
+						delete is;
+						return false;
 					}
 				}
 			}
@@ -284,7 +280,7 @@ ok:
 				extraSlot = true;
 			} else {
 				delete is;
-				aSource.maxedOut(addFailedUpload(aSource.getUser(), sourceFile, aStartPos, size));
+				aSource.maxedOut(addFailedUpload(aSource.getUser(), sourceFile, aStartPos, fileSize));
 				aSource.disconnect();
 				return false;
 			}
@@ -317,9 +313,9 @@ ok:
 
 	Upload* u = new Upload(aSource, sourceFile, TTHValue());
 	u->setStream(is);
-	u->setSize(aBytes == -1 ? size : start + bytesLeft);
+	u->setSegment(Segment(start, size));
 		
-	if(u->getSize() != size)
+	if(u->getSize() != fileSize)
 		u->setFlag(Upload::FLAG_CHUNKED);
 
 	if(resumed)
@@ -328,8 +324,7 @@ ok:
 	if(partial)
 		u->setFlag(Upload::FLAG_PARTIAL);
 
-	u->setFileSize(size);
-	u->setStartPos(start);
+	u->setFileSize(fileSize);
 	u->setType(type);
 
 	uploads.push_back(u);
@@ -432,10 +427,15 @@ void UploadManager::on(UserConnectionListener::Send, UserConnection* aSource) th
 }
 
 void UploadManager::on(AdcCommand::GET, UserConnection* aSource, const AdcCommand& c) throw() {
-	int64_t aBytes = Util::toInt64(c.getParam(3));
-	int64_t aStartPos = Util::toInt64(c.getParam(2));
-	const string& fname = c.getParam(1);
+	if(aSource->getState() != UserConnection::STATE_GET) {
+		dcdebug("UM::onGET Bad state, ignoring\n");
+		return;
+	}
+
 	const string& type = c.getParam(0);
+	const string& fname = c.getParam(1);
+	int64_t aStartPos = Util::toInt64(c.getParam(2));
+	int64_t aBytes = Util::toInt64(c.getParam(3));
 
 	if(prepareFile(*aSource, type, fname, aStartPos, aBytes, c.hasFlag("RE", 4))) {
 		Upload* u = aSource->getUpload();
@@ -443,8 +443,8 @@ void UploadManager::on(AdcCommand::GET, UserConnection* aSource, const AdcComman
 
 		AdcCommand cmd(AdcCommand::CMD_SND);
 		cmd.addParam(type).addParam(fname)
-			.addParam(Util::toString(u->getPos()))
-			.addParam(Util::toString(u->getSize() - u->getPos()));
+			.addParam(Util::toString(u->getStartPos()))
+			.addParam(Util::toString(u->getSize()));
 
 		if(c.hasFlag("ZL", 4)) {
 			u->setStream(new FilteredInputStream<ZFilter, true>(u->getStream()));
@@ -555,20 +555,6 @@ const UploadQueueItem::SlotQueue UploadManager::getWaitingUsers() {
 }
 
 void UploadManager::addConnection(UserConnectionPtr conn) {
-	//RSX++
-	if(SETTING(PG_ENABLE) && SETTING(PG_UP) && !conn->isSet(UserConnection::FLAG_OP) && PGManager::getInstance()->notAbused()) {
-		string company = PGManager::getInstance()->getIPBlock(conn->getRemoteIp());
-		if (!company.empty()) {
-			conn->error("Your IP is Blocked! ("+company+")[RSX++'s PeerGuardian]");
-			conn->getUser()->setFlag(User::PG_BLOCK);
-			removeConnection(conn);
-			if(SETTING(PG_LOG)) {
-				PGManager::getInstance()->log(conn, company, PGManager::INCONN);
-			}
-			return;
-		}
-	}
-	//END
 	conn->addListener(this);
 	conn->setState(UserConnection::STATE_GET);
 }
@@ -660,6 +646,11 @@ void UploadManager::on(GetListLength, UserConnection* conn) throw() {
 }
 
 void UploadManager::on(AdcCommand::GFI, UserConnection* aSource, const AdcCommand& c) throw() {
+	if(aSource->getState() != UserConnection::STATE_GET) {
+		dcdebug("UM::onSend Bad state, ignoring\n");
+		return;
+	}
+	
 	if(c.getParameters().size() < 2) {
 		aSource->send(AdcCommand(AdcCommand::SEV_RECOVERABLE, AdcCommand::ERROR_PROTOCOL_GENERIC, "Missing parameters"));
 		return;
@@ -701,7 +692,7 @@ void UploadManager::on(TimerManagerListener::Second, uint64_t aTick) throw() {
 		}
 
 		for(UploadList::const_iterator i = uploads.begin(); i != uploads.end(); ++i) {
-			if((*i)->getTotal() > 0) {
+			if((*i)->getPos() > 0) {
 				ticks.push_back(*i);
 				(*i)->tick();
 			}
@@ -843,5 +834,5 @@ void UploadManager::abortUpload(const string& aFile, bool waiting){
 
 /**
  * @file
- * $Id: UploadManager.cpp 334 2007-11-04 13:04:34Z bigmuscle $
+ * $Id: UploadManager.cpp 355 2008-01-05 14:43:39Z bigmuscle $
  */

@@ -68,8 +68,7 @@ public:
 		FILELIST_TOO_SMALL_BIG,			FILELIST_NA, 
 		NO_TTHF,						VERSION_MISMATCH, 
 		MYINFO_SPAM_KICK,				CTM_SPAM_KICK,
-		ADL_RAW_LOW_POINTS,				ADL_RAW_MEDIUM_POINTS,
-		ADL_RAW_HIGH_POINTS,			HASH_ERROR_RAW,
+		ADL_OUT_OF_RANGE,				HASH_ERROR_RAW,
 		RMDC_RAW,						DCPP_EMULATION_RAW,
 		FILELIST_VERSION_MISMATCH,		SDL_RAW,
 		PM_SPAM_KICK,					FAKE_SLOT_COUNT,
@@ -80,8 +79,7 @@ public:
 		SHOW_FILELIST_TOO_SMALL_BIG,	SHOW_FILELIST_NA,
 		SHOW_NO_TTHF,					SHOW_VERSION_MISMATCH, 
 		SHOW_MYINFO_SPAM_KICK,			SHOW_CTM_SPAM_KICK, 
-		SHOW_ADL_RAW_LOW_POINTS,		SHOW_ADL_RAW_MEDIUM_POINTS,
-		SHOW_ADL_RAW_HIGH_POINTS,		SHOW_HASH_ERROR_RAW,
+		SHOW_ADL_OUT_OF_RANGE,			SHOW_HASH_ERROR_RAW,
 		SHOW_RMDC_RAW,					SHOW_DCPP_EMULATION_RAW,
 		SHOW_FILELIST_VERSION_MISMATCH, SHOW_SDL_RAW,
 		SHOW_PM_SPAM_KICK,				SHOW_FAKE_SLOT_COUNT,
@@ -103,6 +101,9 @@ public:
 	};
 
 	bool getType(const char* name, int& n, int& type) const;
+	int getInt(const string& sname);
+	int64_t getInt64(const string& sname);
+	const string& getString(const string& sname) const;
 
 	const string& get(StrSetting key, bool useDefault = true) const {
 		return (isSet[key] || !useDefault) ? strSettings[key - STR_FIRST] : strDefaults[key - STR_FIRST];

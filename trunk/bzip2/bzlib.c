@@ -19,13 +19,13 @@
    ------------------------------------------------------------------ */
 
 /* CHANGES
-   0.9.0    -- original version.
+   0.9.0 -- original version.
    0.9.0a/b -- no changes in this file.
    0.9.0c   -- made zero-length BZ_FLUSH work correctly in bzCompress().
      fixed bzWrite/bzRead to ignore zero-length requests.
      fixed bzread to correctly handle read requests after EOF.
      wrong parameter order in call to bzDecompressInit in
-     bzBuffToBuffDecompress.  Fixed.
+        bzBuffToBuffDecompress.  Fixed.
 */
 
 #include "bzlib_private.h"

@@ -119,12 +119,12 @@ private:
 	~BufferedSocket() throw();
 
 	CriticalSection cs;
-	Semaphore taskSem;
 
+	Semaphore taskSem;
 	vector<pair<Tasks, TaskData*> > tasks;
-	vector<uint8_t> inbuf;
-	vector<uint8_t> writeBuf;
-	vector<uint8_t> sendBuf;
+	ByteVector inbuf;
+	ByteVector writeBuf;
+	ByteVector sendBuf;
 	
 	string line;
 	int64_t dataBytes;
@@ -159,5 +159,5 @@ private:
 
 /**
  * @file
- * $Id: BufferedSocket.h 298 2007-07-06 13:59:59Z bigmuscle $
+ * $Id: BufferedSocket.h 340 2007-12-20 12:30:13Z bigmuscle $
  */

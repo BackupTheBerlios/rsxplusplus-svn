@@ -26,9 +26,6 @@
 #include "Speaker.h"
 #include "CriticalSection.h"
 
-#include <hash_set>
-
-
 class WebServerListener{
 public:
 	template<int I>	struct X { enum { TYPE = I };  };

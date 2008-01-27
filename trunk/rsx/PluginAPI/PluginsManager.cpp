@@ -1,4 +1,6 @@
-/* 
+/*
+ * Copyright (C) 2007-2008 adrian_007, adrian-007 on o2 point pl
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -26,20 +28,25 @@
 #include "../../client/LogManager.h"
 #include "../../client/SimpleXML.h"
 
-// revision: 1.1.0.0
+// revision: 1.0.0.0
+#define API_VERSION 1000
+
+// @todo
+// add download function from url
+// fix some breakpoints caused by weird allocation
 
 PluginInfo::PluginInfo(HINSTANCE _h, PLUGIN_LOAD loader, PLUGIN_UNLOAD unloader, int _id) : id(_id), handle(_h), 
-	load(loader), unload(unloader), icon(NULL), name(Util::emptyString), version(Util::emptyString) 
+	load(loader), unload(unloader), icon(NULL), name(Util::emptyString), version(Util::emptyString), plugin(NULL)
 {
 	//nothing iteresting at this time... wait for all
 }
 
 PluginInfo::~PluginInfo() {
 	unloadPlugin();
-	if(handle != NULL) {
-		FreeLibrary(handle);
-		setHandle(NULL);
-	}
+	/** I should now release handler, but then I'll get access violation
+	 *  so leave them, on exit application will release all this stuff
+	 *  (crt have sth do deal with it...)
+	 */
 }
 
 void PluginInfo::loadPlugin() {
@@ -50,9 +57,10 @@ void PluginInfo::loadPlugin() {
 }
 
 void PluginInfo::unloadPlugin() {
-	if(unload != NULL) {
+	if(unload != NULL && plugin != NULL) {
 		unload();
 		unload = NULL;
+		plugin = NULL;
 	}
 }
 
@@ -80,7 +88,9 @@ PluginsManager::PluginsManager() {
 }
 
 PluginsManager::~PluginsManager() {
-	unloadPlugins();
+	//make some cleanup
+	for_each(active.begin(), active.end(), DeleteFunction());
+	active.clear();
 }
 
 void PluginsManager::loadPlugins() {
@@ -99,31 +109,29 @@ void PluginsManager::loadPlugin(const string& pPath) {
 		FreeLibrary(h);
 		return;
 	}
+
+	//first of all check used interface api version
+	typedef int (__cdecl * PLUGIN_API_VER)();
+	PLUGIN_API_VER apiV = (PLUGIN_API_VER)::GetProcAddress(h, "pluginAPI");
+
 	//make 3 calls, 1th for id, 2th for load func, 3th for unload func
 	PluginInfo::PLUGIN_ID pid = (PluginInfo::PLUGIN_ID)::GetProcAddress(h, "pluginId");
 	PluginInfo::PLUGIN_LOAD loadFunc = (PluginInfo::PLUGIN_LOAD)::GetProcAddress(h, "pluginLoad");
 	PluginInfo::PLUGIN_UNLOAD unloadFunc = (PluginInfo::PLUGIN_UNLOAD)::GetProcAddress(h, "pluginUnload");
 
-	if(pid != NULL && loadFunc != NULL && unloadFunc != NULL) {
-		int pID = pid();
-		if(!isLoaded(pID)) {
-			//ok, we've got a valid - not yet started - plugin... ;)
-			active.push_back(new PluginInfo(h, loadFunc, unloadFunc, pID));
-			return;
-		} else { LogManager::getInstance()->message(STRING(PLUGIN_ALREADY_LOADED) + "(" + Util::getFileName(pPath) + ")"); }
+	if(apiV != NULL && pid != NULL && loadFunc != NULL && unloadFunc != NULL) {
+		int apiVersion = apiV();
+		if(apiVersion == API_VERSION) {
+			int pID = pid();
+			if(!isLoaded(pID)) {
+				//ok, we've got a valid - not yet started - plugin... ;)
+				active.push_back(new PluginInfo(h, loadFunc, unloadFunc, pID));
+				return;
+			} else { LogManager::getInstance()->message(STRING(PLUGIN_ALREADY_LOADED) + "(" + Util::getFileName(pPath) + ")"); }
+		} else { LogManager::getInstance()->message("Plugin is using old version of API! (" + Util::getFileName(pPath) + ")"); }
 	} else { LogManager::getInstance()->message(STRING(PLUGIN_NOT_VALID) + "(" + Util::getFileName(pPath) + ")"); }
 	FreeLibrary(h);
 	h = NULL;
-}
-
-void PluginsManager::unloadPlugins() {
-	Lock l(cs);
-	cs.enter();
-	saveSettings();
-	cs.leave();
-
-	for_each(active.begin(), active.end(), DeleteFunction());
-	active.clear();
 }
 
 bool PluginsManager::isLoaded(int pId) {
@@ -140,9 +148,15 @@ void PluginsManager::startPlugins() {
 	for(Plugins::const_iterator i = active.begin(); i != active.end(); ++i) {
 		(*i)->loadPlugin();
 	}
-	cs.enter();
 	loadSettings();
-	cs.leave();
+}
+
+void PluginsManager::stopPlugins() {
+	Lock l(cs);
+	for(Plugins::const_iterator i = active.begin(); i != active.end(); ++i) {
+		(*i)->unloadPlugin();
+	}
+	saveSettings();
 }
 
 void PluginsManager::setPluginInfo(int pId, const string& pn, const string& pv, int icon) {
@@ -181,21 +195,45 @@ const string& PluginsManager::getSetting(int pId, const string& n) {
 	return Util::emptyString;
 }
 
-bool PluginsManager::onIncommingMessage(Client* client, const string& aMsg) {
+bool PluginsManager::onIncommingMessage(iClient* client, const string& aMsg) {
 	Lock l(cs);
 	bool ret = false;
 	for(Plugins::const_iterator i = active.begin(); i != active.end(); ++i) {
-		if((*i)->getPlugin()->onIncommingMessage(client, aMsg))
+		if((*i)->getPlugin() == NULL) continue;
+		if((*i)->getPlugin()->onIncommingMessage(client, aMsg.c_str()))
 			ret = true;
 	}
 	return ret;
 }
 
-bool PluginsManager::onOutgoingMessage(Client* client, const string& aMsg) {
+bool PluginsManager::onOutgoingMessage(iClient* client, const string& aMsg) {
 	Lock l(cs);
 	bool ret = false;
 	for(Plugins::const_iterator i = active.begin(); i != active.end(); ++i) {
-		if((*i)->getPlugin()->onOutgoingMessage(client, aMsg))
+		if((*i)->getPlugin() == NULL) continue;
+		if((*i)->getPlugin()->onOutgoingMessage(client, aMsg.c_str()))
+			ret = true;
+	}
+	return ret;
+}
+
+bool PluginsManager::onIncommingPM(iUser* from, const string& aMsg) {
+	Lock l(cs);
+	bool ret = false;
+	for(Plugins::const_iterator i = active.begin(); i != active.end(); ++i) {
+		if((*i)->getPlugin() == NULL) continue;
+		if((*i)->getPlugin()->onIncommingPM(from, aMsg.c_str()))
+			ret = true;
+	}
+	return ret;
+}
+
+bool PluginsManager::onOutgoingPM(iUser* to, const string& aMsg) {
+	Lock l(cs);
+	bool ret = false;
+	for(Plugins::const_iterator i = active.begin(); i != active.end(); ++i) {
+		if((*i)->getPlugin() == NULL) continue;
+		if((*i)->getPlugin()->onOutgoingPM(to, aMsg.c_str()))
 			ret = true;
 	}
 	return ret;
@@ -204,6 +242,7 @@ bool PluginsManager::onOutgoingMessage(Client* client, const string& aMsg) {
 void PluginsManager::onToolbarClick(int pluginId) {
 	Lock l(cs);
 	for(Plugins::const_iterator i = active.begin(); i != active.end(); ++i) {
+		if((*i)->getPlugin() == NULL) continue;
 		if((*i)->getId() == pluginId) {
 			(*i)->getPlugin()->onToolbarClick();
 			break;
@@ -277,7 +316,10 @@ void PluginsManager::loadSettings() {
 		}
 	} catch(const Exception& e) {
 		dcdebug("PluginManager::loadSettings: %s\n", e.getError().c_str());
-	}	
+	}
+
+	for(Plugins::const_iterator i = active.begin(); i != active.end(); ++i)
+		(*i)->getPlugin()->onSettingsLoaded();
 }
 
 /**

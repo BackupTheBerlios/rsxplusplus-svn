@@ -31,9 +31,8 @@
 #include "MerkleTree.h"
 #include "DebugManager.h"
 #include "ClientManager.h"
-#include "ScriptManager.h" //RSX++ // Lua
-
-//RSX++ // Lua
+//RSX++
+#include "ScriptManager.h"
 class UserConnectionScriptInstance : public ScriptInstance {
 protected:
 	bool onUserConnectionMessageIn(UserConnection* aConn, const string& aLine);
@@ -41,7 +40,7 @@ protected:
 };
 //END
 class UserConnection : public Speaker<UserConnectionListener>, 
-	private BufferedSocketListener, public Flags, private CommandHandler<UserConnection>,/*//RSX++ // Lua*/public UserConnectionScriptInstance/*END*/
+	private BufferedSocketListener, public Flags, private CommandHandler<UserConnection>,/*RSX++*/public UserConnectionScriptInstance/*END*/
 {
 public:
 	friend class ConnectionManager;
@@ -243,6 +242,12 @@ private:
 	void send(const string& aString) {
 		lastActivity = GET_TICK();
 		COMMAND_DEBUG(aString, DebugManager::CLIENT_OUT, getRemoteIp());
+		//RSX++ // Lua
+		if(onUserConnectionMessageOut(this, aString)) {
+			disconnect(true);
+			return;
+		}
+		//END
 		socket->write(aString);
 	}
 

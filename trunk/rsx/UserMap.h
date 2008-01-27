@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007 adrian_007, adrian-007 on o2 point pl
+ * Copyright (C) 2007-2008 adrian_007, adrian-007 on o2 point pl
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,68 +22,69 @@
 #include "../client/QueueManager.h"
 #include "../client/Client.h"
 #include "../client/Thread.h"
+#include "../client/FastAlloc.h"
 
 template<bool isADC, typename BaseMap>
 class UserMap : public BaseMap {
 public:
-	UserMap() : client(NULL) { };
-	~UserMap() { 
+	UserMap() : clientEngine(NULL), myInfoEngine(NULL) { };
+	~UserMap() {
 		stopMyINFOCheck();
 		stopCheck();
-		QueueManager::getInstance()->removeOfflineChecks();
-		client = NULL;
+		try {
+			QueueManager::getInstance()->removeOfflineChecks();
+		} catch(...) {
+			//...
+		}
 	};
 
-	void setClient(Client* cl) { 
-		client = cl; 
-	}
-
-	//myinfo start/stop functions
-	void startMyINFOCheck(bool fs, bool myinfo) { 
-		if(!myInfoEngine.isChecking() && (fs || myinfo)) {
-			myInfoEngine.startCheck(this, fs, myinfo);
-		}
-
-	}
-	void stopMyINFOCheck() { 
-		myInfoEngine.cancel();
-	}
-
-	//clients check start/stop functions
-	void startCheck(bool cc, bool cf, bool cOnConnect = false) {
-		if(!clientEngine.isChecking()) {
-			clientEngine.setCheckClients(cc);
-			clientEngine.setCheckFilelists(cf);
-			if(cOnConnect)
-				clientEngine.setCheckOnConnect(true);
-			else
-				clientEngine.setKeepChecking(true);
-			clientEngine.startCheck(this);
+	void startMyINFOCheck(Client* c, bool fs, bool myinfo) { 
+		if(myInfoEngine == NULL && (fs || myinfo)) {
+			myInfoEngine = new ThreadedMyINFOCheck(this, c);
+			myInfoEngine->startCheck(fs, myinfo);
 		}
 	}
 
-	void stopCheck() { 
-		clientEngine.cancel(); 
+	void startCheck(Client* c, bool cc, bool cf, bool cOnConnect = false) {
+		if(clientEngine == NULL) {
+			clientEngine = new ThreadedCheck(this, c);
+			clientEngine->setCheckClients(cc);
+			clientEngine->setCheckFilelists(cf);
+			if(cOnConnect) {
+				clientEngine->setCheckOnConnect(true);
+			} else {
+				clientEngine->setKeepChecking(true);
+			}
+			clientEngine->startCheck();
+		}
+	}
+
+	void stopMyINFOCheck() {
+		if(myInfoEngine != NULL) {
+			delete myInfoEngine;
+			myInfoEngine = NULL;
+		}
+	}
+
+
+	void stopCheck() {
+		if(clientEngine != NULL) {
+			delete clientEngine;
+			clientEngine = NULL;
+		}
 	}
 
 	bool isDetectorRunning() { 
-		return clientEngine.isChecking();
+		return (clientEngine != NULL && clientEngine->isChecking());
 	}
 
 private:
-	Client* client;
-	Client* getClient() { return client; }
-
-	/*
-	 * probably reference would be more safe than pointers
-	 * specially when I don't care if pointer is destroyed with delete operator
-	 * client (nmdchub/adchub) class do it for me :)
-	 */
 
 	//myinfo check engine
-	class ThreadedMyINFOCheck : public Thread {
+	class ThreadedMyINFOCheck : public Thread, public FastAlloc<ThreadedMyINFOCheck> {
 	public:
-		ThreadedMyINFOCheck() : client(NULL), users(NULL), inThread(false), checkFakeShare(false), checkMyInfo(false) { };
+		ThreadedMyINFOCheck(UserMap* _u, Client* _c) : client(_c), users(_u), 
+			inThread(false), checkFakeShare(false), checkMyInfo(false) { };
 		~ThreadedMyINFOCheck() { cancel(); }
 
 		bool isChecking() { 
@@ -92,14 +93,13 @@ private:
 
 		void cancel() { 
 			inThread = false;
+			// called always after delete operator
+			users->myInfoEngine = NULL;
 			join();
 		}
 
-		void startCheck(UserMap* map, bool cfs, bool myInfo) {
-			users = map;
-			client = map->getClient();
-			if(!client) {
-				users = NULL;
+		void startCheck(bool cfs, bool myInfo) {
+			if(!client || !users) {
 				return;
 			}
 			checkFakeShare = cfs;
@@ -107,46 +107,47 @@ private:
 			if(!inThread)
 				start();
 		}
-
+	private:
 		int run() {
 			inThread = true;
-			setThreadPriority(Thread::LOW);
-			//Thread::sleep(100);
-			client->setCheckedAtConnect(true);
-			for(BaseMap::iterator i = users->begin(); i != users->end(); ++i) {
-				if(!inThread || !(client && client->isConnected())) 
-					break;
-				try {
-					if(!i->second->isHidden()) {
-						i->second->inc();
+			setThreadPriority(Thread::HIGH);
+			if(client && client->isConnected()) {
+				//Lock l(client->cs);
+				client->setCheckedAtConnect(true);
+				for(BaseMap::const_iterator i = users->begin(); i != users->end(); i++) {
+					OnlineUser* ou = i->second;
+					if(!inThread || !ou || !(client && client->isConnected())) 
+						break;
+					ou->inc();
+					if(ou->isCheckable(false)) {
 						if(checkMyInfo) {
-							i->second->getIdentity().myInfoDetect((*i->second));
+							ou->getIdentity().myInfoDetect(*ou);
 						}
 						if(checkFakeShare) {
-							i->second->getIdentity().isFakeShare((*i->second));
+							ou->getIdentity().isFakeShare(*ou);
 						}
-						i->second->dec();
-						Thread::sleep(1);
+						sleep(1);
 					}
-				} catch(...) {
-					//...
+					ou->dec();
 				}
 			}
 			inThread = false;
+			// make some cleanup
+			delete this;
 			return 0;
 		}
-	private:
+
 		bool inThread;
 		bool checkFakeShare, checkMyInfo;
 		Client* client;
 		UserMap* users;
-	}myInfoEngine;
+	}*myInfoEngine;
 
 	//clients check engine
-	class ThreadedCheck : public Thread {
+	class ThreadedCheck : public Thread, public FastAlloc<ThreadedCheck> {
 	public:
-		ThreadedCheck() : client(NULL), users(NULL), keepChecking(false), canCheckFilelist(false), 
-			inThread(false), checkOnConnect(false) { };
+		ThreadedCheck(UserMap* _u, Client* _c) : client(_c), users(_u), 
+			keepChecking(false), canCheckFilelist(false), inThread(false), checkOnConnect(false) { };
 		~ThreadedCheck() { cancel(); }
 
 		bool isChecking() { 
@@ -156,23 +157,28 @@ private:
 		void cancel() { 
 			keepChecking = inThread = false;
 			join();
+			client = NULL;
+
+			try {
+				QueueManager::getInstance()->removeOfflineChecks();
+			} catch(...) {
+				//...
+			}
 		}
 
-		void startCheck(UserMap* um) {
-			users = um;
-			client = users->getClient();
-			if(!client) {
-				users = NULL;
+		void startCheck() {
+			if(!client || !users) {
 				return;
 			}
-			inThread = true; 
-			start(); 
+			if(!inThread) {
+				start();
+			}
 		}
 
+	private:
 		int run() {
-			OnlineUser* ou = NULL;
+			inThread = true;
 			setThreadPriority(Thread::LOW);
-
 			if(checkOnConnect && !keepChecking) { 
 				sleep(RSXSETTING(CHECK_DELAY));
 				keepChecking = true;
@@ -180,18 +186,17 @@ private:
 				client->setCheckOnConnect(false);
 			}
 
-			canCheckFilelist = !checkClients || !RSXBOOLSETTING(CHECK_ALL_CLIENTS_BEFORE_FILELISTS);
-
-			bool iterBreak;
-			const uint64_t	sleepTime =	static_cast<uint64_t>(RSXSETTING(SLEEP_TIME));
-			uint8_t	secs = 0;
-
-			if((client && !client->isConnected()) || (!checkClients && !checkFilelists)) { 
+			if(!client->isConnected() || (!checkClients && !checkFilelists)) { 
 				keepChecking = false; 
 			}
 
+			canCheckFilelist = !checkClients || !RSXBOOLSETTING(CHECK_ALL_CLIENTS_BEFORE_FILELISTS);
+			bool iterBreak = false;
+			const uint64_t	sleepTime =	static_cast<uint64_t>(RSXSETTING(SLEEP_TIME));
+			uint8_t	secs = 0;
+
 			while(keepChecking) {
-				if(client && client->isConnected()) {
+				if(client->isConnected()) {
 					uint8_t t = 0;
 					uint8_t f = 0;
 					{
@@ -207,64 +212,67 @@ private:
 					}
 
 					if(t < RSXSETTING(MAX_TESTSURS)) {
-						Lock l(client->cs);
 						iterBreak = false;
+						Lock l(client->cs);
 
 						for(BaseMap::iterator i = users->begin(); i != users->end(); ++i) {
-							if(!inThread)
-								break;
-							i->second->inc();
-							ou = i->second;
+							OnlineUser* ou = i->second;
+							if(!ou || !inThread) { break; }
+							ou->inc();
 							iterBreak = false;
-							if(!ou->isHidden()) {
-								if(checkClients && ou->isCheckable()) {
-									if(ou->shouldTestSUR()) {
-										if(!ou->getChecked()) {
-											iterBreak = true;
-											try {
-												if(isADC && RsxUtil::checkVersion(ou->getIdentity().getTag(), true)) {
-													ou->setTestSURComplete();
-													ou->setFileListComplete();
-													ou->dec();
-													break;
-												}
-												QueueManager::getInstance()->addTestSUR(ou->getUser());
-												ou->getIdentity().setTestSURQueued("1");
-												ou->dec();
-												break;
-											} catch(...) {
-												//...
-											}
-										}
-									} else if(!ou->getIdentity().getTestSURQueued().empty()) {
-										try {
-											if(!QueueManager::getInstance()->isTestSURinQueue(ou->getUser())) {
-												iterBreak = true;
-												ou->getIdentity().setTestSURQueued(Util::emptyString);
-												ou->dec();
-												break;
-											}
-										} catch(...) {
-											//...
-										}
+							if(ou->isCheckable()) {
+								if(isADC) {
+									if((ou->getUser()->isSet(User::NO_ADC_1_0_PROTOCOL) || ou->getUser()->isSet(User::NO_ADC_0_10_PROTOCOL)) && ou->shouldTestSUR()) {
+										//nasty...
+										ou->setTestSURComplete();
+										ou->setFileListComplete();
+										ou->getIdentity().setCheatMsg(ou->getClient(), "No ADC 1.0/0.10 support", true, false, false);
+										ou->updateUser();
+										ou->dec();
+										//prevent spam but don't break, it'd be a time loss
+										sleep(5);
+										continue;
 									}
 								}
-								if(checkFilelists) {
-									if(canCheckFilelist && f < RSXSETTING(MAX_FILELISTS)) {
-										if(ou->shouldCheckFileList(!checkClients) && !ou->getChecked(true)) {
+
+								if(getCheckClients()) {
+									if(ou->shouldTestSUR()) {
+										if(!ou->getChecked()) {
 											try {
-												if(isADC && RsxUtil::checkVersion(ou->getIdentity().getTag(), true)) {
-													ou->setTestSURComplete();
-													ou->setFileListComplete();
-													ou->dec();
-													break;
+												QueueManager::getInstance()->addTestSUR(ou->getUser());
+												ou->getIdentity().setTestSURQueued("1");
+											} catch(...) {
+												dcdebug("Exception adding testsur %s\n", ou->getIdentity().getNick());
+											}
+											iterBreak = true;
+										}
+									} else if(ou->getIdentity().isTestSURQueued()) {
+										try {
+											if(!QueueManager::getInstance()->isTestSURinQueue(ou->getUser())) {
+												ou->getIdentity().setTestSURQueued(Util::emptyString);
+												iterBreak = true;
+											}
+										} catch(...) {
+											dcdebug("Exception removing testsur %s\n", ou->getIdentity().getNick());
+										}
+									}
+									if(iterBreak) {
+										ou->dec();
+										break;
+									}
+								}
+								if(getCheckFilelists()) {
+									if(canCheckFilelist && f < RSXSETTING(MAX_FILELISTS)) {
+										if(ou->shouldCheckFileList(!getCheckClients())) {
+											if(!ou->getChecked(true)) {
+												try {
+													QueueManager::getInstance()->addList(ou->getUser(), QueueItem::FLAG_CHECK_FILE_LIST);
+													ou->getIdentity().setFileListQueued("1");
+												} catch(...) {
+													dcdebug("Exception adding filelist %s\n", ou->getIdentity().getNick());
 												}
-												QueueManager::getInstance()->addList(ou->getUser(), QueueItem::FLAG_CHECK_FILE_LIST);
-												ou->getIdentity().setFileListQueued("1");
 												ou->dec();
 												break;
-											} catch(...) {
-												//...
 											}
 										}
 									}
@@ -272,11 +280,11 @@ private:
 							}
 							ou->dec();
 						}
-						ou = NULL;
-						if(!canCheckFilelist) {
-							canCheckFilelist = !iterBreak;
-						}
 					}
+					if(!canCheckFilelist) {
+						canCheckFilelist = !iterBreak;
+					}
+
 					if(secs >= 30) {
 						try {
 							QueueManager::getInstance()->removeOfflineChecks();
@@ -289,12 +297,13 @@ private:
 						secs++;
 					}
 					sleep(sleepTime);
+				} else {
+					sleep(1000);
 				}
 			}
-			inThread = keepChecking = false;
+			inThread = false;
 			return 0;
 		}
-	private:
 		GETSET(bool, keepChecking, KeepChecking);
 		GETSET(bool, checkOnConnect, CheckOnConnect);
 		GETSET(bool, checkFilelists, CheckFilelists);
@@ -304,6 +313,6 @@ private:
 
 		Client* client;
 		UserMap* users;
-	}clientEngine;
+	}*clientEngine;
 };
 #endif

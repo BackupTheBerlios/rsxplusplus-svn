@@ -127,7 +127,7 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const {
 					online++;
 			}
 
-			if(!isRunning()) {
+			if(isWaiting()) {
 				TCHAR buf[64];
 				if(online > 0) {
 					size_t size = QueueManager::getInstance()->getSourcesCount(qi);
@@ -154,7 +154,7 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const {
 						return buf;
 					}
 				}
-			} else if(isRunning()) {
+			} else {
 				TCHAR buf[64];
 				size_t size = QueueManager::getInstance()->getSourcesCount(qi);
 				if(size == 1) {
@@ -170,7 +170,10 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const {
 			return Util::toStringW(qi ? qi->getDownloads().size() : 0) + _T("/") + Util::toStringW(qi ? qi->getMaxSegments() : 0);
 		}
 		case COLUMN_SIZE: return (getSize() == -1) ? TSTRING(UNKNOWN) : Util::formatBytesW(getSize());
-		case COLUMN_DOWNLOADED: return (getSize() > 0) ? Util::formatBytesW(getDownloadedBytes()) + _T(" (") + Util::toStringW((double)getDownloadedBytes()*100.0/(double)getSize()) + _T("%)") : Util::emptyStringT;
+		case COLUMN_DOWNLOADED: {
+			int64_t downloadedBytes = getDownloadedBytes();
+			return (getSize() > 0) ? Util::formatBytesW(downloadedBytes) + _T(" (") + Util::toStringW((double)downloadedBytes*100.0/(double)getSize()) + _T("%)") : Util::emptyStringT;
+		}
 		case COLUMN_PRIORITY: {
 			tstring priority;
 			switch(getPriority()) {
@@ -222,10 +225,6 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const {
 						tmp += TSTRING(SOURCE_TOO_OLD);						
 					} else if(j->isSet(QueueItem::Source::FLAG_NO_NEED_PARTS)) {
 						tmp += TSTRING(NO_NEEDED_PART);
-					//RSX++
-					} else if(j->isSet(QueueItem::Source::FLAG_PG_BLOCKED)) {
-						tmp += TSTRING(PG_BLOCKED);
-					//END
 					}
 					tmp += _T(')');
 				}
@@ -832,18 +831,13 @@ LRESULT QueueFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, B
 							nick += _T(" (") + TSTRING(PASSIVE_USER) + _T(")");
 						} else if(i->isSet(QueueItem::Source::FLAG_BAD_TREE)) {
 							nick += _T(" (") + TSTRING(INVALID_TREE) + _T(")");
-						} else if(i->isSet(QueueItem::Source::FLAG_SLOW)) {
-							nick += _T(" (") + TSTRING(SLOW_USER) + _T(" [") + Util::formatBytesW(i->getUser()->getLastDownloadSpeed()) + _T("/s])");
 						} else if(i->isSet(QueueItem::Source::FLAG_NO_NEED_PARTS)) {
 							nick += _T(" (") + TSTRING(NO_NEEDED_PART) + _T(")");
 						} else if(i->isSet(QueueItem::Source::FLAG_NO_TTHF)) {
 							nick += _T(" (") + TSTRING(SOURCE_TOO_OLD) + _T(")");
-						//RSX++
-						} else if(i->isSet(QueueItem::Source::FLAG_PG_BLOCKED)) {
-							nick += _T(" (") + TSTRING(PG_BLOCKED) + _T(")");
-						}					
-						//END
-				
+						} else if(i->isSet(QueueItem::Source::FLAG_SLOW)) {
+							nick += _T(" (") + TSTRING(SLOW_USER) + _T(" [") + Util::formatBytesW(i->getUser()->getLastDownloadSpeed()) + _T("/s])");
+						}
 						mi.fMask = MIIM_ID | MIIM_TYPE | MIIM_DATA;
 						mi.fType = MFT_STRING;
 						mi.dwTypeData = (LPTSTR)nick.c_str();
@@ -1411,27 +1405,24 @@ LRESULT QueueFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled) {
 			ctrlQueue.GetSubItemRect((int)cd->nmcd.dwItemSpec, COLUMN_PROGRESS, LVIR_BOUNDS, rc);
 			CBarShader statusBar(rc.Height(), rc.Width(), SETTING(PROGRESS_BACK_COLOR), qii->getSize());
 
-			FileChunksInfo::Ptr fileChunksInfo = qii->getChunksInfo();			
-			vector<int64_t> v;
+			vector<Segment> v;
 
 			// running chunks
-			fileChunksInfo->getAllChunks(v, 1);
-			for(vector<int64_t>::const_iterator i = v.begin(); i < v.end(); i += 2) {
-				statusBar.FillRange(*i, *(i+1), SETTING(COLOR_RUNNING));
+			v = QueueManager::getInstance()->getChunksVisualisation(qii->getQueueItem(), 0);
+			for(vector<Segment>::const_iterator i = v.begin(); i < v.end(); ++i) {
+				statusBar.FillRange((*i).getStart(), (*i).getEnd(), SETTING(COLOR_RUNNING));
 			}
-			v.clear();
 
-			// downloaded chunks
-			fileChunksInfo->getAllChunks(v, 0);
-			for(vector<int64_t>::const_iterator i = v.begin(); i < v.end(); i += 2) {
-				statusBar.FillRange(*i, *(i+1), SETTING(COLOR_DOWNLOADED));
+			// downloaded bytes
+			v = QueueManager::getInstance()->getChunksVisualisation(qii->getQueueItem(), 1);
+			for(vector<Segment>::const_iterator i = v.begin(); i < v.end(); ++i) {
+				statusBar.FillRange((*i).getStart(), (*i).getEnd(), SETTING(COLOR_DOWNLOADED));
 			}
-			v.clear();
 
-			// verified chunks
-			fileChunksInfo->getAllChunks(v, 2);
-			for(vector<int64_t>::const_iterator i = v.begin(); i < v.end(); i += 2) {
-				statusBar.FillRange(*i, *(i+1), SETTING(COLOR_VERIFIED));
+			// done chunks
+			v = QueueManager::getInstance()->getChunksVisualisation(qii->getQueueItem(), 2);
+			for(vector<Segment>::const_iterator i = v.begin(); i < v.end(); ++i) {
+				statusBar.FillRange((*i).getStart(), (*i).getEnd(), SETTING(COLOR_DONE));
 			}
 
 			CDC cdc;
@@ -1505,5 +1496,5 @@ void QueueFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/) throw() {
 
 /**
  * @file
- * $Id: QueueFrame.cpp 335 2007-11-10 13:01:41Z bigmuscle $
+ * $Id: QueueFrame.cpp 353 2008-01-01 14:52:02Z bigmuscle $
  */

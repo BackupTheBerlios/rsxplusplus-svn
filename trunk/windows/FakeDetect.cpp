@@ -54,11 +54,9 @@ LRESULT FakeDetect::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 	ctrlList.InsertColumn(0, CTSTRING(NAME), LVCFMT_LEFT, (rc.Width() / 3) + 75, 0);
 	ctrlList.InsertColumn(1, CTSTRING(ACTION), LVCFMT_LEFT, (rc.Width() / 3) - 35, 1);
 	ctrlList.InsertColumn(2, CTSTRING(SETTINGS_DISPLAY_CHEATS_IN_MAIN_CHAT), LVCFMT_LEFT, (rc.Width() / 3) - 60, 2);
-	ctrlList.SetExtendedListViewStyle(LVS_EX_FULLROWSELECT);
+	ctrlList.SetExtendedListViewStyle(LVS_EX_FULLROWSELECT | LVS_EX_INFOTIP);
 
-	addItem(TSTRING(ADL_RAW_LOW),				RSXSettingsManager::ADL_RAW_LOW_POINTS,			RSXSettingsManager::SHOW_ADL_RAW_LOW_POINTS);
-	addItem(TSTRING(ADL_RAW_MEDIUM),			RSXSettingsManager::ADL_RAW_MEDIUM_POINTS,		RSXSettingsManager::SHOW_ADL_RAW_MEDIUM_POINTS);
-	addItem(TSTRING(ADL_RAW_HIGH),				RSXSettingsManager::ADL_RAW_HIGH_POINTS,		RSXSettingsManager::SHOW_ADL_RAW_HIGH_POINTS);
+	addItem(_T("ADLS Points (out of range)"),	RSXSettingsManager::ADL_OUT_OF_RANGE,			RSXSettingsManager::SHOW_ADL_OUT_OF_RANGE);
 	addItem(TSTRING(SDL_RAW),					RSXSettingsManager::SDL_RAW,					RSXSettingsManager::SHOW_SDL_RAW);
 	addItem(TSTRING(TIMEOUT_RAW),				RSXSettingsManager::TIMEOUT_RAW,				RSXSettingsManager::SHOW_TIMEOUT_RAW);
 	addItem(TSTRING(DISCONNECT_RAW),			RSXSettingsManager::DISCONNECT_RAW,				RSXSettingsManager::SHOW_DISCONNECT_RAW);
@@ -76,7 +74,7 @@ LRESULT FakeDetect::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 	addItem(TSTRING(CTM_SPAM_KICK),				RSXSettingsManager::CTM_SPAM_KICK,				RSXSettingsManager::SHOW_CTM_SPAM_KICK);
 	addItem(TSTRING(PM_SPAM_KICK),				RSXSettingsManager::PM_SPAM_KICK,				RSXSettingsManager::SHOW_PM_SPAM_KICK);
 
-	Action::List lst = RawManager::getInstance()->getActionList();
+	Action::List& lst = RawManager::getInstance()->getActionList();
 	int j = 0;
 	idAction.insert(make_pair(j, j));
 	for(Action::List::iterator i = lst.begin(); i != lst.end(); ++i) {
@@ -113,7 +111,7 @@ void FakeDetect::write() {
 }
 
 void FakeDetect::addItem(const tstring& aName, int rawId, int cheatId) {
-	DetectorItem* item = new DetectorItem(rawId, cheatId);
+	DetectorItem* item = new DetectorItem(rawId, cheatId, aName);
 
 	TStringList l;
 	l.push_back(aName);
@@ -183,4 +181,19 @@ LRESULT FakeDetect::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*
 		return CDRF_NOTIFYSUBITEMDRAW;
 		default: return CDRF_DODEFAULT;
 	}
+}
+
+LRESULT FakeDetect::onInfoTip(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/) {
+	int item = ctrlList.GetHotItem();
+	if(item != -1) {
+		NMLVGETINFOTIP* lpnmtdi = (NMLVGETINFOTIP*) pnmh;
+		DetectorItem* di = (DetectorItem*)ctrlList.GetItemData(item);
+
+		tstring infoTip = _T("Item: ") + di->itemName +
+			_T("\nAction: ") + RawManager::getInstance()->getNameActionId(RawManager::getInstance()->getValidAction(di->rawId)) +
+			_T("\nDisipay cheat: ") + (di->displayCheat ? CTSTRING(YES) : CTSTRING(NO));
+		//@todo write and add cheat descriptions...
+		_tcscpy(lpnmtdi->pszText, infoTip.c_str());
+	}
+	return 0;
 }

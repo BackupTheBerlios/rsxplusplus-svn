@@ -29,7 +29,7 @@ public:
 	};
 	static void				init();
 	static void				uinit();
-	static bool				checkVersion(const string& tag, bool adcT = false);
+	static bool				checkVersion(const string& tag);
 	static wstring			formatSeconds(int64_t aSec);
 	static string			toIP(const uint32_t ipnum);
 	static uint32_t			toIpNumber(const string& aIp);
@@ -53,9 +53,21 @@ public:
 	static tstring			formatAdditionalInfo(const string& aIp, bool sIp, bool sCC);
 	static string			getSlowDLCheat(double dlSpeed);
 
+	//simple function from cplusplus.com with changes ;)
+	template<int len>
+	static string strFormat(const char* sFormat, ...) {
+		char ret[len];
+		va_list args;
+		if(sFormat != NULL) {
+			va_start(args, sFormat);
+				vsprintf(ret, sFormat, args);
+			va_end(args);	
+		}
+		return ret;
+	}
+
 private:
 	static string tmpTestSur;
 	static StringList tags;
-	static StringList adcTags;
 };
 #endif //RSXUTIL_H

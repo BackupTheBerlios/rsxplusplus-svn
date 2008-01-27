@@ -28,6 +28,7 @@
 #include "AdcCommand.h"
 #include "Transfer.h"
 #include "DebugManager.h"
+#include "Download.h"
 
 const string UserConnection::FEATURE_GET_ZBLOCK = "GetZBlock";
 const string UserConnection::FEATURE_MINISLOTS = "MiniSlots";
@@ -70,7 +71,12 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) throw
 	string param;
 
 	string::size_type x;
-                
+	//RSX++ // Lua
+	if(onUserConnectionMessageIn(this, aLine)) {
+		disconnect(true);
+		return;
+	}
+	//END
 	if( (x = aLine.find(' ')) == string::npos) {
 		cmd = aLine;
 	} else {
@@ -80,7 +86,7 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) throw
     
 	if(cmd == "$MyNick") {
 		if(!param.empty())
-			fire(UserConnectionListener::MyNick(), this, Text::toUtf8(param, *encoding));
+			fire(UserConnectionListener::MyNick(), this, param);
 	} else if(cmd == "$Direction") {
 		x = param.find(" ");
 		if(x != string::npos) {
@@ -97,8 +103,8 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) throw
 	    }
 	//RSX++
 	} else if(cmd == "$FileLength") {
-		if(isSet(FLAG_DOWNLOAD) && !param.empty()) {
-			if(download && download->isSet(Download::FLAG_CHECK_FILE_LIST)) {	
+		if(!param.empty() && isSet(FLAG_DOWNLOAD) && download != NULL) {
+			if(download->isSet(Download::FLAG_CHECK_FILE_LIST)) {	
 				ClientManager::getInstance()->setListSize(getUser(), Util::toInt64(param), false);
 			}
 		}
@@ -151,18 +157,17 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) throw
 }
 //RSX++ // Lua
 bool UserConnectionScriptInstance::onUserConnectionMessageIn(UserConnection* aConn, const string& aLine) {
-	Lock l(scs);
+	Lock l(cs);
 	MakeCall("dcpp", "UserDataIn", 1, aConn, aLine);
 	return GetLuaBool();
 }
 
 bool UserConnectionScriptInstance::onUserConnectionMessageOut(UserConnection* aConn, const string& aLine) {
-	Lock l(scs);
+	Lock l(cs);
 	MakeCall("dcpp", "UserDataOut", 1, aConn, aLine);
 	return GetLuaBool();
 }
 //END
-
 void UserConnection::connect(const string& aServer, uint16_t aPort) throw(SocketException, ThreadException) { 
 	dcassert(!socket);
 
@@ -182,12 +187,7 @@ void UserConnection::inf(bool withToken) {
 	AdcCommand c(AdcCommand::CMD_INF);
 	c.addParam("ID", ClientManager::getInstance()->getMyCID().toBase32());
 	if(withToken) {
-		if(getToken().compare(0, 2, "TO") == 0) {
-			// Compatibility with pre-0.700
-			c.addParam(getToken());
-		} else {
-			c.addParam("TO", getToken());
-		}
+		c.addParam("TO", getToken());
 	}
 	send(c);
 }
@@ -240,5 +240,5 @@ void UserConnection::on(Failed, const string& aLine) throw() {
 
 /**
  * @file
- * $Id: UserConnection.cpp 336 2007-11-18 13:26:41Z bigmuscle $
+ * $Id: UserConnection.cpp 355 2008-01-05 14:43:39Z bigmuscle $
  */

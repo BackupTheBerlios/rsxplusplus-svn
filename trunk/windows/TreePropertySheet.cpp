@@ -21,7 +21,6 @@
 
 #include "TreePropertySheet.h"
 #include "../client/ResourceManager.h"
-#include "../rsx/RsxUtil.h"
 
 static const TCHAR SEPARATOR = _T('\\');
 

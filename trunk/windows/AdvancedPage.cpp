@@ -27,7 +27,7 @@
 #include "../client/FavoriteManager.h"
 #include "WinUtil.h"
 
-//RSX++ // moved to rsx page
+//RSX++ // removed
 PropPage::Item AdvancedPage::items[] = { { 0, 0, PropPage::T_END } };
 
 AdvancedPage::ListItem AdvancedPage::listItems[] = {
@@ -59,6 +59,7 @@ AdvancedPage::ListItem AdvancedPage::listItems[] = {
 	{ SettingsManager::FILTER_ENTER, ResourceManager::SETTINGS_FILTER_ENTER },
 	{ SettingsManager::SHOW_SHELL_MENU, ResourceManager::SETTINGS_SHOW_SHELL_MENU },
 	{ SettingsManager::ENABLE_REAL_UPLOAD_QUEUE, ResourceManager::ENABLE_REAL_UPLOAD_QUEUE },
+	{ SettingsManager::MAGNET_ASK, ResourceManager::MAGNET_ASK },
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
 
@@ -76,5 +77,5 @@ void AdvancedPage::write() {
 
 /**
  * @file
- * $Id: AdvancedPage.cpp 265 2006-12-13 10:16:32Z bigmuscle $
+ * $Id: AdvancedPage.cpp 351 2007-12-30 21:49:23Z bigmuscle $
  */

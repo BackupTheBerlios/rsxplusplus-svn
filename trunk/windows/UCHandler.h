@@ -151,5 +151,5 @@ private:
 
 /**
  * @file
- * $Id: UCHandler.h 322 2007-08-15 17:14:35Z bigmuscle $
+ * $Id: UCHandler.h 330 2007-10-13 22:26:06Z bigmuscle $
  */

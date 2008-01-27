@@ -41,15 +41,16 @@ POSSIBILITY OF SUCH DAMAGE.
 
 /* The current PCRE version information. */
 
-#define PCRE_MAJOR          @PCRE_MAJOR@
-#define PCRE_MINOR          @PCRE_MINOR@
-#define PCRE_PRERELEASE     @PCRE_PRERELEASE@
-#define PCRE_DATE           @PCRE_DATE@
+#define PCRE_MAJOR          7
+#define PCRE_MINOR          5
+#define PCRE_PRERELEASE     
+#define PCRE_DATE           2008-01-10
 
 /* When an application links to a PCRE DLL in Windows, the symbols that are
 imported have to be identified as such. When building PCRE, the appropriate
 export setting is defined in pcre_internal.h, which includes this file. So we
 don't change existing definitions of PCRE_EXP_DECL and PCRECPP_EXP_DECL. */
+#define PCRE_STATIC 1
 
 #if defined(_WIN32) && !defined(PCRE_STATIC)
 #  ifndef PCRE_EXP_DECL
@@ -248,26 +249,26 @@ non-recursive case for "frames". There is also an optional callout function
 that is triggered by the (?) regex item. For Virtual Pascal, these definitions
 have to take another form. */
 
-//#ifndef VPCOMPAT
+#ifndef VPCOMPAT
 //PCRE_EXP_DECL void *(*pcre_malloc)(size_t);
 //PCRE_EXP_DECL void  (*pcre_free)(void *);
 //PCRE_EXP_DECL void *(*pcre_stack_malloc)(size_t);
 //PCRE_EXP_DECL void  (*pcre_stack_free)(void *);
 //PCRE_EXP_DECL int   (*pcre_callout)(pcre_callout_block *);
-//#else   /* VPCOMPAT */
+#else   /* VPCOMPAT */
 //PCRE_EXP_DECL void *pcre_malloc(size_t);
 //PCRE_EXP_DECL void  pcre_free(void *);
 //PCRE_EXP_DECL void *pcre_stack_malloc(size_t);
 //PCRE_EXP_DECL void  pcre_stack_free(void *);
 //PCRE_EXP_DECL int   pcre_callout(pcre_callout_block *);
-//#endif  /* VPCOMPAT */
+#endif  /* VPCOMPAT */
 #define pcre_malloc malloc
 #define pcre_free free
 #define pcre_stack_malloc malloc
 #define pcre_stack_free free
 
 /* Exported PCRE functions */
-/*
+
 PCRE_EXP_DECL pcre *pcre_compile(const char *, int, const char **, int *,
                   const unsigned char *);
 PCRE_EXP_DECL pcre *pcre_compile2(const char *, int, int *, const char **,
@@ -299,37 +300,6 @@ PCRE_EXP_DECL const unsigned char *pcre_maketables(void);
 PCRE_EXP_DECL int  pcre_refcount(pcre *, int);
 PCRE_EXP_DECL pcre_extra *pcre_study(const pcre *, int, const char **);
 PCRE_EXP_DECL const char *pcre_version(void);
-*/
-/* adrian_007
- * damn it's made in so weird method! :P
- * 01/10/2007 - update to 7.4 ;)
- */
-extern pcre *pcre_compile(const char *, int, const char **,
-              int *, const unsigned char *);
-extern pcre *pcre_compile2(const char *, int, int *, const char **,
-                  int *, const unsigned char *);
-extern int  pcre_config(int, void *);
-extern int  pcre_copy_named_substring(const pcre *, const char *,
-              int *, int, const char *, char *, int);
-extern int  pcre_copy_substring(const char *, int *, int, int,
-              char *, int);
-extern int  pcre_exec(const pcre *, const pcre_extra *,
-              const char *, int, int, int, int *, int);
-extern void pcre_free_substring(const char *);
-extern void pcre_free_substring_list(const char **);
-extern int  pcre_fullinfo(const pcre *, const pcre_extra *, int,
-              void *);
-extern int  pcre_get_named_substring(const pcre *, const char *,
-              int *, int,  const char *, const char **);
-extern int  pcre_get_stringnumber(const pcre *, const char *);
-extern int  pcre_get_substring(const char *, int *, int, int,
-              const char **);
-extern int  pcre_get_substring_list(const char *, int *, int,
-              const char ***);
-extern int  pcre_info(const pcre *, int *, int *);
-extern const unsigned char *pcre_maketables(void);
-extern pcre_extra *pcre_study(const pcre *, int, const char **);
-extern const char *pcre_version(void);
 
 #ifdef __cplusplus
 }  /* extern "C" */

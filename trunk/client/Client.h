@@ -28,13 +28,16 @@
 //RSX++
 #include "ScriptManager.h" // Lua
 #include "../rsx/rsx-settings/rsx-SettingsManager.h"
+#include "../rsx/PluginAPI/ClientInterface.h"
 
 struct ClientScriptInstance : public ScriptInstance {
 	bool onHubFrameEnter(Client* aClient, const string& aLine);
+	bool onClientMessage(Client* aClient, const string& prot, const string& aLine);
 };
 //END
 /** Yes, this should probably be called a Hub */
-class Client : public Speaker<ClientListener>, public BufferedSocketListener, protected TimerManagerListener, /*//RSX++ // Lua*/ public ClientScriptInstance /*END*/ {
+class Client : public iClient, public Speaker<ClientListener>, public BufferedSocketListener, protected TimerManagerListener, 
+	/*RSX++*/ public ClientScriptInstance/*END*/ {
 public:
 	typedef Client* Ptr;
 	typedef slist<Ptr> List;
@@ -59,7 +62,7 @@ public:
 
 	virtual string escape(string const& str) const { return str; }
 
-	bool isConnected() const throw() { return socket && socket->isConnected(); }
+	bool isConnected() const { return socket && socket->isConnected(); }
 	bool isOp() const { return getMyIdentity().isOp(); }
 
 	virtual void refreshUserList(bool) = 0;
@@ -83,8 +86,38 @@ public:
 	virtual void startCustomCheck(bool clients, bool filelists) = 0;
 	void addHubLine(const string& aMsg, int mType) { fire(ClientListener::AddClientLine(), this, aMsg, mType); }
 	void sendActionCommand(const OnlineUser& ou, int actionId);
-	//void statusMessage(const string& aLine) { fire(ClientListener::StatusMessage(), this, aLine); }
-	void putDetectors() { /*Lock l(cs);*/ stopMyINFOCheck(); stopChecking(); setCheckedAtConnect(false); }
+	void putDetectors() { stopMyINFOCheck(); stopChecking(); setCheckedAtConnect(false); }
+
+	/** Client Interface **/
+	// send message to hub
+	void iHubMessage(const string& aMsg) {
+		hubMessage(aMsg);
+	}
+	// add text to hub frame
+	void iAddHubLine(const string& aMsg, int mType = 0) {
+		addHubLine(aMsg, mType);
+	}
+	// get field value from hub identity
+	string iGetField(const char* name) const { 
+		return getHubIdentity().get(name); 
+	}
+	// get field value from my identity
+	string iGetMyField(const char* name) const { 
+		return getMyIdentity().get(name);
+	}
+	// get hub address
+	const string& iGetHubUrl() const { 
+		return hubUrl; 
+	}
+	// send user/raw command
+	void iSendUserCmd(const string& aUserCmd) { 
+		sendUserCmd(aUserCmd); 
+	}
+	// get pointer to user interface (search by nick)
+	iUser* getUserByNick(const std::string& aNick) { 
+		OnlineUser* ou = findUser(aNick);
+		return ou;
+	}
 	//END
 
 	static int getTotalCounts() {
@@ -132,26 +165,18 @@ public:
 	GETSET(string, currentNick, CurrentNick);
 	GETSET(string, currentDescription, CurrentDescription);
 	//RSX++
-	//we can use unused by protocol variables to stroe our settings
-	//it will give a little amount of free memory... it's always something ;)
-	//most common types are string and bool
-#define GSS(n, x) string get##n() const { return hubIdentity.get(x); } \
-	void set##n(const string& v) { hubIdentity.set(x, v); }
-#define GSB(n, x) bool get##n() const { return !hubIdentity.get(x).empty(); } \
-	void set##n(bool v) { hubIdentity.set(x, v ? "1" : Util::emptyString); }
-
-	GSS(CurrentEmail, "11");
-	GSS(UserProtected, "12");
-	GSB(UseFilter, "13");
-	GSB(UseAutosearch, "14");
-	GSB(UseHL, "15");
-	GSB(CheckClients, "51");
-	GSB(CheckFilelists, "52");
-	GSB(CheckOnConnect, "53");
-	GSB(CheckMyInfo, "54");
-	GSB(HideShare, "55");
-	GSB(CheckFakeShare, "56");
-	GSB(CheckedAtConnect, "57");
+	GETSET(string, currentEmail, CurrentEmail);
+	GETSET(bool, useFilter, UseFilter);
+	GETSET(bool, useAutosearch, UseAutosearch);
+	GETSET(bool, useHL, UseHL);
+	GETSET(string, userProtected, UserProtected);
+	GETSET(bool, checkClients, CheckClients);
+	GETSET(bool, checkFilelists, CheckFilelists);
+	GETSET(bool, checkOnConnect, CheckOnConnect);
+	GETSET(bool, checkMyInfo, CheckMyInfo);
+	GETSET(bool, hideShare, HideShare);
+	GETSET(bool, checkFakeShare, CheckFakeShare);
+	GETSET(bool, checkedAtConnect, CheckedAtConnect);
 	//END
 	GETSET(string, favIp, FavIp);
 	
@@ -164,10 +189,13 @@ public:
 	GETSET(bool, autoReconnect, AutoReconnect);
 	GETSET(bool, stealth, Stealth);
 
+	mutable CriticalSection cs;
+
 protected:
 	friend class ClientManager;
 	Client(const string& hubURL, char separator, bool secure_);
 	virtual ~Client() throw();
+
 	struct Counts {
 		Counts(long n = 0, long r = 0, long o = 0) : normal(n), registered(r), op(o) { }
 		volatile long normal;
@@ -207,13 +235,10 @@ protected:
 	virtual void on(Connected) throw();
 	virtual void on(Line, const string& aLine) throw();
 	virtual void on(Failed, const string&) throw();
-
 	//RSX++
 	GETSET(uint16_t, usersLimit, UsersLimit);
 	void insertRaw(const string& aRawCmd);
 	//END
-	mutable CriticalSection cs;
-
 private:
 	void putSender(bool clear = false); //RSX++
 

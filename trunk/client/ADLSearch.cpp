@@ -77,7 +77,7 @@ void ADLSearchManager::Load()
 					if(xml.findChild("IsForbidden")) {
 						search.isForbidden = (Util::toInt(xml.getChildData()) != 0);
 					}
-				//RSX++
+					//RSX++
 					if(xml.findChild("IsRegExp")) {
 						search.isRegExp = (Util::toInt(xml.getChildData()) != 0);
 					}
@@ -96,7 +96,7 @@ void ADLSearchManager::Load()
 					if(xml.findChild("AdlsPoints")) {
 						search.adlsPoints = Util::toInt(xml.getChildData());
 					}
-				//END
+					//END
 					if(xml.findChild("MaxSize")) {
 						search.maxFileSize = Util::toInt64(xml.getChildData());
 					}
@@ -109,14 +109,14 @@ void ADLSearchManager::Load()
 					if(xml.findChild("IsAutoQueue")) {
 						search.isAutoQueue = (Util::toInt(xml.getChildData()) != 0);
 					}
-				//RSX++
+					//RSX++
 					if(xml.findChild("AdlsComment")) {
 						search.adlsComment = xml.getChildData();
 					}
 					if(xml.findChild("IsCaseSensitive")) {
 						search.isCaseSensitive = (Util::toInt(xml.getChildData()) != 0);
 					}
-				//END
+					//END
 					// Add search to collection
 					if(search.searchString.size() > 0) {
 						collection.push_back(search);
@@ -174,7 +174,7 @@ void ADLSearchManager::Save()
 
 			xml.addTag("IsActive", search.isActive);
 			xml.addChildAttrib(type, string("int"));
-//RSX++
+			//RSX++
 			xml.addTag("IsForbidden", search.isForbidden);
 			xml.addChildAttrib(type, string("int"));
 
@@ -195,7 +195,7 @@ void ADLSearchManager::Save()
 
 			xml.addTag("AdlsPoints", search.adlsPoints);
 			xml.addChildAttrib(type, string("int"));
-//END
+			//END
 			xml.addTag("MaxSize", search.maxFileSize);
 			xml.addChildAttrib(type, string("int64"));
 
@@ -207,13 +207,13 @@ void ADLSearchManager::Save()
 
 			xml.addTag("IsAutoQueue", search.isAutoQueue);
 			xml.addChildAttrib(type, string("int"));
-//RSX++
+			//RSX++
 			xml.addTag("AdlsComment", search.adlsComment);
 			xml.addChildAttrib(type, string("string"));
 
 			xml.addTag("IsCaseSensitive", search.isCaseSensitive);
 			xml.addChildAttrib(type, string("int"));
-//END
+			//END
 			xml.stepOut();
 		}
 
@@ -272,9 +272,13 @@ void ADLSearchManager::MatchesFile(DestDirList& destDirVector, DirectoryListing:
 			destDirVector[is->ddIndex].dir->files.push_back(copyFile);
 			destDirVector[is->ddIndex].fileAdded = true;
 
-			if(is->isAutoQueue){
-				QueueManager::getInstance()->add(SETTING(DOWNLOAD_DIRECTORY) + currentFile->getName(),
-					currentFile->getSize(), currentFile->getTTH(), getUser());
+			if(is->isAutoQueue) {
+				try {
+					QueueManager::getInstance()->add(SETTING(DOWNLOAD_DIRECTORY) + currentFile->getName(),
+						currentFile->getSize(), currentFile->getTTH(), getUser());
+				} catch(const QueueException&) {
+					// ...
+				}
 			}
 
 			if(breakOnFirst) {
@@ -309,7 +313,7 @@ void ADLSearchManager::MatchesDirectory(DestDirList& destDirVector, DirectoryLis
 		if(is->MatchesDirectory(currentDir->getName())) {
 			destDirVector[is->ddIndex].subdir = 
 				new DirectoryListing::AdlDirectory(fullPath, destDirVector[is->ddIndex].dir, currentDir->getName());
-//RSX++
+			//RSX++
 			if(is->isForbidden) {
 				destDirVector[is->ddIndex].subdir->setPoints(is->adlsPoints);
 				destDirVector[is->ddIndex].subdir->setAdlsComment(is->adlsComment);
@@ -318,7 +322,7 @@ void ADLSearchManager::MatchesDirectory(DestDirList& destDirVector, DirectoryLis
 				destDirVector[is->ddIndex].subdir->setKickString(is->kickString);
 				destDirVector[is->ddIndex].subdir->setFromFavs(is->fromFavs);
 			}
-//END
+			//END
 			destDirVector[is->ddIndex].dir->directories.push_back(destDirVector[is->ddIndex].subdir);
 			if(breakOnFirst) {
 				// Found a match, search no more
@@ -402,5 +406,5 @@ void ADLSearchManager::matchRecurse(DestDirList &aDestList, DirectoryListing::Di
 
 /**
  * @file
- * $Id: ADLSearch.cpp 334 2007-11-04 13:04:34Z bigmuscle $
+ * $Id: ADLSearch.cpp 357 2008-01-12 19:01:33Z bigmuscle $
  */

@@ -75,6 +75,9 @@ public:
 
 	bool getTree(const TTHValue& root, TigerTree& tt);
 
+	/** Return block size of the tree associated with root, or 0 if no such tree is in the store */
+	size_t getBlockSize(const TTHValue& root);
+
 	void addTree(const string& aFileName, uint32_t aTimeStamp, const TigerTree& tt) {
 		hashDone(aFileName, aTimeStamp, tt, -1);
 	}
@@ -99,7 +102,6 @@ public:
 	}
 
 private:
-
 	class Hasher : public Thread {
 	public:
 		Hasher() : stop(false), running(false), rebuild(false), currentSize(0) { }
@@ -147,6 +149,7 @@ private:
 		void addTree(const TigerTree& tt) throw();
 		const TTHValue* getTTH(const string& aFileName);
 		bool getTree(const TTHValue& root, TigerTree& tth);
+		size_t getBlockSize(const TTHValue& root) const;
 		bool isDirty() { return dirty; }
 	private:
 		/** Root -> tree mapping info, we assume there's only one tree for each root (a collision would mean we've broken tiger...) */
@@ -177,12 +180,15 @@ private:
 
 		typedef vector<FileInfo> FileInfoList;
 		typedef FileInfoList::iterator FileInfoIter;
+		typedef FileInfoList::const_iterator FileInfoIterC;
 
 		typedef unordered_map<string, FileInfoList> DirMap;
 		typedef DirMap::iterator DirIter;
+		typedef DirMap::const_iterator DirIterC;
 
-		typedef unordered_map<TTHValue, TreeInfo, TTHValue::Hash> TreeMap;
+		typedef unordered_map<TTHValue, TreeInfo> TreeMap;
 		typedef TreeMap::iterator TreeIter;
+		typedef TreeMap::const_iterator TreeIterC;
 
 		friend class HashLoader;
 
@@ -225,5 +231,5 @@ private:
 
 /**
  * @file
- * $Id: HashManager.h 326 2007-09-01 16:55:01Z bigmuscle $
+ * $Id: HashManager.h 355 2008-01-05 14:43:39Z bigmuscle $
  */

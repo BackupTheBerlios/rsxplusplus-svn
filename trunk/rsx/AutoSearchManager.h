@@ -25,11 +25,8 @@
 #include "../client/Singleton.h"
 #include "../client/Util.h"
 
-#define AUTOSEARCH_FILE "Autosearch.xml"
-
 class Autosearch {
 public:
-
 	typedef Autosearch* Ptr;
 	typedef vector<Ptr> List;
 
@@ -47,58 +44,35 @@ public:
 };
 
 class SimpleXML;
-
 class AutoSearchManager : public Singleton<AutoSearchManager>, private TimerManagerListener, private SearchManagerListener {
 public:
 	AutoSearchManager();
 	~AutoSearchManager();
 
 	void on(TimerManagerListener::Minute, uint64_t aTick) throw();
-	void on(SearchManagerListener::SR, SearchResult*) throw();
 
 	Autosearch* addAutosearch(bool en, const string& ss, int ft, int act, int actCmd, bool disp, const string& cheat) {
 		Autosearch* ipw = new Autosearch(en, ss, ft, act, actCmd, disp, cheat);
 		as.push_back(ipw);
 		return ipw;
 	}
-	void getAutosearch(unsigned int index, Autosearch &ipw) {
-		if(as.size() > index)
-			ipw = *as[index];
-	}
-	void updateAutosearch(unsigned int index, Autosearch &ipw) {
-		*as[index] = ipw;
-	}
+
 	void removeAutosearch(unsigned int index) {
-		if(as.size() > index)
-			as.erase(as.begin() + index);
+		if(as.size() > index) {
+			Autosearch::List::iterator i = as.begin() + index;
+			Autosearch* a = (*i);
+			as.erase(i);
+			delete a;
+			a = NULL;
+		}
 	}
+
 	Autosearch::List& getAutosearch() { 
 		Lock l(acs);
 		return as; 
-	};
-
-	void moveAutosearchUp(unsigned int id) {
-		Lock l(acs);
-		//hack =]
-		if(as.size() > id) {
-			swap(as[id], as[id-1]);
-		}
 	}
 
-	void moveAutosearchDown(unsigned int id) {
-		Lock l(acs);
-		//hack =]
-		if(as.size() > id) {
-			swap(as[id], as[id+1]);
-		}
-	}
-
-	void setActiveItem(unsigned int index, bool active) {
-		Autosearch::List::iterator i = as.begin() + index;
-		if(i < as.end()) {
-			(*i)->setEnabled(active);
-		}
-	}
+	GETSET(string, version, Version);
 
 	void AutosearchLoad();
 	void AutosearchSave();
@@ -117,11 +91,17 @@ private:
 
 	void removeRegExpFromSearches();
 	void getAllowedHubs();
-	string matchDirectory(const string& aFile, const string& aStrToMatch);
+	bool matchDirectory(const string& aFile, const string& aStrToMatch);
 
 	GETSET(uint16_t, time, Time);
 
-	void addToQueue(SearchResult* sr, bool pausePrio = false);
+	void on(SearchManagerListener::SR, SearchResult* sr) throw() {
+		onSearchResult(sr);
+	}
+
+	void onSearchResult(const SearchResult* sr) throw();
+	void addToQueue(const string& fl, const TTHValue& tth, int64_t s, const UserPtr& u, bool pausePrio = false);
+	void processAction(const Autosearch* a, const string fl, const TTHValue tth, int64_t s, const UserPtr u);
 
 	bool endOfList;
 	uint16_t recheckTime;

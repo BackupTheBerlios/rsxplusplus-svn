@@ -172,9 +172,11 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 		case 5:	RsxUtil::changeProcessPriority(RsxUtil::IDLE);			break;
 		default: break;
 	}
+	//--
+	WinUtil::init(m_hWnd);
+	//--
 	PluginsManager::getInstance()->startPlugins();
 	//END
-	WinUtil::init(m_hWnd);
 
 	trayMessage = RegisterWindowMessage(_T("TaskbarCreated"));
 
@@ -326,12 +328,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 		}
 		SettingsManager::getInstance()->set(SettingsManager::BADSOFT_DETECTIONS, ++times_detected);
 	}
-	//RSX++
-	if(FindWindow(NULL, _T("PeerGuardian")) || FindWindow(NULL, _T("PeerGuardian 2")) || FindWindow(NULL, _T("ProtoWall"))) {
-		SettingsManager::getInstance()->set(SettingsManager::PG_ENABLE, false);
-	}
-	//END
-
+	
 	if(BOOLSETTING(OPEN_PUBLIC)) PostMessage(WM_COMMAND, ID_FILE_CONNECT);
 	if(BOOLSETTING(OPEN_FAVORITE_HUBS)) PostMessage(WM_COMMAND, IDC_FAVORITES);
 	if(BOOLSETTING(OPEN_FAVORITE_USERS)) PostMessage(WM_COMMAND, IDC_FAVUSERS);
@@ -423,19 +420,7 @@ HWND MainFrame::createQuickSearchBar() {
 }
 
 LRESULT MainFrame::onQuickSearchChar(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled){
-/*	if(uMsg == WM_CHAR)
-		if(wParam == VK_BACK)
-			m_bDisableAutoComplete = true;
-		else
-			m_bDisableAutoComplete = false;
-*/
 	switch(wParam) {
-/*		case VK_DELETE:
-			if(uMsg == WM_KEYDOWN) {
-				m_bDisableAutoComplete = true;
-			}
-			bHandled = FALSE;
-			break;*/
 		case VK_RETURN:
 			if( WinUtil::isShift() || WinUtil::isCtrl() || WinUtil::isAlt() ) {
 				bHandled = FALSE;
@@ -463,13 +448,7 @@ LRESULT MainFrame::onQuickSearchColor(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lPa
 }
 
 void MainFrame::updateQuickSearches(const tstring& search /*= Util::emptyStringT*/) {
-/*	if(BOOLSETTING(AUTO_COMPLETE_SEARCH)) {
-		QuickSearchBox.ResetContent();
-		TStringList list = HistoryManager::getInstance()->getSearchHistory();
-		for(TStringIter i = list.begin(); i != list.end(); ++i) {
-			QuickSearchBox.InsertString(0, i->c_str());
-		}
-	} else */if(!search.empty()) {
+	if(!search.empty()) {
 		QuickSearchBox.InsertString(0, search.c_str());
 	}
 	if(BOOLSETTING(CLEAR_SEARCH)){
@@ -624,7 +603,7 @@ HWND MainFrame::createPluginsToolbar() {
 		if((*i)->getIcon() > 0) {
 			HBITMAP b = (HBITMAP)::LoadImage((*i)->getHandle(), MAKEINTRESOURCE((*i)->getIcon()), IMAGE_BITMAP, 12, 12, LR_SHARED);
 			ctrlPluginToolbar.AddBitmap(1, b);
-			const string& pToolTip =  (*i)->getName() + " v" + (*i)->getVersion();
+			const string& pToolTip = (*i)->getName() + " v" + (*i)->getVersion();
 			int nStringId = ctrlPluginToolbar.AddStrings(Text::toT(pToolTip).c_str());
 			ctrlPluginToolbar.InsertButton(n, (*i)->getId(), TBSTYLE_AUTOSIZE | TBSTYLE_BUTTON, TBSTATE_ENABLED, n, nStringId, NULL);
 		}
@@ -770,11 +749,11 @@ void MainFrame::parseCommandLine(const tstring& cmdLine)
 	if( (j = cmdLine.find(_T("magnet:?"), i)) != string::npos) {
 		WinUtil::parseMagnetUri(cmdLine.substr(j));
 	}
-//RSX++ // Lua
+	//RSX++ // Lua
 	if( (j = cmdLine.find(_T("lua "), i)) != string::npos) {
 		ScriptManager::getInstance()->EvaluateChunk(Text::fromT(cmdLine.substr(j+4)));
 	}
-//END
+	//END
 }
 
 LRESULT MainFrame::onCopyData(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/) {
@@ -925,7 +904,7 @@ void MainFrame::on(HttpConnectionListener::Complete, HttpConnection* /*aConn*/, 
 				}
 				xml.stepOut();
 			}
-			xml.resetCurrentChild();
+			/*xml.resetCurrentChild();
 			if(RSXBOOLSETTING(GET_UPDATE_PROFILE)) {
 				if(xml.findChild("VersionProfile")) {
 					if((Util::toDouble(xml.getChildData()) > Util::toDouble(ClientProfileManager::getInstance()->getProfileVersion()))) {
@@ -938,14 +917,14 @@ void MainFrame::on(HttpConnectionListener::Complete, HttpConnection* /*aConn*/, 
 						showUpdate = true;
 					}
 				}
-			}
+			}*/
 			xml.stepOut();
 		}
 		if(showUpdate && !BOOLSETTING(DONT_ANNOUNCE_NEW_VERSIONS)) {
 			UpdateDialog dlg(versionInfo);
 			dlg.DoModal();
 		}
-	} catch(const SimpleXMLException& e) {
+	} catch(const Exception& e) {
 		LogManager::getInstance()->message("[UpdateCheck] Error: " + e.getError());
 	}
 }
@@ -959,9 +938,8 @@ LRESULT MainFrame::onGetToolTip(int idCtrl, LPNMHDR pnmh, BOOL& /*bHandled*/) {
 	LPNMTTDISPINFO pDispInfo = (LPNMTTDISPINFO)pnmh;
 	pDispInfo->szText[0] = 0;
 
-	if((idCtrl != 0) && !(pDispInfo->uFlags & TTF_IDISHWND)) {
-		//...
-	} else { // if we're really in the status bar, this should be detected intelligently
+	if(!((idCtrl != 0) && !(pDispInfo->uFlags & TTF_IDISHWND))) {
+		// if we're really in the status bar, this should be detected intelligently
 		lastLines.clear();
 		for(TStringIter i = lastLinesList.begin(); i != lastLinesList.end(); ++i) {
 			lastLines += *i;
@@ -1154,7 +1132,6 @@ LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 
 			DWORD id;
 			stopperThread = CreateThread(NULL, 0, stopper, this, 0, &id);
-
 			closing = true;
 		}
 		bHandled = TRUE;
@@ -1168,7 +1145,6 @@ LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 		DestroyIcon(pmicon.hIcon);
 		bHandled = FALSE;
 	}
-
 	return 0;
 }
 
@@ -1182,7 +1158,6 @@ LRESULT MainFrame::onLink(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL
 		case IDC_HELP_TRANSLATIONS: site = _T(__HOMESITE); break;
 		case IDC_HELP_FAQ: site = _T(__WIKI); break;
 		case IDC_HELP_DISCUSS: site = _T(__FORUM); break;
-//		case IDC_HELP_DONATE: site = _T("http://strongdc.sf.net/donate.php"); break;
 		default: dcassert(0);
 	}
 
@@ -1201,8 +1176,6 @@ int MainFrame::run() {
 		Thread::setThreadPriority(Thread::LOW);
 		lastTTHdir = Util::getFilePath(file);
 
-		//char TTH[192*8/(5*8)+2];
-		//char buf[512*1024];
 		AutoArray<char> TTH(192*8/(5*8)+2);
 		AutoArray<char> buf(512*1024);
 
@@ -1256,7 +1229,7 @@ void MainFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 		w[8] = w[9] - 60;
 #define setw(x) w[x] = max(w[x+1] - statusSizes[x], 0)
 		setw(7); setw(6); setw(5); setw(4); setw(3); setw(2); setw(1); setw(0);
-
+#undef setw
 		ctrlStatus.SetParts(10, w);
 		ctrlLastLines.SetMaxTipWidth(w[0]);
 	}
@@ -1339,7 +1312,7 @@ LRESULT MainFrame::onTrayIcon(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, B
 	return 0;
 }
 
-void MainFrame::ShowBalloonTip(LPCTSTR szMsg, LPCTSTR szTitle, DWORD dwInfoFlags) {
+void MainFrame::ShowBalloonTip(tstring szMsg, tstring szTitle, DWORD dwInfoFlags) {
 	Popup* p = new Popup;
 	p->Title = szTitle;
 	p->Message = szMsg;
@@ -1445,72 +1418,72 @@ LRESULT MainFrame::onQuickConnect(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 }
 
 void MainFrame::on(TimerManagerListener::Second, uint64_t aTick) throw() {
-		Util::increaseUptime();
-		int64_t diff = (int64_t)((lastUpdate == 0) ? aTick - 1000 : aTick - lastUpdate);
-		int64_t updiff = Socket::getTotalUp() - lastUp;
-		int64_t downdiff = Socket::getTotalDown() - lastDown;
+	Util::increaseUptime();
+	int64_t diff = (int64_t)((lastUpdate == 0) ? aTick - 1000 : aTick - lastUpdate);
+	int64_t updiff = Socket::getTotalUp() - lastUp;
+	int64_t downdiff = Socket::getTotalDown() - lastDown;
 
-		TStringList* str = new TStringList();
-		str->push_back(Util::getAway() ? TSTRING(AWAY) : _T(""));
-		str->push_back(TSTRING(SHARED) + _T(": ") + Util::formatBytesW(ShareManager::getInstance()->getSharedSize()));
-		str->push_back(_T("H: ") + Text::toT(Client::getCounts()));
-		str->push_back(TSTRING(SLOTS) + _T(": ") + Util::toStringW(UploadManager::getInstance()->getFreeSlots()) + _T('/') + Util::toStringW(UploadManager::getInstance()->getSlots()) + _T(" (") + Util::toStringW(UploadManager::getInstance()->getFreeExtraSlots()) + _T('/') + Util::toStringW(SETTING(EXTRA_SLOTS)) + _T(")"));
-		str->push_back(_T("D: ") + Util::formatBytesW(Socket::getTotalDown()));
-		str->push_back(_T("U: ") + Util::formatBytesW(Socket::getTotalUp()));
-		str->push_back(_T("D: [") + Util::toStringW(DownloadManager::getInstance()->getDownloadCount()) + _T("][") + (SETTING(MAX_DOWNLOAD_SPEED_LIMIT) == 0 ? (tstring)_T("N") : Util::toStringW((int)SETTING(MAX_DOWNLOAD_SPEED_LIMIT)) + _T("k")) + _T("] ") + Util::formatBytesW(downdiff*1000I64/diff) + _T("/s"));
-		str->push_back(_T("U: [") + Util::toStringW(UploadManager::getInstance()->getUploadCount()) + _T("][") + (SETTING(MAX_UPLOAD_SPEED_LIMIT) == 0 ? (tstring)_T("N") : Util::toStringW((int)SETTING(MAX_UPLOAD_SPEED_LIMIT)) + _T("k")) + _T("] ") + Util::formatBytesW(updiff*1000I64/diff) + _T("/s"));
-		PostMessage(WM_SPEAKER, STATS, (LPARAM)str);
+	TStringList* str = new TStringList();
+	str->push_back(Util::getAway() ? TSTRING(AWAY) : _T(""));
+	str->push_back(TSTRING(SHARED) + _T(": ") + Util::formatBytesW(ShareManager::getInstance()->getSharedSize()));
+	str->push_back(_T("H: ") + Text::toT(Client::getCounts()));
+	str->push_back(TSTRING(SLOTS) + _T(": ") + Util::toStringW(UploadManager::getInstance()->getFreeSlots()) + _T('/') + Util::toStringW(UploadManager::getInstance()->getSlots()) + _T(" (") + Util::toStringW(UploadManager::getInstance()->getFreeExtraSlots()) + _T('/') + Util::toStringW(SETTING(EXTRA_SLOTS)) + _T(")"));
+	str->push_back(_T("D: ") + Util::formatBytesW(Socket::getTotalDown()));
+	str->push_back(_T("U: ") + Util::formatBytesW(Socket::getTotalUp()));
+	str->push_back(_T("D: [") + Util::toStringW(DownloadManager::getInstance()->getDownloadCount()) + _T("][") + (SETTING(MAX_DOWNLOAD_SPEED_LIMIT) == 0 ? (tstring)_T("N") : Util::toStringW((int)SETTING(MAX_DOWNLOAD_SPEED_LIMIT)) + _T("k")) + _T("] ") + Util::formatBytesW(downdiff*1000I64/diff) + _T("/s"));
+	str->push_back(_T("U: [") + Util::toStringW(UploadManager::getInstance()->getUploadCount()) + _T("][") + (SETTING(MAX_UPLOAD_SPEED_LIMIT) == 0 ? (tstring)_T("N") : Util::toStringW((int)SETTING(MAX_UPLOAD_SPEED_LIMIT)) + _T("k")) + _T("] ") + Util::formatBytesW(updiff*1000I64/diff) + _T("/s"));
+	PostMessage(WM_SPEAKER, STATS, (LPARAM)str);
 
-		SettingsManager::getInstance()->set(SettingsManager::TOTAL_UPLOAD, SETTING(TOTAL_UPLOAD) + updiff);
-		SettingsManager::getInstance()->set(SettingsManager::TOTAL_DOWNLOAD, SETTING(TOTAL_DOWNLOAD) + downdiff);
-		lastUpdate = aTick;
-		lastUp = Socket::getTotalUp();
-		lastDown = Socket::getTotalDown();
+	SettingsManager::getInstance()->set(SettingsManager::TOTAL_UPLOAD, SETTING(TOTAL_UPLOAD) + updiff);
+	SettingsManager::getInstance()->set(SettingsManager::TOTAL_DOWNLOAD, SETTING(TOTAL_DOWNLOAD) + downdiff);
+	lastUpdate = aTick;
+	lastUp = Socket::getTotalUp();
+	lastDown = Socket::getTotalDown();
 
-		if(SETTING(DISCONNECT_SPEED) < 1) {
-			SettingsManager::getInstance()->set(SettingsManager::DISCONNECT_SPEED, 1);
+	if(SETTING(DISCONNECT_SPEED) < 1) {
+		SettingsManager::getInstance()->set(SettingsManager::DISCONNECT_SPEED, 1);
+	}
+
+	if(BOOLSETTING(THROTTLE_ENABLE)) {
+		// Limitery sem a tam, vsude kam se podivam :o)
+		if( SETTING(MAX_UPLOAD_SPEED_LIMIT_NORMAL) > 0) {
+			if( SETTING(MAX_UPLOAD_SPEED_LIMIT_NORMAL) < ((5 * UploadManager::getInstance()->getSlots()) + 4) ) {
+				SettingsManager::getInstance()->set(SettingsManager::MAX_UPLOAD_SPEED_LIMIT_NORMAL, ((5 * UploadManager::getInstance()->getSlots()) + 4) );
+			}
+			if ( (SETTING(MAX_DOWNLOAD_SPEED_LIMIT_NORMAL) > ( SETTING(MAX_UPLOAD_SPEED_LIMIT_NORMAL) * 7)) || ( SETTING(MAX_DOWNLOAD_SPEED_LIMIT_NORMAL) == 0) ) {
+				SettingsManager::getInstance()->set(SettingsManager::MAX_DOWNLOAD_SPEED_LIMIT_NORMAL, (SETTING(MAX_UPLOAD_SPEED_LIMIT_NORMAL)*7) );
+			}
 		}
 
-		if(BOOLSETTING(THROTTLE_ENABLE)) {
-			// Limitery sem a tam, vsude kam se podivam :o)
-			if( SETTING(MAX_UPLOAD_SPEED_LIMIT_NORMAL) > 0) {
-				if( SETTING(MAX_UPLOAD_SPEED_LIMIT_NORMAL) < ((5 * UploadManager::getInstance()->getSlots()) + 4) ) {
-					SettingsManager::getInstance()->set(SettingsManager::MAX_UPLOAD_SPEED_LIMIT_NORMAL, ((5 * UploadManager::getInstance()->getSlots()) + 4) );
-				}
-				if ( (SETTING(MAX_DOWNLOAD_SPEED_LIMIT_NORMAL) > ( SETTING(MAX_UPLOAD_SPEED_LIMIT_NORMAL) * 7)) || ( SETTING(MAX_DOWNLOAD_SPEED_LIMIT_NORMAL) == 0) ) {
-					SettingsManager::getInstance()->set(SettingsManager::MAX_DOWNLOAD_SPEED_LIMIT_NORMAL, (SETTING(MAX_UPLOAD_SPEED_LIMIT_NORMAL)*7) );
-				}
+		if( SETTING(MAX_UPLOAD_SPEED_LIMIT_TIME) > 0) {
+			if( SETTING(MAX_UPLOAD_SPEED_LIMIT_TIME) < ((5 * UploadManager::getInstance()->getSlots()) + 4) ) {
+				SettingsManager::getInstance()->set(SettingsManager::MAX_UPLOAD_SPEED_LIMIT_TIME, ((5 * UploadManager::getInstance()->getSlots()) + 4) );
 			}
+			if ( (SETTING(MAX_DOWNLOAD_SPEED_LIMIT_TIME) > ( SETTING(MAX_UPLOAD_SPEED_LIMIT_TIME) * 7)) || ( SETTING(MAX_DOWNLOAD_SPEED_LIMIT_TIME) == 0) ) {
+				SettingsManager::getInstance()->set(SettingsManager::MAX_DOWNLOAD_SPEED_LIMIT_TIME, (SETTING(MAX_UPLOAD_SPEED_LIMIT_TIME)*7) );
+			}
+		}
 
-			if( SETTING(MAX_UPLOAD_SPEED_LIMIT_TIME) > 0) {
-				if( SETTING(MAX_UPLOAD_SPEED_LIMIT_TIME) < ((5 * UploadManager::getInstance()->getSlots()) + 4) ) {
-					SettingsManager::getInstance()->set(SettingsManager::MAX_UPLOAD_SPEED_LIMIT_TIME, ((5 * UploadManager::getInstance()->getSlots()) + 4) );
-				}
-				if ( (SETTING(MAX_DOWNLOAD_SPEED_LIMIT_TIME) > ( SETTING(MAX_UPLOAD_SPEED_LIMIT_TIME) * 7)) || ( SETTING(MAX_DOWNLOAD_SPEED_LIMIT_TIME) == 0) ) {
-					SettingsManager::getInstance()->set(SettingsManager::MAX_DOWNLOAD_SPEED_LIMIT_TIME, (SETTING(MAX_UPLOAD_SPEED_LIMIT_TIME)*7) );
-				}
-			}
-
-			time_t currentTime;
-			time(&currentTime);
-			int currentHour = localtime(&currentTime)->tm_hour;
-			if (SETTING(TIME_DEPENDENT_THROTTLE) &&
-				((SETTING(BANDWIDTH_LIMIT_START) < SETTING(BANDWIDTH_LIMIT_END) &&
-					currentHour >= SETTING(BANDWIDTH_LIMIT_START) && currentHour < SETTING(BANDWIDTH_LIMIT_END)) ||
-				(SETTING(BANDWIDTH_LIMIT_START) > SETTING(BANDWIDTH_LIMIT_END) &&
-					(currentHour >= SETTING(BANDWIDTH_LIMIT_START) || currentHour < SETTING(BANDWIDTH_LIMIT_END)))))
-			{
-				//want to keep this out of the upload limiting code proper, where it might otherwise work more naturally
-				SettingsManager::getInstance()->set(SettingsManager::MAX_UPLOAD_SPEED_LIMIT, SETTING(MAX_UPLOAD_SPEED_LIMIT_TIME));
-				SettingsManager::getInstance()->set(SettingsManager::MAX_DOWNLOAD_SPEED_LIMIT, SETTING(MAX_DOWNLOAD_SPEED_LIMIT_TIME));
-			} else {
-				SettingsManager::getInstance()->set(SettingsManager::MAX_UPLOAD_SPEED_LIMIT, SETTING(MAX_UPLOAD_SPEED_LIMIT_NORMAL));
-				SettingsManager::getInstance()->set(SettingsManager::MAX_DOWNLOAD_SPEED_LIMIT, SETTING(MAX_DOWNLOAD_SPEED_LIMIT_NORMAL));
-			}
+		time_t currentTime;
+		time(&currentTime);
+		int currentHour = localtime(&currentTime)->tm_hour;
+		if (SETTING(TIME_DEPENDENT_THROTTLE) &&
+			((SETTING(BANDWIDTH_LIMIT_START) < SETTING(BANDWIDTH_LIMIT_END) &&
+				currentHour >= SETTING(BANDWIDTH_LIMIT_START) && currentHour < SETTING(BANDWIDTH_LIMIT_END)) ||
+			(SETTING(BANDWIDTH_LIMIT_START) > SETTING(BANDWIDTH_LIMIT_END) &&
+				(currentHour >= SETTING(BANDWIDTH_LIMIT_START) || currentHour < SETTING(BANDWIDTH_LIMIT_END)))))
+		{
+			//want to keep this out of the upload limiting code proper, where it might otherwise work more naturally
+			SettingsManager::getInstance()->set(SettingsManager::MAX_UPLOAD_SPEED_LIMIT, SETTING(MAX_UPLOAD_SPEED_LIMIT_TIME));
+			SettingsManager::getInstance()->set(SettingsManager::MAX_DOWNLOAD_SPEED_LIMIT, SETTING(MAX_DOWNLOAD_SPEED_LIMIT_TIME));
 		} else {
-			SettingsManager::getInstance()->set(SettingsManager::MAX_UPLOAD_SPEED_LIMIT, 0);
-			SettingsManager::getInstance()->set(SettingsManager::MAX_DOWNLOAD_SPEED_LIMIT, 0);
-		}		
+			SettingsManager::getInstance()->set(SettingsManager::MAX_UPLOAD_SPEED_LIMIT, SETTING(MAX_UPLOAD_SPEED_LIMIT_NORMAL));
+			SettingsManager::getInstance()->set(SettingsManager::MAX_DOWNLOAD_SPEED_LIMIT, SETTING(MAX_DOWNLOAD_SPEED_LIMIT_NORMAL));
+			}
+	} else {
+		SettingsManager::getInstance()->set(SettingsManager::MAX_UPLOAD_SPEED_LIMIT, 0);
+		SettingsManager::getInstance()->set(SettingsManager::MAX_DOWNLOAD_SPEED_LIMIT, 0);
+	}		
 }
 
 void MainFrame::on(HttpConnectionListener::Data, HttpConnection* /*conn*/, const uint8_t* buf, size_t len) throw() {
@@ -1565,7 +1538,7 @@ LRESULT MainFrame::onActivateApp(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/
 }
 
 LRESULT MainFrame::onAppCommand(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/) {
-		if(GET_APPCOMMAND_LPARAM(lParam) == APPCOMMAND_BROWSER_FORWARD)
+	if(GET_APPCOMMAND_LPARAM(lParam) == APPCOMMAND_BROWSER_FORWARD)
 		ctrlTab.SwitchTo();
 	if(GET_APPCOMMAND_LPARAM(lParam) == APPCOMMAND_BROWSER_BACKWARD)
 		ctrlTab.SwitchTo(false);

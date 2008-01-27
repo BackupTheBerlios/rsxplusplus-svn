@@ -35,8 +35,9 @@
 template<class Hasher, size_t baseBlockSize = 1024>
 class MerkleTree {
 public:
-	enum { HASH_SIZE = Hasher::HASH_SIZE };
-	enum { BASE_BLOCK_SIZE = baseBlockSize };
+	static const size_t BITS = Hasher::BITS;
+	static const size_t BYTES = Hasher::BYTES;
+	static const size_t BASE_BLOCK_SIZE = baseBlockSize;
 
 	typedef HashValue<Hasher> MerkleValue;
 	typedef vector<MerkleValue> MerkleList;
@@ -55,7 +56,7 @@ public:
 	{
 		size_t n = calcBlocks(aFileSize, aBlockSize);
 		for(size_t i = 0; i < n; i++)
-			leaves.push_back(MerkleValue(aData + i * Hasher::HASH_SIZE));
+			leaves.push_back(MerkleValue(aData + i * Hasher::BYTES));
 
 		calcRoot();
 	}
@@ -140,18 +141,18 @@ public:
 	void setFileSize(int64_t aSize) { fileSize = aSize; }
 
 	bool verifyRoot(const uint8_t* aRoot) {
-		return memcmp(aRoot, getRoot().data(), HASH_SIZE) == 0;
+		return memcmp(aRoot, getRoot().data(), BYTES) == 0;
 	}
 
 	void calcRoot() {
 		root = getHash(0, fileSize);
 	}
 
-	vector<uint8_t> getLeafData() {
-		vector<uint8_t> buf(getLeaves().size() * HASH_SIZE);
+	ByteVector getLeafData() {
+		ByteVector buf(getLeaves().size() * BYTES);
 		uint8_t* p = &buf[0];
 		for(size_t i = 0; i < getLeaves().size(); ++i) {
-			memcpy(p + i * HASH_SIZE, &getLeaves()[i], HASH_SIZE);
+			memcpy(p + i * BYTES, &getLeaves()[i], BYTES);
 		}
 		return buf;
 	}
@@ -187,8 +188,8 @@ private:
 		uint8_t one = 1;
 		Hasher h;
 		h.update(&one, 1);
-		h.update(a.data, MerkleValue::SIZE);
-		h.update(b.data, MerkleValue::SIZE);
+		h.update(a.data, MerkleValue::BYTES);
+		h.update(b.data, MerkleValue::BYTES);
 		return MerkleValue(h.finalize());
 	}
 
@@ -229,5 +230,5 @@ private:
 
 /**
  * @file
- * $Id: MerkleTree.h 317 2007-08-04 14:52:24Z bigmuscle $
+ * $Id: MerkleTree.h 358 2008-01-17 10:48:01Z bigmuscle $
  */

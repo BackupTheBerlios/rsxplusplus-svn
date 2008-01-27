@@ -302,7 +302,7 @@ public:
 	bool isDownloading() { return (useHttp && running); }
 
 // Favorite Users
-	typedef unordered_map<CID, FavoriteUser, CID::Hash> FavoriteMap;
+	typedef unordered_map<CID, FavoriteUser> FavoriteMap;
 	FavoriteMap getFavoriteUsers() { Lock l(cs); return users; }
 	PreviewApplication::List& getPreviewApps() { return previewApplications; }
 
@@ -589,5 +589,5 @@ private:
 
 /**
  * @file
- * $Id: FavoriteManager.h 338 2007-12-06 20:44:27Z bigmuscle $
+ * $Id: FavoriteManager.h 355 2008-01-05 14:43:39Z bigmuscle $
  */

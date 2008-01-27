@@ -72,6 +72,7 @@ private:
 #ifdef _WIN32
 	static DWORD lastTick;
 	static uint32_t cycles;
+	static FastCriticalSection cs;
 #else
 	static timeval tv;
 #endif
@@ -84,5 +85,5 @@ private:
 
 /**
  * @file
- * $Id: TimerManager.h 317 2007-08-04 14:52:24Z bigmuscle $
+ * $Id: TimerManager.h 341 2007-12-22 20:50:58Z bigmuscle $
  */

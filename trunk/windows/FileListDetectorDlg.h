@@ -1,26 +1,29 @@
+/* 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
 
-#if !defined(AFX_FileListDetectorDlg_H__A7EB85C3_1EEA_4FEC_8450_C090219B8619__INCLUDED_)
-#define AFX_FileListDetectorDlg_H__A7EB85C3_1EEA_4FEC_8450_C090219B8619__INCLUDED_
-
-#if _MSC_VER > 1000
-#pragma once
-#endif // _MSC_VER > 1000
+#ifndef FILELIST_DETECTOR_DLG_H
+#define FILELIST_DETECTOR_DLG_H
 
 #include "../client/Util.h"
 #include "../client/ClientProfileManager.h"
 
 #include "../client/RawManager.h"
 
-class FileListDetectorDlg : public CDialogImpl<FileListDetectorDlg>, protected RawSelector
-{
-	CEdit ctrlName, ctrlDetect, ctrlCheatingDescription;
-
-	CComboBox cRaw;
-
-	CButton ctrlBadClient;
-
+class FileListDetectorDlg : public CDialogImpl<FileListDetectorDlg>, protected RawSelector {
 public:
-	
 	string name;
 	string detect;
 	string cheatingDescription;
@@ -56,7 +59,7 @@ public:
 		if(wID == IDOK) {
 			updateVars();
 			if(adding) {
-				FileListDetectorProfile::List lst = ClientProfileManager::getInstance()->getFileListDetectors();
+				FileListDetectorProfile::List& lst = ClientProfileManager::getInstance()->getFileListDetectors();
 				for(FileListDetectorProfile::List::const_iterator j = lst.begin(); j != lst.end(); ++j) {
 					if((*j).getName().compare(name) == 0) {
 						MessageBox(_T("A file list generator profile with this name already exists"), _T("Error!"), MB_ICONSTOP);
@@ -69,11 +72,14 @@ public:
 		return 0;
 	}
 private:
+	CEdit ctrlName, ctrlDetect, ctrlCheatingDescription;
+	CComboBox cRaw;
+	CButton ctrlBadClient;
+
 	enum { BUF_LEN = 1024 };
 
 	void updateControls();
 	void updateVars();
 	void getProfile();
 };
-
-#endif
+#endif //FILELIST_DETECTOR_DLG_H

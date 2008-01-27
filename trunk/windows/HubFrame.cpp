@@ -287,10 +287,8 @@ void HubFrame::onEnter() {
 			prevCommands.push_back(s);
 		}
 		currentCommand = _T("");
-		//RSX++
-		bool dropMessageLua = client->onHubFrameEnter(client, Text::fromT(s));
-		//@todo execute last, not first when using addHubLine
-		bool dropMessagePlugin = PluginsManager::getInstance()->onOutgoingMessage(client, Text::fromT(s));
+		//RSX++ //Lua & PluginAPI outgoing message
+		bool dropMessage = client->onHubFrameEnter(client, Text::fromT(s));
 		//END
 		// Special command
 		if(s[0] == _T('/')) {
@@ -456,7 +454,7 @@ void HubFrame::onEnter() {
 				if(client->isOp()) {
 					if(!client->isDetectorRunning()) {
 						if(!param.empty()) {
-							bool cl = false; bool fl = false;
+							bool cl = false, fl = false;
 							if(Util::stricmp(param.c_str(), _T("clients")) == 0) 
 								cl = true;
 							else if(Util::stricmp(param.c_str(), _T("filelists")) == 0) 
@@ -525,7 +523,7 @@ void HubFrame::onEnter() {
 				addLine(ClientManager::getInstance()->getHubsLoadInfo());
 			//END
 			} else {
-				if(!dropMessageLua && !dropMessagePlugin) { //RSX++
+				if(!dropMessage) { //RSX++
 					if (BOOLSETTING(SEND_UNKNOWN_COMMANDS)) {
 						client->hubMessage(Text::fromT(s));
 					} else {
@@ -542,7 +540,7 @@ void HubFrame::onEnter() {
 		} else {
 			if(BOOLSETTING(CZCHARS_DISABLE))
 				s = WinUtil::disableCzChars(s);
-			if(!dropMessageLua && !dropMessagePlugin) //RSX++
+			if(!dropMessage) //RSX++
 				client->hubMessage(Text::fromT(s));
 			ctrlMessage.SetWindowText(_T(""));
 		}
@@ -896,7 +894,7 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 					PlaySound(Text::toT(SETTING(SOUND_FAVUSER)).c_str(), NULL, SND_FILENAME | SND_ASYNC);
 
 				if(isFavorite && BOOLSETTING(POPUP_FAVORITE_CONNECTED)) {
-					MainFrame::getMainFrame()->ShowBalloonTip(Text::toT(u.onlineUser->getIdentity().getNick() + " - " + client->getHubName()).c_str(), CTSTRING(FAVUSER_ONLINE));
+					MainFrame::getMainFrame()->ShowBalloonTip(Text::toT(u.onlineUser->getIdentity().getNick() + " - " + client->getHubName()), TSTRING(FAVUSER_ONLINE));
 				}
 
 				if (showJoins || (favShowJoins && isFavorite)) {
@@ -941,7 +939,7 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 			unsetIconState();
 
 			if(BOOLSETTING(POPUP_HUB_CONNECTED)) {
-				MainFrame::getMainFrame()->ShowBalloonTip(Text::toT(client->getAddress()).c_str(), CTSTRING(CONNECTED));
+				MainFrame::getMainFrame()->ShowBalloonTip(Text::toT(client->getAddress()), TSTRING(CONNECTED));
 			}
 
 			if ((!SETTING(SOUND_HUBCON).empty()) && (!BOOLSETTING(SOUNDS_DISABLED)))
@@ -954,7 +952,7 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 				PlaySound(Text::toT(SETTING(SOUND_HUBDISCON)).c_str(), NULL, SND_FILENAME | SND_ASYNC);
 
 			if(BOOLSETTING(POPUP_HUB_DISCONNECTED)) {
-				MainFrame::getMainFrame()->ShowBalloonTip(Text::toT(client->getAddress()).c_str(), CTSTRING(DISCONNECTED));
+				MainFrame::getMainFrame()->ShowBalloonTip(Text::toT(client->getAddress()), TSTRING(DISCONNECTED));
 			}
 		} else if(i->first == ADD_CHAT_LINE) {
     		const MessageTask& msg = *static_cast<MessageTask*>(i->second);
@@ -1076,7 +1074,7 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 
 			tstring msg = Text::toT(static_cast<StringTask*>(i->second)->str);
 			if(BOOLSETTING(POPUP_CHEATING_USER) && msg.length() < 256) {
-				MainFrame::getMainFrame()->ShowBalloonTip(msg.c_str(), CTSTRING(CHEATING_USER));
+				MainFrame::getMainFrame()->ShowBalloonTip(msg, TSTRING(CHEATING_USER));
 			}
 
 			addLine(Text::toT(static_cast<StringTask*>(i->second)->str), cf, false, false);
@@ -1439,8 +1437,7 @@ LRESULT HubFrame::onTabContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lPar
 	tabMenu.AppendMenu(MF_SEPARATOR);
 	tabMenu.AppendMenu(MF_STRING, IDC_CLOSE_WINDOW, CTSTRING(CLOSE));
 
-	Lock l(client->cs);
-	if(!client->isConnected())
+	if(!(client && client->isConnected()))
 		tabMenu.EnableMenuItem((UINT)(HMENU)copyHubMenu, MF_GRAYED);
 	else
 		tabMenu.EnableMenuItem((UINT)(HMENU)copyHubMenu, MF_ENABLED);
@@ -1864,6 +1861,8 @@ LRESULT HubFrame::onFollow(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/,
 		clearTaskList();
 		client = ClientManager::getInstance()->getClient(Text::fromT(server));
 
+		ctrlClient.setClient(client);
+
 		RecentHubEntry r;
 		r.setName("*");
 		r.setDescription("***");
@@ -2055,6 +2054,10 @@ void HubFrame::on(StatusMessage, const Client*, const string& line) {
 }
 
 void HubFrame::on(PrivateMessage, const Client*, const OnlineUser& from, const OnlineUser& to, const OnlineUser& replyTo, const string& line) throw() { 
+	//RSX++
+	if(PluginsManager::getInstance()->onIncommingPM(const_cast<OnlineUser*>(&from), line))
+		return;
+	//END
 	speak(PRIVATE_MESSAGE, from, to, replyTo, Util::formatMessage(from.getIdentity().getNick(), line));
 }
 void HubFrame::on(NickTaken, const Client*) throw() {
@@ -2367,7 +2370,7 @@ bool HubFrame::PreparePopupMenu(CWindow *pCtrl, const tstring& sNick, OMenu& pMe
 	copySubMenu.AppendMenu(MF_STRING, IDC_COPY_SUB_CHEAT,			CTSTRING(COPY_CHEAT));
 	copySubMenu.AppendMenu(MF_STRING, IDC_COPY_SUB_HOST,			CTSTRING(COPY_HOST));
 	copySubMenu.AppendMenu(MF_STRING, IDC_COPY_SUB_CID,				CTSTRING(COPY_CID));
-	copySubMenu.InsertSeparator(0, TRUE, _T("Nick + ..."));
+	copySubMenu.InsertSeparatorFirst(_T("Nick + ..."));
 	//END
 
 	copyMenu.CreatePopupMenu();
@@ -2389,12 +2392,12 @@ bool HubFrame::PreparePopupMenu(CWindow *pCtrl, const tstring& sNick, OMenu& pMe
 	copyMenu.AppendMenu(MF_SEPARATOR);
 	copyMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)copySubMenu, _T("Nick + ..."));
 	//END
-	copyMenu.InsertSeparator(0, TRUE, TSTRING(COPY));
+	copyMenu.InsertSeparatorFirst(TSTRING(COPY));
 
     bool bIsChat = (pCtrl == ((CWindow*)&ctrlClient));
 	if(bIsChat && sNick.empty()) {
 		if(!ChatCtrl::sSelectedIP.empty()) {
-			pMenu.InsertSeparator(0, TRUE, ChatCtrl::sSelectedIP);
+			pMenu.InsertSeparatorFirst(ChatCtrl::sSelectedIP);
 			pMenu.AppendMenu(MF_STRING, IDC_WHOIS_IP, (CTSTRING(WHO_IS) + ChatCtrl::sSelectedIP).c_str() );
 			if ( client->isOp() ) {
 				pMenu.AppendMenu(MF_SEPARATOR);
@@ -2403,7 +2406,7 @@ bool HubFrame::PreparePopupMenu(CWindow *pCtrl, const tstring& sNick, OMenu& pMe
 				pMenu.AppendMenu(MF_STRING, IDC_UNBAN_IP, (_T("!unban ") + ChatCtrl::sSelectedIP).c_str());
 				pMenu.AppendMenu(MF_SEPARATOR);
 			}
-		} else pMenu.InsertSeparator(0, TRUE, _T("Text"));
+		} else pMenu.InsertSeparatorFirst(_T("Text"));
 		pMenu.AppendMenu(MF_STRING, ID_EDIT_COPY, CTSTRING(COPY));
 		pMenu.AppendMenu(MF_STRING, IDC_COPY_ACTUAL_LINE,  CTSTRING(COPY_LINE));
 		if(!sSelectedURL.empty()) 
@@ -2432,7 +2435,7 @@ bool HubFrame::PreparePopupMenu(CWindow *pCtrl, const tstring& sNick, OMenu& pMe
 			//END
 		    bool bIsMe = (sNick == Text::toT(client->getMyNick()));
 			// Jediny nick
-			pMenu.InsertSeparator(0, TRUE, sNick);
+			pMenu.InsertSeparatorFirst(sNick);
 
 			if(bIsChat) {
 				if(!BOOLSETTING(LOG_PRIVATE_CHAT)) {
@@ -2481,7 +2484,7 @@ bool HubFrame::PreparePopupMenu(CWindow *pCtrl, const tstring& sNick, OMenu& pMe
 			if(bIsChat == false) {
 				// Pocet oznacenych
 				int iCount = ctrlUsers.GetSelectedCount();
-				pMenu.InsertSeparator(0, TRUE, Util::toStringW(iCount) + _T(" ") + TSTRING(HUB_USERS));
+				pMenu.InsertSeparatorFirst(Util::toStringW(iCount) + _T(" ") + TSTRING(HUB_USERS));
 			}
 			if (ctrlUsers.GetSelectedCount() <= 25) {
 				pMenu.AppendMenu(MF_STRING, IDC_PUBLIC_MESSAGE, CTSTRING(SEND_PUBLIC_MESSAGE));
@@ -3073,5 +3076,5 @@ LRESULT HubFrame::onRemoveAll(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl
 
 /**
  * @file
- * $Id: HubFrame.cpp 334 2007-11-04 13:04:34Z bigmuscle $
+ * $Id: HubFrame.cpp 359 2008-01-17 17:53:50Z bigmuscle $
  */

@@ -27,7 +27,9 @@
 #include "../client/pme.h"
 #include "../client/Pointer.h"
 
-AutoSearchManager::AutoSearchManager() {
+#define AUTOSEARCH_FILE "Autosearch.xml"
+
+AutoSearchManager::AutoSearchManager() : version("1.00") {
 	TimerManager::getInstance()->addListener(this);
 	SearchManager::getInstance()->addListener(this);
 	removeRegExpFromSearches();
@@ -43,6 +45,7 @@ AutoSearchManager::AutoSearchManager() {
 AutoSearchManager::~AutoSearchManager() {
 	SearchManager::getInstance()->removeListener(this);
 	TimerManager::getInstance()->removeListener(this);
+	AutosearchSave();
 	for_each(as.begin(), as.end(), DeleteFunction());
 }
 
@@ -66,7 +69,8 @@ void AutoSearchManager::getAllowedHubs() {
 	cm->lock();
 	for(Client::List::const_iterator i = clients.begin(); i != clients.end(); ++i) {
 		Client* client = *i;
-		if(!client->isConnected()) continue;
+		if(!client || !client->isConnected())
+			continue;
 
 		if(client->getUseAutosearch())
 			allowedHubs.push_back(client->getHubUrl());
@@ -74,30 +78,27 @@ void AutoSearchManager::getAllowedHubs() {
 	cm->unlock();
 }
 
-string AutoSearchManager::matchDirectory(const string& aFile, const string& aStrToMatch) {
+bool AutoSearchManager::matchDirectory(const string& aFile, const string& aStrToMatch) {
 	string lastDir = Util::getLastDir(aFile);
 	string dir = Text::toLower(lastDir);
 	string strToMatch = Text::toLower(aStrToMatch);
 
 	//path separator at string's end
 	if(strToMatch.rfind(PATH_SEPARATOR) == string::npos)
-		strToMatch = strToMatch + PATH_SEPARATOR;
+		strToMatch += PATH_SEPARATOR;
 	if(dir.rfind(PATH_SEPARATOR) == string::npos)
-		dir = dir + PATH_SEPARATOR;
+		dir += PATH_SEPARATOR;
 
-	if(dir == strToMatch) {
-		return aFile;
+	if(dir.compare(strToMatch) == 0) {
+		return true;
 	} else {
-		return Util::emptyString;
+		return false;
 	}
 }
 
 void AutoSearchManager::on(TimerManagerListener::Minute, uint64_t /*aTick*/) throw() {
-	if(RSXBOOLSETTING(AUTOSEARCH_ENABLED_TIME) && RSXBOOLSETTING(AUTOSEARCH_ENABLED)) {
+	if(RSXBOOLSETTING(AUTOSEARCH_ENABLED_TIME) && RSXBOOLSETTING(AUTOSEARCH_ENABLED) && !as.empty()) {
 		Lock l(cs);
-		//empty list...
-		if(!as.size())
-			return;
 
 		if(endOfList) {
 			recheckTime++;
@@ -127,6 +128,8 @@ void AutoSearchManager::on(TimerManagerListener::Minute, uint64_t /*aTick*/) thr
 		users.clear();
 
 		if(pos < vs.end()) {
+			if((*pos) == NULL)
+				return;
 			SearchManager::getInstance()->search(allowedHubs, (*pos)->getSearchString(), 0, (SearchManager::TypeModes)(*pos)->getFileType(), SearchManager::SIZE_DONTCARE, "auto");
 			curSearch = (*pos)->getSearchString();
 			curPos++;
@@ -143,91 +146,53 @@ void AutoSearchManager::on(TimerManagerListener::Minute, uint64_t /*aTick*/) thr
 	}
 }
 
-void AutoSearchManager::on(SearchManagerListener::SR, SearchResult* sr) throw() {
+void AutoSearchManager::onSearchResult(const SearchResult* sr) throw() {
 	if(!as.empty() && RSXBOOLSETTING(AUTOSEARCH_ENABLED) && !allowedHubs.empty()) {
-		UserPtr user = static_cast<UserPtr>(sr->getUser());
-		if(users.find(user) == users.end()) {
-			users.insert(user);
-			for(Autosearch::List::const_iterator i = as.begin(); i != as.end(); ++i) {
-				if((*i)->getFileType() == 9) { //regexp
-					PME reg((*i)->getSearchString(), "gims");
-					if(reg.match(sr->getFile())) {
-						if((*i)->getAction() == 0) { //ban
-							ClientManager::getInstance()->kickFromAutosearch(sr->getUser(), (*i)->getRaw(), (*i)->getCheat(), sr->getFile(), Util::toString(sr->getSize()), sr->getTTH().toBase32(), (*i)->getDisplayCheat());
-							break;
-						} else if((*i)->getAction() == 1) {
-							addToQueue(sr);
-							break;
-						} else if((*i)->getAction() == 2) {
-							addToQueue(sr, true);
-							break;
-						} else if((*i)->getAction() == 3) {
-							ClientManager::getInstance()->addCheckToQueue(user, true);
-							break;
+		{
+			//Lock l(cs);
+			UserPtr user = static_cast<UserPtr>(sr->getUser());
+			if(users.find(user) == users.end()) {
+				users.insert(user);
+				Autosearch* item = NULL;
+
+				for(Autosearch::List::const_iterator i = as.begin(); i != as.end(); ++i) {
+					if((*i)->getFileType() == 9) { //regexp
+						PME reg((*i)->getSearchString(), "gims");
+						if(reg.IsValid() && reg.match(sr->getFile())) {
+							processAction((*i), sr->getFile(), sr->getTTH(), sr->getSize(), user);
 						}
+					} else if(curSearch.compare((*i)->getSearchString()) == 0) { //match only to current search
+						item = (*i);
+						break;
 					}
-				} else if(curSearch.compare((*i)->getSearchString()) == 0) { //match only to current search
-					if((*i)->getFileType() == 8) { //TTH
-						if(sr->getTTH().toBase32() == (*i)->getSearchString()) {
-							if((*i)->getAction() == 0) { //ban
-								ClientManager::getInstance()->kickFromAutosearch(sr->getUser(), (*i)->getRaw(), (*i)->getCheat(), sr->getFile(), Util::toString(sr->getSize()), sr->getTTH().toBase32(), (*i)->getDisplayCheat());
-								break;
-							} else if((*i)->getAction() == 1) {
-								addToQueue(sr);
-								break;
-							} else if((*i)->getAction() == 2) {
-								addToQueue(sr, true);
-								break;
-							} else if((*i)->getAction() == 3) {
-								ClientManager::getInstance()->addCheckToQueue(user, true);
-								break;
-							}
-						}
-					} else if((*i)->getFileType() == 7 && sr->getType() == SearchResult::TYPE_DIRECTORY) { //directory
-						string matchedDir = matchDirectory(sr->getFile(), (*i)->getSearchString());
-						if(!matchedDir.empty()) {
-							if((*i)->getAction() == 0) { //ban
-								ClientManager::getInstance()->kickFromAutosearch(sr->getUser(), (*i)->getRaw(), (*i)->getCheat(), matchedDir, Util::toString(sr->getSize()), sr->getTTH().toBase32(), (*i)->getDisplayCheat());
-								break;
-							} else if((*i)->getAction() == 1) {
-								addToQueue(sr);
-								break;
-							} else if((*i)->getAction() == 2) {
-								addToQueue(sr, true);
-								break;
-							} else if((*i)->getAction() == 3) {
-								ClientManager::getInstance()->addCheckToQueue(user, true);
+				}
+				if(!item)
+					return;
+				if(item->getFileType() == 8) { //TTH
+					if(sr->getTTH().toBase32() == item->getSearchString()) {
+						processAction(item, sr->getFile(), sr->getTTH(), sr->getSize(), user);
+					}
+				} else if(item->getFileType() == 7 && sr->getType() == SearchResult::TYPE_DIRECTORY) { //directory
+					bool found = matchDirectory(sr->getFile(), item->getSearchString());
+					if(found) {
+						processAction(item, sr->getFile(), sr->getTTH(), sr->getSize(), user);
+					}
+				} else if(ShareManager::getInstance()->checkType(sr->getFile(), item->getFileType())) {
+					if(!sr->getFile().empty()) {
+						const string& iFile = Text::toLower(sr->getFile());
+						StringTokenizer<string> tss(Text::toLower(item->getSearchString()), " ");
+						StringList& slSrch = tss.getTokens();
+						bool matched = true;
+						for(StringList::const_iterator j = slSrch.begin(); j != slSrch.end(); ++j) {
+							if(j->empty()) continue;
+							if(iFile.find(*j) == string::npos) {
+								matched = false;
 								break;
 							}
 						}
-					} else if(ShareManager::getInstance()->checkType(sr->getFile(), (*i)->getFileType())) {
-						if(!sr->getFile().empty()) {
-							string iFile = Text::toLower(sr->getFile());
-							StringTokenizer<string> tss(Text::toLower((*i)->getSearchString()), " ");
-							StringList& slSrch = tss.getTokens();
-							bool matched = true;
-							for(StringList::const_iterator j = slSrch.begin(); j != slSrch.end(); ++j) {
-								if(j->empty()) continue;
-								if(iFile.find(*j) == string::npos) {
-									matched = false;
-									break;
-								}
-							}
-							if(matched) {
-								if((*i)->getAction() == 0) { //ban
-									ClientManager::getInstance()->kickFromAutosearch(sr->getUser(), (*i)->getRaw(), (*i)->getCheat(), sr->getFile(), Util::toString(sr->getSize()), sr->getTTH().toBase32(), (*i)->getDisplayCheat());
-									break;
-								} else if((*i)->getAction() == 1) {
-									addToQueue(sr);
-									break;
-								} else if((*i)->getAction() == 2) {
-									addToQueue(sr, true);
-									break;
-								} else if((*i)->getAction() == 3) {
-									ClientManager::getInstance()->addCheckToQueue(user, true);
-									break;
-								}
-							}
+						slSrch.clear();
+						if(matched) {
+							processAction(item, sr->getFile(), sr->getTTH(), sr->getSize(), user);
 						}
 					}
 				}
@@ -236,11 +201,24 @@ void AutoSearchManager::on(SearchManagerListener::SR, SearchResult* sr) throw() 
 	}
 }
 
-void AutoSearchManager::addToQueue(SearchResult* sr, bool pausePrio/* = false*/) {
-	const string& fullpath = SETTING(DOWNLOAD_DIRECTORY) + Util::getFileName(sr->getFile());
-	if(!ShareManager::getInstance()->isTTHShared(sr->getTTH())) {
+void AutoSearchManager::processAction(const Autosearch* a, const string fl, const TTHValue tth, int64_t s, const UserPtr u) {
+	if(a->getAction() == 0) {
+		ClientManager::getInstance()->kickFromAutosearch(u, a->getRaw(), a->getCheat(), fl, Util::toString(s), tth.toBase32(), a->getDisplayCheat());
+	} else if(a->getAction() == 1) {
+		addToQueue(fl, tth, s, u);
+	} else if(a->getAction() == 2) {
+		addToQueue(fl, tth, s, u, true);
+	} else if(a->getAction() == 3) {
+		ClientManager::getInstance()->addCheckToQueue(u, true);
+	}
+}
+
+void AutoSearchManager::addToQueue(const string& fl, const TTHValue& tth, int64_t s, const UserPtr& u, bool pausePrio/* = false*/) {
+	Lock l(cs);
+	const string& fullpath = SETTING(DOWNLOAD_DIRECTORY) + Util::getFileName(fl);
+	if(!ShareManager::getInstance()->isTTHShared(tth)) {
 		try {
-			QueueManager::getInstance()->add(fullpath, sr->getSize(), sr->getTTH(), sr->getUser());
+			QueueManager::getInstance()->add(fullpath, s, tth, u);
 			if(pausePrio)
 				QueueManager::getInstance()->setPriority(fullpath, QueueItem::PAUSED);
 		} catch(...) {
@@ -250,6 +228,7 @@ void AutoSearchManager::addToQueue(SearchResult* sr, bool pausePrio/* = false*/)
 }
 
 void AutoSearchManager::AutosearchSave() {
+	Lock l(cs);
 	try {
 		SimpleXML xml;
 
@@ -271,6 +250,14 @@ void AutoSearchManager::AutosearchSave() {
 
 		xml.stepOut();
 		xml.stepOut();
+
+		xml.stepIn();
+		xml.addTag("VersionInfo");
+		xml.stepIn();
+		xml.addTag("Version", getVersion());
+		xml.stepOut();
+
+		xml.stepOut();
 		
 		string fname = Util::getConfigPath() + AUTOSEARCH_FILE;
 
@@ -281,11 +268,12 @@ void AutoSearchManager::AutosearchSave() {
 		File::deleteFile(fname);
 		File::renameFile(fname + ".tmp", fname);
 	} catch(const Exception& e) {
-		dcdebug("FavoriteManager::recentsave: %s\n", e.getError().c_str());
+		dcdebug("AutoSearchManager::AutosearchSave: %s\n", e.getError().c_str());
 	}
 }
 
 void AutoSearchManager::loadAutosearch(SimpleXML& aXml) {
+	Lock l(cs);
 	as.clear();
 	aXml.resetCurrentChild();
 	if(aXml.findChild("Autosearch")) {
@@ -301,6 +289,15 @@ void AutoSearchManager::loadAutosearch(SimpleXML& aXml) {
 		}
 		aXml.stepOut();
 	}
+
+	aXml.resetCurrentChild();
+	if(aXml.findChild("VersionInfo")) {
+		aXml.stepIn();
+		if(aXml.findChild("Version")) {
+			setVersion(aXml.getChildData());
+		}
+		aXml.stepOut();
+	}
 }
 
 void AutoSearchManager::AutosearchLoad() {
@@ -313,6 +310,6 @@ void AutoSearchManager::AutosearchLoad() {
 			xml.stepOut();
 		}
 	} catch(const Exception& e) {
-		dcdebug("FavoriteManager::recentload: %s\n", e.getError().c_str());
+		dcdebug("AutoSearchManager::AutosearchLoad: %s\n", e.getError().c_str());
 	}	
 }

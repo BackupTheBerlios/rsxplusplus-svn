@@ -61,6 +61,10 @@ LRESULT SpyFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 
 	ShareManager::getInstance()->setHits(0);
 
+	ClientManager::getInstance()->addListener(this);
+	TimerManager::getInstance()->addListener(this);
+	SettingsManager::getInstance()->addListener(this);
+
 	bHandled = FALSE;
 	return 1;
 }
@@ -251,5 +255,5 @@ void SpyFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/) throw() {
 
 /**
  * @file
- * $Id: SpyFrame.cpp 308 2007-07-13 18:57:02Z bigmuscle $
+ * $Id: SpyFrame.cpp 358 2008-01-17 10:48:01Z bigmuscle $
  */

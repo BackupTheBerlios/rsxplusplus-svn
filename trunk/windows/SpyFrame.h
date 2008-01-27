@@ -37,9 +37,6 @@ class SpyFrame : public MDITabChildWindowImpl<SpyFrame, TABDEFCLR, IDR_SPY>, pub
 public:
 	SpyFrame() : total(0), cur(0), closed(false), ignoreTth(BOOLSETTING(SPY_FRAME_IGNORE_TTH_SEARCHES)), ignoreTthContainer(WC_BUTTON, this, IGNORETTH_MESSAGE_MAP) {
 		memzero2(perSecond, sizeof(perSecond));
-		ClientManager::getInstance()->addListener(this);
-		TimerManager::getInstance()->addListener(this);
-		SettingsManager::getInstance()->addListener(this);
 	}
 
 	~SpyFrame() { }
@@ -117,5 +114,5 @@ private:
 
 /**
  * @file
- * $Id: SpyFrame.h 308 2007-07-13 18:57:02Z bigmuscle $
+ * $Id: SpyFrame.h 358 2008-01-17 10:48:01Z bigmuscle $
  */

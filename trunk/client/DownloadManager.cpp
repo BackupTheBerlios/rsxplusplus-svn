@@ -23,7 +23,6 @@
 
 #include "ResourceManager.h"
 #include "QueueManager.h"
-#include "HashManager.h"
 #include "Download.h"
 #include "LogManager.h"
 #include "User.h"
@@ -32,10 +31,6 @@
 #include "MerkleCheckOutputStream.h"
 #include "UserConnection.h"
 #include "ZUtils.h"
-#include "SharedFileStream.h"
-#include "ChunkOutputStream.h"
-#include "UploadManager.h"
-#include "PGManager.h" //RSX++
 
 #include <limits>
 
@@ -74,13 +69,13 @@ void DownloadManager::on(TimerManagerListener::Second, uint64_t aTick) throw() {
 	for(DownloadList::const_iterator i = downloads.begin(); i != downloads.end(); ++i) {
 		Download* d = *i;
 
-		if(d->getTotal() > 0) {
+		if(d->getPos() > 0) {
 			tickList.push_back(d);
-			(*i)->tick();
+			d->tick();
 		}
 
-		if (d->getType() == Transfer::TYPE_FILE) {
-			if (d->getSize() > (SETTING(DISCONNECT_FILESIZE) * 1048576)) {
+		if (d->getType() == Transfer::TYPE_FILE && d->getStart() > 0) {
+			if (d->getTigerTree().getFileSize() > (SETTING(DISCONNECT_FILESIZE) * 1048576)) {
 				if((d->getAverageSpeed() < SETTING(DISCONNECT_SPEED) * 1024)) {
 					if(	(((aTick - d->getLastTick())/1000) > (uint32_t)SETTING(DISCONNECT_TIME)) &&
 						(!QueueManager::getInstance()->dropSource(d)))
@@ -96,7 +91,7 @@ void DownloadManager::on(TimerManagerListener::Second, uint64_t aTick) throw() {
 		//RSX++ //Slow Download kick
 		else {
 			if(RSXBOOLSETTING(USE_SDL_KICK)) {
-				if(d->isSet(Download::FLAG_CHECK_FILE_LIST) && d->getActual() > 0) {
+				if(d->isSet(Download::FLAG_CHECK_FILE_LIST) && d->getStart() > 0) {
 					if((d->getAverageSpeed() < RSXSETTING(SDL_SPEED))) {
 						if(((aTick - d->getLastTick()) / 1000) > ((uint64_t)RSXSETTING(SDL_TIME))) {
 							ClientManager::getInstance()->setCheating(d->getUser(), "", RsxUtil::getSlowDLCheat(d->getAverageSpeed()), RSXSETTING(SDL_RAW), false, true, RSXBOOLSETTING(SHOW_SDL_RAW));
@@ -109,10 +104,10 @@ void DownloadManager::on(TimerManagerListener::Second, uint64_t aTick) throw() {
 			}
 		}
 		//END
+		if(tickList.size() > 0)
+			fire(DownloadManagerListener::Tick(), tickList);
+			
 	}
-	
-	if(tickList.size() > 0)
-		fire(DownloadManagerListener::Tick(), tickList);
 }
 
 void QueueManager::FileMover::moveFile(const string& source, const string& target) {
@@ -192,24 +187,6 @@ void DownloadManager::addConnection(UserConnectionPtr conn) {
 		return;
 	}
 
-	//RSX++
-	if(SETTING(PG_ENABLE)) {
-		if(SETTING(PG_DOWN) && !conn->isSet(UserConnection::FLAG_OP) && PGManager::getInstance()->notAbused()) {
-			string company = PGManager::getInstance()->getIPBlock(conn->getRemoteIp());
-			if (!company.empty()) {
-				conn->error("Your IP is Blocked! (" + company + ")[RSX++'s PeerGuardian]");
-				conn->getUser()->setFlag(User::PG_BLOCK);
-				QueueManager::getInstance()->removeSource(conn->getUser(), QueueItem::Source::FLAG_PG_BLOCKED);
-				removeConnection(conn);
-				if(SETTING(PG_LOG)) {
-					PGManager::getInstance()->log(conn, company, PGManager::OUTCONN);
-				}
-				return;
-			}
-		}
-	}
-	//END
-
 	conn->addListener(this);
 	checkDownloads(conn);
 }
@@ -235,19 +212,22 @@ bool DownloadManager::startDownload(QueueItem::Priority prio) {
 	return true;
 }
 
-void DownloadManager::checkDownloads(UserConnection* aConn, bool reconn /*=false*/) {
+void DownloadManager::checkDownloads(UserConnection* aConn) {
 	dcassert(aConn->getDownload() == NULL);
 
-	if(reconn || !startDownload(QueueManager::getInstance()->hasDownload(aConn->getUser()))) {
+	QueueItem::Priority prio = QueueManager::getInstance()->hasDownload(aConn->getUser());
+	if(!startDownload(prio)) {
 		removeConnection(aConn);
 		return;
 	}
 
-	string aMessage = Util::emptyString;
-	Download* d = QueueManager::getInstance()->getDownload(*aConn, aMessage);
+	string errorMessage = Util::emptyString;
+	Download* d = QueueManager::getInstance()->getDownload(*aConn, errorMessage);
 
 	if(!d) {
-		if(!aMessage.empty()) fire(DownloadManagerListener::Status(), aConn, aMessage);
+		if(!errorMessage.empty()) {
+			fire(DownloadManagerListener::Status(), aConn, errorMessage);
+		}
 		aConn->setLastActivity(0);
 
 		Lock l(cs);
@@ -282,41 +262,47 @@ void DownloadManager::on(AdcCommand::SND, UserConnection* aSource, const AdcComm
 	}
 
 	const string& type = cmd.getParam(0);
+	int64_t start = Util::toInt64(cmd.getParam(2));
 	int64_t bytes = Util::toInt64(cmd.getParam(3));
-
 	//RSX++ // set filelist size
 	DownloadPtr download = aSource->getDownload();
 	if(download && download->getPos() == 0 && download->isSet(Download::FLAG_CHECK_FILE_LIST)) {	
 		ClientManager::getInstance()->setListSize(aSource->getUser(), bytes, true);
 	}
 	//END
-
 	if(type != Transfer::names[aSource->getDownload()->getType()]) {
 		// Uhh??? We didn't ask for this...
 		aSource->disconnect();
 		return;
 	}
 
-	if(prepareFile(aSource, (bytes == -1) ? -1 : aSource->getDownload()->getPos() + bytes, cmd.hasFlag("ZL", 4))) {
+	if(prepareFile(aSource, start, bytes, cmd.hasFlag("ZL", 4))) {
 		aSource->setDataMode();
 	}
 }
 
-bool DownloadManager::prepareFile(UserConnection* aSource, int64_t newSize, bool z) {
+bool DownloadManager::prepareFile(UserConnection* aSource, int64_t start, int64_t bytes, bool z) {
 	Download* d = aSource->getDownload();
 	dcassert(d != NULL);
 
-	if(newSize != -1) {
-		d->setSize(newSize);
-		if(d->getFileSize() == -1)
-			d->setFileSize(newSize);
+	dcdebug("Preparing " I64_FMT ":" I64_FMT ", " I64_FMT ":" I64_FMT"\n", d->getStartPos(), start, d->getSize(), bytes);
+	if(d->getSize() == -1) {
+		if(bytes != -1) {
+			d->setSize(bytes);
+		} else {
+			failDownload(aSource, STRING(INVALID_SIZE));
+			return false;
+		}
+	} else if(d->getSize() != bytes || d->getStartPos() != start) {
+		// This is not what we requested...
+		failDownload(aSource, STRING(INVALID_SIZE));
+		return false;
 	}
 	
-	if(d->getPos() >= d->getSize() || d->getSize() > d->getFileSize()) {
+	if(d->getPos() >= d->getSize()) {
 		// Already finished? A zero-byte file list could cause this...
-		aSource->setDownload(NULL);
 		removeDownload(d);
-		QueueManager::getInstance()->putDownload(d, false);
+		QueueManager::getInstance()->putDownload(d, true);
 		removeConnection(aSource);
 		return false;
 	}
@@ -331,27 +317,24 @@ bool DownloadManager::prepareFile(UserConnection* aSource, int64_t newSize, bool
 		return false;
 	}
 
-
 	try {
 		if((d->getType() == Transfer::TYPE_FILE || d->getType() == Transfer::TYPE_FULL_LIST) && SETTING(BUFFER_SIZE) > 0 ) {
 			d->setFile(new BufferedOutputStream<true>(d->getFile()));
 		}
-		
-		if(d->getType() == Transfer::TYPE_FILE) {
-			typedef MerkleCheckOutputStream<TigerTree, true> MerkleStream;
-			d->setFile(new MerkleStream(d->getTigerTree(), d->getFile(), d->getStartPos(), d));
-			d->setFile(new ChunkOutputStream<true>(d->getFile(), &d->getTTH(), d->getStartPos(), d->getPos()));
-			d->setFlag(Download::FLAG_TTH_CHECK);
-		}
 	} catch(const Exception& e) {
-		delete d->getFile();
-		d->setFile(NULL);
 		failDownload(aSource, e.getError());
 		return false;
 	} catch(...) {
 		delete d->getFile();
 		d->setFile(NULL);
 		return false;			
+	}
+			
+	if(d->getType() == Transfer::TYPE_FILE) {
+		typedef MerkleCheckOutputStream<TigerTree, true> MerkleStream;
+		
+		d->setFile(new MerkleStream(d->getTigerTree(), d->getFile(), d->getStartPos()));
+		d->setFlag(Download::FLAG_TTH_CHECK);
 	}
 	
 	if(z) {
@@ -372,113 +355,12 @@ void DownloadManager::on(UserConnectionListener::Data, UserConnection* aSource, 
 	dcassert(d != NULL);
 
 	try {
-		try{
-			dcassert(d->getFile());
-			d->addPos(d->getFile()->write(aData, aLen), aLen);
-		} catch(const ChunkDoneException e) {
-			dcdebug("ChunkDoneException ... %I64d\n", e.pos);
-
-			if(e.pos > 0 && d->getTreeValid()) {
-				FileChunksInfo::Ptr lpFileDataInfo = FileChunksInfo::Get(&d->getTTH());
-				if(!(lpFileDataInfo == (FileChunksInfo*)NULL)){
-					lpFileDataInfo->verifyBlock(e.pos - 1, d->getTigerTree(), d->getTempTarget());
-				}
-			}
-
-			d->setPos(e.pos);
-			if(d->getPos() == d->getSize()){
-				aSource->setDownload(NULL);
-				removeDownload(d);
-				QueueManager::getInstance()->putDownload(d, false, false);
-				aSource->setLineMode(0);
-				checkDownloads(aSource);
-			}else{
-				failDownload(aSource, e.getError());
-				ClientManager::getInstance()->connect(aSource->getUser(), Util::toString(Util::rand()));
-			}
-			return;
-
-		} catch(const FileDoneException e) {
-			dcdebug("FileDoneException.....\n");
-
-			if(!d->getTreeValid())
-			{
-				if(HashManager::getInstance()->getTree(d->getTTH(), d->getTigerTree()))
-					d->setTreeValid(true);
-			}
-
-			UploadManager::getInstance()->abortUpload(d->getTempTarget(), false);
-			abortDownload(d->getPath(), d);
-
-			if(d->getTreeValid()) {
-
-				FileChunksInfo::Ptr lpFileDataInfo = FileChunksInfo::Get(&d->getTTH());
-				if(!(lpFileDataInfo == (FileChunksInfo*)NULL))
-				{
-					dcdebug("Do last verify.....\n");
-					if(!lpFileDataInfo->doLastVerify(d->getTigerTree(), d->getTempTarget())) {
-						dcdebug("last verify failed .....\n");
-
-						if ((!SETTING(SOUND_TTH).empty()) && (!BOOLSETTING(SOUNDS_DISABLED)))
-							PlaySound(Text::toT(SETTING(SOUND_TTH)).c_str(), NULL, SND_FILENAME | SND_ASYNC);
-
-						failDownload(aSource, Util::emptyString);
-						ClientManager::getInstance()->connect(aSource->getUser(), Util::toString(Util::rand()));		
-						return;
-					}
-				}
-			}
-
-			// RevConnect : For partial file sharing, abort upload first to move file correctly
-			UploadManager::getInstance()->abortUpload(d->getTempTarget());
-			
-			// wait aborting other downloads
-			for(int t = 0; t < 20; t++)
-			{
-				bool aborting = false;
-				{
-					Lock l(cs);
-					
-					for(DownloadList::const_iterator i = downloads.begin(); i != downloads.end(); ++i) {
-						Download* download = *i;
-						if(download != d && download->getPath() == d->getPath()) {
-							download->getUserConnection().disconnect();
-							aborting = true;
-							break;
-						}
-					}
-				}
-				
-				if(!aborting) break;
-				Thread::sleep(250);
-			}
-
-			d->setPos(e.pos);
-			if(d->getPos() == d->getSize())
-				aSource->setLineMode(0);
-			handleEndData(aSource);
-			return;	
-		}
+		d->addPos(d->getFile()->write(aData, aLen), aLen);
 
 		if(d->getPos() > d->getSize()) {
 			throw Exception(STRING(TOO_MUCH_DATA));
 		} else if(d->getPos() == d->getSize()) {
-			if(d->getType() != Transfer::TYPE_FILE) {
-				handleEndData(aSource);
-			} else { // peer's partial size < chunk size
-				if(d->getTreeValid()) {
-					FileChunksInfo::Ptr lpFileDataInfo = FileChunksInfo::Get(&d->getTTH());
-					if(!(lpFileDataInfo == (FileChunksInfo*)NULL)) {
-						dcassert(d->getPos() > 0);
-						lpFileDataInfo->verifyBlock(d->getPos() - 1, d->getTigerTree(), d->getTempTarget());
-					}
-				}
-
-				aSource->setDownload(NULL);
-				removeDownload(d);
-				QueueManager::getInstance()->putDownload(d, false, false);
-				checkDownloads(aSource);
-			}
+			handleEndData(aSource);
 			aSource->setLineMode(0);
 		}
 	} catch(const FileException& e) {
@@ -494,12 +376,8 @@ void DownloadManager::handleEndData(UserConnection* aSource) {
 	Download* d = aSource->getDownload();
 	dcassert(d != NULL);
 
-	bool reconn = true;
-
 	if(d->getType() == Transfer::TYPE_TREE) {
 		d->getFile()->flush();
-		delete d->getFile();
-		d->setFile(NULL);
 
 		int64_t bl = 1024;
 		while(bl * (int64_t)d->getTigerTree().getLeaves().size() < d->getTigerTree().getFileSize())
@@ -514,31 +392,22 @@ void DownloadManager::handleEndData(UserConnection* aSource) {
 
 			QueueManager::getInstance()->removeSource(d->getPath(), aSource->getUser(), QueueItem::Source::FLAG_BAD_TREE, false);
 
-			aSource->setDownload(NULL);
 			QueueManager::getInstance()->putDownload(d, false);
 
 			checkDownloads(aSource);
 			return;
 		}
 		d->setTreeValid(true);
-		reconn = false;
 	} else {
 		// First, finish writing the file (flushing the buffers and closing the file...)
 		try {
 			d->getFile()->flush();
-			delete d->getFile();
-			d->setFile(0);
 		} catch(const FileException& e) {
 			failDownload(aSource, e.getError());
 			return;
 		}
 
 		dcdebug("Download finished: %s, size " I64_FMT ", downloaded " I64_FMT "\n", d->getPath().c_str(), d->getSize(), d->getPos());
-		reconn = d->getType() == Transfer::TYPE_FILE && (d->getPos() != d->getSize());
-
-		if(BOOLSETTING(LOG_DOWNLOADS) && (BOOLSETTING(LOG_FILELIST_TRANSFERS) || d->getType() == Transfer::TYPE_FILE)) {
-			logDownload(aSource, d);
-		}
 	}
 
 	removeDownload(d);
@@ -551,11 +420,10 @@ void DownloadManager::handleEndData(UserConnection* aSource) {
 		return;
 	}
 	//END
-	fire(DownloadManagerListener::Complete(), d, d->getType() == Transfer::TYPE_TREE);
+	//fire(DownloadManagerListener::Complete(), d, d->getType() == Transfer::TYPE_TREE);
 
-	aSource->setDownload(NULL);
-	QueueManager::getInstance()->putDownload(d, true);	
-	checkDownloads(aSource, reconn);
+	QueueManager::getInstance()->putDownload(d, true, false);	
+	checkDownloads(aSource);
 }
 
 int64_t DownloadManager::getRunningAverage() {
@@ -566,12 +434,6 @@ int64_t DownloadManager::getRunningAverage() {
 		avg += static_cast<int64_t>(d->getAverageSpeed());
 	}
 	return avg;
-}
-
-void DownloadManager::logDownload(UserConnection* aSource, Download* d) {
-	StringMap params;
-	d->getParams(*aSource, params);
-	LOG(LogManager::DOWNLOAD, params);
 }
 
 void DownloadManager::on(UserConnectionListener::MaxedOut, UserConnection* aSource, string param) throw() { 
@@ -602,11 +464,11 @@ void DownloadManager::failDownload(UserConnection* aSource, const string& reason
 		removeDownload(d);
 		//fire(DownloadManagerListener::Failed(), d, reason);
 
-		if ( d->getType() == Transfer::TYPE_FULL_LIST ) {
-			if (reason.find("File Not Available") != string::npos || reason.find("File non disponibile") != string::npos ) {
+		if (d->getType() == Transfer::TYPE_FULL_LIST ) {
+			if(reason.find("File Not Available") != string::npos || reason.find("File non disponibile") != string::npos ) {
 				ClientManager::getInstance()->setCheating(aSource->getUser(), "", "filelist not available", RSXSETTING(FILELIST_NA), false, true, RSXBOOLSETTING(SHOW_FILELIST_NA), false, true);
+				QueueManager::getInstance()->putDownload(d, true);
 				fire(DownloadManagerListener::CheckComplete(), aSource); //RSX++
-				QueueManager::getInstance()->putDownload(d, true, false);
 				removeConnection(aSource);
 				return;
 			} else if(reason == STRING(DISCONNECTED)) {
@@ -617,8 +479,8 @@ void DownloadManager::failDownload(UserConnection* aSource, const string& reason
 				ClientManager::getInstance()->setCheating(aSource->getUser(), "MaxedOut", "No slots for TestSUR", -1, true);
 			else
 				ClientManager::getInstance()->setCheating(aSource->getUser(), reason, "", -1, true);
+			QueueManager::getInstance()->putDownload(d, true);
 			fire(DownloadManagerListener::CheckComplete(), aSource); //RSX++
-			QueueManager::getInstance()->putDownload(d, true, false);
 			removeConnection(aSource);
 			return;
 		}
@@ -637,29 +499,22 @@ void DownloadManager::removeDownload(Download* d) {
 			} catch(const Exception&) {
 			}
 		}
-
-		delete d->getFile();
-		d->setFile(NULL);
-
-		if(d->isSet(Download::FLAG_ANTI_FRAG)) {
-			d->unsetFlag(Download::FLAG_ANTI_FRAG);
-		} 
 	}
 
 	{
 		Lock l(cs);
-
 		dcassert(find(downloads.begin(), downloads.end(), d) != downloads.end());
+
 		downloads.erase(remove(downloads.begin(), downloads.end(), d), downloads.end());
 	}
 }
 
-void DownloadManager::abortDownload(const string& aTarget, const Download* except) {
+void DownloadManager::abortDownload(const string& aTarget) {
 	Lock l(cs);
 	
 	for(DownloadList::const_iterator i = downloads.begin(); i != downloads.end(); ++i) {
 		Download* d = *i;
-		if(d != except && d->getPath() == aTarget) {
+		if(d->getPath() == aTarget) {
 			dcdebug("Trying to close connection for download 0x%X\n", d);
 			d->getUserConnection().disconnect(true);
 		}
@@ -686,7 +541,7 @@ void DownloadManager::on(AdcCommand::STA, UserConnection* aSource, const AdcComm
 	}
 
 	const string& err = cmd.getParameters()[0];
-	if(err.length() < 3) {
+	if(err.length() != 3) {
 		aSource->disconnect();
 		return;
 	}
@@ -705,6 +560,10 @@ void DownloadManager::on(AdcCommand::STA, UserConnection* aSource, const AdcComm
 			noSlots(aSource, cmd.getParam("QP", 0, param) ? param : Util::emptyString);
 			return;
 		}
+	case AdcCommand::SEV_SUCCESS:
+		// We don't know any messages that would give us these...
+		dcdebug("Unknown success message %s %s", err.c_str(), cmd.getParam(1).c_str());
+		return;
 	}
 	aSource->disconnect();
 }
@@ -714,14 +573,21 @@ void DownloadManager::fileNotAvailable(UserConnection* aSource) {
 	dcassert(d != NULL);
 	dcdebug("File Not Available: %s\n", d->getPath().c_str());
 
-	if(d->isSet(Download::FLAG_TESTSUR)) {
-		dcdebug("TestSUR File not available\n");
-		ClientManager::getInstance()->setCheating(aSource->getUser(), "File Not Available", "", -1, false);
-		fire(DownloadManagerListener::CheckComplete(), aSource);
+	removeDownload(d);
+	//fire(DownloadManagerListener::Failed(), d, d->getTargetFileName() + ": " + STRING(FILE_NOT_AVAILABLE));
 
-		removeDownload(d);
-		aSource->setDownload(NULL);
-		QueueManager::getInstance()->putDownload(d, true, false);
+	if (d->getType() == Transfer::TYPE_FULL_LIST) {
+		ClientManager::getInstance()->setCheating(aSource->getUser(), "", "Filelist Not Available", SETTING(FILELIST_UNAVAILABLE), false);
+		QueueManager::getInstance()->putDownload(d, true);
+		removeConnection(aSource);
+		return;
+	} else if (d->isSet(Download::FLAG_TESTSUR)) {
+		dcdebug("TestSUR File not available\n");
+
+		ClientManager::getInstance()->setCheating(aSource->getUser(), "File Not Available", "", -1, false);
+		
+		QueueManager::getInstance()->putDownload(d, true);
+		fire(DownloadManagerListener::CheckComplete(), aSource);
 		checkDownloads(aSource);
 		return;
 	}
@@ -729,9 +595,8 @@ void DownloadManager::fileNotAvailable(UserConnection* aSource) {
 	fire(DownloadManagerListener::Failed(), d, d->getTargetFileName() + ": " + STRING(FILE_NOT_AVAILABLE));
 
 	QueueManager::getInstance()->removeSource(d->getPath(), aSource->getUser(), (Flags::MaskType)(d->getType() == Transfer::TYPE_TREE ? QueueItem::Source::FLAG_NO_TREE : QueueItem::Source::FLAG_FILE_NOT_AVAILABLE), false);
-	removeDownload(d);
 
-	QueueManager::getInstance()->putDownload(d, false, false);
+	QueueManager::getInstance()->putDownload(d, false);
 	checkDownloads(aSource);
 }
 
@@ -784,5 +649,5 @@ void DownloadManager::throttleSetup() {
 
 /**
  * @file
- * $Id: DownloadManager.cpp 330 2007-10-13 22:26:06Z bigmuscle $
+ * $Id: DownloadManager.cpp 358 2008-01-17 10:48:01Z bigmuscle $
  */

@@ -26,7 +26,6 @@
 #include "../regex/src/pcre.h"
 
 
-
 /// PME wraps the PCRE C API into a more perl-like syntax
 /**
  * PME wraps the PCRE C API into a more perl-liek syntax.  It supports single matching,

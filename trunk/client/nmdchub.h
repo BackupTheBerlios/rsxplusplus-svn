@@ -23,7 +23,6 @@
 #include "SettingsManager.h"
 
 #include "User.h"
-#include "../rsx/UserMap.h"
 #include "CriticalSection.h"
 #include "Text.h"
 #include "Client.h"
@@ -31,16 +30,12 @@
 #include "UploadManager.h"
 #include "StringTokenizer.h"
 #include "ZUtils.h"
-//RSX++ // Lua
-#include "ScriptManager.h"
+#include "../rsx/UserMap.h" //RSX++
 
-struct NmdcHubScriptInstance : public ScriptInstance {
-	bool onClientMessage(NmdcHub* aClient, const string& aLine);
-};
-//END
 class ClientManager;
-class NmdcHub : public Client, private Flags, /*//RSX++ // Lua*/public NmdcHubScriptInstance/*END*/ {
-	//friend class ClientManager;
+
+class NmdcHub : public Client, private Flags
+{
 public:
 	using Client::send;
 	using Client::connect;
@@ -88,16 +83,18 @@ private:
 	};
 
 	//mutable CriticalSection cs;
+	typedef unordered_map<string*, OnlineUser*, noCaseStringHash, noCaseStringEq> NickMap;
+	typedef NickMap::const_iterator NickIter;
 	//RSX++
-	typedef unordered_map<string, OnlineUser*, noCaseStringHash, noCaseStringEq> NickMap;
-	typedef UserMap<false, NickMap>::const_iterator NickIter;
-	UserMap<false, NickMap> users;
+	typedef UserMap<false, NickMap> NMDCUsers;
+	NMDCUsers users;
 
-	void startChecking() { users.startCheck(getCheckClients(), getCheckFilelists()); }
-	void stopChecking()	{ users.stopCheck(); }
+	void startChecking() { users.startCheck(this, getCheckClients(), getCheckFilelists()); }
+	void startCustomCheck(bool clients, bool filelists) { users.startCheck(this, clients, filelists); }
 	bool isDetectorRunning() { return users.isDetectorRunning(); }
+
+	void stopChecking()	{ users.stopCheck(); }
 	void stopMyINFOCheck() { users.stopMyINFOCheck(); }
-	void startCustomCheck(bool clients, bool filelists) { users.startCheck(clients, filelists); }
 	//END
 
 	string lastMyInfo;
@@ -154,5 +151,5 @@ private:
 
 /**
  * @file
- * $Id: nmdchub.h 334 2007-11-04 13:04:34Z bigmuscle $
+ * $Id: nmdchub.h 355 2008-01-05 14:43:39Z bigmuscle $
  */

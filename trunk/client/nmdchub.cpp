@@ -35,17 +35,16 @@
 #include "QueueManager.h"
 #include "ZUtils.h"
 #include "ClientProfileManager.h" //RSX++
-#include "PGManager.h" //RSX++
 #include "../rsx/PluginAPI/PluginsManager.h" //RSX++
 #include "version.h"
 
 NmdcHub::NmdcHub(const string& aHubURL) : Client(aHubURL, '|', false), supportFlags(0),
 	lastBytesShared(0), lastUpdate(0)
 {
-	users.setClient(this); //RSX++
 }
 
 NmdcHub::~NmdcHub() throw() {
+	putDetectors(); //RSX++
 	clearUsers();
 }
 
@@ -86,21 +85,24 @@ OnlineUser& NmdcHub::getUser(const string& aNick) {
 	{
 		Lock l(cs);
 
-		NickIter i = users.find(aNick);
+		NickIter i = users.find(const_cast<string*>(&aNick));
 		if(i != users.end())
 			return *i->second;
 	}
 
 	UserPtr p;
+	bool isMe = false;
 	if(aNick == getCurrentNick()) {
 		p = ClientManager::getInstance()->getMe();
+		isMe = true;
 	} else {
 		p = ClientManager::getInstance()->getUser(aNick, getHubUrl());
 	}
 
 	{
 		Lock l(cs);
-		u = users.insert(make_pair(aNick, new OnlineUser(p, *this, 0))).first->second;
+		dcassert(isMe || (aNick == p->getFirstNick()));
+		u = users.insert(make_pair(const_cast<string*>(&(isMe ? getCurrentNick() : p->getFirstNick())), new OnlineUser(p, *this, 0))).first->second;
 		u->getIdentity().setNick(aNick);
 		if(u->getUser() == getMyIdentity().getUser()) {
 			setMyIdentity(u->getIdentity());
@@ -121,7 +123,7 @@ void NmdcHub::supports(const StringList& feat) {
 
 OnlineUser* NmdcHub::findUser(const string& aNick) const {
 	Lock l(cs);
-	NickIter i = users.find(aNick);
+	NickIter i = users.find(const_cast<string*>(&aNick));
 	return i == users.end() ? NULL : i->second;
 }
 
@@ -129,7 +131,7 @@ void NmdcHub::putUser(const string& aNick) {
 	OnlineUser* ou = NULL;
 	{
 		Lock l(cs);
-		NickMap::iterator i = users.find(aNick);
+		NickMap::iterator i = users.find(const_cast<string*>(&aNick));
 		if(i == users.end())
 			return;
 		ou = i->second;
@@ -281,7 +283,7 @@ void NmdcHub::onLine(const string& aLine) throw() {
 		}
 		// Filter own searches
 		if(meActive && bPassive == false) {
-			if(seeker == ((getFavIp().empty() ? ClientManager::getInstance()->getCachedIp() : getFavIp()) + ":" + Util::toString(SearchManager::getInstance()->getPort()))) {
+			if(seeker == (getLocalIp() + ":" + Util::toString(SearchManager::getInstance()->getPort()))) {
 				return;
 			}
 		} else {
@@ -290,23 +292,6 @@ void NmdcHub::onLine(const string& aLine) throw() {
 				return;
 			}
 		}
-
-		//RSX++
-		// Filter users in the PeerGuardian list (somewhat bad solution)
-		if(SETTING(PG_ENABLE) && SETTING(PG_SEARCH) && !bPassive && PGManager::getInstance()->notAbused()) {
-			string ip, file;
-			uint16_t port = 0;
-			Util::decodeUrl(seeker, ip, port, file);
-			ip = Socket::resolve(ip);
-			string company = PGManager::getInstance()->getIPBlock(ip);
-			if(!company.empty()) {
-				if(SETTING(PG_LOG)) {
-					PGManager::getInstance()->log("Blocked search from: " + ip + ":" + Util::toString(port) + " (" + company + ")");
-				}
-				return;
-			}
-		}
-		//END
 
 		i = j + 1;
 		
@@ -795,6 +780,7 @@ void NmdcHub::onLine(const string& aLine) throw() {
 			OnlineUser::List v;
 			StringTokenizer<string> t(param, "$$");
 			StringList& sl = t.getTokens();
+
 			for(StringIter it = sl.begin(); it != sl.end(); ++it) {
 				if(it->empty())
 					continue;
@@ -802,12 +788,6 @@ void NmdcHub::onLine(const string& aLine) throw() {
 				ou.getIdentity().setOp(true);
 				if(ou.getUser() == getMyIdentity().getUser()) {
 					setMyIdentity(ou.getIdentity());
-					//RSX++
-					if(getCheckOnConnect()) {
-						users.startCheck(getCheckClients(), getCheckFilelists(), true);
-					}
-					users.startMyINFOCheck(getCheckFakeShare(), getCheckMyInfo());
-					//END
 				}
 				v.push_back(&ou);
 			}
@@ -815,6 +795,14 @@ void NmdcHub::onLine(const string& aLine) throw() {
 			fire(ClientListener::UsersUpdated(), this, v);
 			updateCounts(false);
 
+			//RSX++
+			if(isOp()) {
+				if(getCheckOnConnect()) {
+					users.startCheck(this, getCheckClients(), getCheckFilelists(), true);
+				}
+				users.startMyINFOCheck(this, getCheckFakeShare(), getCheckMyInfo());
+			}
+			//END
 			// Special...to avoid op's complaining that their count is not correctly
 			// updated when they log in (they'll be counted as registered first...)
 			myInfo(false);
@@ -921,11 +909,11 @@ string NmdcHub::checkNick(const string& aNick) {
 
 void NmdcHub::connectToMe(const OnlineUser& aUser) {
 	checkstate();
-	string userNick = aUser.getIdentity().getNick();
-	dcdebug("NmdcHub::connectToMe %s\n", userNick.c_str());
-	ConnectionManager::getInstance()->nmdcExpect(userNick, getMyNick(), getHubUrl());
+	dcdebug("NmdcHub::connectToMe %s\n", aUser.getIdentity().getNick().c_str());
+	string nick = fromUtf8(aUser.getIdentity().getNick());
+	ConnectionManager::getInstance()->nmdcExpect(nick, getMyNick(), getHubUrl());
 	ConnectionManager::iConnToMeCount++;
-	send("$ConnectToMe " + fromUtf8(userNick) + " " + getLocalIp() + ":" + Util::toString(ConnectionManager::getInstance()->getPort()) + "|");
+	send("$ConnectToMe " + nick + " " + getLocalIp() + ":" + Util::toString(ConnectionManager::getInstance()->getPort()) + "|");
 }
 
 void NmdcHub::revConnectToMe(const OnlineUser& aUser) {
@@ -1013,7 +1001,7 @@ void NmdcHub::search(int aSizeType, int64_t aSize, int aFileType, const string& 
 	int chars = 0;
 	size_t BUF_SIZE;	
 	if(isActive() && !BOOLSETTING(SEARCH_PASSIVE)) {
-		string x = getFavIp().empty() ? ClientManager::getInstance()->getCachedIp() : getFavIp();
+		string x = getLocalIp();
 		BUF_SIZE = x.length() + tmp.length() + 64;
 		buf = new char[BUF_SIZE];
 		chars = snprintf(buf, BUF_SIZE, "$Search %s:%d %c?%c?%I64d?%d?%s|", x.c_str(), (int)SearchManager::getInstance()->getPort(), c1, c2, aSize, aFileType+1, tmp.c_str());
@@ -1024,13 +1012,7 @@ void NmdcHub::search(int aSizeType, int64_t aSize, int aFileType, const string& 
 	}
 	send(buf, chars);
 }
-//RSX++ // Lua
-bool NmdcHubScriptInstance::onClientMessage(NmdcHub* aClient, const string& aLine) {
-	Lock l(scs);
-	MakeCall("nmdch", "DataArrival", 1, aClient, aLine);
-	return GetLuaBool() || PluginsManager::getInstance()->onIncommingMessage(aClient, aLine);
-}
-//END
+
 string NmdcHub::validateMessage(string tmp, bool reverse) {
 	string::size_type i = 0;
 
@@ -1111,11 +1093,11 @@ void NmdcHub::on(Connected) throw() {
 }
 
 void NmdcHub::on(Line, const string& aLine) throw() {
+	Client::on(Line(), aLine);
 	//RSX++
-	if(onClientMessage(this, validateMessage(aLine, true)))
+	if(onClientMessage(this, "nmdch", validateMessage(aLine, true)))
 		return;
 	//END
-	Client::on(Line(), aLine);
 	onLine(aLine);
 }
 
@@ -1135,5 +1117,5 @@ void NmdcHub::on(Second, uint64_t aTick) throw() {
 
 /**
  * @file
- * $Id: nmdchub.cpp 334 2007-11-04 13:04:34Z bigmuscle $
+ * $Id: nmdchub.cpp 355 2008-01-05 14:43:39Z bigmuscle $
  */

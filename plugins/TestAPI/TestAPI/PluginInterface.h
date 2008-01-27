@@ -1,4 +1,6 @@
-/* 
+/*
+ * Copyright (C) 2007 adrian_007, adrian-007 on o2 point pl
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -17,17 +19,23 @@
 #ifndef PLUGIN_INTERFACE
 #define PLUGIN_INTERFACE
 
-class Client;
-/* via this interface plugin recive:
- * 1. gui events
- * 2. hub incomming commands
- * 3. user outgoing commands (from hub frame)
- */
+#include "ClientInterface.h"
+#include "UserInterface.h"
 
 class iPlugin {
 public:
-	virtual bool onIncommingMessage(Client* c, const string& msg) = 0;
-	virtual bool onOutgoingMessage(Client* c, const string& msg) = 0;
+	virtual bool onIncommingMessage(iClient* c, const char* msg) = 0;
+	virtual bool onOutgoingMessage(iClient* c, const char* msg) = 0;
+
+	virtual bool onIncommingPM(iUser* from, const char* msg) = 0;
+	virtual bool onOutgoingPM(iUser* to, const char* msg) = 0;
+
 	virtual void onToolbarClick() = 0;
+	virtual void onSettingsLoaded() = 0;
 };
 #endif
+
+/**
+ * @file
+ * $Id: PluginAPI.h 32 2007-09-16 20:49:44Z adrian_007 $
+ */

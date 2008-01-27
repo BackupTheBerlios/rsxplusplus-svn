@@ -94,6 +94,6 @@ LRESULT RawDlg::OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOO
 
 /**
  * @file
- * $Id: RawDlg.cpp 32 2007-09-16 20:49:44Z adrian_007 $
+ * $Id$
  */
 

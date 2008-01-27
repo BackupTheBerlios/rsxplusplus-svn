@@ -103,7 +103,7 @@ LONG __stdcall DCUnhandledExceptionFilter( LPEXCEPTION_POINTERS e )
 #ifndef _DEBUG
 #if _MSC_VER == 1200
 	__pfnDliFailureHook = FailHook;
-#elif _MSC_VER == 1300 || _MSC_VER == 1310 || _MSC_VER == 1400
+#elif _MSC_VER == 1300 || _MSC_VER == 1310 || _MSC_VER == 1400|| _MSC_VER == 1500
 	__pfnDliFailureHook2 = FailHook;
 #else
 #error Unknown Compiler version
@@ -431,6 +431,7 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 #else
 	SingleInstance dcapp(_T("{RSXPLUSPLUS-AEE8350A-B49A-4753-AB4B-E55479A48350}"));
 #endif
+
 	if(dcapp.IsAnotherInstanceRunning()) {
 		// Allow for more than one instance...
 				bool multiple = false;
@@ -515,5 +516,5 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 
 /**
  * @file
- * $Id: main.cpp 299 2007-07-06 23:07:19Z bigmuscle $
+ * $Id: main.cpp 355 2008-01-05 14:43:39Z bigmuscle $
  */

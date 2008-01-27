@@ -57,7 +57,15 @@ HRESULT UPnP::OpenPorts() {
 
 	if(SUCCEEDED(hr)) {
 		IStaticPortMappingCollection * pSPMC = NULL;
-		hr = pUN->get_StaticPortMappingCollection (&pSPMC);
+
+		// some routers lag here
+		for(int i = 0; i < 3; i++) {
+			hr = pUN->get_StaticPortMappingCollection (&pSPMC);
+			
+			if(SUCCEEDED(hr) && pSPMC) break;
+
+			Sleep(1500);
+		}
 
 		if(SUCCEEDED(hr) && pSPMC) {
 			// see comment in "else"
@@ -75,6 +83,9 @@ HRESULT UPnP::OpenPorts() {
 				if(SUCCEEDED(hr)) {
 					PortsAreOpen = true;
 				}
+
+				if (pSPM)
+					pSPM->Release();
 			} else {
 				hr = E_OUTOFMEMORY;
 			}
@@ -189,5 +200,5 @@ UPnP::~UPnP() {
 
 /**
  * @file
- * $Id: upnp.cpp 326 2007-09-01 16:55:01Z bigmuscle $
+ * $Id: upnp.cpp 357 2008-01-12 19:01:33Z bigmuscle $
  */

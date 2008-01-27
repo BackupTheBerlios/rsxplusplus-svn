@@ -256,7 +256,6 @@ public:
 	void updateItem(const T* item) { int i = findItem(item); if(i != -1) updateItem(i); }
 	void deleteItem(const T* item) { int i = findItem(item); if(i != -1) DeleteItem(i); }
 
-#pragma optimize("t", on)
 	int getSortPos(const T* a) const {
 		int high = GetItemCount();
 		if((sortColumn == -1) || (high == 0))
@@ -293,7 +292,6 @@ public:
 
 		return mid;
 	}
-#pragma optimize("", on)
 
 	void setSortColumn(int aSortColumn) {
 		sortColumn = aSortColumn;
@@ -760,8 +758,8 @@ public:
 		}
 
 		pp->children.push_back(item);
+		parent->hits++;
 		item->parent = parent;
-		item->parent->hits = static_cast<int16_t>(pp->children.size());
 
 		if(pos != -1) {
 			if(!parent->collapsed) {
@@ -776,7 +774,7 @@ public:
 		if(pp) {
 			for(vector<T*>::iterator i = pp->children.begin(); i != pp->children.end(); i++) {
 				deleteItem(*i);
-				(*i)->deleteSelf();
+				delete *i;
 			}
 			pp->children.clear();
 			parents.erase(const_cast<key*>(&parent->getGroupCond()));
@@ -796,18 +794,18 @@ public:
 			vector<T*>::iterator n = find(pp->children.begin(), pp->children.end(), item);
 			if(n != pp->children.end()) {
 				pp->children.erase(n);
-				parent->hits = static_cast<int16_t>(pp->children.size());
+				pp->parent->hits--;
 			}
 	
 			if(uniqueParent) {
 				dcassert(!pp->children.empty());
 				if(pp->children.size() == 1) {
-					T* oldParent = parent;
+					const T* oldParent = parent;
 					parent = pp->children.front();
 
 					deleteItem(oldParent);
 					parents.erase(const_cast<key*>(&oldParent->getGroupCond()));
-					oldParent->deleteSelf();
+					delete oldParent;
 
 					ParentPair newPP = { parent };
 					parents.insert(make_pair(const_cast<key*>(&parent->getGroupCond()), newPP));
@@ -826,7 +824,7 @@ public:
 		}
 
 		if(removeFromMemory)
-			item->deleteSelf();
+			delete item;
 	}
 
 	void deleteAllItems() {
@@ -835,14 +833,14 @@ public:
 			T* ti = (*i).second.parent;
 			for(vector<T*>::iterator j = (*i).second.children.begin(); j != (*i).second.children.end(); j++) {
 				deleteItem(*j);
-				(*j)->deleteSelf();
+				delete *j;
 			}
 			deleteItem(ti);
-			ti->deleteSelf();
+			delete ti;
 		}
 		for(int i = 0; i < GetItemCount(); i++) {
 			T* si = getItemData(i);
-			si->deleteSelf();
+			delete si;
 		}
 
  		parents.clear();
@@ -863,7 +861,6 @@ public:
 		return 0;
 	}
 
-#pragma optimize("t", on)
 	void resort() {
 		if(getSortColumn() != -1) {
 			SortItems(&compareFunc, (LPARAM)this);
@@ -916,7 +913,6 @@ public:
 
 		return mid;
 	}
-#pragma optimize("", on)
 
    	ParentMap parents;
 
@@ -969,5 +965,5 @@ const vector<T*> TypedTreeListViewCtrl<T, ctrlId, key, hashFunc, equalKey>::empt
 
 /**
  * @file
- * $Id: TypedListViewCtrl.h 326 2007-09-01 16:55:01Z bigmuscle $
+ * $Id: TypedListViewCtrl.h 358 2008-01-17 10:48:01Z bigmuscle $
  */

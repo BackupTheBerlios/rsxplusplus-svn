@@ -272,7 +272,7 @@ public:
 #ifdef _WIN32
 		return _atoi64(aString.c_str());
 #else
-		return atoll(aString.c_str());
+		return strtoll(aString.c_str(), (char **)NULL, 10);
 #endif
 	}
 
@@ -581,5 +581,5 @@ struct noCaseStringEq {
 
 /**
  * @file
- * $Id: Util.h 326 2007-09-01 16:55:01Z bigmuscle $
+ * $Id: Util.h 341 2007-12-22 20:50:58Z bigmuscle $
  */

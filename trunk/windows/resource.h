@@ -139,7 +139,6 @@
 #define IDB_RSX_SPLASH                  312
 #define IDD_ADD_IPWATCH                 313
 #define IDD_AUTOSEARCH                  314
-#define IDD_PG_LIST                     316
 #define IDD_RAW_PAGE                    317
 #define IDD_RAW_DLG                     318
 #define IDR_PEERGUARDIAN                318
@@ -829,7 +828,6 @@
 #define IDC_IGNORE_ADD                  1368
 #define IDC_WATCH_ACTION                1368
 #define IDC_AUTOSEARCH_ENABLE           1368
-#define IDC_TEST                        1368
 #define IDC_UPDATE_BL                   1368
 #define IDC_IGNORELIST                  1369
 #define IDC_WATCH_CHEAT                 1369
@@ -839,7 +837,6 @@
 #define IDC_AS_ACTION                   1371
 #define IDC_IGNORE_CLEAR                1372
 #define IDC_AS_RAW_TEXT                 1372
-#define IDC_CURRENT_LIST_BROWSE         1372
 #define IDC_VIEW_BL                     1372
 #define IDC_AS_FILETYPE                 1373
 #define IDC_PD_LIMITER                  1374
@@ -921,26 +918,15 @@
 #define IDC_UPDATE_VERSION_CURRENT      1448
 #define IDC_UPDATE_VERSION_LATEST       1449
 #define IDC_UPDATE_HISTORY              1450
-#define IDC_PG_LIST                     1450
 #define IDC_HISTORY_STATUS              1451
-#define IDC_LOADING                     1451
 #define IDC_UPDATE_DOWNLOAD             1452
-#define IDC_COUNT                       1452
-#define IDC_LIST_VIEWER_GB              1453
 #define IDC_UPDATE_VERSION2             1454
 #define IDC_UPDATE_VERSION_CURRENT_LBL_PROFIL 1455
-#define IDC_LIST_OPTIONS                1455
 #define IDC_UPDATE_VERSION_LATEST_LBL_PROFIL 1456
-#define IDC_UPDATE_LOCATION             1456
 #define IDC_UPDATE_VERSION_LATEST_PROFIL 1457
-#define IDC_CURRENT_LIST_STR            1457
 #define IDC_UPDATE_VERSION_CURRENT_PROFIL 1458
-#define IDC_UPDATE_LOCATION_STR         1458
 #define IDC_UPDATE_VERSION_CURRENT_PROFIL_MYINFO 1459
-#define IDC_CURRENT_LIST                1459
 #define IDC_UPDATE_VERSION_LATEST_PROFIL_MYINFO 1460
-#define IDC_LIST_NAME                   1460
-#define IDC_SEARCH_IP                   1461
 #define IDC_UPDATE                      1462
 #define IDC_PROGRESS_MODE               1468
 #define IDC_LIST1                       1469
@@ -956,6 +942,7 @@
 #define IDC_RSX_FAV_REMOVE              1485
 #define IDC_ABOUT_LINK                  1486
 #define IDC_FAV_TABS                    1487
+#define IDC_FILELIST_PAGE_LIST_TYPE     1490
 #define IDC_PERCENT_FAKE_SHARE_TOLERATED 1504
 #define IDC_TIMEOUTS_NO                 1505
 #define IDC_DISCONNECTS_NO              1506
@@ -1073,7 +1060,6 @@
 #define IDC_SDL_TIME_SPIN               10052
 #define IDD_FAV_TAB_OP                  10052
 #define IDC_COPY_DESCRIPTION            10053
-#define IDD_FAV_TAB_RAW1                10053
 #define IDD_FAV_TAB_CUSTOM              10053
 #define IDC_COPY_EMAIL_ADDRESS          10054
 #define IDC_AUTOSCROLL_CHAT             10055
@@ -1225,9 +1211,9 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        325
+#define _APS_NEXT_RESOURCE_VALUE        326
 #define _APS_NEXT_COMMAND_VALUE         32806
-#define _APS_NEXT_CONTROL_VALUE         1488
+#define _APS_NEXT_CONTROL_VALUE         1491
 #define _APS_NEXT_SYMED_VALUE           134
 #endif
 #endif

@@ -106,7 +106,7 @@ In principle, people compiling for non-Windows, non-Unix-like (i.e. uncommon,
 special-purpose environments) might want to stick other stuff in front of
 exported symbols. That's why, in the non-Windows case, we set PCRE_EXP_DEFN and
 PCRE_EXP_DATA_DEFN only if they are not already set. */
-/*
+
 #ifndef PCRE_EXP_DECL
 #  ifdef _WIN32
 #    ifndef PCRE_STATIC
@@ -132,9 +132,6 @@ PCRE_EXP_DATA_DEFN only if they are not already set. */
 #    endif
 #  endif
 #endif
-*/
-#define PCRE_EXP_DECL extern
-#define PCRE_EXP_DEFN PCRE_EXP_DECL
 
 /* We need to have types that specify unsigned 16-bit and 32-bit integers. We
 cannot determine these outside the compilation (e.g. by running a program as
@@ -367,6 +364,7 @@ never be called in byte mode. To make sure it can never even appear when UTF-8
 support is omitted, we don't even define it. */
 
 #ifndef SUPPORT_UTF8
+#define NEXTCHAR(p) p++;
 #define GETCHAR(c, eptr) c = *eptr;
 #define GETCHARTEST(c, eptr) c = *eptr;
 #define GETCHARINC(c, eptr) c = *eptr++;
@@ -375,6 +373,13 @@ support is omitted, we don't even define it. */
 /* #define BACKCHAR(eptr) */
 
 #else   /* SUPPORT_UTF8 */
+
+/* Advance a character pointer one byte in non-UTF-8 mode and by one character
+in UTF-8 mode. */
+
+#define NEXTCHAR(p) \
+  p++; \
+  if (utf8) { while((*p & 0xc0) == 0x80) p++; }
 
 /* Get the next UTF-8 character, not advancing the pointer. This is called when
 we know we are in UTF-8 mode. */
@@ -875,7 +880,7 @@ enum { ERR0,  ERR1,  ERR2,  ERR3,  ERR4,  ERR5,  ERR6,  ERR7,  ERR8,  ERR9,
        ERR30, ERR31, ERR32, ERR33, ERR34, ERR35, ERR36, ERR37, ERR38, ERR39,
        ERR40, ERR41, ERR42, ERR43, ERR44, ERR45, ERR46, ERR47, ERR48, ERR49,
        ERR50, ERR51, ERR52, ERR53, ERR54, ERR55, ERR56, ERR57, ERR58, ERR59,
-       ERR60, ERR61 };
+       ERR60, ERR61, ERR62, ERR63 };
 
 /* The real format of the start of the pcre block; the index of names and the
 code vector run on as long as necessary after the end. We store an explicit
@@ -938,7 +943,8 @@ typedef struct compile_data {
   uschar *name_table;           /* The name/number table */
   int  names_found;             /* Number of entries so far */
   int  name_entry_size;         /* Size of each entry */
-  int  bracount;                /* Count of capturing parens */
+  int  bracount;                /* Count of capturing parens as we compile */
+  int  final_bracount;          /* Saved value after first pass */
   int  top_backref;             /* Maximum back reference */
   unsigned int backref_map;     /* Bitmap of low back refs */
   int  external_options;        /* External (initial) options */
@@ -1040,7 +1046,7 @@ typedef struct dfa_match_data {
 #define ctype_letter  0x02
 #define ctype_digit   0x04
 #define ctype_xdigit  0x08
-#define ctype_word    0x10   /* alphameric or '_' */
+#define ctype_word    0x10   /* alphanumeric or '_' */
 #define ctype_meta    0x80   /* regexp meta char or zero (end pattern) */
 
 /* Offsets for the bitmap tables in pcre_cbits. Each table contains a set

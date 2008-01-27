@@ -39,7 +39,7 @@ public:
 		ctrlCheat.SetWindowText(Text::toT(cheatingDescription).c_str());
 
 		//Zion++ //Raw Manager //DEBUT
-		Action::List lst = RawManager::getInstance()->getActionList();
+		Action::List& lst = RawManager::getInstance()->getActionList();
 
 		int j = 0;
 		idAction.insert(make_pair(j, j));

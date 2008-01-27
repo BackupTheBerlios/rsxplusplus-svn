@@ -17,17 +17,12 @@
 #ifndef AUTOSEARCH_PAGE_H
 #define AUTOSEARCH_PAGE_H
 
-#if _MSC_VER > 1000
-#pragma once
-#endif // _MSC_VER > 1000
-
 #include <atlcrack.h>
 #include "PropPage.h"
 #include "ExListViewCtrl.h"
 #include "../rsx/AutoSearchManager.h"
 
-class AutosearchPage : public CPropertyPage<IDD_AUTOSEARCH>, public PropPage
-{
+class AutosearchPage : public CPropertyPage<IDD_AUTOSEARCH>, public PropPage {
 public:
 	AutosearchPage(SettingsManager *s) : PropPage(s) {
 		title = _tcsdup((TSTRING(SETTINGS_RSX) + _T('\\') + TSTRING(SETTINGS_FAKEDETECT) + _T('\\') + TSTRING(SETTINGS_AUTOSEARCH)).c_str());
@@ -39,7 +34,7 @@ public:
 		free(title);
 	};
 
-	BEGIN_MSG_MAP_EX(AutosearchPage)
+	BEGIN_MSG_MAP(AutosearchPage)
 		MESSAGE_HANDLER(WM_INITDIALOG, onInitDialog)
 		COMMAND_ID_HANDLER(IDC_ADD, onAdd)
 		COMMAND_ID_HANDLER(IDC_REMOVE, onRemove)
@@ -51,10 +46,10 @@ public:
 		NOTIFY_HANDLER(IDC_AUTOSEARCH_ITEMS, NM_DBLCLK, onDblClick)
 		NOTIFY_HANDLER(IDC_AUTOSEARCH_ITEMS, NM_CUSTOMDRAW, onCustomDraw)
 		NOTIFY_HANDLER(IDC_AUTOSEARCH_ITEMS, LVN_ITEMCHANGED, onItemChanged)
+		NOTIFY_HANDLER(IDC_AUTOSEARCH_ITEMS, LVN_GETINFOTIP, onInfoTip)
 	END_MSG_MAP()
 
 	LRESULT onInitDialog(UINT, WPARAM, LPARAM, BOOL&);
-
 	LRESULT onAdd(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT onChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT onRemove(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
@@ -62,16 +57,14 @@ public:
 	LRESULT onMoveUp(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT onMoveDown(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT onItemChanged(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/);
-
+	LRESULT onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled);
+	LRESULT onInfoTip(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/);	
 	LRESULT onDblClick(int /*idCtrl*/, LPNMHDR /* pnmh */, BOOL& bHandled) {
 		return onChange(0, 0, 0, bHandled);
 	}
-	LRESULT onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled);
 
-	// Common PropPage interface
 	PROPSHEETPAGE *getPSP() { return (PROPSHEETPAGE *)*this; }
 	void write();
-	
 protected:
 	ExListViewCtrl ctrlAutosearch;
 
@@ -99,5 +92,4 @@ protected:
 		}
 	}
 };
-
 #endif //AUTOSEARCH_PAGE_H

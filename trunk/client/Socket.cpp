@@ -178,7 +178,7 @@ void Socket::socksConnect(const string& aAddr, uint16_t aPort, uint32_t timeout)
 
 	socksAuth(timeLeft(start, timeout));
 
-	vector<uint8_t> connStr;
+	ByteVector connStr;
 
 	// Authenticated, let's get on with it...
 	connStr.push_back(5);			// SOCKSv5
@@ -646,5 +646,5 @@ const string Socket::getRemoteHost(const string& aIp) {
 
 /**
  * @file
- * $Id: Socket.cpp 335 2007-11-10 13:01:41Z bigmuscle $
+ * $Id: Socket.cpp 340 2007-12-20 12:30:13Z bigmuscle $
  */

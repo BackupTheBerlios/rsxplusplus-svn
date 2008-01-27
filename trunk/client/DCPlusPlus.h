@@ -96,7 +96,9 @@ typedef pair<wstring, wstring> WStringPair;
 typedef vector<WStringPair> WStringPairList;
 typedef WStringPairList::iterator WStringPairIter;
 
-#if defined(_MSC_VER)
+typedef vector<uint8_t> ByteVector;
+
+#if defined(_MSC_VER) || defined(__MINGW32__)
 #define _LL(x) x##ll
 #define _ULL(x) x##ull
 #define I64_FMT "%I64d"
@@ -165,5 +167,5 @@ extern void shutdown();
 
 /**
  * @file
- * $Id: DCPlusPlus.h 326 2007-09-01 16:55:01Z bigmuscle $
+ * $Id: DCPlusPlus.h 340 2007-12-20 12:30:13Z bigmuscle $
  */

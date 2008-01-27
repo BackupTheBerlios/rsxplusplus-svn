@@ -36,7 +36,7 @@ public:
 class LogManager : public Singleton<LogManager>, public Speaker<LogManagerListener>
 {
 public:
-	enum LogArea { CHAT, PM, DOWNLOAD, UPLOAD, SYSTEM, STATUS, WEBSERVER, PGUARDIAN, RAW, LAST };
+	enum LogArea { CHAT, PM, DOWNLOAD, UPLOAD, SYSTEM, STATUS, WEBSERVER, RAW, LAST };
 	enum {FILE, FORMAT};
 
 	void log(LogArea area, StringMap& params) throw() {
@@ -104,8 +104,6 @@ private:
 		logOptions[WEBSERVER][FILE]		= SettingsManager::LOG_FILE_WEBSERVER;
 		logOptions[WEBSERVER][FORMAT]	= SettingsManager::WEBSERVER_FORMAT;
 		//RSX++
-		logOptions[PGUARDIAN][FILE]		= SettingsManager::PG_LOG_FILE;
-		logOptions[PGUARDIAN][FORMAT]	= SettingsManager::PG_LOG_FORMAT;
 		logOptions[RAW][FILE]			= SettingsManager::LOG_RAW_CMD_FILE;
 		logOptions[RAW][FORMAT]			= SettingsManager::LOG_RAW_CMD_FORMAT;
 		//END

@@ -34,11 +34,11 @@ void IgnoreManager::save(SimpleXML& aXml) {
 }
 
 void IgnoreManager::storeIgnore(const UserPtr& user) {
-	ignoredUsers.insert(Text::toT(ClientManager::getInstance()->getFirstNick(user->getCID())));
+	ignoredUsers.insert(Text::toT(ClientManager::getInstance()->getNicks(user->getCID())[0]));
 }
 
 void IgnoreManager::removeIgnore(const UserPtr& user) {
-	ignoredUsers.erase(Text::toT(ClientManager::getInstance()->getFirstNick(user->getCID())));
+	ignoredUsers.erase(Text::toT(ClientManager::getInstance()->getNicks(user->getCID())[0]));
 }
 
 bool IgnoreManager::isIgnored(const string& aNick) {

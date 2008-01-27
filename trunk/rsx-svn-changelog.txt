@@ -1,3 +1,26 @@
+** SVN 47
+ ** some little optimizations in client/myinfo detection
+ ** fixed sorting in favorite frame (move up/down)
+ ** autosearch page improved
+ ** improvements and fixes in usermap
+ ** [Plugins] added client interface
+ ** fixed handling in/out messages
+ ** [Lua] fixed event onUserConnectionMessage In/Out
+ ** fixed some deadlocks... i hope at least...
+ ** code cleanup
+ ** [Lua] some client-event-functions changes/improvements
+ ** fixed crash on sending raws
+ ** fixed highlights (thx I.nfraR.ed)
+ ** PCRE updated to 7.5
+ ** sdc 2.11 merge
+ ** PeerGuardian removed
+ ** [Plugins] added user interface
+ ** removed log msg on finished filelist check download
+ ** small improvements in filelist matching (client manager)
+ ** [Plugins] re-added interface revision + check
+ ** PluginAPI 1.0.0.0 RC1 (version cleanup :p)
+ ** removed list of all forbidden filenames on filelist check (too big to store in mem)
+
 ** SVN 46
  ** back to idea with plugin lib (pdc way cause maaany bugs/freezes/crashes) (rev 1.1.0.0)
  ** probably fixed bug with freezing window on check

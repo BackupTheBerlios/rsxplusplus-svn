@@ -45,7 +45,7 @@ public:
 	void checkIdle(const UserPtr& user);
 
 	/** @internal */
-	void abortDownload(const string& aTarget, const Download* except = NULL);
+	void abortDownload(const string& aTarget);
 
 	/** @return Running average download speed in Bytes/s */
 	int64_t getRunningAverage();
@@ -79,7 +79,6 @@ private:
 	void fileNotAvailable(UserConnection* aSource);
 	void noSlots(UserConnection* aSource, string param = Util::emptyString);
 	
-	void logDownload(UserConnection* aSource, Download* d);
 	int64_t getResumePos(const string& file, const TigerTree& tt, int64_t startPos);
 
 	void failDownload(UserConnection* aSource, const string& reason);
@@ -89,7 +88,7 @@ private:
 	DownloadManager();
 	~DownloadManager() throw();
 
-	void checkDownloads(UserConnection* aConn, bool reconn = false);
+	void checkDownloads(UserConnection* aConn);
 	void handleEndData(UserConnection* aSource);
 
 	// UserConnectionListener
@@ -103,7 +102,7 @@ private:
 	void on(AdcCommand::SND, UserConnection*, const AdcCommand&) throw();
 	void on(AdcCommand::STA, UserConnection*, const AdcCommand&) throw();
 
-	bool prepareFile(UserConnection* aSource, int64_t newSize, bool z);
+	bool prepareFile(UserConnection* aSource, int64_t start, int64_t newSize, bool z);
 	// TimerManagerListener
 	void on(TimerManagerListener::Second, uint64_t aTick) throw();
 };
@@ -112,5 +111,5 @@ private:
 
 /**
  * @file
- * $Id: DownloadManager.h 328 2007-10-08 20:52:52Z bigmuscle $
+ * $Id: DownloadManager.h 350 2007-12-30 17:21:56Z bigmuscle $
  */

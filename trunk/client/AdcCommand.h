@@ -16,8 +16,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#if !defined(ADC_COMMAND_H)
-#define ADC_COMMAND_H
+#ifndef DCPLUSPLUS_DCPP_ADC_COMMAND_H
+#define DCPLUSPLUS_DCPP_ADC_COMMAND_H
 
 #include "SettingsManager.h"
 #include "Exception.h"
@@ -210,5 +210,5 @@ public:
 
 /**
 * @file
-* $Id: AdcCommand.h 338 2007-12-06 20:44:27Z bigmuscle $
+* $Id: AdcCommand.h 340 2007-12-20 12:30:13Z bigmuscle $
 */

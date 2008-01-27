@@ -252,7 +252,6 @@ private:
 		}
 
 		inline const tstring& getGroupCond() const { return target; }
-		inline void deleteSelf() { delete this; }
 	};
 
 	struct UpdateInfo : public Task {
@@ -360,5 +359,5 @@ private:
 
 /**
  * @file
- * $Id: TransferView.h 335 2007-11-10 13:01:41Z bigmuscle $
+ * $Id: TransferView.h 358 2008-01-17 10:48:01Z bigmuscle $
  */

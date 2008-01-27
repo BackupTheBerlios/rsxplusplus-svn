@@ -661,5 +661,5 @@ LRESULT ADLSearchFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHand
 //END
 /**
  * @file
- * $Id: ADLSearchFrame.cpp,v 1.23 2006/08/21 18:21:36 bigmuscle Exp $
+ * $Id: ADLSearchFrame.cpp 292 2007-06-13 12:15:07Z bigmuscle $
  */

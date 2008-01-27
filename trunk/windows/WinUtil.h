@@ -147,13 +147,15 @@ public:
 	struct UserTraits {
 		UserTraits() : adcOnly(true), favOnly(true), nonFavOnly(true) { }
 		void operator()(UserInfoBase* ui) {
-			if(ui->getUser()->isSet(User::NMDC)) 
-				adcOnly = false;
-			bool fav = FavoriteManager::getInstance()->isFavoriteUser(ui->getUser());
-			if(fav)
-				nonFavOnly = false;
-			if(!fav)
-				favOnly = false;
+			if(ui->getUser()) {
+				if(ui->getUser()->isSet(User::NMDC)) 
+					adcOnly = false;
+				bool fav = FavoriteManager::getInstance()->isFavoriteUser(ui->getUser());
+				if(fav)
+					nonFavOnly = false;
+				if(!fav)
+					favOnly = false;
+			}
 		}
 
 		bool adcOnly;
@@ -475,5 +477,5 @@ private:
 
 /**
  * @file
- * $Id: WinUtil.h 334 2007-11-04 13:04:34Z bigmuscle $
+ * $Id: WinUtil.h 352 2007-12-31 14:22:12Z bigmuscle $
  */

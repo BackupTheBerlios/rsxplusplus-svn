@@ -44,7 +44,6 @@
 #include "ScriptManager.h"
 ////////////////////////////////////////////////////////////
 #include "IgnoreManager.h"
-#include "PGManager.h"
 
 #include "StringTokenizer.h"
 
@@ -105,7 +104,6 @@ void startup(void (*f)(void*, const tstring&), void* p) {
 	UpdateManager::newInstance();
 	AutoSearchManager::newInstance();
 	IpManager::newInstance();
-	PGManager::newInstance();
 	PluginsManager::newInstance();
 	//END
 
@@ -126,11 +124,7 @@ void startup(void (*f)(void*, const tstring&), void* p) {
 	ClientProfileManager::getInstance()->load();
 
 	WebServerManager::newInstance();
-	//RSX++
-	if(f != NULL)
-		(*f)(p, TSTRING(PG_BLOCKLIST));
-	PGManager::getInstance()->load();
-	//END
+
 	if(f != NULL)
 		(*f)(p, TSTRING(HASH_DATABASE));
 	HashManager::getInstance()->startup();
@@ -151,6 +145,7 @@ void startup(void (*f)(void*, const tstring&), void* p) {
 
 void shutdown() {
 	//RSX++
+	PluginsManager::getInstance()->stopPlugins();
 	RsxUtil::uinit();
 	AutoSearchManager::deleteInstance();
 	//END
@@ -165,17 +160,15 @@ void shutdown() {
 	SettingsManager::getInstance()->save();
 	RSXSettingsManager::getInstance()->save(); //RSX++
 
+	ADLSearchManager::deleteInstance();
 	//RSX++
 	IpManager::deleteInstance();
-	PGManager::deleteInstance();
 	UpdateManager::deleteInstance();
 	ToolbarManager::deleteInstance();
-	PluginsManager::deleteInstance();
+	IgnoreManager::deleteInstance();
 	//--
-	ADLSearchManager::deleteInstance();
 	WebServerManager::deleteInstance();
-	ClientProfileManager::deleteInstance();
-	IgnoreManager::deleteInstance(); //RSX++
+	ClientProfileManager::deleteInstance();	
 	PopupManager::deleteInstance();
 	RawManager::deleteInstance(); //RSX++
 	FinishedManager::deleteInstance();
@@ -199,6 +192,7 @@ void shutdown() {
 #ifdef _WIN32	
 	::WSACleanup();
 #endif
+	PluginsManager::deleteInstance(); //RSX++
 }
 
 /**

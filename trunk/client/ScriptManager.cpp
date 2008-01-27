@@ -414,7 +414,8 @@ int LuaManager::RunTimer(lua_State* L) {
 }
 
 lua_State* ScriptInstance::L = 0;		//filled in by scriptmanager.
-CriticalSection ScriptInstance::scs;
+CriticalSection ScriptInstance::cs;
+FastCriticalSection ScriptInstance::fastCs;
 
 ScriptManager::ScriptManager() : isRunning(false), timerEnabled(false) {
 }
@@ -456,12 +457,12 @@ void ScriptManager::load() {
 }
 
 void ScriptInstance::EvaluateChunk(const string& chunk) {
-	Lock l(scs);
+	Lock l(cs);
 	lua_dostring(L, chunk.c_str());
 }
 
 void ScriptInstance::EvaluateFile(const string& fn) {
-	Lock l(scs);
+	Lock l(cs);
 	//RSX++ //remove log msg about missing file, probably user don't want use lua :]
 	if(!Util::fileExists(Util::getDataPath() + "scripts\\" + fn))
 		return;
@@ -494,7 +495,7 @@ string ScriptInstance::GetClientType(const Client* aClient) {
 }
 
 string ScriptInstance::colorize(string& aLine) {
-	Lock l(scs);
+	Lock l(cs);
 	MakeCall("dcpp", "OnColorize", 1, aLine);
 	if(lua_isstring(L, -1))
 		aLine = lua_tostring(L, -1);

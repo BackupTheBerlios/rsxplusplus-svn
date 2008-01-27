@@ -33,8 +33,6 @@
 #include "UploadManager.h"
 #include "DownloadManager.h"
 
-#pragma optimize("t", on)
-
 // Polling is used for tasks...should be fixed...
 #define POLL_TIMEOUT 250
 
@@ -302,8 +300,8 @@ void BufferedSocket::threadSendFile(InputStream* file) throw(Exception) {
 	size_t sockSize = (size_t)sock->getSocketOptInt(SO_SNDBUF);
 	size_t bufSize = max(sockSize, (size_t)64*1024);
 
-	vector<uint8_t> readBuf(bufSize);
-	vector<uint8_t> writeBuf(bufSize);
+	ByteVector readBuf(bufSize);
+	ByteVector writeBuf(bufSize);
 
 	size_t readPos = 0;
 
@@ -558,9 +556,7 @@ void BufferedSocket::shutdown() {
 	}
 }
 
-#pragma optimize("", on)
-
 /**
  * @file
- * $Id: BufferedSocket.cpp 338 2007-12-06 20:44:27Z bigmuscle $
+ * $Id: BufferedSocket.cpp 355 2008-01-05 14:43:39Z bigmuscle $
  */

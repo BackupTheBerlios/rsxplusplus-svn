@@ -10,13 +10,13 @@
 // Distribution under the GPL or LGPL overrides any other restrictions, as in the PCRE license
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////
-	
+
 #include "stdinc.h"
 #include "DCPlusPlus.h"
 
 #include "pme.h"
 #include "Text.h"
-	
+
 unsigned int PME::DeterminePcreOptions ( const std::string & opts ///< perl style character modifiers -- i.e. "gi" is global, case-insensitive
  )
 {

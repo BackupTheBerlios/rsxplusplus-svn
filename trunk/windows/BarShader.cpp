@@ -403,3 +403,21 @@ OperaColors::FloodCacheItem::~FloodCacheItem() {
 		DeleteDC(hDC);
 	}
 }
+
+void OperaColors::StealthyFill(CDC& dc, int x1, int y1, int x2, int y2, COLORREF c) {
+	if(x2 <= x1 || y2 <= y1 || x2 > 10000)
+		return;
+
+	COLORREF barPal[3] = { HLS_TRANSFORM(c, -40, 50), c, HLS_TRANSFORM(c, 20, -30) };
+
+	dc.FillSolidRect(x1, y1, x2 - x1, y2 - y1, barPal[0]);
+	dc.FillSolidRect(x1 + 1, y1 + 1, x2 - x1 - 2, y2 - y1 - 2, barPal[1]);
+
+	// Draw bar highlight
+	if((x2 - x1) > 4) {
+		HGDIOBJ oldPen =  ::SelectObject(dc, CreatePen(PS_SOLID, 1, barPal[2]));
+		::MoveToEx(dc, x1 + 2, y1 + 2, (LPPOINT)NULL);
+		::LineTo(dc, x2 - 2, y1 + 2);
+		DeleteObject(::SelectObject(dc, oldPen));
+	}
+}

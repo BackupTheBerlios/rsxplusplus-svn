@@ -26,8 +26,14 @@
 BOOL APIENTRY DllMain(HANDLE /*hInst*/, DWORD /*reason*/, LPVOID /*reserved*/) {
 	return TRUE;
 }
-//obligatory functions for load
+
+//obligatory functions!
 extern "C" {
+	__declspec(dllexport) int __cdecl pluginAPI() {
+		//API version of client/user/plugin interfaces
+		return 1000; //1.0.0.0
+	}
+
 	__declspec(dllexport) int __cdecl pluginId() {
 		return PLUGIN_ID;
 	}

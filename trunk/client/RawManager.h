@@ -64,8 +64,10 @@ public:
 };
 
 class SimpleXML;
-class RawManager : public Singleton<RawManager>, public TimerManagerListener {
+class RawManager : public Singleton<RawManager>, public TimerManagerListener, private RSXSettingsManagerListener {
 public:
+	typedef std::map<int, pair<int, bool> > ADLPoints;
+
 	Action::List& getActionList() { Lock l(act); return action; }
 	Action::RawsList getRawList(int id);
 	Action::RawsList getRawListActionId(int actionId);
@@ -96,6 +98,38 @@ public:
 	tstring getNameActionId(int actionId);
 	string getRawCommand(int pos, int rawPos);
 
+	//custom points system
+	void calcADLAction(int aPoints, int& a, bool& d) {
+		Lock l(adlp);
+		if(!points.empty()) {
+			for(ADLPoints::const_iterator i = points.begin(); i != points.end(); ++i) {
+				if(aPoints >= i->first) {
+					a = i->second.first;
+					d = i->second.second;
+				}
+			}
+		}
+	}
+
+	void remADLPoints(int aPoints) {
+		Lock l(adlp);
+		ADLPoints::iterator i = points.find(aPoints);
+		if(i != points.end())
+			points.erase(i);
+	}
+
+	bool addADLPoints(int aPoints, int aAction, bool aDisp) {
+		Lock l(adlp);
+		ADLPoints::iterator i = points.find(aPoints);
+		if(i != points.end()) {
+			return false;
+		}
+		points.insert(make_pair(aPoints, make_pair(aAction, aDisp)));
+		return true;
+	}
+
+	ADLPoints& getADLPoints() { Lock l(act); return points; }
+
 private:
 	RawManager();
 	~RawManager();
@@ -115,11 +149,16 @@ private:
 	void loadActionRaws(SimpleXML& aXml);
 
 	Action::List action;
-	CriticalSection act;
+	CriticalSection act, adlp;
 	uint16_t lastAction;
 
 	typedef std::map<uint64_t, RawSendItem> ListRaw;
 	ListRaw raw;
+	
+	ADLPoints points;
+
+	void on(RSXSettingsManagerListener::Load, SimpleXML& xml) throw();
+	void on(RSXSettingsManagerListener::Save, SimpleXML& xml) throw();
 
 	// TimerManagerListener
 	void on(TimerManagerListener::Second, uint64_t aTick) throw();

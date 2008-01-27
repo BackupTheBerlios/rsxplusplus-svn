@@ -48,8 +48,7 @@ const string RSXSettingsManager::settingTags[] =
 	"FilelistTooSmallOrBig", "FilelistUnavailable",
 	"NoTTHF", "VersionMisMatch", 
 	"MyInfoSpamKick", "CTMSpamKick", 
-	"ADLLowPointsRaw", "ADLMediumPointsRaw", 
-	"ADLHighPointsRaw", "HashErrorRaw", 
+	"ADLOutOfRange", "HashErrorRaw", 
 	"rmDCRaw", "DCPlusPlusEmulationRaw", 
 	"FilelistVersionMismatch", "SlowDownloadRaw", 
 	"PMSpamKick", "FakeSlotCount",
@@ -59,8 +58,7 @@ const string RSXSettingsManager::settingTags[] =
 	"ShowFilelistTooSmallOrBig", "ShowFilelistUnavailable", 
 	"ShowNoTTHF", "ShowVersionMisMatch", 
 	"ShowMyInfoSpamKick", "ShowCTMSpamKick", 
-	"ShowADLLowPointsRaw", "ShowADLMediumPointsRaw", 
-	"ShowADLHighPointsRaw", "ShowHashErrorRaw", 
+	"ShowADLOutOfRange", "ShowHashErrorRaw", 
 	"ShowrmDCRaw", "ShowDCPlusPlusEmulationRaw", 
 	"ShowFilelistVersionMismatch", "ShowSlowDownloadRaw", 
 	"ShowPMSpamKick", "ShowFakeSlotCount",
@@ -148,9 +146,7 @@ RSXSettingsManager::RSXSettingsManager()
 	setDefault(VERSION_MISMATCH,			0);
 	setDefault(MYINFO_SPAM_KICK,			0);
 	setDefault(CTM_SPAM_KICK,				0);
-	setDefault(ADL_RAW_LOW_POINTS,			0);
-	setDefault(ADL_RAW_MEDIUM_POINTS,		0);
-	setDefault(ADL_RAW_HIGH_POINTS,			0);
+	setDefault(ADL_OUT_OF_RANGE,			0);
 	setDefault(HASH_ERROR_RAW,				0);
 	setDefault(RMDC_RAW,					0);
 	setDefault(DCPP_EMULATION_RAW,			0);
@@ -169,9 +165,7 @@ RSXSettingsManager::RSXSettingsManager()
 	setDefault(SHOW_VERSION_MISMATCH,			true);
 	setDefault(SHOW_MYINFO_SPAM_KICK,			true);
 	setDefault(SHOW_CTM_SPAM_KICK,				true);
-	setDefault(SHOW_ADL_RAW_LOW_POINTS,			true);
-	setDefault(SHOW_ADL_RAW_MEDIUM_POINTS,		true);
-	setDefault(SHOW_ADL_RAW_HIGH_POINTS,		true);
+	setDefault(SHOW_ADL_OUT_OF_RANGE,			true);
 	setDefault(SHOW_HASH_ERROR_RAW,				true);
 	setDefault(SHOW_RMDC_RAW,					true);
 	setDefault(SHOW_DCPP_EMULATION_RAW,			true);
@@ -326,4 +320,31 @@ bool RSXSettingsManager::getType(const char* name, int& n, int& type) const {
 		}
 	}
 	return false;
+}
+
+int RSXSettingsManager::getInt(const string& sname) {
+	for(int n = INT_FIRST; n < INT_LAST; n++) {
+		if(strcmp(settingTags[n].c_str(), sname.c_str()) == 0) {
+			return get((IntSetting)n);
+		}
+	}
+	return 0;
+}
+
+int64_t RSXSettingsManager::getInt64(const string& sname) {
+	for(int n = INT64_FIRST; n < INT64_LAST; n++) {
+		if(strcmp(settingTags[n].c_str(), sname.c_str()) == 0) {
+			return get((Int64Setting)n);
+		}
+	}
+	return 0;
+}
+
+const string& RSXSettingsManager::getString(const string& sname) const {
+	for(int n = STR_FIRST; n < STR_LAST; n++) {
+		if(strcmp(settingTags[n].c_str(), sname.c_str()) == 0) {
+			return get((StrSetting)n);
+		}
+	}
+	return Util::emptyString;
 }

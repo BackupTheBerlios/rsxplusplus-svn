@@ -57,7 +57,6 @@ const string SettingsManager::settingTags[] =
 	"FinishedVisible", "FinishedULVisible", "DirectoryListingFrameVisible",
 	"RecentFrameOrder", "RecentFrameWidths",
 	//RSX++
-	"PGLogFormat", "PGLogFile", "PGUpdateURL", "PGFile",
 	"RawLogFormat", "RawLogFile", "DownSpeed", "UpSpeed",
 	//END
 	"SENTRY", 
@@ -122,11 +121,11 @@ const string SettingsManager::settingTags[] =
 	"OpenFinishedUploads", "OpenSearchSpy", "OpenNetworkStatistics", "OpenNotepad", "OutgoingConnections",
 	"NoIPOverride", "GroupSearchResults", "BoldFinishedDownloads", "BoldFinishedUploads", "BoldQueue", 
 	"BoldHub", "BoldPm", "BoldSearch", "TabsOnTop", "SocketInBuffer", "SocketOutBuffer", 
-	"ColorRunning", "ColorDownloaded", "ColorVerified", "AutoRefreshTime", "UseTLS", "OpenWaitingUsers",
+	"ColorDownloaded", "ColorRunning", "ColorDone", "AutoRefreshTime", "UseTLS", "OpenWaitingUsers",
 	"BoldWaitingUsers", "AutoSearchLimit", "AutoKickNoFavs", "PromptPassword", "SpyFrameIgnoreTthSearches",
  	"AllowUntrustedHubs", "AllowUntrustedClients", "TLSPort", "FastHash", "DownConnPerSec",
 	"HighestPrioSize", "HighPrioSize", "NormalPrioSize", "LowPrioSize", "LowestPrio",
-	"FilterEnter", "SortFavUsersFirst", "ShowShellMenu", "EnableRealUploadQueue",
+	"FilterEnter", "SortFavUsersFirst", "ShowShellMenu", "EnableRealUploadQueue", "SendBloom",
 	//RSX++
 	"TopSpeed", "TopUpSpeed", "OdcStyleBumped",
 	"StealthyIndicateSpeeds", "PGEnable", "PGUp", "PGDown", "PGSearch", "PGLog", "ProgressBarMode",
@@ -308,7 +307,8 @@ SettingsManager::SettingsManager()
 	setDefault(ALLOW_UNTRUSTED_CLIENTS, true);		
 	setDefault(FAST_HASH, true);
 	setDefault(SORT_FAVUSERS_FIRST, false);
-	setDefault(SHOW_SHELL_MENU, false);	
+	setDefault(SHOW_SHELL_MENU, false);
+	setDefault(SEND_BLOOM, true);		
 	setDefault(NUMBER_OF_SEGMENTS, 3);
 	setDefault(SEGMENTS_MANUAL, false);
 	setDefault(HUB_SLOTS, 1);
@@ -418,10 +418,6 @@ SettingsManager::SettingsManager()
 	setDefault(KICK_MSG_RECENT_20, "");
 	//RSX++
 	setDefault(STEALTHY_INDICATE_SPEEDS, false);
-	setDefault(PG_LOG_FILE, "PeerGuardian.log");
-	setDefault(PG_LOG_FORMAT, "Type: %[type] From: %[userI4] (Nick: %[userNI] Hub: %[hubURL]) Because: %[company]");
-	setDefault(PG_FILE, Util::getConfigPath() + "guarding.p2p");
-	setDefault(PG_UPDATE_URL, "");
 	setDefault(PROGRESSBAR_MODE, 2);
 	setDefault(SHOW_PLUGIN_TOOLBAR, true);
 	setDefault(LOG_RAW_CMD_FORMAT, "[%Y-%m-%d %H:%M] %[userNI] %[userI4] (%[userCS])");
@@ -555,8 +551,8 @@ SettingsManager::SettingsManager()
 	setDefault(PROGRESS_SEGMENT_COLOR, RGB(49, 106, 197));
 	setDefault(COLOR_RUNNING, RGB(0, 150, 0));
 	setDefault(COLOR_DOWNLOADED, RGB(255, 255, 100));
-	setDefault(COLOR_VERIFIED, RGB(222, 160, 0));
-
+	setDefault(COLOR_DONE, RGB(222, 160, 0));
+	
 #ifdef _WIN32
 	OSVERSIONINFO ver;
 	memzero(&ver, sizeof(OSVERSIONINFO));
@@ -749,7 +745,7 @@ int64_t SettingsManager::getInt64(const string& sname) {
 	return 0;
 }
 
-const string SettingsManager::getString(const string& sname) const {
+const string& SettingsManager::getString(const string& sname) const {
 	for(int n = STR_FIRST; n < STR_LAST; n++) {
 		if(strcmp(settingTags[n].c_str(), sname.c_str()) == 0) {
 			return get((StrSetting)n);
@@ -760,5 +756,5 @@ const string SettingsManager::getString(const string& sname) const {
 //END
 /**
  * @file
- * $Id: SettingsManager.cpp 330 2007-10-13 22:26:06Z bigmuscle $
+ * $Id: SettingsManager.cpp 342 2007-12-24 10:27:29Z bigmuscle $
  */

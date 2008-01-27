@@ -16,26 +16,18 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#if !defined(ADC_HUB_H)
-#define ADC_HUB_H
+#ifndef DCPLUSPLUS_DCPP_ADC_HUB_H
+#define DCPLUSPLUS_DCPP_ADC_HUB_H
 
 #include "Client.h"
 #include "AdcCommand.h"
 #include "TimerManager.h"
 #include "User.h"
-
-#include "../rsx/UserMap.h"
-#include "ScriptManager.h" //RSX++ // Lua
+#include "../rsx/UserMap.h" //RSX++
 
 class ClientManager;
-//RSX++ // Lua
-class AdcHub;
 
-struct AdcScriptInstance : public ScriptInstance {
-	bool onClientMessage(AdcHub* aClient, const string& aLine);
-};
-//END
-class AdcHub : public Client, public CommandHandler<AdcHub>, /*//RSX++ //Lua*/public AdcScriptInstance /*END*/ {
+class AdcHub : public Client, public CommandHandler<AdcHub> {
 public:
 	using Client::send;
 	using Client::connect;
@@ -56,13 +48,12 @@ public:
 	void send(const AdcCommand& cmd);
 
 	string getMySID() { return AdcCommand::fromSID(sid); }
-
-	/* these functions not implemented yet */
-	void refreshUserList(bool) { }
 	void cheatMessage(const string& aLine) {
 		fire(ClientListener::CheatMessage(), this, aLine);
 	}
 
+	/* these functions not implemented yet */
+	void refreshUserList(bool) { }
 private:
 	friend class ClientManager;
 	friend class CommandHandler<AdcHub>;
@@ -74,16 +65,18 @@ private:
 	~AdcHub() throw();
 
 	/** Map session id to OnlineUser */
-	//RSX++
 	typedef unordered_map<uint32_t, OnlineUser*> SIDMap;
-	typedef UserMap<true, SIDMap>::const_iterator SIDIter;
-	UserMap<true, SIDMap> users;
-	
-	void startChecking() { users.startCheck(getCheckClients(), getCheckFilelists()); }
-	void stopChecking()	{ users.stopCheck(); }
+	typedef SIDMap::const_iterator SIDIter;
+	//RSX++
+	typedef UserMap<true, SIDMap> ADCUsers;
+	ADCUsers users;
+
+	void startChecking() { users.startCheck(this, getCheckClients(), getCheckFilelists()); }
+	void startCustomCheck(bool clients, bool filelists) { users.startCheck(this, clients, filelists); }
 	bool isDetectorRunning() { return users.isDetectorRunning(); }
+
+	void stopChecking()	{ users.stopCheck(); }
 	void stopMyINFOCheck() { users.stopMyINFOCheck(); }
-	void startCustomCheck(bool clients, bool filelists) { users.startCheck(clients, filelists); }
 	//END
 
 	void getUserList(OnlineUser::List& list) const {
@@ -97,7 +90,7 @@ private:
 	bool oldPassword;
 	Socket udp;
 	StringMap lastInfoMap;
-	//mutable CriticalSection cs; //rsx++
+	//mutable CriticalSection cs;
 
 	string salt;
 	uint32_t sid;
@@ -112,6 +105,7 @@ private:
 	static const string BAS0_SUPPORT;
 	static const string TIGR_SUPPORT;
 	static const string UCM0_SUPPORT;
+	static const string BLO0_SUPPORT;
 
 	string checkNick(const string& nick);
 
@@ -120,7 +114,7 @@ private:
 	OnlineUser* findUser(const CID& cid) const;
 	
 	// just a workaround
-	OnlineUser* AdcHub::findUser(const string& aNick) const { 
+	OnlineUser* findUser(const string& aNick) const { 
 	   Lock l(cs); 
 	   for(SIDMap::const_iterator i = users.begin(); i != users.end(); ++i) { 
 		  if(i->second->getIdentity().getNick() == aNick) { 
@@ -146,6 +140,7 @@ private:
 	void handle(AdcCommand::SCH, AdcCommand& c) throw();
 	void handle(AdcCommand::CMD, AdcCommand& c) throw();
 	void handle(AdcCommand::RES, AdcCommand& c) throw();
+	void handle(AdcCommand::GET, AdcCommand& c) throw();
 
 	template<typename T> void handle(T, AdcCommand&) { }
 
@@ -164,5 +159,5 @@ private:
 
 /**
  * @file
- * $Id: AdcHub.h 338 2007-12-06 20:44:27Z bigmuscle $
+ * $Id: AdcHub.h 340 2007-12-20 12:30:13Z bigmuscle $
  */

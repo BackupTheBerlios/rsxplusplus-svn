@@ -82,8 +82,9 @@ public:
 
 	// Active search
 	bool isActive;
+
 	// Forbidden file
-//RSX++
+	//RSX++
 	bool isForbidden;
 	bool isRegExp;
 	bool overRidePoints;
@@ -93,7 +94,7 @@ public:
 	bool fromFavs;
 	string adlsComment;
 	bool isCaseSensitive;
-//END
+	//END
 	// Auto Queue Results
 	bool isAutoQueue;
 

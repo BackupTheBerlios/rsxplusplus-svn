@@ -35,9 +35,7 @@
 #include "SearchManagerListener.h"
 #include "ClientManagerListener.h"
 #include "LogManager.h"
-//RSX++
-#include "../rsx/RsxUtil.h"
-//END
+#include "../rsx/RsxUtil.h" //RSX++
 
 STANDARD_EXCEPTION(QueueException);
 
@@ -75,24 +73,22 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 	private SearchManagerListener, private ClientManagerListener
 {
 public:
-	/** Add a file with hash to the queue. */
-	bool add(const string& aFile, int64_t aSize, const string& tth) throw(QueueException, FileException); 
 	/** Add a file to the queue. */
 	void add(const string& aTarget, int64_t aSize, const TTHValue& root, UserPtr aUser,
 		Flags::MaskType aFlags = QueueItem::FLAG_RESUME, bool addBad = true) throw(QueueException, FileException);
-		/** Add a user's filelist to the queue. */
+	/** Add a user's filelist to the queue. */
 	void addList(const UserPtr& aUser, Flags::MaskType aFlags, const string& aInitialDir = Util::emptyString) throw(QueueException, FileException);
 	/** Queue a partial file list download */
 	void addPfs(const UserPtr& aUser, const string& aDir) throw(QueueException);
 
-	void addTestSUR(const UserPtr& aUser) throw(QueueException, FileException) {
-		string target = Util::getConfigPath() + "TestSURs\\" + getValidTestSURName(aUser->getCID());
+	void addTestSUR(UserPtr aUser) throw(QueueException, FileException) {
+		string target = Util::getConfigPath() + "TestSURs\\" + getValidTestSURName(aUser);
 		add(target, -1, TTHValue(), aUser, (Flags::MaskType)QueueItem::FLAG_TESTSUR);
 	}
 
-	void removeTestSUR(const UserPtr& aUser) {
+	void removeTestSUR(UserPtr aUser) {
 		try {
-			string target = Util::getConfigPath() + "TestSURs\\" + getValidTestSURName(aUser->getCID());
+			string target = Util::getConfigPath() + "TestSURs\\" + getValidTestSURName(aUser);
 			remove(target);
 		} catch(...) {
 			// exception
@@ -100,7 +96,7 @@ public:
 		return;
 	}
 	//RSX++ //apex code
-	void removeFileListCheck(const UserPtr& aUser) {
+	void removeFileListCheck(UserPtr aUser) throw(QueueException) {
 		Lock l(cs);
 		for(QueueItem::StringIter i = fileQueue.getQueue().begin(); i != fileQueue.getQueue().end(); ++i) {
 			if(i->second->isSource(aUser) && i->second->isSet(QueueItem::FLAG_CHECK_FILE_LIST)) {
@@ -111,10 +107,11 @@ public:
 		return;
 	}
 
-	bool isTestSURinQueue(const UserPtr& aUser) {
+	bool isTestSURinQueue(UserPtr aUser) throw(QueueException) {
 		Lock l(cs);
 		for(QueueItem::StringIter i = fileQueue.getQueue().begin(); i != fileQueue.getQueue().end(); ++i) {
-			if(i->second->getTargetFileName().find(getValidTestSURName(aUser->getCID())) != string::npos ) {
+			const string& target = getValidTestSURName(aUser);
+			if(i->second->getTargetFileName().find(target) != string::npos ) {
 				return true;
 			}
 		}
@@ -147,6 +144,7 @@ public:
 	QueueItem::SourceList getSources(const QueueItem* qi) const { Lock l(cs); return qi->getSources(); }
 	QueueItem::SourceList getBadSources(const QueueItem* qi) const { Lock l(cs); return qi->getBadSources(); }
 	size_t getSourcesCount(const QueueItem* qi) const { Lock l(cs); return qi->getSources().size(); }
+	vector<Segment> getChunksVisualisation(const QueueItem* qi, int type) const { Lock l(cs); return qi->getChunksVisualisation(type); }
 
 	bool getQueueInfo(const UserPtr& aUser, string& aTarget, int64_t& aSize, int& aFlags) throw();
 	Download* getDownload(UserConnection& aSource, string& aMessage) throw();
@@ -187,6 +185,21 @@ public:
 		tempTarget = ql.front()->getTempTarget();
 		return true;
 	}
+
+	bool isChunkDownloaded(const TTHValue& tth, int64_t startPos, int64_t& bytes, string& tempTarget, int64_t& size) {
+		Lock l(cs);
+		QueueItem::List ql;
+		fileQueue.find(ql, tth);
+
+		if(ql.empty()) return false;
+
+		QueueItem* qi = ql.front();
+
+		tempTarget = qi->getTempTarget();
+		size = qi->getSize();
+
+		return qi->isChunkDownloaded(startPos, bytes);
+	}
 	
 	GETSET(uint64_t, lastSave, LastSave);
 	GETSET(string, queueFile, QueueFile);
@@ -210,9 +223,9 @@ public:
 		CriticalSection cs;
 	} mover;
 
-	typedef unordered_map<CID, string, CID::Hash> PfsQueue;
+	typedef unordered_map<CID, string> PfsQueue;
 	typedef PfsQueue::iterator PfsIter;
-	typedef vector<pair<QueueItem::SourceIter, QueueItem*> > PFSSourceList;
+	typedef vector<pair<QueueItem::SourceConstIter, QueueItem*> > PFSSourceList;
 
 	/** All queue items by target */
 	class FileQueue {
@@ -223,9 +236,9 @@ public:
 				i->second->dec();
 			}
 		void add(QueueItem* qi);
-		QueueItem* add(const string& aTarget, int64_t aSize, 
-			Flags::MaskType aFlags, QueueItem::Priority p, const string& aTempTarget,
-			time_t aAdded, const string& freeBlocks, const string& verifiedBlocks, const TTHValue& root) throw(QueueException, FileException);
+		QueueItem* add(const string& aTarget, int64_t aSize, Flags::MaskType aFlags, QueueItem::Priority p, 
+			const string& aTempTarget, time_t aAdded, const TTHValue& root)
+			throw(QueueException, FileException);
 
 		QueueItem* find(const string& target) const;
 		void find(QueueItem::List& sl, int64_t aSize, const string& ext);
@@ -254,8 +267,7 @@ private:
 	public:
 		void add(QueueItem* qi);
 		void add(QueueItem* qi, const UserPtr& aUser);
-		QueueItem* getNext(const UserPtr& aUser, QueueItem::Priority minPrio = QueueItem::LOWEST, QueueItem* pNext = NULL);
-		QueueItem* getNextAll(const UserPtr& aUser, QueueItem::Priority minPrio = QueueItem::LOWEST);
+		QueueItem* getNext(const UserPtr& aUser, QueueItem::Priority minPrio = QueueItem::LOWEST);
 		QueueItem* getRunning(const UserPtr& aUser);
 		void addDownload(QueueItem* qi, Download* d);
 		void removeDownload(QueueItem* qi, const UserPtr& d);
@@ -265,11 +277,20 @@ private:
 		void setPriority(QueueItem* qi, QueueItem::Priority p);
 		
 		const QueueItem::UserMap& getRunning() const { return running; }
+
+		string getLastError() { 
+			string tmp = lastError;
+			lastError = Util::emptyString;
+			return tmp;
+		}
+
 	private:
 		/** QueueItems by priority and user (this is where the download order is determined) */
 		QueueItem::UserListMap userQueue[QueueItem::LAST];
 		/** Currently running downloads, a QueueItem is always either here or in the userQueue */
 		QueueItem::UserMap running;
+		/** Last error message to sent to TransferView */
+		string lastError;
 	};
 
 	friend class QueueLoader;
@@ -310,10 +331,10 @@ private:
 			lastSave = GET_TICK();
 		}
 	}
-
 	//RSX++
-	const string getValidTestSURName(const CID& aCid) const {
-		return RsxUtil::getTestSURString() + Util::validateFileName(Util::cleanPathChars(ClientManager::getInstance()->getFirstNick(aCid)) + "." + aCid.toBase32());
+	string getValidTestSURName(const UserPtr& aUser) const {
+		string ret = RsxUtil::getTestSURString() + Util::cleanPathChars(aUser->getFirstNick()) + "." + aUser->getCID().toBase32();
+		return Util::validateFileName(ret);
 	}
 	//END
 	// TimerManagerListener
@@ -332,5 +353,5 @@ private:
 
 /**
  * @file
- * $Id: QueueManager.h 334 2007-11-04 13:04:34Z bigmuscle $
+ * $Id: QueueManager.h 356 2008-01-11 20:48:10Z bigmuscle $
  */

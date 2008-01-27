@@ -86,24 +86,36 @@ class ScriptInstance {
 protected:
 	virtual ~ScriptInstance() { }
 	static lua_State* L;
-	static CriticalSection scs;
+	static CriticalSection cs;
+	static FastCriticalSection fastCs;
 
-	template <typename T> bool MakeCall(const string& table, const string& method,
-		int ret, const T& t) throw() {
-		Lock l(scs);
+	template <typename T>
+	bool MakeCall(const string& table, const string& method, int ret, const T& t) throw() {
+		Lock l(cs);
 		dcassert(lua_gettop(L) == 0);
 		LuaPush(t);
 		return MakeCallRaw(table, method, 1, ret);
 	}
-	template <typename T, typename T2> bool MakeCall(const string& table, const string& method,
-		int ret, const T& t, const T2& t2) throw() {
-		Lock l(scs);
+	template <typename T, typename T2>
+	bool MakeCall(const string& table, const string& method, int ret, const T& t, const T2& t2) throw() {
+		Lock l(cs);
 		dcassert(lua_gettop(L) == 0);
 		LuaPush(t);
 		LuaPush(t2);
 		return MakeCallRaw(table, method, 2, ret);
 	}
-	template <typename T> void LuaPush(T* p) { lua_pushlightuserdata(L, (void*)p); }
+/*	template <typename T, typename T2, typename T3>
+	bool MakeCall(const string& table, const string& method, int ret, const T& t, const T2& t2, const T3& t3) throw() {
+		Lock l(cs);
+		dcassert(lua_gettop(L) == 0);
+		LuaPush(t);
+		LuaPush(t2);
+		LuaPush(t3);
+		return MakeCallRaw(table, method, 3, ret);
+	}*/
+	template <typename T>
+	void LuaPush(T* p) { lua_pushlightuserdata(L, (void*)p); }
+
 	void LuaPush(int i);
 	void LuaPush(const string& s);
 	bool GetLuaBool();

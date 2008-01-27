@@ -26,9 +26,8 @@ class Download;
 #include "FastAlloc.h"
 #include "MerkleTree.h"
 #include "Flags.h"
-#include "FileChunksInfo.h"
-#include "HashManager.h"
-#include "SettingsManager.h"
+#include "forward.h"
+#include "Segment.h"
 
 class QueueItem : public Flags, public FastAlloc<QueueItem>, public PointerBase {
 public:
@@ -118,10 +117,9 @@ public:
 			FLAG_NO_NEED_PARTS		= 0x200,
 			FLAG_PARTIAL			= 0x400,
 			FLAG_TTH_INCONSISTENCY	= 0x800,
-			FLAG_PG_BLOCKED 		= 0x1000, //RSX++
 			FLAG_MASK 				= FLAG_FILE_NOT_AVAILABLE
 				| FLAG_PASSIVE | FLAG_REMOVED | FLAG_CRC_FAILED | FLAG_CRC_WARN | FLAG_BAD_TREE
-				| FLAG_SLOW | FLAG_NO_TREE | FLAG_TTH_INCONSISTENCY /*RSX++*/ | FLAG_PG_BLOCKED
+				| FLAG_SLOW | FLAG_NO_TREE | FLAG_TTH_INCONSISTENCY
 		};
 
 		Source(const UserPtr& aUser) : user(aUser), partialSource(NULL) { }
@@ -139,32 +137,29 @@ public:
 	typedef SourceList::iterator SourceIter;
 	typedef SourceList::const_iterator SourceConstIter;
 
-	QueueItem(const string& aTarget, int64_t aSize, 
-		Priority aPriority, Flags::MaskType aFlag, time_t aAdded, const TTHValue& tth) :
-	Flags(aFlag), target(aTarget), chunksInfo(NULL), maxSegments(1), fileBegin(0),
-	size(aSize), priority(aPriority), added(aAdded),
-	tthRoot(tth), autoPriority(false)
+	typedef set<Segment> SegmentSet;
+	typedef SegmentSet::const_iterator SegmentIter;
+	
+	QueueItem(const string& aTarget, int64_t aSize, Priority aPriority, Flags::MaskType aFlag,
+		time_t aAdded, const TTHValue& tth) :
+		Flags(aFlag), target(aTarget), maxSegments(1), fileBegin(0),
+		size(aSize), priority(aPriority), added(aAdded),
+		tthRoot(tth), autoPriority(false)
 	{
 		inc();
 		setFlag(FLAG_AUTODROP);
 	}
 
 	QueueItem(const QueueItem& rhs) : 
-	Flags(rhs), target(rhs.target), tempTarget(rhs.tempTarget), fileBegin(rhs.fileBegin),
-		size(rhs.size), priority(rhs.priority), downloads(rhs.downloads), maxSegments(rhs.maxSegments),
-		added(rhs.added), tthRoot(rhs.tthRoot), autoPriority(rhs.autoPriority)
+		Flags(rhs), done(rhs.done), downloads(rhs.downloads), target(rhs.target), 
+		size(rhs.size), priority(rhs.priority), added(rhs.added), tthRoot(rhs.tthRoot),
+		autoPriority(rhs.autoPriority), maxSegments(rhs.maxSegments), fileBegin(rhs.fileBegin),
+		sources(rhs.sources), badSources(rhs.badSources), tempTarget(rhs.tempTarget)
 	{
 		inc();
-		setChunksInfo(rhs.chunksInfo);
 	}
 
-	~QueueItem() {
-		if(!isSet(FLAG_USER_LIST) && !isSet(FLAG_TESTSUR)) {
-			chunksInfo->dec();
-			chunksInfo = NULL;
-			FileChunksInfo::Free(&getTTH());
-		}
-	}
+	~QueueItem() { }
 
 	size_t countOnlineUsers() const;
 
@@ -195,12 +190,47 @@ public:
 		return false;
 	}
 	
+	vector<Segment> getChunksVisualisation(int type) const;
+
+	bool isChunkDownloaded(int64_t startPos, int64_t& len) const {
+		if(len <= 0) return false;
+
+		for(SegmentSet::const_iterator i = done.begin(); i != done.end(); ++i) {
+			int64_t first  = (*i).getStart();
+			int64_t second = (*i).getEnd();
+
+			if(first <= startPos && startPos < second){
+				len = min(len, second - startPos);
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Is specified parts needed by this download?
+	 */
+	bool isSource(const PartsInfo& partsInfo, int64_t blockSize);
+
+	/**
+	 * Get shared parts info, max 255 parts range pairs
+	 */
+	void getPartialInfo(PartsInfo& partialInfo, int64_t blockSize);
+
 	int64_t getDownloadedBytes() const;
+	double getDownloadedFraction() const { return static_cast<double>(getDownloadedBytes()) / getSize(); }
 	
 	DownloadList& getDownloads() { return downloads; }
 	
-	FileChunksInfo::Ptr getChunksInfo() const { return chunksInfo; }
-	void setChunksInfo(FileChunksInfo* aChunksInfo) { aChunksInfo->inc(); chunksInfo = aChunksInfo; }
+	/** Next segment that is not done and not being downloaded, zero-sized segment returned if there is none is found */
+	Segment getNextSegment(int64_t blockSize, int64_t userSpeed, const PartialSource::Ptr partialSource) const;
+	
+	void addSegment(const Segment& segment);
+	
+	bool isFinished() const {
+		return done.size() == 1 && *done.begin() == Segment(0, getSize());
+	}
 
 	bool isRunning() const {
 		return !isWaiting();
@@ -222,6 +252,7 @@ public:
 	void setTempTarget(const string& aTempTarget) { tempTarget = aTempTarget; }
 
 	GETSET(TTHValue, tthRoot, TTH);
+	GETSET(SegmentSet, done, Done);	
 	GETSET(DownloadList, downloads, Downloads);
 	GETSET(string, target, Target);
 	GETSET(uint64_t, fileBegin, FileBegin);
@@ -262,20 +293,7 @@ public:
 		return priority;
 	}
 
-	bool hasFreeSegments() const {
-		return ((downloads.size() < maxSegments) &&
-				(!BOOLSETTING(DONT_BEGIN_SEGMENT) || ((size_t)(SETTING(DONT_BEGIN_SEGMENT_SPEED)*1024) > getAverageSpeed())));
-	}
-
-	int64_t getAverageSpeed() const {
-		int64_t totalSpeed = 0;
-		
-		for(DownloadList::const_iterator i = downloads.begin(); i != downloads.end(); i++) {
-			totalSpeed += static_cast<int64_t>((*i)->getAverageSpeed());
-		}
-
-		return totalSpeed;
-	}
+	int64_t getAverageSpeed() const;
 
 private:
 	QueueItem& operator=(const QueueItem&);
@@ -285,8 +303,6 @@ private:
 	SourceList badSources;
 	string tempTarget;
 
-	FileChunksInfo* chunksInfo;
-
 	void addSource(const UserPtr& aUser);
 	void removeSource(const UserPtr& aUser, Flags::MaskType reason);
 };
@@ -295,5 +311,5 @@ private:
 
 /**
 * @file
-* $Id: QueueItem.h 335 2007-11-10 13:01:41Z bigmuscle $
+* $Id: QueueItem.h 356 2008-01-11 20:48:10Z bigmuscle $
 */

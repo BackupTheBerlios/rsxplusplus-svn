@@ -63,7 +63,6 @@
 				WarningLevel="4"
 				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="4"
-				CallingConvention="0"
 				CompileAs="0"
 				DisableSpecificWarnings="4996"
 			/>
@@ -82,18 +81,18 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/FIXED:NO /SAFESEH:NO"
-				AdditionalDependencies="unicows.lib SHFolder.lib ws2_32.lib winmm.lib powrprof.lib msimg32.lib"
+				AdditionalDependencies="libeay32.lib ssleay32.lib unicows.lib SHFolder.lib ws2_32.lib winmm.lib powrprof.lib msimg32.lib"
 				OutputFile="$(SolutionDir)compiled/$(ProjectName).exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="&quot;$(SolutionDir)openssl/lib&quot;"
 				GenerateManifest="false"
 				IgnoreAllDefaultLibraries="false"
-				IgnoreDefaultLibraryNames="kernel32.lib advapi32.lib user32.lib gdi32.lib shell32.lib comdlg32.lib version.lib mpr.lib rasapi32.lib winmm.lib winspool.lib vfw32.lib secur32.lib oleacc.lib oledlg.lib sensapi.lib"
+				IgnoreDefaultLibraryNames="libcmt.lib kernel32.lib advapi32.lib user32.lib gdi32.lib shell32.lib comdlg32.lib version.lib mpr.lib rasapi32.lib winmm.lib winspool.lib vfw32.lib secur32.lib oleacc.lib oledlg.lib sensapi.lib"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(SolutionDir)compiled/$(ProjectName).pdb"
 				SubSystem="2"
-				ImportLibrary="$(SolutionDir)PluginAPI\libs\RSXPP.lib"
+				StackReserveSize="131072"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -210,7 +209,6 @@
 				DelayLoadDLLs="dbghelp.dll;oleaut32.dll;powrprof.dll"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(SolutionDir)compiled/$(ProjectName).pdb"
-				GenerateMapFile="false"
 				MapFileName=""
 				SubSystem="2"
 				StackReserveSize="131072"
@@ -220,7 +218,6 @@
 				SetChecksum="true"
 				ImportLibrary="$(SolutionDir)compiled/$(ProjectName).lib"
 				TargetMachine="1"
-				FixedBaseAddress="0"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -708,6 +705,14 @@
 				RelativePath=".\rsx\PluginAPI\PluginAPI.cpp"
 				>
 				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						PrecompiledHeaderThrough="../../windows/stdafx.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
 					>
 					<Tool
@@ -719,6 +724,14 @@
 			<File
 				RelativePath=".\rsx\PluginAPI\PluginsManager.cpp"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						PrecompiledHeaderThrough="../../windows/stdafx.h"
+					/>
+				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|Win32"
 					>
@@ -902,6 +915,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\windows\ADLSearchPoints.h"
+				>
+			</File>
+			<File
 				RelativePath=".\windows\ADLSProperties.h"
 				>
 			</File>
@@ -951,6 +968,10 @@
 			</File>
 			<File
 				RelativePath=".\windows\ChatCtrl.h"
+				>
+			</File>
+			<File
+				RelativePath=".\rsx\PluginAPI\ClientInterface.h"
 				>
 			</File>
 			<File
@@ -1266,11 +1287,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\windows\stdafx.h"
+				RelativePath=".\stdafx.h"
 				>
 			</File>
 			<File
-				RelativePath=".\stdafx.h"
+				RelativePath=".\windows\stdafx.h"
 				>
 			</File>
 			<File

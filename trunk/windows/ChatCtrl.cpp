@@ -367,7 +367,7 @@ void ChatCtrl::AppendTextOnly(const tstring& sMyNick, const LPCTSTR sText, CHARF
 				if((*i)->getStrikeoutFont())
 					 hlcf.dwEffects |= CFM_STRIKEOUT;
 
-				PME regexp(Text::toLower(textToMatch), _T("gims"));
+				PME regexp(textToMatch, _T("gims"));
 				if(regexp.IsValid()) {
 					while(regexp.match(msg) > 0) {
 						if(regexp.NumBackRefs() == 1) {
@@ -387,7 +387,7 @@ void ChatCtrl::AppendTextOnly(const tstring& sMyNick, const LPCTSTR sText, CHARF
 							actions.push_back(curAction);
 							matched = true;
 						} else {
-							for(int j = 1; j < regexp.NumBackRefs(); ++j) {
+							for(int j = 0; j < regexp.NumBackRefs(); ++j) {
 								HLStart = regexp.GetStartPos(j);
 								HLEnd = HLStart + regexp.GetLength(j);
 

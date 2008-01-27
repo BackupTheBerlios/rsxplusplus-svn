@@ -22,6 +22,7 @@
 #include "Singleton.h"
 #include "PluginAPI.h"
 #include "PluginInterface.h"
+#include "ClientInterface.h"
 
 #include "version.h"
 
@@ -29,12 +30,15 @@ class Plugin : public iPlugin, public Singleton<Plugin> {
 public:
 	Plugin();
 	~Plugin();
-	
-	bool onIncommingMessage(Client* c, const string& msg);
-	bool onOutgoingMessage(Client* c, const string& msg);
-	void onToolbarClick();
 
-	void setHWND(HWND& h) { r_hwnd = h; }
+	bool onIncommingMessage(iClient* c, const char* msg);
+	bool onOutgoingMessage(iClient* c, const char* msg);
+
+	bool onIncommingPM(iUser* from, const char* msg);
+	bool onOutgoingPM(iUser* to, const char* msg);
+
+	void onToolbarClick();
+	void onSettingsLoaded();
 
 private:
 	HWND r_hwnd;

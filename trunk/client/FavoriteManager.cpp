@@ -438,8 +438,6 @@ void FavoriteManager::save() {
 			xml.addChildAttrib("UseHighLight", (*i)->getUseHL());
 			xml.addChildAttrib("UsersLimitToUseActions", (*i)->getUsersLimit());
 			xml.addChildAttrib("GroupID", (*i)->getGroupId());
-			//END
-			//Zion++ //Raw Manager //DEBUT
 			xml.stepIn();
 			for(FavoriteHubEntry::Action::List::const_iterator a = (*i)->action.begin(); a != (*i)->action.end(); ++a) {
 				if(RawManager::getInstance()->getValidAction(a->first)) {
@@ -458,8 +456,7 @@ void FavoriteManager::save() {
 				}
 			}
 			xml.stepOut();
-			//Zion++ //Raw Manager //FIN
-		//END
+			//END
 		}
 		xml.stepOut();
 		xml.addTag("Users");
@@ -499,7 +496,7 @@ void FavoriteManager::save() {
 		//RSX++ //FavGroups
 		xml.addTag("FavoriteHubGroups");
 		xml.stepIn();
-		StringList lst = getFavGroups();
+		StringList& lst = getFavGroups();
 		for(StringIter g = lst.begin(); g != lst.end(); ++g)
 			xml.addTag("GroupName", (*g));
 		xml.stepOut();
@@ -789,6 +786,8 @@ void FavoriteManager::load(SimpleXML& aXml) {
 				u = ClientManager::getInstance()->getUser(nick, hubUrl);
 			} else {
 				u = ClientManager::getInstance()->getUser(CID(cid));
+				if(u->getFirstNick().empty())
+					u->setFirstNick(nick);
 			}
 			FavoriteMap::iterator i = users.insert(make_pair(u->getCID(), FavoriteUser(u, nick, hubUrl))).first;
 
@@ -1205,5 +1204,5 @@ string FavoriteManager::getAwayMessage(const string& aServer) {
 
 /**
  * @file
- * $Id: FavoriteManager.cpp 334 2007-11-04 13:04:34Z bigmuscle $
+ * $Id: FavoriteManager.cpp 338 2007-12-06 20:44:27Z bigmuscle $
  */

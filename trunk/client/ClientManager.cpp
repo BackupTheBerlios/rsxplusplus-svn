@@ -107,7 +107,12 @@ StringList ClientManager::getNicks(const CID& cid) const {
 	}
 	if(nicks.empty()) {
 		// Offline perhaps?
-		nicks.insert('{' + cid.toBase32() + '}');
+		UserMap::const_iterator i = users.find(cid);
+		if(i != users.end() && !i->second->getFirstNick().empty()) {
+			nicks.insert(i->second->getFirstNick());
+		} else {
+			nicks.insert('{' + cid.toBase32() + '}');
+		}
 	}
 	return StringList(nicks.begin(), nicks.end());
 }
@@ -200,11 +205,13 @@ UserPtr ClientManager::getUser(const string& aNick, const string& aHubUrl) throw
 
 	UserIter ui = users.find(cid);
 	if(ui != users.end()) {
+		ui->second->setFirstNick(aNick);	
 		ui->second->setFlag(User::NMDC);
 		return ui->second;
 	}
 
 	UserPtr p(new User(cid));
+	p->setFirstNick(aNick);
 	p->setFlag(User::NMDC);
 	users.insert(make_pair(cid, p));
 
@@ -470,8 +477,6 @@ const string& ClientManager::getHubUrl(const UserPtr& aUser) const {
 void ClientManager::search(int aSizeMode, int64_t aSize, int aFileType, const string& aString, const string& aToken) {
 	Lock l(cs);
 
-	updateCachedIp(); // no point in doing a resolve for every single hub we're searching on
-
 	for(Client::Iter i = clients.begin(); i != clients.end(); ++i) {
 		if((*i)->isConnected()) {
 			(*i)->search(aSizeMode, aSize, aFileType, aString, aToken);
@@ -481,8 +486,6 @@ void ClientManager::search(int aSizeMode, int64_t aSize, int aFileType, const st
 
 void ClientManager::search(StringList& who, int aSizeMode, int64_t aSize, int aFileType, const string& aString, const string& aToken) {
 	Lock l(cs);
-
-	updateCachedIp(); // no point in doing a resolve for every single hub we're searching on
 
 	for(StringIter it = who.begin(); it != who.end(); ++it) {
 		string& client = *it;
@@ -518,6 +521,7 @@ UserPtr& ClientManager::getMe() {
 		Lock l(cs);
 		if(!me) {
 			me = new User(getMyCID());
+			me->setFirstNick(SETTING(NICK));
 			users.insert(make_pair(me->getCID(), me));
 		}
 	}
@@ -552,27 +556,6 @@ void ClientManager::on(HubUserCommand, const Client* client, int aType, int ctx,
 			FavoriteManager::getInstance()->addUserCommand(aType, ctx, ::UserCommand::FLAG_NOSAVE, name, command, client->getHubUrl());
 		}
 	}
-}
-
-void ClientManager::updateCachedIp() {
-	// Best case - the server detected it
-	if((!BOOLSETTING(NO_IP_OVERRIDE) || SETTING(EXTERNAL_IP).empty())) {
-		for(Client::Iter i = clients.begin(); i != clients.end(); ++i) {
-			if(!(*i)->getMyIdentity().getIp().empty()) {
-				cachedIp = (*i)->getMyIdentity().getIp();
-				return;
-			}
-		}
-	}
-
-	if(!SETTING(EXTERNAL_IP).empty()) {
-		cachedIp = Socket::resolve(SETTING(EXTERNAL_IP));
-		return;
-	}
-
-	//if we've come this far just use the first client to get the ip.
-	if(clients.size() > 0)
-		cachedIp = (*clients.begin())->getLocalIp();
 }
 
 void ClientManager::setListLength(const UserPtr& p, const string& listLen) {
@@ -635,7 +618,7 @@ void ClientManager::connectionTimeout(const UserPtr& p) {
 				return;
 	
 			if(connectionTimeouts == RSXSETTING(MAX_TIMEOUTS)) {
-				ou->getIdentity().setCheatMsg(ou->getClient(), "Connection timeout %[userTO] times", false, true, RSXBOOLSETTING(SHOW_TIMEOUT_RAW));
+				ou->getIdentity().setCheatMsg(ou->getClient(), "Connection timeout %[userTO] times", false, false, RSXBOOLSETTING(SHOW_TIMEOUT_RAW));
 				
 				if(!ou->getIdentity().getTestSURQueued().empty()) {
 					ou->getIdentity().setTestSURQueued(Util::emptyString);
@@ -668,7 +651,7 @@ void ClientManager::connectionTimeout(const UserPtr& p) {
 void ClientManager::checkCheating(const UserPtr& p, DirectoryListing* dl) {
 	string report = Util::emptyString;
 	OnlineUser* ou = NULL;
-	Client* client = NULL;
+
 	{
 		Lock l(cs);
 
@@ -677,7 +660,6 @@ void ClientManager::checkCheating(const UserPtr& p, DirectoryListing* dl) {
 			return;
 
 		ou = i->second;
-		client = &ou->getClient();
 
 		int64_t statedSize = ou->getIdentity().getBytesShared();
 		int64_t realSize = dl->getTotalSize();
@@ -707,13 +689,17 @@ void ClientManager::checkCheating(const UserPtr& p, DirectoryListing* dl) {
 				detectString += inflationString;
 			}
 			detectString += STRING(CHECK_SHOW_REAL_SHARE);
-			ou->getIdentity().setCheatMsg(*client, detectString, false, true, RSXBOOLSETTING(SHOW_FAKESHARE_RAW));
+			ou->getIdentity().setCheatMsg(ou->getClient(), detectString, false, true, RSXBOOLSETTING(SHOW_FAKESHARE_RAW));
 			sendAction(*ou, RSXSETTING(FAKESHARE_RAW));
 		}
 		ou->getIdentity().set("SF", Util::toString(dl->getTotalFileCount(true)));
 		//RSX++ //ADLS Forbidden files
-		DirectoryListing::File::List forbiddenList = dl->getForbiddenFiles();
-		DirectoryListing::Directory::List forbiddenDirList = dl->getForbiddenDirs();
+		const DirectoryListing::File::List forbiddenList = dl->getForbiddenFiles();
+		const DirectoryListing::Directory::List forbiddenDirList = dl->getForbiddenDirs();
+
+		ou->setFileListComplete();
+		ou->getIdentity().setFileListQueued(Util::emptyString);
+
 		if(forbiddenList.size() > 0 || forbiddenDirList.size() > 0) {
 			int64_t fs = 0;
 			string s, c, sz, tth, stringForKick, forbiddenFilesList;
@@ -726,7 +712,6 @@ void ClientManager::checkCheating(const UserPtr& p, DirectoryListing* dl) {
 				for(DirectoryListing::File::Iter i = forbiddenList.begin() ; i != forbiddenList.end() ; i++) {
 					fs += (*i)->getSize();
 					totalPoints += (*i)->getPoints();
-					forbiddenFilesList += (*i)->getFullFileName() + ";";
 					if(((*i)->getPoints() >= point) || (*i)->getOverRidePoints()) {
 						point = (*i)->getPoints();
 						s = (*i)->getFullFileName();
@@ -750,7 +735,6 @@ void ClientManager::checkCheating(const UserPtr& p, DirectoryListing* dl) {
 				for(DirectoryListing::Directory::Iter j = forbiddenDirList.begin() ; j != forbiddenDirList.end() ; j++) {
 					fs += (*j)->getTotalSize();
 					totalPoints += (*j)->getPoints();
-					forbiddenFilesList += (*j)->getName() + ";";
 					if(((*j)->getPoints() >= point) || (*j)->getOverRidePoints()) {
 						point = (*j)->getPoints();
 						s = (*j)->getName();
@@ -776,14 +760,12 @@ void ClientManager::checkCheating(const UserPtr& p, DirectoryListing* dl) {
 			ou->getIdentity().set("A5", Util::toString(fs));			//forbidden size
 			ou->getIdentity().set("A6", Util::toString(totalPoints));	//total points
 			ou->getIdentity().set("A7", Util::toString((int)forbiddenList.size() + (int)forbiddenDirList.size())); //no. of forbidden files&dirs
-			ou->getIdentity().set("A8", forbiddenFilesList);
 
 			s = "[%[userA6]] Is sharing %[userA7] forbidden files/directories including: " + s;
 
 			if(forOverRide) {
 				ou->getIdentity().setCheatMsg(ou->getClient(), s, false, true, true);
-				ou->setFileListComplete();
-				client->updated(*ou);
+				ou->getClient().updated(*ou);
 
 				if(forFromFavs) {
 					sendAction(*ou, actionCommand);
@@ -792,22 +774,12 @@ void ClientManager::checkCheating(const UserPtr& p, DirectoryListing* dl) {
 				}
 				return;
 			} else if(totalPoints > 0) {
-				bool show = true;
-				int rawToSend = 0;
+				bool show = RSXBOOLSETTING(SHOW_ADL_OUT_OF_RANGE);
+				int rawToSend = RSXSETTING(ADL_OUT_OF_RANGE);
+				RawManager::getInstance()->calcADLAction(totalPoints, rawToSend, show);
 
-				if(totalPoints < 500) {
-					show =		RSXBOOLSETTING(SHOW_ADL_RAW_LOW_POINTS);
-					rawToSend = RSXSETTING(ADL_RAW_LOW_POINTS);
-				} else if(totalPoints < 5000) {
-					show =		RSXBOOLSETTING(SHOW_ADL_RAW_MEDIUM_POINTS);
-					rawToSend = RSXSETTING(ADL_RAW_MEDIUM_POINTS);
-				} else {
-					show =		RSXBOOLSETTING(SHOW_ADL_RAW_HIGH_POINTS);
-					rawToSend = RSXSETTING(ADL_RAW_HIGH_POINTS);
-				}
 				ou->getIdentity().setCheatMsg(ou->getClient(), s, false, true, show);
-				ou->setFileListComplete();
-				client->updated(*ou);
+				ou->getClient().updated(*ou);
 
 				sendAction(*ou, rawToSend);
 				return;
@@ -816,8 +788,7 @@ void ClientManager::checkCheating(const UserPtr& p, DirectoryListing* dl) {
 		//END
 	}
 	if(ou) {
-		ou->setFileListComplete();
-		client->updated(*ou);
+		ou->getClient().updated(*ou);
 	}
 }
 //RSX++ //autosearch stuff
@@ -830,56 +801,45 @@ void ClientManager::kickFromAutosearch(const UserPtr& p, int action, const strin
 			return;
 		ou = i->second;
 		int noOfFiles = Util::toInt(ou->getIdentity().get("A7")) + 1;
-		bool tDisplay = display && !cheat.empty();
 
 		ou->getIdentity().set("A1", file);
 		ou->getIdentity().set("A2", cheat);
 		ou->getIdentity().set("A3", size);
 		ou->getIdentity().set("A4", tth);
 		ou->getIdentity().set("A7", Util::toString(noOfFiles));
-		ou->getIdentity().setCheatMsg(ou->getClient(), cheat, false, true, tDisplay);
+		ou->getIdentity().setCheatMsg(ou->getClient(), cheat, false, true, display && !cheat.empty());
 		ou->getClient().updated(*ou);
 		sendAction(*ou, action);
 	}
 }
 
-bool ClientManager::canCheckHim(const UserPtr& p) {
+void ClientManager::addCheckToQueue(const UserPtr& p, bool filelist) {
 	OnlineUser* ou = NULL;
 	{
 		Lock l(cs);
 		OnlineIterC i = onlineUsers.find(p->getCID());
-		if(i == onlineUsers.end()) 
-			return false;
+		if(i == onlineUsers.end())
+			return;
 		ou = i->second;
-		if(ou->getClient().isOp()) {
-			if(ou->getChecked(true)) {
-				return true;
-			}
-		}
-		return false;
-	}
-}
-void ClientManager::addCheckToQueue(const UserPtr& p, bool filelist) {
-	Lock l(cs);
-	OnlineIterC i = onlineUsers.find(p->getCID());
-	if(i == onlineUsers.end())
-		return;
-	OnlineUser& ou = (*i->second);
-	if(ou.getClient().isOp() && !ou.getChecked(filelist)) {
-		if(filelist && !ou.getIdentity().isFileListQueued()) {
-			try {
-				QueueManager::getInstance()->addList(ou.getUser(), QueueItem::FLAG_CHECK_FILE_LIST);
-				ou.getIdentity().setFileListQueued("1");
-			} catch(...) {
-				//...
-			}
-		} else if(!filelist) {
-			if(!ou.getIdentity().isTestSURQueued()) {
-				try {
-					QueueManager::getInstance()->addTestSUR(ou.getUser());
-					ou.getIdentity().setTestSURQueued("1");
-				} catch(...) {
-					//...
+	//}
+		if(ou->isCheckable(false) && ou->getClient().isOp()) {
+			if(ou->shouldCheckFileList() && !ou->getChecked(filelist)) {
+				if(filelist) {
+					try {
+						QueueManager::getInstance()->addList(ou->getUser(), QueueItem::FLAG_CHECK_FILE_LIST);
+						ou->getIdentity().setFileListQueued("1");
+					} catch(...) {
+						//...
+					}
+				} else {
+					if(ou->shouldTestSUR()) {
+						try {
+							QueueManager::getInstance()->addTestSUR(ou->getUser());
+							ou->getIdentity().setTestSURQueued("1");
+						} catch(...) {
+							//...
+						}
+					}
 				}
 			}
 		}
@@ -1090,5 +1050,5 @@ void ClientManager::sendAction(OnlineUser& ou, const int aAction) {
 //END
 /**
  * @file
- * $Id: ClientManager.cpp 290 2007-06-04 13:09:31Z bigmuscle $
+ * $Id: ClientManager.cpp 355 2008-01-05 14:43:39Z bigmuscle $
  */

@@ -20,13 +20,14 @@
 #define VERSIONSTRING "1.00B2"
 #define VERSIONFLOAT 1.002
 
-#define DCVERSIONSTRING "0.703"
-#define DCVERSIONFLOAT 0.7031
+#define DCVERSIONSTRING "0.704"
+#define DCVERSIONFLOAT 0.7041
 
-#define SVNVERSION "svn338"
+#define SVNVERSION "svn360"
 //RSX++ //////////////////////////////////////////////////////////
-#define SVN_REVISION_STR "46"
-#define SVN_REVISION 46
+#define SVN_REVISION 47
+
+#define SVN_REVISION_STR "47"
 
 #define __HOMESITE "http://rsxplusplus.sf.net/"
 #define __WIKI "http://rsxplusplus.wiki.sourceforge.net/"
@@ -41,5 +42,5 @@
 
 /**
  * @file
- * $Id: version.h 338 2007-12-06 20:44:27Z bigmuscle $
+ * $Id: version.h 360 2008-01-19 13:57:05Z bigmuscle $
  */

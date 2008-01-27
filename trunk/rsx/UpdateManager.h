@@ -19,47 +19,33 @@
 
 #include "../client/Singleton.h"
 #include "../client/HttpConnection.h"
-#include "../client/SimpleXML.h"
+#include "../client/CriticalSection.h"
 
-typedef map<int8_t, string> UpdateMap;
-
-class UpdateManagerListener {
-public:
-	template<int I>	struct X { enum { TYPE = I };  };
-
-	typedef X<0> Complete;
-	typedef X<1> Failed;
-
-	virtual void on(Complete, int /*file*/) throw() { };
-	virtual void on(Failed, int /*file*/, const string& /*reason*/) throw() { };
-};
+#include "UpdateManagerListener.h"
 
 class UpdateManager : public Singleton<UpdateManager>, public Speaker<UpdateManagerListener>, private HttpConnectionListener {
 public:
 	UpdateManager();
 	~UpdateManager();	
-	enum Types { 
-		CLIENT = 0, 
-		MYINFO, 
-		IPWATCH
-	};
 
-	void reloadFile(int file);
-	void restoreOld(int file);
-	void updateFiles(UpdateMap& aUrls);
-	void startDownload();
-
+	void downloadFile(int _id, const string& aUrl);
 private:
 	friend class Singleton<UpdateManager>;
+	typedef unordered_map<int, string> UpdateItems;
+	bool working;
 
+	void startDownload();
+
+	void on(HttpConnectionListener::Complete, HttpConnection*, const string&) throw();
+	void on(HttpConnectionListener::Failed, HttpConnection*, const string& aLine) throw();
+	void on(HttpConnectionListener::Data, HttpConnection*, const uint8_t* buf, size_t len) throw() {
+		downBuf.append((char*)buf, len);
+	}
+
+	int current;
+	CriticalSection cs;
 	HttpConnection c;
-	UpdateMap profileList;
-	int currentlyUpdating;
 	string downBuf;
-
-	// HttpConnectionListener
-	void on(HttpConnectionListener::Complete, HttpConnection* /*conn*/, const string& /*aLine*/) throw();
-	void on(HttpConnectionListener::Data, HttpConnection* /*conn*/, const uint8_t* buf, size_t len) throw();	
-	void on(HttpConnectionListener::Failed, HttpConnection* /*conn*/, const string& aLine) throw();
+	UpdateItems items;
 };
 #endif

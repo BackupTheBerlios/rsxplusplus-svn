@@ -44,7 +44,8 @@ public:
 	enum {
 		OPEN = 0x01,
 		CREATE = 0x02,
-		TRUNCATE = 0x04
+		TRUNCATE = 0x04,
+		SHARED = 0x08
 	};
 
 #ifdef _WIN32
@@ -120,5 +121,5 @@ private:
 
 /**
  * @file
- * $Id: File.h 317 2007-08-04 14:52:24Z bigmuscle $
+ * $Id: File.h 344 2007-12-25 21:04:46Z bigmuscle $
  */

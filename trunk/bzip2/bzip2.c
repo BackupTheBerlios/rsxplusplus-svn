@@ -19,9 +19,9 @@
 
 
 /* Place a 1 beside your platform, and 0 elsewhere.
-   Generic 32-bit Unix.
-   Also works on 64-bit Unix boxes.
-   This is the default.
+  Generic 32-bit Unix.
+  Also works on 64-bit Unix boxes.
+  This is the default.
 */
 #define BZ_UNIX      1
 
@@ -211,12 +211,12 @@ FILE    *outputHandleJustInCase;
 Int32   workFactor;
 
 static void    panic                 ( const Char* ) NORETURN;
-static void    ioError               ( void )        NORETURN;
-static void    outOfMemory           ( void )        NORETURN;
-static void    configError           ( void )        NORETURN;
-static void    crcError              ( void )        NORETURN;
-static void    cleanUpAndFail        ( Int32 )       NORETURN;
-static void    compressedStreamEOF   ( void )        NORETURN;
+static void    ioError               ( void )    NORETURN;
+static void    outOfMemory           ( void )    NORETURN;
+static void    configError           ( void )    NORETURN;
+static void    crcError              ( void )    NORETURN;
+static void    cleanUpAndFail        ( Int32 )   NORETURN;
+static void    compressedStreamEOF   ( void )    NORETURN;
 
 static void    copyFileName ( Char*, Char* );
 static void*   myMalloc     ( Int32 );

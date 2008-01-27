@@ -28,7 +28,7 @@
 #include "ExtendedTrace.h"
 
 #define BUFFERSIZE		0x200
-#define LIBCOUNT		39
+#define LIBCOUNT		41
 
 TCHAR* crashLibs[LIBCOUNT][2] = {
 	{ L"Vlsp", L"V-One Smartpass" },
@@ -69,7 +69,9 @@ TCHAR* crashLibs[LIBCOUNT][2] = {
 	{ L"iFW_Xfilter", L"System Mechanic Professional 7's Firewall" },
 	{ L"spi", L"Ashampoo Firewall" },
 	{ L"haspnt32", L"AdWare.Win32.BHO.cw" },
-	{ L"TCompLsp", L"Traffic Compressor" }
+	{ L"TCompLsp", L"Traffic Compressor" },
+	{ L"MSCTF", L"Microsoft Text Service Module" },
+	{ L"radhslib", L"Naomi web filter" }
 };
 
 static void checkBuggyLibrary(PCSTR library) {
@@ -397,5 +399,5 @@ void StackTrace( HANDLE hThread, LPCTSTR lpszMessage, File& f, DWORD eip, DWORD 
 
 /**
 * @file
-* $Id: ExtendedTrace.cpp 327 2007-10-07 12:46:45Z bigmuscle $
+* $Id: ExtendedTrace.cpp 355 2008-01-05 14:43:39Z bigmuscle $
 */

@@ -67,7 +67,7 @@ public:
 		GETSET(int64_t, size, Size);
 		GETSET(Directory*, parent, Parent);
 		GETSET(bool, adls, Adls);
-//RSX++
+		//RSX++
 		string getFullFileName();
 		GETSET(int, points, Points);
 		GETSET(string, adlsComment, AdlsComment);
@@ -75,7 +75,7 @@ public:
 		GETSET(string, kickString, KickString);
 		GETSET(bool, fromFavs, FromFavs);
 		GETSET(int, adlsRaw, AdlsRaw);
-//END
+		//END
 	};
 
 	class Directory : public FastAlloc<Directory> {
@@ -88,13 +88,13 @@ public:
 		};
 		typedef vector<Ptr> List;
 		typedef List::const_iterator Iter;
-		typedef unordered_set<TTHValue, TTHValue::Hash> TTHSet;
+		typedef unordered_set<TTHValue> TTHSet;
 		
 		List directories;
 		File::List files;
 		
 		Directory(Directory* aParent, const string& aName, bool _adls, bool aComplete) 
-			: name(aName), parent(aParent), adls(_adls), complete(aComplete), /*//RSX++*/ rmDCdetected(false) { }
+			: name(aName), parent(aParent), adls(_adls), complete(aComplete), /*RSX++*/ rmDCdetected(false) { }
 		
 		virtual ~Directory() {
 			for_each(directories.begin(), directories.end(), DeleteFunction());
@@ -121,7 +121,7 @@ public:
 		GETSET(Directory*, parent, Parent);		
 		GETSET(bool, adls, Adls);		
 		GETSET(bool, complete, Complete);
-//RSX++
+		//RSX++
 		GETSET(bool, rmDCdetected, RMDCdetected);
 		string getFullPath();
 		GETSET(int, points, Points);
@@ -130,7 +130,7 @@ public:
 		GETSET(string, kickString, KickString);
 		GETSET(bool, fromFavs, FromFavs);
 		GETSET(int, adlsRaw, AdlsRaw);
-//END
+		//END
 
 
 	private:
@@ -170,10 +170,10 @@ public:
 	Directory* getRoot() { return root; }
 
 	static UserPtr getUserFromFilename(const string& fileName);
-//RSX++
+	//RSX++
 	DirectoryListing::File::List getForbiddenFiles();
 	DirectoryListing::Directory::List getForbiddenDirs();
-//END
+	//END
 
 	GETSET(UserPtr, user, User);
 	GETSET(bool, abort, Abort);
@@ -197,5 +197,5 @@ inline bool operator==(DirectoryListing::File::Ptr a, const string& b) { return 
 
 /**
  * @file
- * $Id: DirectoryListing.h 326 2007-09-01 16:55:01Z bigmuscle $
+ * $Id: DirectoryListing.h 355 2008-01-05 14:43:39Z bigmuscle $
  */

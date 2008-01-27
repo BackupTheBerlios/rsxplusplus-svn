@@ -6,6 +6,7 @@
 #include "MerkleTree.h"
 #include "Flags.h"
 #include "Streams.h"
+#include "QueueItem.h"
 
 /**
  * Comes as an argument in the DownloadManagerListener functions.
@@ -28,7 +29,7 @@ public:
 	};
 
 	Download(UserConnection& conn, const string& pfsDir) throw();
-	Download(UserConnection& conn, QueueItem& qi, bool partial) throw();
+	Download(UserConnection& conn, QueueItem& qi) throw();
 
 	void getParams(const UserConnection& aSource, StringMap& params);
 
@@ -45,8 +46,6 @@ public:
 		return isSet(FLAG_ANTI_FRAG) ? tgt + ANTI_FRAG_EXT : tgt;
 	}
 
-	int64_t getChunkSize() const { return getSize() - getStartPos(); }
-	
 	/** @internal */
 	TigerTree& getTigerTree() { return tt; }
 	string& getPFS() { return pfs; }

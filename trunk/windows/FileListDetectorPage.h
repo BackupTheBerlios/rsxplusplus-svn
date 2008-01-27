@@ -1,9 +1,21 @@
+/* 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
 #ifndef FILELIST_DETECTOR_PAGE
 #define FILELIST_DETECTOR_PAGE
-
-#if _MSC_VER > 1000
-#pragma once
-#endif // _MSC_VER > 1000
 
 #include <atlcrack.h>
 #include "PropPage.h"
@@ -13,8 +25,7 @@
 
 class FileListDetectorProfile;
 
-class FileListDetectorPage : public CPropertyPage<IDD_FILELIST_DETECTOR_PAGE>, public PropPage, protected RawSelector
-{
+class FileListDetectorPage : public CPropertyPage<IDD_FILELIST_DETECTOR_PAGE>, public PropPage, protected RawSelector {
 public:
 	FileListDetectorPage(SettingsManager *s) : PropPage(s) {
 		title = _tcsdup((TSTRING(SETTINGS_RSX) + _T('\\') + TSTRING(SETTINGS_FAKEDETECT) + _T('\\') + TSTRING(SETTINGS_FILELIST_DETECTOR)).c_str());
@@ -35,6 +46,7 @@ public:
 		COMMAND_ID_HANDLER(IDC_USE_SDL_KICK, onEnable)
 		NOTIFY_HANDLER(IDC_FILELIST_DETECTOR_LIST, NM_CUSTOMDRAW, onCustomDraw)
 		NOTIFY_HANDLER(IDC_FILELIST_DETECTOR_LIST, NM_DBLCLK, onDblClick)
+		COMMAND_HANDLER(IDC_FILELIST_PAGE_LIST_TYPE, CBN_SELCHANGE, onSelChange)
 	END_MSG_MAP()
 
 	LRESULT onInitDialog(UINT, WPARAM, LPARAM, BOOL&);
@@ -44,6 +56,7 @@ public:
 	LRESULT onRemove(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT onContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/);
 	LRESULT onEnable(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+	LRESULT onSelChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 
 	LRESULT onDblClick(int /*idCtrl*/, LPNMHDR /* pnmh */, BOOL& bHandled) {
 		return onChange(0, 0, 0, bHandled);
@@ -61,8 +74,11 @@ protected:
 	TCHAR* title;
 
 	CComboBox cRaw;
+	CComboBox cListType;
 
 	void addEntry(const FileListDetectorProfile& fd, int pos);
+	void addEntryP(int p, int a, bool d, int pos);
+	void fixControls();
 };
 
 #endif //FILELIST_DETECTOR_PAGE_H

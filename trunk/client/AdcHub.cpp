@@ -31,7 +31,6 @@
 #include "CryptoManager.h"
 #include "ResourceManager.h"
 #include "LogManager.h"
-#include "PGManager.h" //RSX++
 #include "../rsx/PluginAPI/PluginsManager.h"
 
 const string AdcHub::CLIENT_PROTOCOL("ADC/1.0");
@@ -44,13 +43,14 @@ const string AdcHub::BASE_SUPPORT("ADBASE");
 const string AdcHub::BAS0_SUPPORT("ADBAS0");
 const string AdcHub::TIGR_SUPPORT("ADTIGR");
 const string AdcHub::UCM0_SUPPORT("ADUCM0");
+const string AdcHub::BLO0_SUPPORT("ADBLO0");
 
 AdcHub::AdcHub(const string& aHubURL, bool secure) : Client(aHubURL, '\n', secure), oldPassword(false), sid(0) {
 	TimerManager::getInstance()->addListener(this);
-	users.setClient(this); //RSX++
 }
 
 AdcHub::~AdcHub() throw() {
+	putDetectors(); //RSX++
 	TimerManager::getInstance()->removeListener(this);
 	clearUsers();
 }
@@ -177,10 +177,13 @@ void AdcHub::handle(AdcCommand::INF, AdcCommand& c) throw() {
 		u->getUser()->unsetFlag(User::BOT);
 	}
 
+	if(u->getUser()->getFirstNick().empty()) {
+		u->getUser()->setFirstNick(u->getIdentity().getNick());
+	}
+
 	if(u->getIdentity().supports(ADCS_FEATURE)) {
 		u->getUser()->setFlag(User::TLS);
 	}
-
 	//RSX++ // $MyINFO + FakeShare check
 	if(getCheckedAtConnect()) {
 		if(getCheckMyInfo())
@@ -197,14 +200,6 @@ void AdcHub::handle(AdcCommand::INF, AdcCommand& c) throw() {
 		setAutoReconnect(true);
 		setMyIdentity(u->getIdentity());
 		updateCounts(false);
-		//RSX++ // threaded checks
-		if(isOp()) {
-			users.startMyINFOCheck(getCheckFakeShare(), getCheckMyInfo());
-			if(getCheckOnConnect()) {
-				users.startCheck(getCheckClients(), getCheckFilelists(), true);
-			}
-		}
-		//END
 	}
 
 	if(u->getIdentity().isHub()) {
@@ -213,6 +208,14 @@ void AdcHub::handle(AdcCommand::INF, AdcCommand& c) throw() {
 	} else {
 		fire(ClientListener::UserUpdated(), this, *u);
 	}
+	//RSX++ // threaded checks
+	if(isOp()) {
+		users.startMyINFOCheck(this, getCheckFakeShare(), getCheckMyInfo());
+		if(getCheckOnConnect()) {
+			users.startCheck(this, getCheckClients(), getCheckFilelists(), true);
+		}
+	}
+	//END
 }
 
 void AdcHub::handle(AdcCommand::SUP, AdcCommand& c) throw() {
@@ -237,7 +240,7 @@ void AdcHub::handle(AdcCommand::SUP, AdcCommand& c) throw() {
 		return;
 	} else if(!tigrOk) {
 		oldPassword = true;
-		// What now? Some hubs fake BASE support without TIGR support =/
+		// Some hubs fake BASE support without TIGR support =/
 		fire(ClientListener::StatusMessage(), this, "Hub probably uses an old version of ADC, please encourage the owner to upgrade");
 	}
 }
@@ -292,11 +295,25 @@ void AdcHub::handle(AdcCommand::GPA, AdcCommand& c) throw() {
 
 void AdcHub::handle(AdcCommand::QUI, AdcCommand& c) throw() {
 	uint32_t s = AdcCommand::toSID(c.getParam(0));
-	putUser(s);
+	putUser(s); // @todo: use the DI flag
 
-	// No use to hammer if we're banned
-	if(s == sid &&  c.hasFlag("TL", 1)) {
-		setAutoReconnect(false);
+	string tmp;
+	if(c.getParam("MS", 1, tmp)) {
+		fire(ClientListener::StatusMessage(), this, tmp);
+	}
+	
+	if(s == sid) {
+		if(c.getParam("TL", 1, tmp)) {
+			if(tmp == "-1") {
+				setAutoReconnect(false);
+			} else {
+				setAutoReconnect(true);
+				setReconnDelay(Util::toUInt32(tmp));
+			}
+		}
+		if(c.getParam("RD", 1, tmp)) {
+			fire(ClientListener::Redirect(), this, tmp);
+		}
 	}
 }
 
@@ -304,18 +321,24 @@ void AdcHub::handle(AdcCommand::CTM, AdcCommand& c) throw() {
 	OnlineUser* u = findUser(c.getFrom());
 	if(!u || u->getUser() == ClientManager::getInstance()->getMe())
 		return;
-	if(c.getParameters().size() < 3)
+	if(c.getParameters().size() < 2)
 		return;
 
 	const string& protocol = c.getParam(0);
 	const string& port = c.getParam(1);
 
 	string token;
-	bool hasToken = c.getParam("TO", 2, token);
+	if(c.getParameters().size() == 3) {
+		const string& tok = c.getParam(2);
 
-	if(!hasToken) {
-		// @todo remove this bugfix for <=0.698 some time
-		token = c.getParam(2);
+		// 0.699 put TO before the token, keep this bug fix for a while
+		if(tok.compare(0, 2, "TO") == 0) {
+			token = tok.substr(2);
+		} else {
+			token = tok;
+		}
+	} else {
+		// <= 0.703 would send an empty token for passive connections when replying to RCM
 	}
 
 	bool secure = false;
@@ -327,9 +350,7 @@ void AdcHub::handle(AdcCommand::CTM, AdcCommand& c) throw() {
 		AdcCommand cmd(AdcCommand::SEV_FATAL, AdcCommand::ERROR_PROTOCOL_UNSUPPORTED, "Protocol unknown", AdcCommand::TYPE_DIRECT);
 		cmd.setTo(c.getFrom());
 		cmd.addParam("PR", protocol);
-
-		if(hasToken)
-			cmd.addParam("TO", token);
+		cmd.addParam("TO", token);
 
 		send(cmd);
 		return;
@@ -344,7 +365,7 @@ void AdcHub::handle(AdcCommand::CTM, AdcCommand& c) throw() {
 }
 
 void AdcHub::handle(AdcCommand::RCM, AdcCommand& c) throw() {
-	if(c.getParameters().empty()) {
+	if(c.getParameters().size() < 2) {
 		return;
 	}
 	if(!isActive())
@@ -354,8 +375,14 @@ void AdcHub::handle(AdcCommand::RCM, AdcCommand& c) throw() {
 		return;
 
 	const string& protocol = c.getParam(0);
+	const string& tok = c.getParam(1);
 	string token;
-	bool hasToken = c.getParam("TO", 1, token);
+	// 0.699 sent a token with "TO" prefix
+	if(tok.compare(0, 2, "TO") == 0) {
+		token = tok.substr(2);
+	} else {
+		token = tok;
+	}
 
 	bool secure;
 	if(protocol == CLIENT_PROTOCOL || protocol == CLIENT_PROTOCOL_TEST) {
@@ -366,9 +393,7 @@ void AdcHub::handle(AdcCommand::RCM, AdcCommand& c) throw() {
 		AdcCommand cmd(AdcCommand::SEV_FATAL, AdcCommand::ERROR_PROTOCOL_UNSUPPORTED, "Protocol unknown", AdcCommand::TYPE_DIRECT);
 		cmd.setTo(c.getFrom());
 		cmd.addParam("PR", protocol);
-
-		if(hasToken)
-			cmd.addParam("TO", token);
+		cmd.addParam("TO", token);
 
 		send(cmd);
 		return;
@@ -457,31 +482,23 @@ void AdcHub::handle(AdcCommand::STA, AdcCommand& c) throw() {
 				u->getUser()->setFlag(User::NO_ADCS_0_10_PROTOCOL);
 				u->getUser()->unsetFlag(User::TLS);
 			}
+			// Try again...
+			ConnectionManager::getInstance()->force(u->getUser());
 		}
 	}
 	fire(ClientListener::Message(), this, *u, c.getParam(1));
 }
 
 void AdcHub::handle(AdcCommand::SCH, AdcCommand& c) throw() {
+	//RSX++
+	if(getHideShare())
+		return;
+	//END
 	OnlineUser* ou = findUser(c.getFrom());
 	if(!ou) {
 		dcdebug("Invalid user in AdcHub::onSCH\n");
 		return;
 	}
-	//RSX++
-	if(getHideShare())
-		return;
-
-	if(SETTING(PG_ENABLE) && SETTING(PG_SEARCH) && PGManager::getInstance()->notAbused()) {
-		string company = PGManager::getInstance()->getIPBlock(ou->getIdentity().getIp());
-		if(!company.empty()) {
-			if(SETTING(PG_LOG)) {
-				PGManager::getInstance()->log("Blocked search from: " + ClientManager::getInstance()->getFirstNick(ou->getUser()->getCID()) + "(" + ou->getIdentity().getIp() + ", " + company + ")");
-			}
-			return;
-		}
-	}
-	//END
 
 	fire(ClientListener::AdcSearch(), this, c, ou->getUser()->getCID());
 }
@@ -493,6 +510,48 @@ void AdcHub::handle(AdcCommand::RES, AdcCommand& c) throw() {
 		return;
 	}
 	SearchManager::getInstance()->onRES(c, ou->getUser());
+}
+
+void AdcHub::handle(AdcCommand::GET, AdcCommand& c) throw() {
+	if(c.getParameters().size() < 5) {
+		dcdebug("Get with few parameters");
+		// TODO return STA?
+		return;
+	}
+	const string& type = c.getParam(0);
+	string sk, sh;
+	if(type == "blom" && c.getParam("BK", 4, sk) && c.getParam("BH", 4, sh))  {
+		ByteVector v;
+		size_t m = Util::toUInt32(c.getParam(3)) * 8;
+		size_t k = Util::toUInt32(sk);
+		size_t h = Util::toUInt32(sh);
+				
+		if(k > 8 || k < 1) {
+			send(AdcCommand(AdcCommand::SEV_FATAL, AdcCommand::ERROR_TRANSFER_GENERIC, "Unsupported k"));
+			return;
+		}
+		if(h > 64 || h < 1) {
+			send(AdcCommand(AdcCommand::SEV_FATAL, AdcCommand::ERROR_TRANSFER_GENERIC, "Unsupported h"));
+			return;
+		}
+		size_t n = ShareManager::getInstance()->getSharedFiles();
+		
+		// Ideal size for m is n * k / ln(2), but we allow some slack
+		if(m > (5 * n * k / log(2.)) || m > (size_t)(1 << h)) {
+			send(AdcCommand(AdcCommand::SEV_FATAL, AdcCommand::ERROR_TRANSFER_GENERIC, "Unsupported m"));
+			return;
+		}
+		
+		ShareManager::getInstance()->getBloom(v, k, m, h);
+		AdcCommand cmd(AdcCommand::CMD_SND, AdcCommand::TYPE_HUB);
+		cmd.addParam(c.getParam(0));
+		cmd.addParam(c.getParam(1));
+		cmd.addParam(c.getParam(2));
+		cmd.addParam(c.getParam(3));
+		cmd.addParam(c.getParam(4));
+		send(cmd);
+		send((char*)&v[0], v.size());
+	}
 }
 
 void AdcHub::connect(const OnlineUser& user, const string& token) {
@@ -512,14 +571,15 @@ void AdcHub::connect(const OnlineUser& user, string const& token, bool secure) {
 		proto = &SECURE_CLIENT_PROTOCOL_TEST;
 	} else {
 		// dc++ <= 0.703 has a bug which makes it respond with CSTA to the hub if an unrecognised protocol is used *sigh*
-		if(true || user.getUser()->isSet(User::NO_ADC_1_0_PROTOCOL)) {
-			if(user.getUser()->isSet(User::NO_ADC_0_10_PROTOCOL)) {
+		// so we try 0.10 first...
+		if(user.getUser()->isSet(User::NO_ADC_0_10_PROTOCOL)) {
+			if(user.getUser()->isSet(User::NO_ADC_1_0_PROTOCOL)) {
 				/// @todo log
 				return;
 			}
-			proto = &CLIENT_PROTOCOL_TEST;
-		} else {
 			proto = &CLIENT_PROTOCOL;
+		} else {
+			proto = &CLIENT_PROTOCOL_TEST;
 		}
 	}
 
@@ -597,7 +657,7 @@ void AdcHub::password(const string& pwd) {
 		}
 		th.update(pwd.data(), pwd.length());
 		th.update(buf, saltBytes);
-		send(AdcCommand(AdcCommand::CMD_PAS, AdcCommand::TYPE_HUB).addParam(Encoder::toBase32(th.finalize(), TigerHash::HASH_SIZE)));
+		send(AdcCommand(AdcCommand::CMD_PAS, AdcCommand::TYPE_HUB).addParam(Encoder::toBase32(th.finalize(), TigerHash::BYTES)));
 		salt.clear();
 	}
 }
@@ -641,8 +701,6 @@ void AdcHub::info(bool /*alwaysSend*/) {
 	addParam(lastInfoMap, c, "HN", Util::toString(counts.normal));
 	addParam(lastInfoMap, c, "HR", Util::toString(counts.registered));
 	addParam(lastInfoMap, c, "HO", Util::toString(counts.op));
-
-
 	addParam(lastInfoMap, c, "VE", getStealth() ? ("++ " DCVERSIONSTRING) : ("RSX++ " VERSIONSTRING));
 
 	if (SETTING(THROTTLE_ENABLE) && SETTING(MAX_UPLOAD_SPEED_LIMIT) != 0) {
@@ -659,15 +717,14 @@ void AdcHub::info(bool /*alwaysSend*/) {
 		addParam(lastInfoMap, c, "DS", Util::emptyString);
 	}
 
-
 	string su;
 	if(CryptoManager::getInstance()->TLSOk()) {
 		su += ADCS_FEATURE + ",";
 	}
 
 	if(isActive()) {
-		if(BOOLSETTING(NO_IP_OVERRIDE) && !SETTING(EXTERNAL_IP).empty()) {
-			addParam(lastInfoMap, c, "I4", Socket::resolve(SETTING(EXTERNAL_IP)));
+		if(!getLocalIp().empty()/*BOOLSETTING(NO_IP_OVERRIDE) && !SETTING(EXTERNAL_IP).empty()*/) {
+			addParam(lastInfoMap, c, "I4", getLocalIp());
 		} else {
 			addParam(lastInfoMap, c, "I4", "0.0.0.0");
 		}
@@ -712,31 +769,26 @@ void AdcHub::on(Connected c) throw() {
 	sid = 0;
 
 	AdcCommand cmd(AdcCommand::CMD_SUP, AdcCommand::TYPE_HUB);
-	cmd.addParam(BAS0_SUPPORT).addParam(TIGR_SUPPORT);
+	cmd.addParam(BAS0_SUPPORT).addParam(BASE_SUPPORT).addParam(TIGR_SUPPORT);
 	
 	if(BOOLSETTING(HUB_USER_COMMANDS)) {
 		cmd.addParam(UCM0_SUPPORT);
 	}
+	if(BOOLSETTING(SEND_BLOOM)) {
+		cmd.addParam(BLO0_SUPPORT);
+	}
 	send(cmd);
 }
 
-//RSX++ // Lua
-bool AdcScriptInstance::onClientMessage(AdcHub* aClient, const string& aLine) {
-	Lock l(scs);
-	MakeCall("adch", "DataArrival", 1, aClient, aLine);
-	return GetLuaBool() || PluginsManager::getInstance()->onIncommingMessage(aClient, aLine);
-}
-//END
 void AdcHub::on(Line l, const string& aLine) throw() {
 	Client::on(l, aLine);
-
+	//RSX++ // Lua
+	if(onClientMessage(this, "adch", aLine))
+		return;
+	//END
 	if(BOOLSETTING(ADC_DEBUG)) {
 		fire(ClientListener::StatusMessage(), this, "<ADC>" + aLine + "</ADC>");
 	}
-	//RSX++ // Lua
-	if(onClientMessage(this, aLine))
-		return;
-	//END
 	dispatch(aLine);
 }
 
@@ -754,5 +806,5 @@ void AdcHub::on(Second s, uint64_t aTick) throw() {
 
 /**
  * @file
- * $Id: AdcHub.cpp 338 2007-12-06 20:44:27Z bigmuscle $
+ * $Id: AdcHub.cpp 358 2008-01-17 10:48:01Z bigmuscle $
  */

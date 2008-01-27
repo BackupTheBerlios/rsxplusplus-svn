@@ -129,7 +129,7 @@
 				FavorSizeOrSpeed="2"
 				OmitFramePointers="false"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)boost&quot;"
 				StringPooling="true"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
@@ -284,11 +284,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\client\FileChunksInfo.cpp"
+				RelativePath=".\client\FinishedManager.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\client\FinishedManager.cpp"
+				RelativePath=".\client\HashBloom.cpp"
 				>
 			</File>
 			<File
@@ -329,10 +329,6 @@
 			</File>
 			<File
 				RelativePath=".\client\NmdcHub.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\client\PGManager.cpp"
 				>
 			</File>
 			<File
@@ -677,10 +673,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\client\FileChunksInfo.h"
-				>
-			</File>
-			<File
 				RelativePath=".\client\FilteredFile.h"
 				>
 			</File>
@@ -698,6 +690,10 @@
 			</File>
 			<File
 				RelativePath=".\client\forward.h"
+				>
+			</File>
+			<File
+				RelativePath=".\client\HashBloom.h"
 				>
 			</File>
 			<File
@@ -738,10 +734,6 @@
 			</File>
 			<File
 				RelativePath=".\client\NmdcHub.h"
-				>
-			</File>
-			<File
-				RelativePath=".\client\PGManager.h"
 				>
 			</File>
 			<File
@@ -910,6 +902,10 @@
 			</File>
 			<File
 				RelativePath=".\rsx\UpdateManager.h"
+				>
+			</File>
+			<File
+				RelativePath=".\rsx\UpdateManagerListener.h"
 				>
 			</File>
 			<File

@@ -433,7 +433,7 @@ bool Identity::isProtectedUser(const Client& c, bool OpBotHubCheck) const {
 	} else {
 		RegProtect = RSXSETTING(PROTECTED_USERS);
 	}
-	if(OpBotHubCheck && isOp() || isBot() || isHub()) {
+	if(OpBotHubCheck && (isOp() || isBot() || isHub())) {
 		return true;
 	} else if(RSXSETTING(FAV_USER_IS_PROTECTED_USER) && FavoriteManager::getInstance()->isFavoriteUser(getUser())) {
 		return true;
@@ -751,7 +751,6 @@ void Identity::cleanUser() {
 	set("A5", Util::emptyString); //adls forbidden size
 	set("A6", Util::emptyString); //adls total points
 	set("A7", Util::emptyString); //adls files count
-	set("A8", Util::emptyString); //adls files name
 	set("SC", Util::emptyString); //real slots count
 	set("IC", Util::emptyString); //ip checked
 	set("R1", Util::emptyString); //recheck
@@ -806,7 +805,6 @@ int OnlineUser::compareItems(const OnlineUser* a, const OnlineUser* b, uint8_t c
 		case COLUMN_SHARED:
 		case COLUMN_EXACT_SHARED: return compare(a->identity.getBytesShared(), b->identity.getBytesShared());
 		case COLUMN_SLOTS: return compare(Util::toInt(a->identity.get("SL")), Util::toInt(b->identity.get("SL")));
-		//case COLUMN_HUBS: return compare(Util::toInt(a->identity.get("HN"))+Util::toInt(a->identity.get("HR"))+Util::toInt(a->identity.get("HO")), Util::toInt(b->identity.get("HN"))+Util::toInt(b->identity.get("HR"))+Util::toInt(b->identity.get("HO")));
 		case COLUMN_HUBS: return compare(Util::toInt(a->identity.get("AH")), Util::toInt(b->identity.get("AH")));
 		case COLUMN_UPLOAD_SPEED: return compare(a->identity.getUser()->getLastDownloadSpeed(), b->identity.getUser()->getLastDownloadSpeed());
 	}
@@ -902,5 +900,5 @@ bool OnlineUser::update(int sortCol, const tstring& oldText) {
 
 /**
  * @file
- * $Id: User.cpp 336 2007-11-18 13:26:41Z bigmuscle $
+ * $Id: User.cpp 347 2007-12-27 20:58:14Z bigmuscle $
  */

@@ -19,6 +19,10 @@
 #if !defined(FAV_HUB_PROPERTIES_H)
 #define FAV_HUB_PROPERTIES_H
 
+#if _MSC_VER > 1000
+#pragma once
+#endif // _MSC_VER > 1000
+
 #include <atlcrack.h>
 //RSX++
 #include "FavTabPages.h"

@@ -343,9 +343,6 @@ private:
 	void on(QueueManagerListener::Finished, const QueueItem*, const string&, int64_t) throw();
 
 	void on(SettingsManagerListener::Save, SimpleXML& /*xml*/) throw();
-	//RSX++
-	void on(DownloadManagerListener::CheckComplete, const UserConnection* conn) throw();
-	//END
 	void onTransferComplete(const Transfer* aTransfer, bool isUpload, const string& aFileName, bool isTree);
 
 	void CollapseAll();

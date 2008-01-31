@@ -33,7 +33,7 @@
 #include "WinUtil.h"
 
 #define FILTER_MESSAGE_MAP 8
-class PublicHubsFrame : public MDITabChildWindowImpl<PublicHubsFrame, TABDEFCLR, IDR_PUBLICHUBS>, public StaticFrame<PublicHubsFrame, ResourceManager::PUBLIC_HUBS, ID_FILE_CONNECT>, 
+class PublicHubsFrame : public MDITabChildWindowImpl<PublicHubsFrame, RGB(0, 0, 0), IDR_PUBLICHUBS>, public StaticFrame<PublicHubsFrame, ResourceManager::PUBLIC_HUBS, ID_FILE_CONNECT>, 
 	private FavoriteManagerListener, private SettingsManagerListener
 {
 public:
@@ -45,7 +45,7 @@ public:
 
 	DECLARE_FRAME_WND_CLASS_EX(_T("PublicHubsFrame"), IDR_PUBLICHUBS, 0, COLOR_3DFACE);
 		
-	typedef MDITabChildWindowImpl<PublicHubsFrame, TABDEFCLR, IDR_PUBLICHUBS> baseClass;
+	typedef MDITabChildWindowImpl<PublicHubsFrame, RGB(0, 0, 0), IDR_PUBLICHUBS> baseClass;
 	BEGIN_MSG_MAP(PublicHubsFrame)
 		MESSAGE_HANDLER(WM_CREATE, onCreate)
 		MESSAGE_HANDLER(WM_CLOSE, onClose)

@@ -83,7 +83,6 @@ public:
 	void disconnect(bool graceless = false) throw() { Lock l(cs); if(graceless) disconnecting = true; addTask(DISCONNECT, 0); }
 
 	string getLocalIp() const { return sock ? sock->getLocalIp() : Util::getLocalIp(); }
-	const string getRemoteHost(const string& aIp) const { return sock ? sock->getRemoteHost(aIp) : Util::emptyString; } //RSX++
 
 	GETSET(char, separator, Separator)
 private:

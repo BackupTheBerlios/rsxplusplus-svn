@@ -31,7 +31,7 @@
 
 #define IGNORETTH_MESSAGE_MAP 7
 
-class SpyFrame : public MDITabChildWindowImpl<SpyFrame, TABDEFCLR, IDR_SPY>, public StaticFrame<SpyFrame, ResourceManager::SEARCH_SPY, IDC_SEARCH_SPY>,
+class SpyFrame : public MDITabChildWindowImpl<SpyFrame, RGB(0, 0, 0), IDR_SPY>, public StaticFrame<SpyFrame, ResourceManager::SEARCH_SPY, IDC_SEARCH_SPY>,
 	private ClientManagerListener, private TimerManagerListener, private SettingsManagerListener
 {
 public:
@@ -54,7 +54,7 @@ public:
 
 	DECLARE_FRAME_WND_CLASS_EX(_T("SpyFrame"), IDR_SPY, 0, COLOR_3DFACE)
 
-	typedef MDITabChildWindowImpl<SpyFrame, TABDEFCLR, IDR_SPY> baseClass;
+	typedef MDITabChildWindowImpl<SpyFrame, RGB(0, 0, 0), IDR_SPY> baseClass;
 	BEGIN_MSG_MAP(SpyFrame)
 		MESSAGE_HANDLER(WM_CREATE, OnCreate)
 		MESSAGE_HANDLER(WM_SPEAKER, onSpeaker)

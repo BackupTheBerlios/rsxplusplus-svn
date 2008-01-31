@@ -50,6 +50,17 @@ LRESULT RawDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 	cVariables.AddString(_T("Supports"));
 	cVariables.AddString(_T("Comment"));
 	cVariables.AddString(_T("ISP"));
+	cVariables.AddString(_T("TestSUR String"));
+	cVariables.AddString(_T("FileList Disconnects"));
+	cVariables.AddString(_T("Timeouts"));
+	cVariables.AddString(_T("XML Generator"));
+	cVariables.AddString(_T("ADLSearch FileName"));
+	cVariables.AddString(_T("ADLSearch Comment"));
+	cVariables.AddString(_T("ADLSearch FileSize"));
+	cVariables.AddString(_T("ADLSearch TTH"));
+	cVariables.AddString(_T("ADLSearch Forbidden Size"));
+	cVariables.AddString(_T("ADLSearch Total Points"));
+	cVariables.AddString(_T("ADLSearch Files Count"));
 
 	cVariables.SetCurSel(0);
 	cVar.SetWindowText(_T("%[myNI]"));
@@ -64,7 +75,7 @@ LRESULT RawDlg::onSelChange(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndCt
 		case 1: cVar.SetWindowText(_T("%[userNI]")); break;
 		case 2: cVar.SetWindowText(_T("%[userI4]")); break;
 		case 3: cVar.SetWindowText(_T("%[userHT]")); break;
-		case 4: cVar.SetWindowText(_T("%[userCT]")); break;
+		case 4: cVar.SetWindowText(_T("%[userCL]")); break;
 		case 5: cVar.SetWindowText(_T("%[userMT]")); break;
 		case 6: cVar.SetWindowText(_T("%[userCS]")); break;
 		case 7: cVar.SetWindowText(_T("%[userTA]")); break;
@@ -73,6 +84,18 @@ LRESULT RawDlg::onSelChange(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndCt
 		case 10: cVar.SetWindowText(_T("%[userSU]")); break;
 		case 11: cVar.SetWindowText(_T("%[userCM]")); break;
 		case 12: cVar.SetWindowText(_T("%[userIS]")); break;
+		case 13: cVar.SetWindowText(_T("%[userTS]")); break;
+		case 14: cVar.SetWindowText(_T("%[userFD]")); break;
+		case 15: cVar.SetWindowText(_T("%[userTO]")); break;
+		case 16: cVar.SetWindowText(_T("%[userFG]")); break;
+		case 17: cVar.SetWindowText(_T("%[userA1]")); break;
+		case 18: cVar.SetWindowText(_T("%[userA2]")); break;
+		case 19: cVar.SetWindowText(_T("%[userA3]")); break;
+		case 20: cVar.SetWindowText(_T("%[userA4]")); break;
+		case 21: cVar.SetWindowText(_T("%[userA5]")); break;
+		case 22: cVar.SetWindowText(_T("%[userA6]")); break;
+		case 23: cVar.SetWindowText(_T("%[userA7]")); break;
+
 	}
 	return 0;
 }

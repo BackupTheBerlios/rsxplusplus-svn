@@ -25,5 +25,5 @@
  ** removed ISP List (split with IPWatch)
  ** removed favorite importer (now it's stand-alone application)
  ** removed media players support
- ** removed option to disable PFs - now it's always enabled
+ ** removed option to disable PFS - now it's always enabled
  ** removed PeerGuardian support

@@ -1,3 +1,12 @@
+** SVN 48
+ ** code cleanup once again
+ ** more variables in raw dialog help
+ ** use ShellExecute instead of winutil func (stupid windows lib includes)
+ ** added Threaded Task Queue in AutoSearchManager (pretty experimental)
+ ** some limits in release build
+ @todo handle checks in transferview but with properly closed connection
+ (now you can get no pk/sup/lock false check in extreme situation)
+
 ** SVN 47
  ** some little optimizations in client/myinfo detection
  ** fixed sorting in favorite frame (move up/down)

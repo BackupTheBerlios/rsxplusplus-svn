@@ -19,6 +19,10 @@
 #if !defined(HUB_FRAME_H)
 #define HUB_FRAME_H
 
+#if _MSC_VER >= 1000
+#pragma once
+#endif // _MSC_VER >= 1000
+
 #include "FlatTabCtrl.h"
 #include "TypedListViewCtrl.h"
 #include "ChatCtrl.h"
@@ -41,7 +45,7 @@
 #define FILTER_MESSAGE_MAP 8
 struct CompareItems;
 
-class HubFrame : public MDITabChildWindowImpl<HubFrame, TABDEFCLR, IDR_HUB, IDR_HUB_OFF>, private ClientListener, 
+class HubFrame : public MDITabChildWindowImpl<HubFrame, RGB(255, 0, 0), IDR_HUB, IDR_HUB_OFF>, private ClientListener, 
 	public CSplitterImpl<HubFrame>, private FavoriteManagerListener, private TimerManagerListener,
 	public UCHandler<HubFrame>, private SettingsManagerListener
 {
@@ -49,7 +53,7 @@ public:
 	DECLARE_FRAME_WND_CLASS_EX(_T("HubFrame"), IDR_HUB, 0, COLOR_3DFACE);
 
 	typedef CSplitterImpl<HubFrame> splitBase;
-	typedef MDITabChildWindowImpl<HubFrame, TABDEFCLR, IDR_HUB, IDR_HUB_OFF> baseClass;
+	typedef MDITabChildWindowImpl<HubFrame, RGB(255, 0, 0), IDR_HUB, IDR_HUB_OFF> baseClass;
 	typedef UCHandler<HubFrame> ucBase;
 	
 	BEGIN_MSG_MAP(HubFrame)

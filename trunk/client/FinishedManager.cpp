@@ -74,7 +74,7 @@ void FinishedManager::on(QueueManagerListener::Finished, const QueueItem* qi, co
 	if(isFile && !SETTING(FINISHFILE).empty() && !BOOLSETTING(SOUNDS_DISABLED)) {
 		PlaySound(Text::toT(SETTING(FINISHFILE)).c_str(), NULL, SND_FILENAME | SND_ASYNC);
 	}
-
+		
 	if(isFile || (qi->isSet(QueueItem::FLAG_USER_LIST) && BOOLSETTING(LOG_FILELIST_TRANSFERS))) {
 		uint64_t time = GET_TICK() - qi->getFileBegin();
 		UserPtr user = qi->getSources().size() == 1 ? qi->getSources()[0].getUser() : UserPtr();

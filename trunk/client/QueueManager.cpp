@@ -69,22 +69,6 @@ QueueItem* QueueManager::FileQueue::add(const string& aTarget, int64_t aSize,
 			p = QueueItem::LOWEST;
 		}
 	}
-	//RSX++
-	// These override any other priority settings
-	if(!RSXSETTING(HIGH_PRIO_FILES).empty()) {
-		int pos = aTarget.rfind("\\")+1;
-		if(Wildcard::patternMatch(aTarget.substr(pos), RSXSETTING(HIGH_PRIO_FILES), ';')) {
-			p = QueueItem::HIGHEST;
-		}
-	}
-
-	if(!RSXSETTING(LOW_PRIO_FILES).empty()) {
-		int pos = aTarget.rfind("\\")+1;
-		if(Wildcard::patternMatch(aTarget.substr(pos), RSXSETTING(LOW_PRIO_FILES), ';')) {
-			p = QueueItem::LOWEST;
-		}
-	}
-	//END
 
 	QueueItem* qi = new QueueItem(aTarget, aSize, p, aFlags, aAdded, root);
 
@@ -103,6 +87,21 @@ QueueItem* QueueManager::FileQueue::add(const string& aTarget, int64_t aSize,
 				qi->setPriority(QueueItem::NORMAL);
 			}
 		}
+		//RSX++
+		if(!RSXSETTING(HIGH_PRIO_FILES).empty()) {
+			int pos = aTarget.rfind("\\")+1;
+			if(Wildcard::patternMatch(aTarget.substr(pos), RSXSETTING(HIGH_PRIO_FILES), ';')) {
+				qi->setPriority(QueueItem::HIGHEST);
+			}
+		}
+
+		if(!RSXSETTING(LOW_PRIO_FILES).empty()) {
+			int pos = aTarget.rfind("\\")+1;
+			if(Wildcard::patternMatch(aTarget.substr(pos), RSXSETTING(LOW_PRIO_FILES), ';')) {
+				qi->setPriority(QueueItem::LOWEST);
+			}
+		}
+		//END
 	} else {
 		qi->setPriority(QueueItem::HIGHEST);
 	}
@@ -230,7 +229,7 @@ QueueItem* QueueManager::UserQueue::getNext(const UserPtr& aUser, QueueItem::Pri
 
 	do {
 		QueueItem::UserListIter i = userQueue[p].find(aUser);
-		if(i != userQueue[p].end()) {
+		if(i != userQueue[p].end()) { //.........................................................................................
 			dcassert(!i->second.empty());
 			for(QueueItem::Iter j = i->second.begin(); j != i->second.end(); ++j) {
 				QueueItem* qi = *j;
@@ -514,19 +513,21 @@ void QueueManager::add(const string& aTarget, int64_t aSize, const TTHValue& roo
 	string target = checkTarget(aTarget, aSize, aFlags);
 
 	//RSX++
-	string targetPath = Util::getFilePath(aTarget);
-	if((targetPath.compare(SETTING(DOWNLOAD_DIRECTORY)) == 0) && !(aFlags & QueueItem::FLAG_DIRECTORY_DOWNLOAD)) { 
-		//only this is what we're looking for - ignore other paths
-		DirectoriesEx::List lst = FavoriteManager::getInstance()->getDirectoriesEx();
-		if(lst.size() > 0){
-			string tmpFile = Util::getFileName(target);
-			for(DirectoriesEx::Iter j = lst.begin(); j != lst.end(); j++){
-				if(Wildcard::patternMatch(tmpFile, (*j)->getExtension(), ';')) {
-					//look for variable, accepted only at start
-					if(strncmp((*j)->getPath().c_str(), "%[dd]", 5) == 0) {
-						target = checkTarget((SETTING(DOWNLOAD_DIRECTORY) + (*j)->getPath().substr(5) + tmpFile), aSize, aFlags);
-					} else {
-						target = checkTarget(((*j)->getPath() + tmpFile), aSize, aFlags);
+	if(!((aFlags & QueueItem::FLAG_DIRECTORY_DOWNLOAD) || (aFlags & QueueItem::FLAG_USER_LIST))) {
+		string targetPath = Util::getFilePath(aTarget);
+		if(targetPath.compare(SETTING(DOWNLOAD_DIRECTORY)) == 0) { 
+			//only this is what we're looking for - ignore other paths
+			DirectoriesEx::List lst = FavoriteManager::getInstance()->getDirectoriesEx();
+			if(lst.size() > 0){
+				string tmpFile = Util::getFileName(target);
+				for(DirectoriesEx::Iter j = lst.begin(); j != lst.end(); j++){
+					if(Wildcard::patternMatch(tmpFile, (*j)->getExtension(), ';')) {
+						//look for variable, accepted only at start
+						if(strncmp((*j)->getPath().c_str(), "%[dd]", 5) == 0) {
+							target = checkTarget((SETTING(DOWNLOAD_DIRECTORY) + (*j)->getPath().substr(5) + tmpFile), aSize, aFlags);
+						} else {
+							target = checkTarget(((*j)->getPath() + tmpFile), aSize, aFlags);
+						}
 					}
 				}
 			}
@@ -543,7 +544,7 @@ void QueueManager::add(const string& aTarget, int64_t aSize, const TTHValue& roo
 		return;
 	}
 	//RSX++ //Download skiplist
-	if(!(aFlags & QueueItem::FLAG_USER_LIST)) {
+	if(!((aFlags & QueueItem::FLAG_USER_LIST) || (aFlags & QueueItem::FLAG_TESTSUR))) {
 		if(!RSXSETTING(SKIPLIST_DOWNLOAD).empty() ){
 			int pos = aTarget.rfind("\\")+1;
 			if(Wildcard::patternMatch(aTarget.substr(pos), RSXSETTING(SKIPLIST_DOWNLOAD), ';')) {
@@ -1878,18 +1879,14 @@ void QueueManager::FileQueue::findPFSSources(PFSSourceList& sl)
 	}
 }
 //RSX++ //remove offline checks
-void QueueManager::removeOfflineChecks() {
+void QueueManager::removeOfflineChecks() throw() {
 	Lock l(cs);
 	const QueueItem::StringMap& queue = fileQueue.getQueue();
 	if(queue.size() > 1) {
 		for(QueueItem::StringIter i = queue.begin(); i != queue.end(); ++i) {
 			if(i->second->isSet(QueueItem::FLAG_TESTSUR) || i->second->isSet(QueueItem::FLAG_CHECK_FILE_LIST)) {
 				if(i->second->countOnlineUsers() == 0) {
-					try {
-						remove(i->second->getTarget());
-					} catch(...) {
-						//...
-					}
+					remove(i->second->getTarget());
 					i = queue.begin();
 				}
 			}

@@ -28,7 +28,7 @@
 
 #define NOTEPAD_MESSAGE_MAP 13
 
-class NotepadFrame : public MDITabChildWindowImpl<NotepadFrame, TABDEFCLR, IDR_NOTEPAD>, public StaticFrame<NotepadFrame, ResourceManager::NOTEPAD, IDC_NOTEPAD>, 
+class NotepadFrame : public MDITabChildWindowImpl<NotepadFrame, RGB(0, 0, 0), IDR_NOTEPAD>, public StaticFrame<NotepadFrame, ResourceManager::NOTEPAD, IDC_NOTEPAD>, 
 	private SettingsManagerListener
 {
 public:
@@ -40,7 +40,7 @@ public:
 	}
 	~NotepadFrame() { }
 	
-	typedef MDITabChildWindowImpl<NotepadFrame, TABDEFCLR, IDR_NOTEPAD> baseClass;
+	typedef MDITabChildWindowImpl<NotepadFrame, RGB(0, 0, 0), IDR_NOTEPAD> baseClass;
 	BEGIN_MSG_MAP(NotepadFrame)
 		MESSAGE_HANDLER(WM_SETFOCUS, OnFocus)
 		MESSAGE_HANDLER(WM_CREATE, OnCreate)

@@ -111,9 +111,8 @@ private:
 		int run() {
 			inThread = true;
 			setThreadPriority(Thread::HIGH);
-			if(client && client->isConnected()) {
-				//Lock l(client->cs);
-				client->setCheckedAtConnect(true);
+			if(client && client->isConnected() && !client->getCheckedAtConnect()) {
+				Lock l(client->cs);
 				for(BaseMap::const_iterator i = users->begin(); i != users->end(); i++) {
 					OnlineUser* ou = i->second;
 					if(!inThread || !ou || !(client && client->isConnected())) 
@@ -130,6 +129,7 @@ private:
 					}
 					ou->dec();
 				}
+				client->setCheckedAtConnect(true);
 			}
 			inThread = false;
 			// make some cleanup
@@ -215,7 +215,7 @@ private:
 						iterBreak = false;
 						Lock l(client->cs);
 
-						for(BaseMap::iterator i = users->begin(); i != users->end(); ++i) {
+						for(BaseMap::const_iterator i = users->begin(); i != users->end(); ++i) {
 							OnlineUser* ou = i->second;
 							if(!ou || !inThread) { break; }
 							ou->inc();
@@ -239,6 +239,7 @@ private:
 									if(ou->shouldTestSUR()) {
 										if(!ou->getChecked()) {
 											try {
+												dcdebug("Adding TestSUR to queue %s\n", ou->getIdentity().getNick());
 												QueueManager::getInstance()->addTestSUR(ou->getUser());
 												ou->getIdentity().setTestSURQueued("1");
 											} catch(...) {
@@ -266,6 +267,7 @@ private:
 										if(ou->shouldCheckFileList(!getCheckClients())) {
 											if(!ou->getChecked(true)) {
 												try {
+													dcdebug("Adding FileList check to queue %s\n", ou->getIdentity().getNick());
 													QueueManager::getInstance()->addList(ou->getUser(), QueueItem::FLAG_CHECK_FILE_LIST);
 													ou->getIdentity().setFileListQueued("1");
 												} catch(...) {

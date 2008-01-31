@@ -32,7 +32,7 @@
 
 #define SHOWTREE_MESSAGE_MAP 12
 
-class QueueFrame : public MDITabChildWindowImpl<QueueFrame, TABDEFCLR, IDR_QUEUE>, public StaticFrame<QueueFrame, ResourceManager::DOWNLOAD_QUEUE, IDC_QUEUE>,
+class QueueFrame : public MDITabChildWindowImpl<QueueFrame, RGB(0, 0, 0), IDR_QUEUE>, public StaticFrame<QueueFrame, ResourceManager::DOWNLOAD_QUEUE, IDC_QUEUE>,
 	private QueueManagerListener, public CSplitterImpl<QueueFrame>, private SettingsManagerListener
 {
 public:
@@ -53,7 +53,7 @@ public:
 		readdMenu.ClearMenu();		
 	}
 	
-	typedef MDITabChildWindowImpl<QueueFrame, TABDEFCLR, IDR_QUEUE> baseClass;
+	typedef MDITabChildWindowImpl<QueueFrame, RGB(0, 0, 0), IDR_QUEUE> baseClass;
 	typedef CSplitterImpl<QueueFrame> splitBase;
 
 	BEGIN_MSG_MAP(QueueFrame)

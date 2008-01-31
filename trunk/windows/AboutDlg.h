@@ -19,6 +19,10 @@
 #ifndef ABOUT_DLG_H
 #define ABOUT_DLG_H
 
+#if _MSC_VER > 1000
+#pragma once
+#endif // _MSC_VER > 1000
+
 #include "../client/HttpConnection.h"
 #include "../client/SimpleXML.h"
 #include <atlctrlx.h>
@@ -75,7 +79,7 @@ public:
 	}
 
 	LRESULT onVersionData(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
-		tstring* x = (tstring*)wParam;
+		tstring* x = (tstring*) wParam;
 		SetDlgItemText(IDC_LATEST, x->c_str());
 		delete x;
 		return 0;

@@ -1004,14 +1004,7 @@ void TransferView::on(DownloadManagerListener::Status, const UserConnection* uc,
 
 	speak(UPDATE_ITEM, ui);
 }
-//RSX++
-void TransferView::on(DownloadManagerListener::CheckComplete, const UserConnection* conn) {
-	UpdateInfo* ui = new UpdateInfo(conn->getUser(), true);
-	//to avoid no pk&lock bug in special cases ;)
-	(const_cast<UserConnection*>(conn))->disconnect();
-	speak(REMOVE_ITEM, ui);
-}
-//END
+
 void TransferView::on(UploadManagerListener::Starting, const Upload* aUpload) {
 	UpdateInfo* ui = new UpdateInfo(aUpload->getUser(), false);
 

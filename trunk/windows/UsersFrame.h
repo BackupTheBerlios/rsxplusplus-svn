@@ -30,7 +30,7 @@
 #include "../client/FavoriteManager.h"
 #include "../client/File.h"
 
-class UsersFrame : public MDITabChildWindowImpl<UsersFrame, TABDEFCLR, IDR_USERS>, public StaticFrame<UsersFrame, ResourceManager::FAVORITE_USERS, IDC_FAVUSERS>,
+class UsersFrame : public MDITabChildWindowImpl<UsersFrame, RGB(0, 0, 0), IDR_USERS>, public StaticFrame<UsersFrame, ResourceManager::FAVORITE_USERS, IDC_FAVUSERS>,
 	private FavoriteManagerListener, public UserInfoBaseHandler<UsersFrame>, private SettingsManagerListener {
 public:
 	
@@ -39,7 +39,7 @@ public:
 
 	DECLARE_FRAME_WND_CLASS_EX(_T("UsersFrame"), IDR_USERS, 0, COLOR_3DFACE);
 		
-	typedef MDITabChildWindowImpl<UsersFrame, TABDEFCLR, IDR_USERS> baseClass;
+	typedef MDITabChildWindowImpl<UsersFrame, RGB(0, 0, 0), IDR_USERS> baseClass;
 	typedef UserInfoBaseHandler<UsersFrame> uibBase;
 
 	BEGIN_MSG_MAP(UsersFrame)

@@ -39,13 +39,13 @@
 //	Class that represent an ADL search manager interface
 //
 ///////////////////////////////////////////////////////////////////////////////
-class ADLSearchFrame : public MDITabChildWindowImpl<ADLSearchFrame, TABDEFCLR, IDR_ADLSEARCH>, public StaticFrame<ADLSearchFrame, ResourceManager::ADL_SEARCH, IDC_FILE_ADL_SEARCH>, 
+class ADLSearchFrame : public MDITabChildWindowImpl<ADLSearchFrame, RGB(0, 0, 0), IDR_ADLSEARCH>, public StaticFrame<ADLSearchFrame, ResourceManager::ADL_SEARCH, IDC_FILE_ADL_SEARCH>, 
 	private SettingsManagerListener
 {
 public:
 
 	// Base class typedef
-	typedef MDITabChildWindowImpl<ADLSearchFrame, TABDEFCLR, IDR_ADLSEARCH> baseClass;
+	typedef MDITabChildWindowImpl<ADLSearchFrame, RGB(0, 0, 0), IDR_ADLSEARCH> baseClass;
 
 	// Constructor/destructor
 	ADLSearchFrame() : closed(false) {}

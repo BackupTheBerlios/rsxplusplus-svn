@@ -138,7 +138,7 @@ LRESULT HubFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 	ctrlClient.LimitText(0);
 	ctrlClient.SetFont(WinUtil::font);
 	clientContainer.SubclassWindow(ctrlClient.m_hWnd);
-
+	
 	ctrlClient.SetAutoURLDetect(false);
 	ctrlClient.SetEventMask(ctrlClient.GetEventMask() | ENM_LINK);
 	ctrlClient.setClient(client);
@@ -2036,6 +2036,12 @@ void HubFrame::on(HubUpdated, const Client*) throw() {
 	speak(SET_WINDOW_TITLE, hubName);
 }
 void HubFrame::on(Message, const Client*, const OnlineUser& from, const string& msg) throw() {
+	if(SETTING(FILTER_MESSAGES) && from.getIdentity().isOp()) {
+		if((msg.find("is kicking") != string::npos) && (msg.find("because:") != string::npos)) {
+			speak(KICK_MSG, Identity(NULL, 0), Util::formatMessage(from.getIdentity().getNick(), msg));
+			return;
+		}	
+	}
 	speak(ADD_CHAT_LINE, from.getIdentity(), Util::formatMessage(from.getIdentity().getNick(), msg));
 }	
 

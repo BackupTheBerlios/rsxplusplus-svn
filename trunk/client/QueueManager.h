@@ -76,14 +76,14 @@ public:
 	/** Add a file to the queue. */
 	void add(const string& aTarget, int64_t aSize, const TTHValue& root, UserPtr aUser,
 		Flags::MaskType aFlags = QueueItem::FLAG_RESUME, bool addBad = true) throw(QueueException, FileException);
-	/** Add a user's filelist to the queue. */
+		/** Add a user's filelist to the queue. */
 	void addList(const UserPtr& aUser, Flags::MaskType aFlags, const string& aInitialDir = Util::emptyString) throw(QueueException, FileException);
 	/** Queue a partial file list download */
 	void addPfs(const UserPtr& aUser, const string& aDir) throw(QueueException);
 
-	void addTestSUR(UserPtr aUser) throw(QueueException, FileException) {
+	void addTestSUR(UserPtr aUser, bool checkList = false) throw(QueueException, FileException) {
 		string target = Util::getConfigPath() + "TestSURs\\" + getValidTestSURName(aUser);
-		add(target, -1, TTHValue(), aUser, (Flags::MaskType)QueueItem::FLAG_TESTSUR);
+		add(target, -1, TTHValue(), aUser, (Flags::MaskType)((checkList ? QueueItem::FLAG_CHECK_FILE_LIST : 0) | QueueItem::FLAG_TESTSUR));
 	}
 
 	void removeTestSUR(UserPtr aUser) {
@@ -104,7 +104,6 @@ public:
 				return;
 			}
 		}
-		return;
 	}
 
 	bool isTestSURinQueue(UserPtr aUser) throw(QueueException) {
@@ -117,6 +116,8 @@ public:
 		}
 		return false;
 	}
+
+	void removeOfflineChecks() throw();
 	//END
 	/** Readd a source that was removed */
 	void readd(const string& target, const UserPtr& aUser) throw(QueueException);
@@ -173,7 +174,6 @@ public:
 		return ql;
 	}
 
-	void removeOfflineChecks(); //RSX++ //remove offline checks
 	bool getTargetByRoot(const TTHValue& tth, string& target, string& tempTarget) {
 		Lock l(cs);
 		QueueItem::List ql;
@@ -333,8 +333,9 @@ private:
 	}
 	//RSX++
 	string getValidTestSURName(const UserPtr& aUser) const {
-		string ret = RsxUtil::getTestSURString() + Util::cleanPathChars(aUser->getFirstNick()) + "." + aUser->getCID().toBase32();
-		return Util::validateFileName(ret);
+		StringList nicks = ClientManager::getInstance()->getNicks(*aUser);
+		string nick = nicks.empty() ? Util::emptyString : Util::cleanPathChars(nicks[0]) + ".";
+		return RsxUtil::getTestSURString() + nick + aUser->getCID().toBase32();
 	}
 	//END
 	// TimerManagerListener

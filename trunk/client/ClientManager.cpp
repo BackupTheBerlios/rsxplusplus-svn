@@ -567,29 +567,27 @@ void ClientManager::setListLength(const UserPtr& p, const string& listLen) {
 }
 
 void ClientManager::fileListDisconnected(const UserPtr& p) {
-	string report = Util::emptyString;
 	bool remove = false;
-	OnlineUser* ou = NULL;
 	{
 		Lock l(cs);
 		OnlineIterC i = onlineUsers.find(p->getCID());
 		if(i != onlineUsers.end()) {
-			ou = i->second;
+			OnlineUser& ou = *i->second;
 	
-			int fileListDisconnects = Util::toInt(ou->getIdentity().get("FD")) + 1;
-			ou->getIdentity().set("FD", Util::toString(fileListDisconnects));
+			int fileListDisconnects = Util::toInt(ou.getIdentity().get("FD")) + 1;
+			ou.getIdentity().set("FD", Util::toString(fileListDisconnects));
 
 			if(RSXSETTING(MAX_DISCONNECTS) == 0)
 				return;
 
 			if(fileListDisconnects == RSXSETTING(MAX_DISCONNECTS)) {
-				ou->getIdentity().setCheatMsg(ou->getClient(), "Disconnected file list %[userFD] times", false, true, RSXBOOLSETTING(SHOW_DISCONNECT_RAW));
-				if(!ou->getIdentity().getTestSURQueued().empty()) {
-					ou->getIdentity().setTestSURQueued(Util::emptyString);
-					ou->setTestSURComplete();
+				ou.getIdentity().setCheatMsg(ou.getClient(), "Disconnected file list %[userFD] times", false, true, RSXBOOLSETTING(SHOW_DISCONNECT_RAW));
+				if(!ou.getIdentity().getTestSURQueued().empty()) {
+					ou.getIdentity().setTestSURQueued(Util::emptyString);
+					ou.setTestSURComplete();
 				}
 				remove = true;
-				sendAction(*ou, RSXSETTING(DISCONNECT_RAW));
+				sendAction(ou, RSXSETTING(DISCONNECT_RAW));
 			}
 		}
 	}
@@ -604,33 +602,32 @@ void ClientManager::fileListDisconnected(const UserPtr& p) {
 
 void ClientManager::connectionTimeout(const UserPtr& p) {
 	uint8_t remove = 0;
-	OnlineUser* ou = NULL;
 	{
 		Lock l(cs);
 		OnlineIterC i = onlineUsers.find(p->getCID());
 		if(i != onlineUsers.end()) {
-			ou = i->second;
+			OnlineUser& ou = *i->second;
 	
-			int connectionTimeouts = Util::toInt(ou->getIdentity().get("TO")) + 1;
-			ou->getIdentity().set("TO", Util::toString(connectionTimeouts));
+			int connectionTimeouts = Util::toInt(ou.getIdentity().get("TO")) + 1;
+			ou.getIdentity().set("TO", Util::toString(connectionTimeouts));
 	
 			if(RSXSETTING(MAX_TIMEOUTS) == 0)
 				return;
 	
 			if(connectionTimeouts == RSXSETTING(MAX_TIMEOUTS)) {
-				ou->getIdentity().setCheatMsg(ou->getClient(), "Connection timeout %[userTO] times", false, false, RSXBOOLSETTING(SHOW_TIMEOUT_RAW));
+				ou.getIdentity().setCheatMsg(ou.getClient(), "Connection timeout %[userTO] times", false, false, RSXBOOLSETTING(SHOW_TIMEOUT_RAW));
 				
-				if(!ou->getIdentity().getTestSURQueued().empty()) {
-					ou->getIdentity().setTestSURQueued(Util::emptyString);
-					ou->setTestSURComplete();
+				if(!ou.getIdentity().getTestSURQueued().empty()) {
+					ou.getIdentity().setTestSURQueued(Util::emptyString);
+					ou.setTestSURComplete();
 					remove += 1;
 				}
-				if(!ou->getIdentity().getFileListQueued().empty()) {
-					ou->getIdentity().setFileListQueued(Util::emptyString);
-					ou->setFileListComplete();
+				if(!ou.getIdentity().getFileListQueued().empty()) {
+					ou.getIdentity().setFileListQueued(Util::emptyString);
+					ou.setFileListComplete();
 					remove += 2;
 				}
-				sendAction(*ou, RSXSETTING(TIMEOUT_RAW));
+				sendAction(ou, RSXSETTING(TIMEOUT_RAW));
 			}
 		}
 	}
@@ -793,52 +790,46 @@ void ClientManager::checkCheating(const UserPtr& p, DirectoryListing* dl) {
 }
 //RSX++ //autosearch stuff
 void ClientManager::kickFromAutosearch(const UserPtr& p, int action, const string& cheat, const string& file, const string& size, const string& tth, bool display/* = false*/) {
-	OnlineUser* ou = NULL;
-	{
-		Lock l(cs);
-		OnlineIterC i = onlineUsers.find(p->getCID());
-		if(i == onlineUsers.end()) 
-			return;
-		ou = i->second;
-		int noOfFiles = Util::toInt(ou->getIdentity().get("A7")) + 1;
+	Lock l(cs);
+	OnlineIterC i = onlineUsers.find(p->getCID());
+	if(i == onlineUsers.end()) 
+		return;
+	OnlineUser& ou = *i->second;
+	int noOfFiles = Util::toInt(ou.getIdentity().get("A7")) + 1;
 
-		ou->getIdentity().set("A1", file);
-		ou->getIdentity().set("A2", cheat);
-		ou->getIdentity().set("A3", size);
-		ou->getIdentity().set("A4", tth);
-		ou->getIdentity().set("A7", Util::toString(noOfFiles));
-		ou->getIdentity().setCheatMsg(ou->getClient(), cheat, false, true, display && !cheat.empty());
-		ou->getClient().updated(*ou);
-		sendAction(*ou, action);
-	}
+	ou.getIdentity().set("A1", file);
+	ou.getIdentity().set("A2", cheat);
+	ou.getIdentity().set("A3", size);
+	ou.getIdentity().set("A4", tth);
+	ou.getIdentity().set("A7", Util::toString(noOfFiles));
+	ou.getIdentity().setCheatMsg(ou.getClient(), cheat, false, true, display && !cheat.empty());
+	ou.getClient().updated(ou);
+	sendAction(ou, action);
 }
 
 void ClientManager::addCheckToQueue(const UserPtr& p, bool filelist) {
-	OnlineUser* ou = NULL;
-	{
-		Lock l(cs);
-		OnlineIterC i = onlineUsers.find(p->getCID());
-		if(i == onlineUsers.end())
-			return;
-		ou = i->second;
-	//}
-		if(ou->isCheckable(false) && ou->getClient().isOp()) {
-			if(ou->shouldCheckFileList() && !ou->getChecked(filelist)) {
-				if(filelist) {
+	Lock l(cs);
+	OnlineIterC i = onlineUsers.find(p->getCID());
+	if(i == onlineUsers.end())
+		return;
+	OnlineUser& ou = *i->second;
+
+	if(ou.isCheckable(false) && ou.getClient().isOp()) {
+		if(ou.shouldCheckFileList() && !ou.getChecked(filelist)) {
+			if(filelist) {
+				try {
+					QueueManager::getInstance()->addList(ou.getUser(), QueueItem::FLAG_CHECK_FILE_LIST);
+					ou.getIdentity().setFileListQueued("1");
+				} catch(...) {
+					//...
+				}
+			} else {
+				if(ou.shouldTestSUR()) {
 					try {
-						QueueManager::getInstance()->addList(ou->getUser(), QueueItem::FLAG_CHECK_FILE_LIST);
-						ou->getIdentity().setFileListQueued("1");
+						QueueManager::getInstance()->addTestSUR(ou.getUser());
+						ou.getIdentity().setTestSURQueued("1");
 					} catch(...) {
 						//...
-					}
-				} else {
-					if(ou->shouldTestSUR()) {
-						try {
-							QueueManager::getInstance()->addTestSUR(ou->getUser());
-							ou->getIdentity().setTestSURQueued("1");
-						} catch(...) {
-							//...
-						}
 					}
 				}
 			}

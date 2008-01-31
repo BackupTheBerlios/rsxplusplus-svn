@@ -41,7 +41,7 @@
 #define SHOWUI_MESSAGE_MAP 7
 #define FILTER_MESSAGE_MAP 8
 
-class SearchFrame : public MDITabChildWindowImpl<SearchFrame, TABDEFCLR, IDR_SEARCH>, 
+class SearchFrame : public MDITabChildWindowImpl<SearchFrame, RGB(127, 127, 255), IDR_SEARCH>, 
 	private SearchManagerListener, private ClientManagerListener,
 	public UCHandler<SearchFrame>, public UserInfoBaseHandler<SearchFrame>,
 	private SettingsManagerListener, private TimerManagerListener
@@ -52,7 +52,7 @@ public:
 
 	DECLARE_FRAME_WND_CLASS_EX(_T("SearchFrame"), IDR_SEARCH, 0, COLOR_3DFACE)
 
-	typedef MDITabChildWindowImpl<SearchFrame, TABDEFCLR, IDR_SEARCH> baseClass;
+	typedef MDITabChildWindowImpl<SearchFrame, RGB(127, 127, 255), IDR_SEARCH> baseClass;
 	typedef UCHandler<SearchFrame> ucBase;
 	typedef UserInfoBaseHandler<SearchFrame> uicBase;
 

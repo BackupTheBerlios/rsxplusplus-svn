@@ -1204,5 +1204,5 @@ string FavoriteManager::getAwayMessage(const string& aServer) {
 
 /**
  * @file
- * $Id: FavoriteManager.cpp 338 2007-12-06 20:44:27Z bigmuscle $
+ * $Id: FavoriteManager.cpp 356 2008-01-11 20:48:10Z bigmuscle $
  */

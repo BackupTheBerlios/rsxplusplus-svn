@@ -17,6 +17,10 @@
 #ifndef FAKE_DETECT_PAGE_H
 #define FAKE_DETECT_PAGE_H
 
+#if _MSC_VER > 1000
+#pragma once
+#endif // _MSC_VER > 1000
+
 #include "PropPage.h"
 #include "ExListViewCtrl.h"
 #include "../client/RawManager.h"

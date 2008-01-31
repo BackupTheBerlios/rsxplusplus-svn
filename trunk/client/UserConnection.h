@@ -135,7 +135,6 @@ public:
 	void fileNotAvail(const std::string& msg = FILE_NOT_AVAILABLE) { isSet(FLAG_NMDC) ? send("$Error " + msg + "|") : send(AdcCommand(AdcCommand::SEV_RECOVERABLE, AdcCommand::ERROR_FILE_NOT_AVAILABLE, msg)); }
 	void supports(const StringList& feat);
 	void getListLen() { send("$GetListLen|"); }
-	void shareHidden() { isSet(FLAG_NMDC) ? send("$Error: No sharing in this hub|") : send(AdcCommand(AdcCommand::SEV_RECOVERABLE, AdcCommand::ERROR_GENERIC, "No sharing in this hub")); }
 	void sendRaw(const string& raw) { send(raw); } //RSX++ // Lua
 
 	// ADC Stuff

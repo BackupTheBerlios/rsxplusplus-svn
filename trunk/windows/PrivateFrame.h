@@ -19,6 +19,10 @@
 #if !defined(PRIVATE_FRAME_H)
 #define PRIVATE_FRAME_H
 
+#if _MSC_VER > 1000
+#pragma once
+#endif // _MSC_VER > 1000
+
 #include "../client/User.h"
 #include "../client/ClientManagerListener.h"
 #include "../client/ResourceManager.h"
@@ -35,7 +39,7 @@
 
 class Client; //rsx
 
-class PrivateFrame : public MDITabChildWindowImpl<PrivateFrame, TABDEFCLR, IDR_PRIVATE, IDR_PRIVATE_OFF>, 
+class PrivateFrame : public MDITabChildWindowImpl<PrivateFrame, RGB(0, 255, 255), IDR_PRIVATE, IDR_PRIVATE_OFF>, 
 	private ClientManagerListener, public UCHandler<PrivateFrame>, private SettingsManagerListener
 {
 public:
@@ -51,7 +55,7 @@ public:
 
 	DECLARE_FRAME_WND_CLASS_EX(_T("PrivateFrame"), IDR_PRIVATE, 0, COLOR_3DFACE);
 
-	typedef MDITabChildWindowImpl<PrivateFrame, TABDEFCLR, IDR_PRIVATE, IDR_PRIVATE_OFF> baseClass;
+	typedef MDITabChildWindowImpl<PrivateFrame, RGB(0, 255, 255), IDR_PRIVATE, IDR_PRIVATE_OFF> baseClass;
 	typedef UCHandler<PrivateFrame> ucBase;
 
 	BEGIN_MSG_MAP(PrivateFrame)

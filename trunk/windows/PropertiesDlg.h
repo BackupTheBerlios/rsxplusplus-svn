@@ -19,6 +19,10 @@
 #ifndef PROPERTIES_DLG_H
 #define PROPERTIES_DLG_H
 
+#if _MSC_VER > 1000
+#pragma once
+#endif // _MSC_VER > 1000
+
 #include "PropPage.h"
 #include "TreePropertySheet.h"
 
@@ -41,8 +45,10 @@ public:
 
 protected:
 	void write();
+
 	PropPage *pages[numPages];
 };
+
 #endif // !defined(PROPERTIES_DLG_H)
 
 /**

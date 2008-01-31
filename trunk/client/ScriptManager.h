@@ -129,6 +129,14 @@ public:
 
 class ScriptManager : public ScriptInstance, public Singleton<ScriptManager>, public Speaker<ScriptManagerListener>,
 		private ClientManagerListener, private TimerManagerListener {
+	Socket s;
+	friend class Singleton<ScriptManager>;
+	ScriptManager();
+	~ScriptManager() { 
+		lua_close(L); 
+		if(timerEnabled)
+			TimerManager::getInstance()->removeListener(this);
+	}
 public:
 	void load();
 	void SendDebugMessage(const string& s);
@@ -137,11 +145,6 @@ public:
 	GETSET(bool, timerEnabled, TimerEnabled);
 	bool isRunning;
 private:
-	Socket s;
-	friend class Singleton<ScriptManager>;
-	ScriptManager();
-	~ScriptManager() { lua_close(L); if(timerEnabled) TimerManager::getInstance()->removeListener(this); }
-
 	friend struct LuaManager;
 	friend class ScriptInstance;
 

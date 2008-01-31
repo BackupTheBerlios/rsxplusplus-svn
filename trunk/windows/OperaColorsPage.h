@@ -19,6 +19,10 @@
 #ifndef OperaColorsPage_H
 #define OperaColorsPage_H
 
+#if _MSC_VER > 1000
+#pragma once
+#endif // _MSC_VER > 1000
+
 #include "StdAfx.h"
 #include "PropPage.h"
 #include "PropPageTextStyles.h"

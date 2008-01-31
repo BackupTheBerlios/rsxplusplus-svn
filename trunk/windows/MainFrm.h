@@ -19,6 +19,10 @@
 #ifndef MAIN_FRM_H
 #define MAIN_FRM_H
 
+#if _MSC_VER >= 1000
+#pragma once
+#endif // _MSC_VER >= 1000
+
 #include "HubFrame.h"
 #include "../client/TimerManager.h"
 #include "../client/HttpConnection.h"
@@ -506,8 +510,7 @@ private:
 	
 	// HttpConnectionListener
 	void on(HttpConnectionListener::Complete, HttpConnection* conn, string const& /*aLine*/) throw();
-	void on(HttpConnectionListener::Data, HttpConnection* /*conn*/, const uint8_t* buf, size_t len) throw();
-
+	void on(HttpConnectionListener::Data, HttpConnection* /*conn*/, const uint8_t* buf, size_t len) throw();	
 	// WebServerListener
 	void on(WebServerListener::Setup);
 	void on(WebServerListener::ShutdownPC, int);

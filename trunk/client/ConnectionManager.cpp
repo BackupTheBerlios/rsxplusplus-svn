@@ -496,8 +496,7 @@ void ConnectionManager::on(UserConnectionListener::MyNick, UserConnection* aSour
 	if(ClientManager::getInstance()->isStealth(aSource->getHubUrl()))
 		aSource->setFlag(UserConnection::FLAG_STEALTH);
 
-	const string& IP = aSource->getRemoteIp(); //RSX++
-	ClientManager::getInstance()->setIPUser(IP, aSource->getUser(), aSource->getSocket()->getRemoteHost(IP));
+	ClientManager::getInstance()->setIPUser(aSource->getRemoteIp(), aSource->getUser(), true);
 
 	if(ClientManager::getInstance()->isOp(aSource->getUser(), aSource->getHubUrl()))
 		aSource->setFlag(UserConnection::FLAG_OP);

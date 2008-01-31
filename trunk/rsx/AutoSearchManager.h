@@ -49,8 +49,6 @@ public:
 	AutoSearchManager();
 	~AutoSearchManager();
 
-	void on(TimerManagerListener::Minute, uint64_t aTick) throw();
-
 	Autosearch* addAutosearch(bool en, const string& ss, int ft, int act, int actCmd, bool disp, const string& cheat) {
 		Autosearch* ipw = new Autosearch(en, ss, ft, act, actCmd, disp, cheat);
 		as.push_back(ipw);
@@ -68,7 +66,7 @@ public:
 	}
 
 	Autosearch::List& getAutosearch() { 
-		Lock l(acs);
+		Lock l(cs);
 		return as; 
 	}
 
@@ -77,33 +75,27 @@ public:
 	void AutosearchLoad();
 	void AutosearchSave();
 private:
-	CriticalSection cs, acs;
-
-	Autosearch::List vs; //valid searches
-	Autosearch::List as; //all searches
-
-	void loadAutosearch(SimpleXML& aXml);
-
-	StringList allowedHubs;
-	int curPos;
-
 	friend class Singleton<AutoSearchManager>;
-
-	void removeRegExpFromSearches();
-	void getAllowedHubs();
-	bool matchDirectory(const string& aFile, const string& aStrToMatch);
+	void stopTaskThread();
 
 	GETSET(uint16_t, time, Time);
 
-	void on(SearchManagerListener::SR, SearchResult* sr) throw() {
-		onSearchResult(sr);
-	}
+	CriticalSection cs;
 
-	void onSearchResult(const SearchResult* sr) throw();
-	void addToQueue(const string& fl, const TTHValue& tth, int64_t s, const UserPtr& u, bool pausePrio = false);
-	void processAction(const Autosearch* a, const string fl, const TTHValue tth, int64_t s, const UserPtr u);
+	Autosearch::List vs; //valid searches
+	Autosearch::List as; //all searches
+	StringList allowedHubs;
+
+	void loadAutosearch(SimpleXML& aXml);
+	void removeRegExpFromSearches();
+	void getAllowedHubs();
+
+	void on(SearchManagerListener::SR, SearchResult* sr) throw();
+	void on(TimerManagerListener::Minute, uint64_t aTick) throw();
+	void addResultToQueue(SearchResult* sres, Autosearch* a);
 
 	bool endOfList;
+	int curPos;
 	uint16_t recheckTime;
 	string curSearch;
 	set<UserPtr> users;

@@ -125,10 +125,7 @@ public:
 		isSet[key] = !value.empty();
 	}
 
-	void set(IntSetting key, int value) {
-		intSettings[key - INT_FIRST] = value;
-		isSet[key] = true;
-	}
+	void set(IntSetting key, int value);
 
 	void set(IntSetting key, const string& value) {
 		if(value.empty()) {

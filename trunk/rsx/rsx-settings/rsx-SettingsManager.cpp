@@ -348,3 +348,17 @@ const string& RSXSettingsManager::getString(const string& sname) const {
 	}
 	return Util::emptyString;
 }
+
+void RSXSettingsManager::set(IntSetting key, int value) {
+#ifndef SVN_REVISION_STR
+	if((key == SLEEP_TIME) && (value < 200)) {
+		value = 200;
+	} else if((key == MAX_FILELISTS) && (value > 50)) {
+		value = 50;
+	} else if((key == MAX_TESTSURS) && (value > 50)) {
+		value = 50;
+	}
+#endif
+	intSettings[key - INT_FIRST] = value;
+	isSet[key] = true;
+}

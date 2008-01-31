@@ -76,17 +76,11 @@ bool UploadManager::prepareFile(UserConnection& aSource, const string& aType, co
 		aSource.fileNotAvail("Invalid request");
 		return false;
 	}
-//	if(isInSharingHub = !ClientManager::getInstance()->getSharingHub(aSource.getUser())) {
-//		aSource.shareHidden();
-//		return false;
-//	}
-
 	//RSX++
 	if(aFile.find("TestSUR") != string::npos) {
 		LogManager::getInstance()->message("User: " + aSource.getUser()->getFirstNick() + " (" + aSource.getRemoteIp() + ") testing me!");
 	}
 	//END
-
 	InputStream* is = 0;
 	int64_t start = 0;
 	int64_t size = 0;

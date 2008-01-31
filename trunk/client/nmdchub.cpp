@@ -217,21 +217,10 @@ void NmdcHub::onLine(const string& aLine) throw() {
 			fire(ClientListener::StatusMessage(), this, unescape(line));
 			return;
 		}
-		//RSX++
-		if(SETTING(FILTER_MESSAGES)) {
-			if((line.find("is kicking") != string::npos) && (line.find("because:") != string::npos)) {
-				fire(ClientListener::StatusMessage(), this, unescape(line));
-				return;
-			}
-		}
-		//END
 		string nick = line.substr(1, i-1);
 		string message;
 		if((line.length()-1) > i) {
-			if(line[i+1] != ' ') //no space after '>' so we dont cut first letter of msg
-				message = line.substr(i+1);
-			else
-				message = line.substr(i+2);
+			message = line.substr(i+2);
 		} else {
 			fire(ClientListener::StatusMessage(), this, unescape(line));
 			return;
@@ -780,7 +769,6 @@ void NmdcHub::onLine(const string& aLine) throw() {
 			OnlineUser::List v;
 			StringTokenizer<string> t(param, "$$");
 			StringList& sl = t.getTokens();
-
 			for(StringIter it = sl.begin(); it != sl.end(); ++it) {
 				if(it->empty())
 					continue;

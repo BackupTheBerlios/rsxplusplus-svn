@@ -70,15 +70,16 @@ public:
 		return onlineUsers.find(aUser->getCID()) != onlineUsers.end();
 	}
 	
-	void setIPUser(const string& IP, const UserPtr& user, const string& host = Util::emptyString) {
+	void setIPUser(const string& IP, const UserPtr& user, bool resolveHost = false) {
+		const string& aHost = resolveHost ? Socket::getRemoteHost(IP) : Util::emptyString;
 		Lock l(cs);
 		OnlinePairC p = onlineUsers.equal_range(user->getCID());
 		for(OnlineIterC i = p.first; i != p.second; i++) {
 			OnlineUser* ou = i->second;
 			//RSX++ //IP check
 			ou->getIdentity().setIp(IP);
-			if(!host.empty())
-				ou->getIdentity().set("HT", host);
+			if(!aHost.empty())
+				ou->getIdentity().set("HT", aHost);
 			if(ou->getIdentity().get("IC").empty())
 				ou->getIdentity().checkIP(*ou);
 			//END

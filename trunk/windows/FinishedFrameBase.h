@@ -37,12 +37,12 @@
 #include "../client/FinishedManager.h"
 
 template<class T, int title, int id, int icon>
-class FinishedFrameBase : public MDITabChildWindowImpl<T, TABDEFCLR, icon>, public StaticFrame<T, title, id>,
+class FinishedFrameBase : public MDITabChildWindowImpl<T, RGB(0, 0, 0), icon>, public StaticFrame<T, title, id>,
 	protected FinishedManagerListener, private SettingsManagerListener
 
 {
 public:
-	typedef MDITabChildWindowImpl<T, TABDEFCLR, icon> baseClass;
+	typedef MDITabChildWindowImpl<T, RGB(0, 0, 0), icon> baseClass;
 
 	FinishedFrameBase() : totalBytes(0), totalTime(0), closed(false) { }
 	virtual ~FinishedFrameBase() { }

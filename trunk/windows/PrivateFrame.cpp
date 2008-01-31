@@ -367,6 +367,8 @@ LRESULT PrivateFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 		replyTo->unsetFlag(User::PROTECTED);
 	//END
 	if(!closed) {
+		if(client)
+			putClient();
 		DeleteObject(hEmoticonBmp);
 		ClientManager::getInstance()->removeListener(this);
 		SettingsManager::getInstance()->removeListener(this);
@@ -655,7 +657,7 @@ LRESULT PrivateFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
 		return TRUE;
 	}
 	//RSX++ //give pms some colors and rclick menus! :)
-	if(reinterpret_cast<HWND>(wParam) == ctrlClient) { 
+	else if(reinterpret_cast<HWND>(wParam) == ctrlClient) { 
 		ChatCtrl::sSelectedUser = Text::toT(ClientManager::getInstance()->getNicks(getSelectedUser()->getCID())[0]);
 
 		if(pt.x == -1 && pt.y == -1) {
@@ -676,6 +678,8 @@ LRESULT PrivateFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
 
 		if(PreparePopupMenu(ChatCtrl::sSelectedUser, Mnu )) {
 			if(ChatCtrl::sSelectedUser.empty()) {
+				Mnu.AppendMenu(MF_SEPARATOR);
+				Mnu.AppendMenu(MF_STRING, IDC_CLOSE_WINDOW, CTSTRING(CLOSE));
 				Mnu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, pt.x, pt.y, m_hWnd);
 				return TRUE;
 			} else {

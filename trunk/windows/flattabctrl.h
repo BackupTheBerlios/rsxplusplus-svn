@@ -44,8 +44,6 @@ enum {
 	WM_REALLY_CLOSE
 };
 
-#define TABDEFCLR -1
-
 template <class T, class TBase = CWindow, class TWinTraits = CControlWinTraits>
 class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits> {
 public:
@@ -556,12 +554,12 @@ private:
 
 		enum { MAX_LENGTH = 20 };
 
-		TabInfo(HWND aWnd, /*COLORREF*/int c, long icon, long stateIcon) : hWnd(aWnd), len(0), xpos(0), row(0), dirty(false), hIcon(NULL), hStateIcon(NULL), bState(false) { 
+		TabInfo(HWND aWnd, int /*c*/, long icon, long stateIcon) : hWnd(aWnd), len(0), xpos(0), row(0), dirty(false), hIcon(NULL), hStateIcon(NULL), bState(false) { 
 			if (icon != 0)
 				hIcon = (HICON)LoadImage((HINSTANCE)::GetWindowLong(aWnd, GWL_HINSTANCE), MAKEINTRESOURCE(icon), IMAGE_ICON, 16, 16, LR_DEFAULTSIZE);
 			if (icon != stateIcon)
 				hStateIcon = (HICON)LoadImage((HINSTANCE)::GetWindowLong(aWnd, GWL_HINSTANCE), MAKEINTRESOURCE(stateIcon), IMAGE_ICON, 16, 16, LR_DEFAULTSIZE);
-			pen.CreatePen(PS_SOLID, 1, (c == -1) ? GetSysColor(COLOR_BTNSHADOW) : (COLORREF)c); //RSX++
+			pen.CreatePen(PS_SOLID, 1, GetSysColor(COLOR_BTNSHADOW)); //RSX++
 			memzero(&size, sizeof(size));
 			memzero(&boldSize, sizeof(boldSize));
 			name[0] = 0;

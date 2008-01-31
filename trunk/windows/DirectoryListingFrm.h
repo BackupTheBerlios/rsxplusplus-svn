@@ -39,7 +39,7 @@ class ThreadedDirectoryListing;
 
 #define STATUS_MESSAGE_MAP 9
 #define CONTROL_MESSAGE_MAP 10
-class DirectoryListingFrame : public MDITabChildWindowImpl<DirectoryListingFrame, TABDEFCLR, IDR_DIRECTORY>, public CSplitterImpl<DirectoryListingFrame>, 
+class DirectoryListingFrame : public MDITabChildWindowImpl<DirectoryListingFrame, RGB(255, 0, 255), IDR_DIRECTORY>, public CSplitterImpl<DirectoryListingFrame>, 
 	public UCHandler<DirectoryListingFrame>, private SettingsManagerListener
 
 {
@@ -48,7 +48,7 @@ public:
 	static void openWindow(const UserPtr& aUser, const string& txt, int64_t aSpeed);
 	static void closeAll();
 
-	typedef MDITabChildWindowImpl<DirectoryListingFrame, TABDEFCLR, IDR_DIRECTORY> baseClass;
+	typedef MDITabChildWindowImpl<DirectoryListingFrame, RGB(255, 0, 255), IDR_DIRECTORY> baseClass;
 	typedef UCHandler<DirectoryListingFrame> ucBase;
 
 	enum {

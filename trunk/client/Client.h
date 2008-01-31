@@ -36,7 +36,7 @@ struct ClientScriptInstance : public ScriptInstance {
 };
 //END
 /** Yes, this should probably be called a Hub */
-class Client : public iClient, public Speaker<ClientListener>, public BufferedSocketListener, protected TimerManagerListener, 
+class Client : public Speaker<ClientListener>, public iClient, public BufferedSocketListener, protected TimerManagerListener, 
 	/*RSX++*/ public ClientScriptInstance/*END*/ {
 public:
 	typedef Client* Ptr;
@@ -195,7 +195,6 @@ protected:
 	friend class ClientManager;
 	Client(const string& hubURL, char separator, bool secure_);
 	virtual ~Client() throw();
-
 	struct Counts {
 		Counts(long n = 0, long r = 0, long o = 0) : normal(n), registered(r), op(o) { }
 		volatile long normal;

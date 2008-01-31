@@ -30,11 +30,11 @@
 
 #define SERVER_MESSAGE_MAP 7
 
-class FavoriteHubsFrame : public MDITabChildWindowImpl<FavoriteHubsFrame, TABDEFCLR, IDR_FAVORITES>, public StaticFrame<FavoriteHubsFrame, ResourceManager::FAVORITE_HUBS, IDC_FAVORITES>,
+class FavoriteHubsFrame : public MDITabChildWindowImpl<FavoriteHubsFrame, RGB(0, 0, 0), IDR_FAVORITES>, public StaticFrame<FavoriteHubsFrame, ResourceManager::FAVORITE_HUBS, IDC_FAVORITES>,
 	private FavoriteManagerListener, private SettingsManagerListener
 {
 public:
-	typedef MDITabChildWindowImpl<FavoriteHubsFrame, TABDEFCLR, IDR_FAVORITES> baseClass;
+	typedef MDITabChildWindowImpl<FavoriteHubsFrame, RGB(0, 0, 0), IDR_FAVORITES> baseClass;
 
 	FavoriteHubsFrame() : nosave(true), closed(false) { }
 	~FavoriteHubsFrame() { }

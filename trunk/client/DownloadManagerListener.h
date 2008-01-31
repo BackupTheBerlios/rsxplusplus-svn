@@ -44,7 +44,7 @@ public:
 	typedef X<2> Starting;
 	typedef X<3> Tick;
 	typedef X<4> Status;
-	typedef X<5> CheckComplete; //RSX++
+
 	/**
 	 * This is the first message sent before a download starts.
 	 * No other messages will be sent before.
@@ -71,8 +71,6 @@ public:
 	 */
 	virtual void on(Failed, const Download*, const string&) throw() { }
 	virtual void on(Status, const UserConnection*, const string&) throw() { }
-	//RSX++
-	virtual void on(CheckComplete, const UserConnection*) throw() { }
 };
 
 #endif /*DOWNLOADMANAGERLISTENER_H_*/

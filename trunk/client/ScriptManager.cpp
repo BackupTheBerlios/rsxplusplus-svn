@@ -31,9 +31,7 @@
 #include "AdcHub.h"
 #include "Thread.h"
 #include <cstddef>
-//yeah, kinda weird, but at least i can get funcs from winutil ;)
-#include "../windows/stdafx.h"
-#include "../windows/WinUtil.h"
+#include <shellapi.h>
 
 ScriptManager* Singleton<ScriptManager>::instance = NULL;
 
@@ -314,7 +312,7 @@ int LuaManager::MessageBox(lua_State* L) {
 
 int LuaManager::OpenLink(lua_State *L) {
 	if(lua_gettop(L) == 1 && lua_isstring(L, -1)) {
-		WinUtil::openLink(Text::toT(lua_tostring(L, -1)));
+		::ShellExecute(NULL, _T("open"), Text::toT(lua_tostring(L, -1)).c_str(), NULL, NULL, SW_SHOWNORMAL);
 		return 1;
 	}
 	return 0;

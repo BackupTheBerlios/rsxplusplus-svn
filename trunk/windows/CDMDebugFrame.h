@@ -20,7 +20,7 @@
 #include "../client/ScriptManager.h"
 
 class CDMDebugFrame : private DebugManagerListener, public Thread, public ScriptInstance,
-	public MDITabChildWindowImpl<CDMDebugFrame, TABDEFCLR, IDR_CDM>,
+	public MDITabChildWindowImpl<CDMDebugFrame, RGB(0, 0, 0), IDR_CDM>,
 	public StaticFrame<CDMDebugFrame, ResourceManager::MENU_CDMDEBUG_MESSAGES>
 {
 public:
@@ -42,7 +42,7 @@ public:
 	~CDMDebugFrame() { DebugManager::getInstance()->removeListener(this); }
 	void OnFinalMessage(HWND /*hWnd*/) { delete this; }
 
-	typedef MDITabChildWindowImpl<CDMDebugFrame, TABDEFCLR, IDR_CDM> baseClass;
+	typedef MDITabChildWindowImpl<CDMDebugFrame, RGB(0, 0, 0), IDR_CDM> baseClass;
 	BEGIN_MSG_MAP(CDMDebugFrame)
 		MESSAGE_HANDLER(WM_SETFOCUS, OnFocus)
 		MESSAGE_HANDLER(WM_CREATE, OnCreate)
@@ -67,7 +67,6 @@ public:
 	LRESULT OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled);
 	LRESULT onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled);
 	LRESULT onClear(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-
 	void UpdateLayout(BOOL bResizeBars = TRUE);
 	LRESULT onCtlColor(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled) {
 		HWND hWnd = (HWND)lParam;

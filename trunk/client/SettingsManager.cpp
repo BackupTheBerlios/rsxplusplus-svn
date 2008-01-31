@@ -128,7 +128,7 @@ const string SettingsManager::settingTags[] =
 	"FilterEnter", "SortFavUsersFirst", "ShowShellMenu", "EnableRealUploadQueue", "SendBloom",
 	//RSX++
 	"TopSpeed", "TopUpSpeed", "OdcStyleBumped",
-	"StealthyIndicateSpeeds", "PGEnable", "PGUp", "PGDown", "PGSearch", "PGLog", "ProgressBarMode",
+	"StealthyIndicateSpeeds", "ProgressBarMode",
 	"ShowPluginToolbar", "RawCmdLog",
 	//END
 	"SENTRY",
@@ -607,7 +607,7 @@ void SettingsManager::load(string const& aFileName)
 					set(Int64Setting(i), Util::toInt64(xml.getChildData()));
 				xml.resetCurrentChild();
 			}
-
+			
 			xml.stepOut();
 		}
 

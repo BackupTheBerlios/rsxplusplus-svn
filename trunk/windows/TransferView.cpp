@@ -403,7 +403,7 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 					if(indicateSpeeds) {
 						// Draw icon
 						// 007 - probably better way do not exist... :>
-						int8_t dlType = 0;
+						/*int8_t dlType = 0;
 						{
 							const QueueItem::StringMap& queue = QueueManager::getInstance()->lockQueue();
 							const string& filePath = Text::fromT(ii->target);
@@ -422,7 +422,10 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 								//@todo add icon for filelist check... I.nfraR.ed have sth do deal with it... :)
 							} else if(dlType == 4) {
 								DrawIconEx(dc, rc.left + 4, rc.top + 1, user, 16, 16, NULL, NULL, DI_NORMAL | DI_COMPAT);
-							}
+							}*/
+						// Draw icon - Nasty way to do the filelist icon, but couldn't get other ways to work well, TODO: do separating filelists from other transfers the proper way...
+						if(ii->getText(COLUMN_PATH).find(Text::toT(Util::getListPath())) != string::npos || ii->getText(COLUMN_PATH).find(Text::toT(Util::getConfigPath())) != string::npos) {
+							DrawIconEx(dc, rc.left + 4, rc.top + 1, user, 16, 16, NULL, NULL, DI_NORMAL | DI_COMPAT);
 						} else if(ii->status == ItemInfo::STATUS_RUNNING) {
 							RECT rc2 = rc;
 							rc2.left += 4;
@@ -1297,6 +1300,14 @@ void TransferView::on(QueueManagerListener::Removed, const QueueItem* qi) throw(
 
 	speak(UPDATE_PARENT, ui);
 }
+//RSX++
+void TransferView::on(DownloadManagerListener::CheckComplete, const UserPtr aUser) {
+	UpdateInfo* ui = new UpdateInfo(aUser, true);
+	//to avoid no pk&lock bug in special cases ;)
+	//ConnectionManager::getInstance()->disconnect(aUser, true);
+	speak(REMOVE_ITEM, ui);
+}
+//END
 
 /**
  * @file

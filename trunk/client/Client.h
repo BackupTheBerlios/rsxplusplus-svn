@@ -175,7 +175,6 @@ public:
 	GETSET(bool, checkOnConnect, CheckOnConnect);
 	GETSET(bool, checkMyInfo, CheckMyInfo);
 	GETSET(bool, hideShare, HideShare);
-	GETSET(bool, checkFakeShare, CheckFakeShare);
 	GETSET(bool, checkedAtConnect, CheckedAtConnect);
 	//END
 	GETSET(string, favIp, FavIp);

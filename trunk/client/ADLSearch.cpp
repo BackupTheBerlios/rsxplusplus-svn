@@ -125,7 +125,6 @@ void ADLSearchManager::Load()
 					// Go to next search
 					xml.stepOut();
 				}
-				xml.stepOut();
 			}
 		}
 	} catch(const SimpleXMLException&) {

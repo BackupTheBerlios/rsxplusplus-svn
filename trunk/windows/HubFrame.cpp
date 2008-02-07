@@ -493,7 +493,6 @@ void HubFrame::onEnter() {
 							client->setCheckFilelists((*i)->getCheckFilelists());
 							client->setCheckMyInfo((*i)->getCheckMyInfo());
 							client->setHideShare((*i)->getHideShare());
-							client->setCheckFakeShare((*i)->getCheckFakeShare());
 							client->setUseFilter((*i)->getUseFilter());
 							client->setFavIp((*i)->getIP());
 							client->setStealth((*i)->getStealth());
@@ -578,7 +577,6 @@ void HubFrame::addAsFavorite() {
 		aEntry.setCheckFilelists(false);
 		aEntry.setCheckMyInfo(false);
 		aEntry.setHideShare(false);
-		aEntry.setCheckFakeShare(false);
 		aEntry.setUseFilter(false);
 		aEntry.setUserProtected(Util::emptyString);
 		aEntry.setFavEmail(client->getCurrentEmail());

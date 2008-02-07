@@ -8,30 +8,25 @@
 ]]--
 
 dcpp:setListener( "ownChatOut", "linky", function(hub, msg)
-	if string.sub(msg, 1, 2) == "/g" then
+	if string.sub(msg, 1, 3) == "/g " then
 		local link = "http://www.google.com/search?q=" .. DC():DecodeURI(string.sub(msg, 4))
 		DC():OpenLink(DC():ToUtf8(link))
-		collectgarbage() 
 		return 1
-	elseif string.sub(msg, 1, 5) == "/imdb" then
+	elseif string.sub(msg, 1, 6) == "/imdb " then
 		local link = "http://www.imdb.com/find?q=" .. DC():DecodeURI(string.sub(msg, 7))
 		DC():OpenLink(DC():ToUtf8(link))
-		collectgarbage() 
 		return 1
-	elseif string.sub(msg, 1, 2) == "/y" then
+	elseif string.sub(msg, 1, 3) == "/y " then
 		local link = "http://youtube.com/results?search_query=" .. DC():DecodeURI(string.sub(msg, 4))
 		DC():OpenLink(DC():ToUtf8(link))
-		collectgarbage()
 		return 1
-	elseif string.sub(msg, 1, 5) == "/wiki" then
+	elseif string.sub(msg, 1, 6) == "/wiki " then
 		local link = "http://en.wikipedia.org/wiki/" .. DC():DecodeURI(string.sub(msg, 7))
 		DC():OpenLink(DC():ToUtf8(link))
-		collectgarbage()
 		return 1
-	elseif string.sub(msg, 1, 2) == "/u" then
+	elseif string.sub(msg, 1, 3) == "/u " then
 		local link = DC():DecodeURI(string.sub(msg, 4))
 		DC():OpenLink(DC():ToUtf8(link))
-		collectgarbage() 
 		return 1
 	elseif msg == "/help" then
 		local helpMsg = "linky.lua\n" ..
@@ -41,7 +36,6 @@ dcpp:setListener( "ownChatOut", "linky", function(hub, msg)
 						"\t/wiki\t\t\t\tsearch in wikipedia (en)\n"..
 						"\t/u\t\t\t\tgo to given URL (using default web browser)"
 		hub:addLine(helpMsg)
-		collectgarbage() 
 		return 1
 	end
 end)

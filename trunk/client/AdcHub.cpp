@@ -184,12 +184,9 @@ void AdcHub::handle(AdcCommand::INF, AdcCommand& c) throw() {
 	if(u->getIdentity().supports(ADCS_FEATURE)) {
 		u->getUser()->setFlag(User::TLS);
 	}
-	//RSX++ // $MyINFO + FakeShare check
-	if(getCheckedAtConnect()) {
-		if(getCheckMyInfo())
-			u->getIdentity().myInfoDetect(*u);
-		if(getCheckFakeShare())
-			u->getIdentity().isFakeShare(*u);
+	//RSX++ // $MyINFO check
+	if(getCheckedAtConnect() && getCheckMyInfo()) {
+		u->getIdentity().myInfoDetect(*u);
 	}
 	//RSX++ // IP check
 	if(!u->getIdentity().getIp().empty())
@@ -210,7 +207,9 @@ void AdcHub::handle(AdcCommand::INF, AdcCommand& c) throw() {
 	}
 	//RSX++ // threaded checks
 	if(isOp()) {
-		users.startMyINFOCheck(this, getCheckFakeShare(), getCheckMyInfo());
+		if(getCheckMyInfo()) {
+			users.startMyINFOCheck(this);
+		}
 		if(getCheckOnConnect()) {
 			users.startCheck(this, getCheckClients(), getCheckFilelists(), true);
 		}

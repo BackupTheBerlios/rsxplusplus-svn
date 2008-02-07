@@ -485,14 +485,9 @@ void NmdcHub::onLine(const string& aLine) throw() {
 				cheatMessage("*** " + u.getIdentity().getNick() + " - $MyINFO Spam detected!!");
 			}
 		}
-		//RSX++ // $MyINFO + FakeShare check
-		if(getCheckedAtConnect()) {
-			if(getCheckMyInfo()) {
-				u.getIdentity().myInfoDetect(u);
-			}
-			if(getCheckFakeShare()) {
-				u.getIdentity().isFakeShare(u);
-			}
+		//RSX++ // $MyINFO check
+		if(getCheckedAtConnect() && getCheckMyInfo()) {
+			u.getIdentity().myInfoDetect(u);
 		}
 		//END
 		fire(ClientListener::UserUpdated(), this, u);
@@ -530,6 +525,7 @@ void NmdcHub::onLine(const string& aLine) throw() {
 		ConnectionManager::getInstance()->nmdcConnect(server, static_cast<uint16_t>(Util::toInt(port)), getMyNick(), getHubUrl(), getEncoding(), getStealth());
 		//RSX++ //ConnectToMe Spam
 		if(isOp()) {
+			Lock l(cs);
 			for(NickIter i = users.begin(); i != users.end(); ++i) {
 				if(i->second->getIdentity().getIp().compare(server) == 0) {
 					OnlineUser* u = i->second;
@@ -785,10 +781,12 @@ void NmdcHub::onLine(const string& aLine) throw() {
 
 			//RSX++
 			if(isOp()) {
+				if(getCheckMyInfo()) {
+					users.startMyINFOCheck(this);
+				}
 				if(getCheckOnConnect()) {
 					users.startCheck(this, getCheckClients(), getCheckFilelists(), true);
 				}
-				users.startMyINFOCheck(this, getCheckFakeShare(), getCheckMyInfo());
 			}
 			//END
 			// Special...to avoid op's complaining that their count is not correctly

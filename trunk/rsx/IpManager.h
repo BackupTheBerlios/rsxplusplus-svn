@@ -86,7 +86,7 @@ private:
 	IpManager();
 	~IpManager();
 
-	CriticalSection cs;
+	mutable CriticalSection cs;
 	IPWatch::List ipwatch;
 	friend class Singleton<IpManager>;
 

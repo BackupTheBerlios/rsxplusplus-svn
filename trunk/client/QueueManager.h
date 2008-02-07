@@ -82,20 +82,47 @@ public:
 	void addPfs(const UserPtr& aUser, const string& aDir) throw(QueueException);
 
 	void addTestSUR(UserPtr aUser, bool checkList = false) throw(QueueException, FileException) {
-		string target = Util::getConfigPath() + "TestSURs\\" + getValidTestSURName(aUser);
+		string nick = Util::cleanPathChars(aUser->getNick()) + ".";
+		string target = Util::getConfigPath() + "TestSURs\\" + RsxUtil::getTestSURString() + nick + aUser->getCID().toBase32();
 		add(target, -1, TTHValue(), aUser, (Flags::MaskType)((checkList ? QueueItem::FLAG_CHECK_FILE_LIST : 0) | QueueItem::FLAG_TESTSUR));
 	}
 
 	void removeTestSUR(UserPtr aUser) {
 		try {
-			string target = Util::getConfigPath() + "TestSURs\\" + getValidTestSURName(aUser);
+			string nick = Util::cleanPathChars(aUser->getNick()) + ".";
+			string target = Util::getConfigPath() + "TestSURs\\" + RsxUtil::getTestSURString() + nick + aUser->getCID().toBase32();
 			remove(target);
 		} catch(...) {
 			// exception
 		}
 		return;
 	}
-	//RSX++ //apex code
+	//RSX++ 
+	void removeFilelistCheck(UserPtr aUser) {
+		try {
+			string nick = Util::cleanPathChars(aUser->getNick()) + ".";
+			string target = Util::getListPath() + nick + aUser->getCID().toBase32();
+			remove(target);
+		} catch(...) {
+			// exception
+		}
+	}
+
+	void removeOfflineChecks() {
+		Lock l(cs);
+		const QueueItem::StringMap& queue = fileQueue.getQueue();
+		if(queue.size() > 1) {
+			for(QueueItem::StringIter i = queue.begin(); i != queue.end(); ++i) {
+				if(i->second->isSet(QueueItem::FLAG_TESTSUR) || i->second->isSet(QueueItem::FLAG_CHECK_FILE_LIST)) {
+					if(i->second->countOnlineUsers() == 0) {
+						remove(i->second->getTarget());
+						i = queue.begin();
+					}
+				}
+			}
+		}
+	}
+
 	void removeFileListCheck(UserPtr aUser) throw(QueueException) {
 		Lock l(cs);
 		for(QueueItem::StringIter i = fileQueue.getQueue().begin(); i != fileQueue.getQueue().end(); ++i) {
@@ -108,16 +135,16 @@ public:
 
 	bool isTestSURinQueue(UserPtr aUser) throw(QueueException) {
 		Lock l(cs);
+		string nick = Util::cleanPathChars(aUser->getNick()) + ".";
+		string target = Util::getConfigPath() + "TestSURs\\" + RsxUtil::getTestSURString() + nick + aUser->getCID().toBase32();
+
 		for(QueueItem::StringIter i = fileQueue.getQueue().begin(); i != fileQueue.getQueue().end(); ++i) {
-			const string& target = getValidTestSURName(aUser);
 			if(i->second->getTargetFileName().find(target) != string::npos ) {
 				return true;
 			}
 		}
 		return false;
 	}
-
-	void removeOfflineChecks() throw();
 	//END
 	/** Readd a source that was removed */
 	void readd(const string& target, const UserPtr& aUser) throw(QueueException);
@@ -331,13 +358,7 @@ private:
 			lastSave = GET_TICK();
 		}
 	}
-	//RSX++
-	string getValidTestSURName(const UserPtr& aUser) const {
-		StringList nicks = ClientManager::getInstance()->getNicks(*aUser);
-		string nick = nicks.empty() ? Util::emptyString : Util::cleanPathChars(nicks[0]) + ".";
-		return RsxUtil::getTestSURString() + nick + aUser->getCID().toBase32();
-	}
-	//END
+
 	// TimerManagerListener
 	void on(TimerManagerListener::Second, uint64_t aTick) throw();
 	void on(TimerManagerListener::Minute, uint64_t aTick) throw();

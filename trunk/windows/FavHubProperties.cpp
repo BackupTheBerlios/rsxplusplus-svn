@@ -25,9 +25,7 @@
 
 #include "../client/FavoriteManager.h"
 #include "../client/ResourceManager.h"
-//#include "../client/pme.h" //RSX++
 #include "../client/StringTokenizer.h"
-//#include "../rsx/RsxUtil.h"
 
 LRESULT FavHubProperties::OnInitDialog(UINT, WPARAM, LPARAM, BOOL&)
 {

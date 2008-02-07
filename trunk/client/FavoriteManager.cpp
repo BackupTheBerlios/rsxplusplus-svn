@@ -432,7 +432,6 @@ void FavoriteManager::save() {
 			xml.addChildAttrib("CheckFilelists", (*i)->getCheckFilelists());
 			xml.addChildAttrib("CheckMyInfo", (*i)->getCheckMyInfo());
 			xml.addChildAttrib("HideShare", (*i)->getHideShare());
-			xml.addChildAttrib("CheckFakeShare", (*i)->getCheckFakeShare());
 			xml.addChildAttrib("UseFilter", (*i)->getUseFilter());
 			xml.addChildAttrib("UseAutosearch", (*i)->getAutosearch());
 			xml.addChildAttrib("UseHighLight", (*i)->getUseHL());
@@ -746,7 +745,6 @@ void FavoriteManager::load(SimpleXML& aXml) {
 			e->setCheckFilelists(aXml.getBoolChildAttrib("CheckFilelists"));
 			e->setCheckMyInfo(aXml.getBoolChildAttrib("CheckMyInfo"));
 			e->setHideShare(aXml.getBoolChildAttrib("HideShare"));
-			e->setCheckFakeShare(aXml.getBoolChildAttrib("CheckFakeShare"));
 			e->setUseFilter(aXml.getBoolChildAttrib("UseFilter"));
 			e->setAutosearch(aXml.getBoolChildAttrib("UseAutosearch"));
 			e->setUseHL(aXml.getBoolChildAttrib("UseHighLight"));

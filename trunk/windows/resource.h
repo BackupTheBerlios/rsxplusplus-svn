@@ -145,7 +145,6 @@
 #define IDD_MYINFO_PAGE                 319
 #define IDD_MYINFO_PROFILE              320
 #define IDD_FAKE_SHARES                 322
-#define IDD_ADD_FAKE_SHARES             323
 #define IDC_FAV_GROUPS                  324
 #define IDD_FAV_TAB_RAW                 324
 #define IDC_REFRESH                     1000
@@ -496,10 +495,8 @@
 #define IDC_BEGIN_SPIN                  1260
 #define IDC_LIST_REMOVE                 1260
 #define IDC_FD_OPTIONS                  1260
-#define IDC_EXACT                       1260
 #define IDC_LIST_DESC                   1261
 #define IDC_TIMEOUTS                    1261
-#define IDC_CONTAINS                    1261
 #define AAA                             1262
 #define IDC_LIST_LIST                   1262
 #define IDC_DISCONNECTS                 1262

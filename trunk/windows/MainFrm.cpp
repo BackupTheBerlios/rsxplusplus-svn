@@ -174,9 +174,6 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	}
 	//--
 	WinUtil::init(m_hWnd);
-	//--
-	PluginsManager::getInstance()->startPlugins();
-	//END
 
 	trayMessage = RegisterWindowMessage(_T("TaskbarCreated"));
 
@@ -188,6 +185,8 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 		EXTRA_VER
 #endif
 		);
+
+	PluginsManager::getInstance()->startPlugins(); //RSX++
 
 	// Load images
 	// create command bar window

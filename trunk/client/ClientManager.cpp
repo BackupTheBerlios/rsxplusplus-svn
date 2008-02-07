@@ -582,9 +582,9 @@ void ClientManager::fileListDisconnected(const UserPtr& p) {
 
 			if(fileListDisconnects == RSXSETTING(MAX_DISCONNECTS)) {
 				ou.getIdentity().setCheatMsg(ou.getClient(), "Disconnected file list %[userFD] times", false, true, RSXBOOLSETTING(SHOW_DISCONNECT_RAW));
-				if(!ou.getIdentity().getTestSURQueued().empty()) {
-					ou.getIdentity().setTestSURQueued(Util::emptyString);
-					ou.setTestSURComplete();
+				if(!ou.getIdentity().getFileListQueued().empty()) {
+					ou.getIdentity().setFileListQueued(Util::emptyString);
+					ou.setFileListComplete();
 				}
 				remove = true;
 				sendAction(ou, RSXSETTING(DISCONNECT_RAW));
@@ -592,11 +592,11 @@ void ClientManager::fileListDisconnected(const UserPtr& p) {
 		}
 	}
 	if(remove) {
-		try {
-			QueueManager::getInstance()->removeFileListCheck(p);
-		} catch (...) {
+		//try {
+			QueueManager::getInstance()->removeFilelistCheck(p);
+		//} catch (...) {
 			//...
-		}
+		//}
 	}
 }
 
@@ -646,9 +646,7 @@ void ClientManager::connectionTimeout(const UserPtr& p) {
 }
 
 void ClientManager::checkCheating(const UserPtr& p, DirectoryListing* dl) {
-	string report = Util::emptyString;
 	OnlineUser* ou = NULL;
-
 	{
 		Lock l(cs);
 
@@ -815,13 +813,15 @@ void ClientManager::addCheckToQueue(const UserPtr& p, bool filelist) {
 	OnlineUser& ou = *i->second;
 
 	if(ou.isCheckable(false) && ou.getClient().isOp()) {
-		if(ou.shouldCheckFileList() && !ou.getChecked(filelist)) {
+		if(!ou.getChecked(filelist)) {
 			if(filelist) {
-				try {
-					QueueManager::getInstance()->addList(ou.getUser(), QueueItem::FLAG_CHECK_FILE_LIST);
-					ou.getIdentity().setFileListQueued("1");
-				} catch(...) {
-					//...
+				if(ou.shouldCheckFileList()) {
+					try {
+						QueueManager::getInstance()->addList(ou.getUser(), QueueItem::FLAG_CHECK_FILE_LIST);
+						ou.getIdentity().setFileListQueued("1");
+					} catch(...) {
+						//...
+					}
 				}
 			} else {
 				if(ou.shouldTestSUR()) {
@@ -838,14 +838,16 @@ void ClientManager::addCheckToQueue(const UserPtr& p, bool filelist) {
 }
 //hub stats
 tstring ClientManager::getHubsLoadInfo() const {
-	Lock l(cs);
 	string hubsInfo = Util::emptyString;
 	int64_t overallShare = 0;
 	uint32_t overallUsers = 0;
 
-	for(Client::List::const_iterator i = clients.begin(); i != clients.end(); ++i) {
-		overallShare += (*i)->getAvailable();
-		overallUsers += (*i)->getUserCount();
+	{
+		Lock l(cs);
+		for(Client::List::const_iterator i = clients.begin(); i != clients.end(); ++i) {
+			overallShare += (*i)->getAvailable();
+			overallUsers += (*i)->getUserCount();
+		}
 	}
 	hubsInfo = "Hubs stats:";
 	hubsInfo += "\r\n-]> Connected hubs:\t" + Util::toString(Client::getTotalCounts()) + " (" + Client::getCounts() + ")";
@@ -865,8 +867,9 @@ void ClientManager::setCheating(const UserPtr& p, const string& aTestSURString, 
 
 		if(!aTestSURString.empty()) {
 			ou->getIdentity().set("TS", aTestSURString);
-			ou->setTestSURComplete();
 			ou->getIdentity().updateClientType(*ou);
+			ou->setTestSURComplete();
+			ou->getIdentity().setTestSURQueued(Util::emptyString);
 		}
 
 		if(cc)
@@ -874,7 +877,7 @@ void ClientManager::setCheating(const UserPtr& p, const string& aTestSURString, 
 		if(cf)
 			ou->setFileListComplete();
 
-		if(!aCheatString.empty() && RSXBOOLSETTING(DISPLAY_CHEATS_IN_MAIN_CHAT))
+		if(!aCheatString.empty())
 			ou->getIdentity().setCheatMsg(ou->getClient(), aCheatString, bc, bf, aDisplay);
 
 		ou->getClient().updated(*ou);
@@ -883,31 +886,30 @@ void ClientManager::setCheating(const UserPtr& p, const string& aTestSURString, 
 }
 //RSX++
 void ClientManager::setListSize(const UserPtr& p, int64_t aFileLength, bool adc) {
-	OnlineUser* ou = NULL;
 	{
 		Lock l(cs);
 		OnlineIterC i = onlineUsers.find(p->getCID());
 		if(i == onlineUsers.end()) return;
 		
-		ou = i->second;
-		ou->getIdentity().set("LS", Util::toString(aFileLength));
+		OnlineUser& ou = *i->second;
+		ou.getIdentity().set("LS", Util::toString(aFileLength));
 
-		if(ou->getIdentity().getBytesShared() > 0) {
+		if(ou.getIdentity().getBytesShared() > 0) {
 			if((RSXSETTING(MAXIMUM_FILELIST_SIZE) > 0) && (aFileLength > RSXSETTING(MAXIMUM_FILELIST_SIZE)) && RSXSETTING(FILELIST_TOO_SMALL_BIG)) {
-				ou->getIdentity().setCheatMsg(ou->getClient(), "Too large filelist - %[userLSshort] for the specified share of %[userSSshort]", false, true, RSXBOOLSETTING(FILELIST_TOO_SMALL_BIG));
-				ou->getClient().updated(*ou);
-				sendAction(*ou, RSXSETTING(FILELIST_TOO_SMALL_BIG));
+				ou.getIdentity().setCheatMsg(ou.getClient(), "Too large filelist - %[userLSshort] for the specified share of %[userSSshort]", false, true, RSXBOOLSETTING(FILELIST_TOO_SMALL_BIG));
+				ou.getClient().updated(ou);
+				sendAction(ou, RSXSETTING(FILELIST_TOO_SMALL_BIG));
 			} else if((aFileLength < RSXSETTING(MINIMUM_FILELIST_SIZE) && RSXSETTING(FILELIST_TOO_SMALL_BIG)) || (aFileLength < 100)) {
-				ou->getIdentity().setCheatMsg(ou->getClient(), "Too small filelist - %[userLSshort] for the specified share of %[userSSshort]", false, true, RSXBOOLSETTING(FILELIST_TOO_SMALL_BIG));
-				ou->getClient().updated(*ou);
-				sendAction(*ou, RSXSETTING(FILELIST_TOO_SMALL_BIG));
+				ou.getIdentity().setCheatMsg(ou.getClient(), "Too small filelist - %[userLSshort] for the specified share of %[userSSshort]", false, true, RSXBOOLSETTING(FILELIST_TOO_SMALL_BIG));
+				ou.getClient().updated(ou);
+				sendAction(ou, RSXSETTING(FILELIST_TOO_SMALL_BIG));
 			}
 		} else if(adc == false) {
-			int64_t listLength = (!ou->getIdentity().get("LL").empty()) ? Util::toInt64(ou->getIdentity().get("LL")) : -1;
-			if(p->isSet(User::DCPLUSPLUS) && (listLength != -1) && (listLength * 3 < aFileLength) && (ou->getIdentity().getBytesShared() > 0)) {
-				ou->getIdentity().setCheatMsg(ou->getClient(), "Fake file list - ListLen = %[userLL], FileLength = %[userLS]", false, true, RSXBOOLSETTING(LISTLEN_MISMATCH));
-				ou->getClient().updated(*ou);
-				sendAction(*ou, RSXSETTING(LISTLEN_MISMATCH));
+			int64_t listLength = (!ou.getIdentity().get("LL").empty()) ? Util::toInt64(ou.getIdentity().get("LL")) : -1;
+			if(p->isSet(User::DCPLUSPLUS) && (listLength != -1) && (listLength * 3 < aFileLength) && (ou.getIdentity().getBytesShared() > 0)) {
+				ou.getIdentity().setCheatMsg(ou.getClient(), "Fake file list - ListLen = %[userLL], FileLength = %[userLS]", false, true, RSXBOOLSETTING(LISTLEN_MISMATCH));
+				ou.getClient().updated(ou);
+				sendAction(ou, RSXSETTING(LISTLEN_MISMATCH));
 			}
 		}
 	}
@@ -1033,7 +1035,7 @@ void ClientManager::sendAction(const UserPtr& p, const int aAction) {
 void ClientManager::sendAction(OnlineUser& ou, const int aAction) {
 	if(aAction < 1)
 		return;
-	Lock l(cs);
+
 	if(!ou.isProtectedUser() && ou.getClient().isOp()) {
 		ou.getClient().sendActionCommand(ou, aAction);
 	}

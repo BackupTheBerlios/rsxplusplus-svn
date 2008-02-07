@@ -229,7 +229,7 @@ QueueItem* QueueManager::UserQueue::getNext(const UserPtr& aUser, QueueItem::Pri
 
 	do {
 		QueueItem::UserListIter i = userQueue[p].find(aUser);
-		if(i != userQueue[p].end()) { //.........................................................................................
+		if(i != userQueue[p].end()) {
 			dcassert(!i->second.empty());
 			for(QueueItem::Iter j = i->second.begin(); j != i->second.end(); ++j) {
 				QueueItem* qi = *j;
@@ -340,6 +340,42 @@ void QueueManager::UserQueue::remove(QueueItem* qi, const UserPtr& aUser, bool r
 
 	if(l.empty()) {
 		ulm.erase(j);
+	}
+}
+
+void QueueManager::FileMover::moveFile(const string& source, const string& target) {
+	Lock l(cs);
+	files.push_back(make_pair(source, target));
+	if(!active) {
+		active = true;
+		start();
+	}
+}
+
+int QueueManager::FileMover::run() {
+	for(;;) {
+		FilePair next;
+		{
+			Lock l(cs);
+			if(files.empty()) {
+				active = false;
+				return 0;
+			}
+			next = files.back();
+			files.pop_back();
+		}
+		try {
+			File::renameFile(next.first, next.second);
+		} catch(const FileException&) {
+			try {
+				// Try to just rename it to the correct name  at least
+				string newTarget = Util::getFilePath(next.first) + Util::getFileName(next.second);
+				File::renameFile(next.first, newTarget);
+				LogManager::getInstance()->message(next.first + STRING(RENAMED_TO) + newTarget);
+			} catch(const FileException& e) {
+				LogManager::getInstance()->message(STRING(UNABLE_TO_RENAME) + next.first + ": " + e.getError());
+			}
+		}
 	}
 }
 
@@ -1651,22 +1687,28 @@ void QueueManager::on(ClientManagerListener::UserConnected, const UserPtr& aUser
 }
 
 void QueueManager::on(ClientManagerListener::UserDisconnected, const UserPtr& aUser) throw() {
-	bool hasTestSURinQueue = false;
+	//bool hasTestSURinQueue = false;
+	//bool hasFileListCheck = false; //RSX++
 	{
 		Lock l(cs);
 		for(int i = 0; i < QueueItem::LAST; ++i) {
 			QueueItem::UserListIter j = userQueue.getList(i).find(aUser);
 			if(j != userQueue.getList(i).end()) {
 				for(QueueItem::Iter m = j->second.begin(); m != j->second.end(); ++m) {
-					if((*m)->isSet(QueueItem::FLAG_TESTSUR))  hasTestSURinQueue = true;
+					//if((*m)->isSet(QueueItem::FLAG_TESTSUR))  hasTestSURinQueue = true;
+					//if((*m)->isSet(QueueItem::FLAG_CHECK_FILE_LIST)) hasFileListCheck = true; //RSX++
 					fire(QueueManagerListener::StatusUpdated(), *m);
 				}
 			}
 		}
 	}
 	
-	if(hasTestSURinQueue)
-		removeTestSUR(aUser);
+	//if(hasTestSURinQueue)
+	//	removeTestSUR(aUser);
+	//RSX++
+	//if(hasFileListCheck)
+	//	removeFilelistCheck(aUser);
+	//END
 }
 
 void QueueManager::on(TimerManagerListener::Second, uint64_t aTick) throw() {
@@ -1712,11 +1754,13 @@ bool QueueManager::dropSource(Download* d) {
 
 		QueueItem* q = userQueue.getRunning(d->getUser());
 
-		if(!q) return false;
+		if(!q)
+			return false;
 
    		dcassert(q->isSource(d->getUser()));
 
-		if(!q->isSet(QueueItem::FLAG_AUTODROP)) return true;
+		if(!q->isSet(QueueItem::FLAG_AUTODROP))
+			return false;
 
 		activeSegments = q->getDownloads().size();
 		onlineUsers = q->countOnlineUsers();
@@ -1725,19 +1769,20 @@ bool QueueManager::dropSource(Download* d) {
 
 	if(!SETTING(DROP_MULTISOURCE_ONLY) || (activeSegments >= 2)) {
 		size_t iHighSpeed = SETTING(DISCONNECT_FILE_SPEED);
-		if((iHighSpeed == 0) || (overallSpeed > iHighSpeed*1024)) {
-			if(onlineUsers > 2) {
-				d->getUser()->setLastDownloadSpeed(static_cast<size_t>(d->getAverageSpeed()));
-				if(d->getAverageSpeed() < SETTING(REMOVE_SPEED)*1024) {
-					removeSource(d->getPath(), d->getUser(), QueueItem::Source::FLAG_SLOW);
-				} else {
-					d->getUserConnection().disconnect();
-				}
-				return false;
+
+		if((iHighSpeed == 0 || overallSpeed > iHighSpeed * 1024) && onlineUsers > 2) {
+			//d->setFlag(Download::FLAG_SLOWUSER);
+			d->getUser()->setLastDownloadSpeed(static_cast<size_t>(d->getAverageSpeed()));
+
+			if(d->getAverageSpeed() < SETTING(REMOVE_SPEED)*1024) {
+				return true;
+			} else {
+				d->getUserConnection().disconnect();
 			}
 		}
 	}
-	return true;
+
+	return false;
 }
 
 bool QueueManager::handlePartialResult(const UserPtr& aUser, const TTHValue& tth, const QueueItem::PartialSource& partialSource, PartsInfo& outPartialInfo) {
@@ -1878,22 +1923,7 @@ void QueueManager::FileQueue::findPFSSources(PFSSourceList& sl)
 		sl.push_back(i->second);
 	}
 }
-//RSX++ //remove offline checks
-void QueueManager::removeOfflineChecks() throw() {
-	Lock l(cs);
-	const QueueItem::StringMap& queue = fileQueue.getQueue();
-	if(queue.size() > 1) {
-		for(QueueItem::StringIter i = queue.begin(); i != queue.end(); ++i) {
-			if(i->second->isSet(QueueItem::FLAG_TESTSUR) || i->second->isSet(QueueItem::FLAG_CHECK_FILE_LIST)) {
-				if(i->second->countOnlineUsers() == 0) {
-					remove(i->second->getTarget());
-					i = queue.begin();
-				}
-			}
-		}
-	}
-}
-//END
+
 /**
  * @file
  * $Id: QueueManager.cpp 360 2008-01-19 13:57:05Z bigmuscle $

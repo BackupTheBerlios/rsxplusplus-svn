@@ -121,7 +121,7 @@ public:
 	//RSX++ //Hide Share
 	bool getSharingHub(const UserPtr& p) {
 		Lock l(cs);
-		OnlineIter i = onlineUsers.find(p->getCID());
+		OnlineIterC i = onlineUsers.find(p->getCID());
 		if(i != onlineUsers.end()) {
 			return i->second->getClient().getHideShare();
 		}
@@ -130,7 +130,7 @@ public:
 	//RSX++ //check slot count
 	void checkSlots(const UserPtr& p, int slots) {
 		Lock l(cs);
-		OnlineIter i = onlineUsers.find(p->getCID());
+		OnlineIterC i = onlineUsers.find(p->getCID());
 		if(i == onlineUsers.end()) return;
 
 		if(i->second->getIdentity().get("SC").empty())
@@ -171,7 +171,6 @@ public:
 		i->second->getIdentity().set("GE", aGenerator);
 		i->second->getIdentity().set("FI", aCID);
 		i->second->getIdentity().set("FB", aBase);
-		i->second->updateUser();
 		i->second->getIdentity().checkFilelistGenerator((*i->second)); //RSX++
 	}
 

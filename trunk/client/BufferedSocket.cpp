@@ -405,7 +405,7 @@ void BufferedSocket::threadSendFile(InputStream* file) throw(Exception) {
 				}
 			}
 		}
-		Thread::yield();
+		//Thread::yield();
 	}
 }
 

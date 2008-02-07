@@ -21,7 +21,6 @@
 #include "../../client/Singleton.h"
 #include "../../client/CriticalSection.h"
 #include "../../client/Util.h"
-#include "../../client/DCPlusPlus.h"
 
 #include "PluginInterface.h"
 #include "PluginInfo.h"

@@ -35,6 +35,22 @@
 #include "../rsx/IpManager.h"
 #include "../rsx/Wildcards.h"
 //END
+FastCriticalSection Identity::cs;
+//RSX++
+const string& User::getNick(bool first /*= true*/) const {
+	if(isSet(User::NMDC)) {
+		return getFirstNick();
+	} else {
+		if(first) {
+			return ClientManager::getInstance()->getNicks(getCID())[0];
+		} else {
+			//make compiler happy, prevent warning
+			const string& aNicks = Util::toString(ClientManager::getInstance()->getNicks(getCID()));
+			return aNicks;
+		}
+	}
+}
+//END
 
 OnlineUser::OnlineUser(const UserPtr& ptr, Client& client_, uint32_t sid_) : identity(ptr, sid_), client(client_), isInList(false) { 
 	inc();
@@ -42,7 +58,7 @@ OnlineUser::OnlineUser(const UserPtr& ptr, Client& client_, uint32_t sid_) : ide
 
 void Identity::getParams(StringMap& sm, const string& prefix, bool compatibility) const {
 	{
-		Lock l(cs);
+		FastLock l(cs);
 		for(InfMap::const_iterator i = info.begin(); i != info.end(); ++i) {
 			sm[prefix + string((char*)(&i->first), 2)] = i->second;
 		}
@@ -106,22 +122,27 @@ const string Identity::getTag() const {
 }
 
 const string Identity::get(const char* name) const {
-	Lock l(cs);
+	FastLock l(cs);
 	InfMap::const_iterator i = info.find(*(short*)name);
 	return i == info.end() ? Util::emptyString : i->second;
 }
 
+bool Identity::isSet(const char* name) const {
+	FastLock l(cs);
+	InfMap::const_iterator i = info.find(*(short*)name);
+	return i != info.end();
+}
+
 void Identity::set(const char* name, const string& val) {
-	Lock l(cs);
-	if(val.empty()) {
+	FastLock l(cs);
+	if(val.empty())
 		info.erase(*(short*)name);
-	} else {
+	else
 		info[*(short*)name] = val;
-	}
 }
 
 bool Identity::supports(const string& name) const {
-	const string& su = get("SU");
+	string su = get("SU");
 	StringTokenizer<string> st(su, ',');
 	for(StringIter i = st.getTokens().begin(); i != st.getTokens().end(); ++i) {
 		if(*i == name)
@@ -162,7 +183,7 @@ void Identity::setCheatMsg(Client& c, const string& aCheatDescription, bool aBad
 
 	StringMap ucParams;
 	getParams(ucParams, "user", true);
-	const string& cheat = Util::formatParams(aCheatDescription, ucParams, false);
+	string cheat = Util::formatParams(aCheatDescription, ucParams, false);
 
 	StringTokenizer<string> st(get("CS"), ';');
 	StringList& sl = st.getTokens();
@@ -401,30 +422,6 @@ void Identity::myInfoDetect(OnlineUser& ou) {
 		return;
 	}
 }
-
-void Identity::isFakeShare(OnlineUser& ou) {
-	string shared = Util::toString(getBytesShared());
-
-	if(shared.find('-') != string::npos) {
-		setCheatMsg(ou.getClient(), STRING(FAKE_SHARE) + " : " + shared + " " + STRING(B), false, true, RSXBOOLSETTING(SHOW_FAKESHARE_RAW));
-		ou.updateUser();
-		ClientManager::getInstance()->sendAction(ou, RSXSETTING(FAKESHARE_RAW));
-	} else {
-		//Lock l(cs);
-		FakeShares::List& ul = ClientProfileManager::getInstance()->getFakeShares();
-		for(FakeShares::List::const_iterator j = ul.begin(); j != ul.end(); ++j) {
-			if(j->getExact()) {
-				if((j->getValue()).compare(shared) != 0) { continue; }
-			} else {
-				if(shared.find(j->getValue()) == string::npos) { continue; }
-			}
-			setCheatMsg(ou.getClient(), STRING(FAKE_SHARE) + " : " + shared + " " + STRING(B), true, true, RSXBOOLSETTING(SHOW_FAKESHARE_RAW));
-			ou.updateUser();
-			ClientManager::getInstance()->sendAction(ou, RSXSETTING(FAKESHARE_RAW));
-			return;
-		}
-	}
-}
 //RSX++ //Protected users
 bool Identity::isProtectedUser(const Client& c, bool OpBotHubCheck) const {
 	string RegProtect;
@@ -480,6 +477,8 @@ bool OnlineUser::getChecked(bool filelist/* = false*/) {
 		//updateUser();
 		return true;
 	} else if(getUser()->isSet(User::OLD_CLIENT)) {
+		setTestSURComplete();
+		setFileListComplete();
 		return true;
 	}
 	return filelist ? identity.isFileListChecked() : identity.isClientChecked();
@@ -556,7 +555,7 @@ void Identity::checkIP(OnlineUser& ou) {
 					break;
 				}
 				case 1: {
-					PME reg((*j)->getPattern());
+					PME reg((*j)->getPattern(), "gi");
 					if(reg.IsValid() && reg.match(strToMatch))
 						matched = true;
 					break;
@@ -591,11 +590,11 @@ void Identity::checkIP(OnlineUser& ou) {
 						break;
 					}
 				}
+				ou.updateUser();
 				break; //break at first match
 			}
 		}
 	}
-	ou.updateUser();
 }
 //RSX++ //Filelist Detector
 void Identity::checkFilelistGenerator(OnlineUser& ou) {

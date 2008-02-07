@@ -119,5 +119,5 @@ private:
 
 /**
  * @file
- * $Id: MerkleCheckOutputStream.h 344 2007-12-25 21:04:46Z bigmuscle $
+ * $Id: MerkleCheckOutputStream.h 372 2008-02-03 21:16:20Z bigmuscle $
  */

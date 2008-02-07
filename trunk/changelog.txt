@@ -1,6 +1,7 @@
-** RSX++ 1.00 Beta 2 ** xx/xx/2008
+** RSX++ 1.00 Beta 2 ** xx/02/2008
  ** updated to StrongDC++ 2.11
  ** PCRE updated to 7.5
+ ** Lua updated to 5.1.3
 
  ** added Custom ADLSearch Points
  ** added favorite hubs grouping

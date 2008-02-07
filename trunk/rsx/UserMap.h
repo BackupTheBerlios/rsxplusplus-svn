@@ -31,17 +31,13 @@ public:
 	~UserMap() {
 		stopMyINFOCheck();
 		stopCheck();
-		try {
-			QueueManager::getInstance()->removeOfflineChecks();
-		} catch(...) {
-			//...
-		}
+		QueueManager::getInstance()->removeOfflineChecks();
 	};
 
-	void startMyINFOCheck(Client* c, bool fs, bool myinfo) { 
-		if(myInfoEngine == NULL && (fs || myinfo)) {
+	void startMyINFOCheck(Client* c) { 
+		if(myInfoEngine == NULL) {
 			myInfoEngine = new ThreadedMyINFOCheck(this, c);
-			myInfoEngine->startCheck(fs, myinfo);
+			myInfoEngine->startCheck();
 		}
 	}
 
@@ -84,7 +80,7 @@ private:
 	class ThreadedMyINFOCheck : public Thread, public FastAlloc<ThreadedMyINFOCheck> {
 	public:
 		ThreadedMyINFOCheck(UserMap* _u, Client* _c) : client(_c), users(_u), 
-			inThread(false), checkFakeShare(false), checkMyInfo(false) { };
+			inThread(false) { };
 		~ThreadedMyINFOCheck() { cancel(); }
 
 		bool isChecking() { 
@@ -98,12 +94,11 @@ private:
 			join();
 		}
 
-		void startCheck(bool cfs, bool myInfo) {
+		void startCheck() {
 			if(!client || !users) {
 				return;
 			}
-			checkFakeShare = cfs;
-			checkMyInfo = myInfo;
+
 			if(!inThread)
 				start();
 		}
@@ -119,15 +114,10 @@ private:
 						break;
 					ou->inc();
 					if(ou->isCheckable(false)) {
-						if(checkMyInfo) {
-							ou->getIdentity().myInfoDetect(*ou);
-						}
-						if(checkFakeShare) {
-							ou->getIdentity().isFakeShare(*ou);
-						}
-						sleep(1);
+						ou->getIdentity().myInfoDetect(*ou);
 					}
 					ou->dec();
+					sleep(1);
 				}
 				client->setCheckedAtConnect(true);
 			}
@@ -138,7 +128,6 @@ private:
 		}
 
 		bool inThread;
-		bool checkFakeShare, checkMyInfo;
 		Client* client;
 		UserMap* users;
 	}*myInfoEngine;
@@ -148,22 +137,14 @@ private:
 	public:
 		ThreadedCheck(UserMap* _u, Client* _c) : client(_c), users(_u), 
 			keepChecking(false), canCheckFilelist(false), inThread(false), checkOnConnect(false) { };
-		~ThreadedCheck() { cancel(); }
-
-		bool isChecking() { 
-			return inThread && keepChecking; 
-		}
-
-		void cancel() { 
+		~ThreadedCheck() {
 			keepChecking = inThread = false;
 			join();
 			client = NULL;
+		}
 
-			try {
-				QueueManager::getInstance()->removeOfflineChecks();
-			} catch(...) {
-				//...
-			}
+		bool isChecking() { 
+			return inThread && keepChecking; 
 		}
 
 		void startCheck() {
@@ -193,7 +174,8 @@ private:
 			canCheckFilelist = !checkClients || !RSXBOOLSETTING(CHECK_ALL_CLIENTS_BEFORE_FILELISTS);
 			bool iterBreak = false;
 			const uint64_t	sleepTime =	static_cast<uint64_t>(RSXSETTING(SLEEP_TIME));
-			uint8_t	secs = 0;
+			uint8_t secs = 0;
+			OnlineUser* ou = NULL;
 
 			while(keepChecking) {
 				if(client->isConnected()) {
@@ -212,14 +194,19 @@ private:
 					}
 
 					if(t < RSXSETTING(MAX_TESTSURS)) {
+						dcassert(client != NULL);
 						iterBreak = false;
 						Lock l(client->cs);
 
-						for(BaseMap::const_iterator i = users->begin(); i != users->end(); ++i) {
-							OnlineUser* ou = i->second;
-							if(!ou || !inThread) { break; }
-							ou->inc();
-							iterBreak = false;
+						for(BaseMap::const_iterator i = users->begin(); i != users->end(); i++) {
+							i->second->inc();
+							ou = i->second;
+							if(!ou || !inThread) { 
+								i->second->dec();							
+								break; 
+							}
+//							iterBreak = false;
+
 							if(ou->isCheckable()) {
 								if(isADC) {
 									if((ou->getUser()->isSet(User::NO_ADC_1_0_PROTOCOL) || ou->getUser()->isSet(User::NO_ADC_0_10_PROTOCOL)) && ou->shouldTestSUR()) {
@@ -238,26 +225,27 @@ private:
 								if(getCheckClients()) {
 									if(ou->shouldTestSUR()) {
 										if(!ou->getChecked()) {
+											iterBreak = true;
 											try {
-												dcdebug("Adding TestSUR to queue %s\n", ou->getIdentity().getNick());
-												QueueManager::getInstance()->addTestSUR(ou->getUser());
+												dcdebug("ThreadedCheck: Adding TestSUR to queue %s\n", ou->getIdentity().getNick().c_str());
+												QueueManager::getInstance()->addTestSUR(ou->getUser(), false);
 												ou->getIdentity().setTestSURQueued("1");
 											} catch(...) {
-												dcdebug("Exception adding testsur %s\n", ou->getIdentity().getNick());
+												dcdebug("ThreadedCheck: Exception adding testsur %s\n", ou->getIdentity().getNick().c_str());
 											}
-											iterBreak = true;
+											ou->dec();
+											break;
 										}
-									} else if(ou->getIdentity().isTestSURQueued()) {
+										//@todo find a reason of clearing TQ field while checks isnt't done
+									} else if(ou->getIdentity().isTestSURQueued() && ou->getIdentity().isClientChecked()) {
 										try {
 											if(!QueueManager::getInstance()->isTestSURinQueue(ou->getUser())) {
-												ou->getIdentity().setTestSURQueued(Util::emptyString);
 												iterBreak = true;
+												ou->getIdentity().setTestSURQueued(Util::emptyString);
 											}
 										} catch(...) {
-											dcdebug("Exception removing testsur %s\n", ou->getIdentity().getNick());
+											dcdebug("ThreadedCheck: Exception removing testsur %s\n", ou->getIdentity().getNick().c_str());
 										}
-									}
-									if(iterBreak) {
 										ou->dec();
 										break;
 									}
@@ -271,7 +259,7 @@ private:
 													QueueManager::getInstance()->addList(ou->getUser(), QueueItem::FLAG_CHECK_FILE_LIST);
 													ou->getIdentity().setFileListQueued("1");
 												} catch(...) {
-													dcdebug("Exception adding filelist %s\n", ou->getIdentity().getNick());
+													dcdebug("ThreadedCheck: Exception adding filelist %s\n", ou->getIdentity().getNick().c_str());
 												}
 												ou->dec();
 												break;
@@ -286,7 +274,6 @@ private:
 					if(!canCheckFilelist) {
 						canCheckFilelist = !iterBreak;
 					}
-
 					if(secs >= 30) {
 						try {
 							QueueManager::getInstance()->removeOfflineChecks();

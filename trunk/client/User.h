@@ -68,6 +68,7 @@ public:
 
 	bool isOnline() const { return isSet(ONLINE); }
 	bool isNMDC() const { return isSet(NMDC); }
+	const string& getNick(bool first = true) const;
 
 	GETSET(string, firstNick, FirstNick);
 	GETSET(size_t, lastDownloadSpeed, LastDownloadSpeed);
@@ -93,9 +94,8 @@ public:
 
 	Identity() { }
 	Identity(const UserPtr& ptr, uint32_t aSID) : user(ptr) { setSID(aSID); }
-	Identity(const Identity& rhs) : user(rhs.user) { Lock l(rhs.cs); info = rhs.info; }
-	Identity& operator=(const Identity& rhs) { Lock l1(cs); Lock l2(rhs.cs); user = rhs.user; info = rhs.info; return *this; }
-	~Identity() { }
+	Identity(const Identity& rhs) { *this = rhs; } // Use operator= since we have to lock before reading...
+	Identity& operator=(const Identity& rhs) { FastLock l(cs); user = rhs.user; info = rhs.info; return *this; }
 
 #define GS(n, x) string get##n() const { return get(x); } void set##n(const string& v) { set(x, v); }
 	GS(Description, "DE")
@@ -124,7 +124,7 @@ public:
 		if(user && user->isSet(User::NMDC)) {
 			return user->getFirstNick();
 		} else {
-			Lock l(cs);
+			FastLock l(cs);
 			InfMap::const_iterator i = info.find(*(short*)"NI");
 			return i == info.end() ? Util::emptyString : i->second;
 		}
@@ -142,22 +142,23 @@ public:
 	void setHidden(bool hidden) { set("HI", hidden ? "1" : Util::emptyString); }
 	const string getTag() const;
 	bool supports(const string& name) const;
-	bool isHub() const { return isClientType(CT_HUB) || !get("HU").empty(); }
-	bool isOp() const { return isClientType(CT_OP) || !get("OP").empty(); }
-	bool isRegistered() const { return isClientType(CT_REGGED) || !get("RG").empty(); }
-	bool isHidden() const { return !get("HI").empty(); }
-	bool isBot() const { return isClientType(CT_BOT) || !get("BO").empty(); }
-	bool isAway() const { return !get("AW").empty(); }
+	bool isHub() const { return isClientType(CT_HUB) || isSet("HU"); }
+	bool isOp() const { return isClientType(CT_OP) || isSet("OP"); }
+	bool isRegistered() const { return isClientType(CT_REGGED) || isSet("RG"); }
+	bool isHidden() const { return isSet("HI"); }
+	bool isBot() const { return isClientType(CT_BOT) || isSet("BO"); }
+	bool isAway() const { return isSet("AW"); }
 	bool isTcpActive() const { return (!user->isSet(User::NMDC) && !getIp().empty()) || !user->isSet(User::PASSIVE); }
 	bool isUdpActive() const { return !getIp().empty() && !getUdpPort().empty(); }
 	//RSX++
-	bool isTestSURQueued() const { return !get("TQ").empty(); }
-	bool isFileListQueued() const { return !get("FQ").empty(); }
-	bool isClientChecked() const { return !get("TC").empty(); }
-	bool isFileListChecked() const { return !get("FC").empty(); }
+	bool isTestSURQueued() const { return isSet("TQ"); }
+	bool isFileListQueued() const { return isSet("FQ"); }
+	bool isClientChecked() const { return isSet("TC"); }
+	bool isFileListChecked() const { return isSet("FC"); }
 	//END
 	const string get(const char* name) const;
 	void set(const char* name, const string& val);
+	bool isSet(const char* name) const;	
 	string getSIDString() const { uint32_t sid = getSID(); return string((const char*)&sid, 4); }
 	
 	uint32_t getSID() const { return Util::toUInt32(get("SI")); }
@@ -177,7 +178,6 @@ public:
 
 	void myInfoDetect(OnlineUser& ou);
 	bool updateClientType(OnlineUser& ou);
-	void isFakeShare(OnlineUser& ou);
 	void checkIP(OnlineUser& ou);
 	void checkFilelistGenerator(OnlineUser& ou);
 	void checkrmDC(OnlineUser& ou);
@@ -194,8 +194,8 @@ private:
 	typedef std::tr1::unordered_map<short, string> InfMap;
 	typedef InfMap::const_iterator InfIter;
 	InfMap info;
-	/** @todo there are probably more threading issues here ...*/
-	mutable CriticalSection cs;
+
+	static FastCriticalSection cs;
 	//RSX++
 	//Flood stuff
 	uint16_t myinfoFloodCounter;	
@@ -283,10 +283,9 @@ public:
 	bool isProtectedUser(bool checkOp = true) const { return identity.isProtectedUser(getClient(), checkOp); }
 	bool getChecked(bool filelist = false);
 	bool isCheckable(bool delay = true) const;
-	bool shouldTestSUR() const { return !identity.isTestSURQueued() && !identity.isClientChecked(); }
+	bool shouldTestSUR() const { return (!identity.isTestSURQueued() && !identity.isClientChecked()); }
 	bool shouldCheckFileList(bool onlyFilelist = false) const;
 	void initializeData() { identity.setLoggedIn(GET_TICK()); identity.set("LT", Util::formatTime("%d-%m %H:%M", GET_TIME())); }
-	void setLoggedIn() { identity.setLoggedIn(GET_TICK()); }
 	void setTestSURComplete() { identity.setTestSURChecked(Util::toString(GET_TIME())); }
 	void setFileListComplete() { identity.setFileListChecked(Util::toString(GET_TIME())); }
 	void updateUser();

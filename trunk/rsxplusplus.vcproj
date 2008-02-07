@@ -204,6 +204,7 @@
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="&quot;$(SolutionDir)openssl/lib&quot;"
+				AdditionalManifestDependencies="type=&apos;win32&apos; name=&apos;Microsoft.Windows.Common-Controls&apos; version=&apos;6.0.0.0&apos; processorArchitecture=&apos;*&apos; publicKeyToken=&apos;6595b64144ccf1df&apos; language=&apos;*&apos;"
 				IgnoreAllDefaultLibraries="false"
 				IgnoreDefaultLibraryNames="kernel32.lib advapi32.lib user32.lib gdi32.lib shell32.lib comdlg32.lib version.lib mpr.lib rasapi32.lib winmm.lib winspool.lib vfw32.lib secur32.lib oleacc.lib oledlg.lib sensapi.lib"
 				DelayLoadDLLs="dbghelp.dll;oleaut32.dll;powrprof.dll"
@@ -218,6 +219,7 @@
 				SetChecksum="true"
 				ImportLibrary="$(SolutionDir)compiled/$(ProjectName).lib"
 				TargetMachine="1"
+				FixedBaseAddress="0"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -342,6 +344,10 @@
 			</File>
 			<File
 				RelativePath=".\res\o_settings_dlg.bmp"
+				>
+			</File>
+			<File
+				RelativePath=".\res\pg2.ico"
 				>
 			</File>
 			<File
@@ -571,10 +577,6 @@
 			</File>
 			<File
 				RelativePath=".\windows\FakeDetect.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\windows\FakeSharesPage.cpp"
 				>
 			</File>
 			<File
@@ -1012,14 +1014,6 @@
 			</File>
 			<File
 				RelativePath=".\windows\FakeDetect.h"
-				>
-			</File>
-			<File
-				RelativePath=".\windows\FakeSharesDlg.h"
-				>
-			</File>
-			<File
-				RelativePath=".\windows\FakeSharesPage.h"
 				>
 			</File>
 			<File

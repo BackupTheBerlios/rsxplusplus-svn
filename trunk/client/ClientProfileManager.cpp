@@ -397,62 +397,6 @@ void ClientProfileManager::reloadMyinfoProfilesFromHttp() {
 		//probably file don't exist :)
 	}
 }
-//RSX++ //FakeShare
-void ClientProfileManager::saveFakeShares() {
-	try {
-		SimpleXML xml;
-		
-		xml.addTag("Fakes");
-		xml.stepIn();
-
-		xml.addTag("FakeShares");
-		xml.stepIn();
-		for(FakeShares::List::const_iterator l = fakeShares.begin(); l != fakeShares.end(); ++l) {
-			xml.addTag("FakeShares");
-			xml.addChildAttrib("Value", l->getValue());
-			xml.addChildAttrib("Exact", Util::toString(l->getExact()));
-		}
-		xml.stepOut();
-		xml.stepOut();
-
-		string fname = Util::getConfigPath() + FAKES_FILE;
-
-		File f(fname + ".tmp", File::WRITE, File::CREATE | File::TRUNCATE);
-		f.write(SimpleXML::utf8Header);
-		f.write(xml.toXML());
-		f.close();
-		File::deleteFile(fname);
-		File::renameFile(fname + ".tmp", fname);
-	} catch(const Exception& e) {
-		dcdebug("HubManager::saveFakeShares: %s\n", e.getError().c_str());
-	}
-}
-
-void ClientProfileManager::loadFakeShares() {
-	try {
-		SimpleXML xml;
-		xml.fromXML(File(Util::getConfigPath() + FAKES_FILE, File::READ, File::OPEN).read());
-		
-		if(xml.findChild("Fakes")) {
-			xml.stepIn();
-			loadFakeShares(xml);
-			xml.stepOut();
-		}
-	} catch(const Exception& e) {
-		dcdebug("HubManager::loadFakeShares: %s\n", e.getError().c_str());
-	}
-}
-
-void ClientProfileManager::loadFakeShares(SimpleXML& aXml) {
-	aXml.resetCurrentChild();
-	if(aXml.findChild("FakeShares")) {
-		aXml.stepIn();
-		while(aXml.findChild("FakeShares")) {
-			fakeShares.push_back(FakeShares(aXml.getChildAttrib("Value"), aXml.getBoolChildAttrib("Exact")));
-		}
-		aXml.stepOut();
-	}
-}
 
 ClientProfile ClientProfileManager::addClientProfile(const string& name, const string& version, const string& tag, const string& extendedTag, const string& lock, 
 													 const string& pk, const string& supports, const string& testSUR, const string& userConCom, const string& status,

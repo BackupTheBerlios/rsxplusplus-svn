@@ -116,7 +116,6 @@ void Client::reloadSettings(bool updateNick) {
 		setCheckFilelists(hub->getCheckFilelists());
 		setCheckMyInfo(hub->getCheckMyInfo());
 		setHideShare(hub->getHideShare());
-		setCheckFakeShare(hub->getCheckFakeShare());
 		setUseFilter(hub->getUseFilter());
 		setUseAutosearch(hub->getAutosearch());
 		setUseHL(hub->getUseHL());
@@ -137,7 +136,6 @@ void Client::reloadSettings(bool updateNick) {
 		setCheckFilelists(false);
 		setCheckMyInfo(false);
 		setHideShare(false);
-		setCheckFakeShare(false);
 		setUseFilter(false);
 		setUseAutosearch(false);
 		setUseHL(false);

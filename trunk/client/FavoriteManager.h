@@ -79,7 +79,7 @@ public:
 	FavoriteHubEntry() throw() : connect(false), encoding(Text::systemCharset), chatusersplit(0), stealth(false), userliststate(true), mode(0), ip(Util::emptyString)
 		//RSX++
 		, favEmail(Util::emptyString), awayMsg(Util::emptyString), userProtected(Util::emptyString), checkOnConnect(false),
-		checkClients(false), checkFilelists(false), checkMyInfo(false), hideShare(false), checkFakeShare(false),
+		checkClients(false), checkFilelists(false), checkMyInfo(false), hideShare(false),
 		useFilter(RSXBOOLSETTING(USE_FILTER_FAV)), autosearch(false), useHL(RSXBOOLSETTING(USE_HL_FAV)), usersLimit(0), groupId(0)
 		//END
 		{ }
@@ -87,7 +87,7 @@ public:
 		description(rhs.getDescription()), connect(false), chatusersplit(0), stealth(false), userliststate(true), mode(0), ip(Util::emptyString),
 		//RSX++
 		favEmail(Util::emptyString), awayMsg(Util::emptyString), userProtected(Util::emptyString), checkOnConnect(false), 
-		checkClients(false), checkFilelists(false), checkMyInfo(false), hideShare(false), checkFakeShare(false),
+		checkClients(false), checkFilelists(false), checkMyInfo(false), hideShare(false),
 		useFilter(RSXBOOLSETTING(USE_FILTER_FAV)), autosearch(false), useHL(RSXBOOLSETTING(USE_HL_FAV)), usersLimit(0), groupId(0)
 		//END
 		{ }
@@ -98,7 +98,7 @@ public:
 		//RSX++
 		favEmail(rhs.favEmail), awayMsg(rhs.awayMsg), userProtected(rhs.userProtected) , checkOnConnect(rhs.checkOnConnect), 
 		checkClients(rhs.checkClients),checkFilelists(rhs.checkFilelists), checkMyInfo(rhs.checkMyInfo), hideShare(rhs.hideShare), 
-		checkFakeShare(rhs.checkFakeShare), useFilter(rhs.useFilter), autosearch(rhs.autosearch), useHL(rhs.useHL), usersLimit(rhs.usersLimit),
+		useFilter(rhs.useFilter), autosearch(rhs.autosearch), useHL(rhs.useHL), usersLimit(rhs.usersLimit),
 		groupId(rhs.groupId)
 		//END
 		{ }
@@ -140,7 +140,6 @@ public:
 	GETSET(bool, checkFilelists, CheckFilelists);
 	GETSET(bool, checkMyInfo, CheckMyInfo);
 	GETSET(bool, hideShare, HideShare);
-	GETSET(bool, checkFakeShare, CheckFakeShare);
 	GETSET(bool, useFilter, UseFilter);
 	GETSET(bool, autosearch, Autosearch);
 	GETSET(bool, useHL, UseHL);

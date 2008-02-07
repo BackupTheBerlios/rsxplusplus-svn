@@ -126,17 +126,6 @@ public:
 	GETSET(int, profileId, ProfileId);
 };
 
-class FakeShares {
-public:
-	typedef vector<FakeShares> List;
-
-	FakeShares() { };
-	FakeShares(const string& aValue, bool aExact) throw() : value(aValue), exact(aExact) { };
-
-	GETSET(string, value, Value);
-	GETSET(bool, exact, Exact);
-};
-
 class FileListDetectorProfile {
 public:
 	typedef vector<FileListDetectorProfile> List;
@@ -172,7 +161,6 @@ public:
 	ClientProfile::List&			getClientProfiles()						{ Lock l(ccs);		return clientProfiles; }
 	ClientProfile::List&			getClientProfiles(StringMap &paramList) { Lock l(ccs);		paramList = params; return clientProfiles; }
 	FileListDetectorProfile::List&	getFileListDetectors()					{ Lock l(fgcs);		return fileListDetector; }
-	FakeShares::List&				getFakeShares()							{ Lock l(fcs);		return fakeShares; }
 	MyinfoProfile::List&			getMyinfoProfiles()						{ Lock l(mipcs);	return myinfoProfiles; }
 	MyinfoProfile::List&			getMyinfoProfiles(StringMap &paramList) { Lock l(mipcs);	paramList = params; return myinfoProfiles; }
 
@@ -205,15 +193,13 @@ public:
 	void reloadClientProfilesFromHttp();
 	void reloadMyinfoProfilesFromHttp();
 
-	void load() { loadClientProfiles(); loadMyinfoProfiles(); loadFakeShares(); };
+	void load() { loadClientProfiles(); loadMyinfoProfiles(); };
 
 	void loadClientProfiles();
 	void loadMyinfoProfiles();
-	void loadFakeShares();
 
 	void saveClientProfiles();
 	void saveMyinfoProfiles();
-	void saveFakeShares();
 
 	GETSET(string, profileVersion, ProfileVersion);
 	GETSET(string, profileMessage, ProfileMessage);
@@ -232,7 +218,6 @@ private:
 	ClientProfile::List clientProfiles;
 	MyinfoProfile::List myinfoProfiles;
 	FileListDetectorProfile::List fileListDetector;
-	FakeShares::List fakeShares;
 
 	ClientProfile::List newCpList;
 	MyinfoProfile::List newMyinfoProfiles;
@@ -251,8 +236,6 @@ private:
 
 	CriticalSection ccs;
 	CriticalSection mipcs;
-	CriticalSection fcs;
 	CriticalSection fgcs;
-	CriticalSection acs;
 };
 #endif //CLIENT_PROFILE_MANAGER_H

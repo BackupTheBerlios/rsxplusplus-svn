@@ -97,7 +97,7 @@ LRESULT FakeDetect::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 	setSpinRange(IDC_TIMEOUT_SPIN, 0, 9999);
 	setSpinRange(IDC_DISCONNECT_SPIN, 0, 9999);
 	setSpinRange(IDC_CHECK_DELAY_SPIN, 500, 50*60*60);
-	setSpinRange(IDC_SLEEP_TIME_SPIN, 100, 50*60*60);
+	setSpinRange(IDC_SLEEP_TIME_SPIN, 200, 50*60*60);
 	return TRUE;
 }
 

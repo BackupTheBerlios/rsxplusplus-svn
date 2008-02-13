@@ -25,6 +25,9 @@
 #include "../../client/Text.h"
 #include "../../client/LogManager.h"
 #include "../../client/ClientProfileManager.h"
+#include "../Wildcards.h"
+#include "../../client/pme.h"
+
 #include "../IpManager.h"
 #include "../AutoSearchManager.h"
 
@@ -107,7 +110,19 @@ int PluginAPI::getClientSettingInt(const string& aName, bool rsxmng/* = false*/)
 	}
 }
 
+bool PluginAPI::RegExMatch(const string& strToMatch, const string& regEx, const string& opt /*= ""*/) {
+	PME reg(regEx, opt);
+	if(reg.IsValid()) {
+		return reg.match(strToMatch) > 0;
+	}
+	return false;
+}
+
+bool PluginAPI::WildcardMatch(const string& strToMatch, const string& pattern, const string& delim) {
+	return Wildcard::patternMatch(strToMatch, pattern, (char)delim.c_str());
+}
+
 /**
  * @file
- * $Id: MainFrm.cpp,v 1.20 2004/07/21 13:15:15 bigmuscle Exp
+ * $Id$
  */

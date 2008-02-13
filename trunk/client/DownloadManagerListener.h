@@ -72,7 +72,7 @@ public:
 	virtual void on(Failed, const Download*, const string&) throw() { }
 	virtual void on(Status, const UserConnection*, const string&) throw() { }
 	//RSX++
-	virtual void on(CheckComplete, const UserPtr) throw() { }
+	virtual void on(CheckComplete, const UserPtr, bool) throw() { }
 };
 
 #endif /*DOWNLOADMANAGERLISTENER_H_*/

@@ -79,6 +79,9 @@ public:
 
 	EXIMP static void showToolTip(const string& pTitle, const string& pMsg, int pIcon);
 	EXIMP static void showToolTip(const wstring& pTitle, const wstring& pMsg, int pIcon);
+
+	EXIMP static bool RegExMatch(const string& strToMatch, const string& regEx, const string& opt = "");
+	EXIMP static bool WildcardMatch(const string& strToMatch, const string& pattern, const string& delim);
 };
 #endif
 

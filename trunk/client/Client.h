@@ -87,6 +87,7 @@ public:
 	void addHubLine(const string& aMsg, int mType) { fire(ClientListener::AddClientLine(), this, aMsg, mType); }
 	void sendActionCommand(const OnlineUser& ou, int actionId);
 	void putDetectors() { stopMyINFOCheck(); stopChecking(); setCheckedAtConnect(false); }
+	bool isActionActive(const int aAction) const;
 
 	/** Client Interface **/
 	// send message to hub

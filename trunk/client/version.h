@@ -25,9 +25,9 @@
 
 #define SVNVERSION "svn360"
 //RSX++ //////////////////////////////////////////////////////////
-#define SVN_REVISION 49
+#define SVN_REVISION 50
 
-#define SVN_REVISION_STR "49"
+#define SVN_REVISION_STR "50"
 
 #define __HOMESITE "http://rsxplusplus.sf.net/"
 #define __WIKI "http://rsxplusplus.wiki.sourceforge.net/"

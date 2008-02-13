@@ -592,11 +592,11 @@ void ClientManager::fileListDisconnected(const UserPtr& p) {
 		}
 	}
 	if(remove) {
-		//try {
+		try {
 			QueueManager::getInstance()->removeFilelistCheck(p);
-		//} catch (...) {
+		} catch (...) {
 			//...
-		//}
+		}
 	}
 }
 
@@ -692,9 +692,6 @@ void ClientManager::checkCheating(const UserPtr& p, DirectoryListing* dl) {
 		const DirectoryListing::File::List forbiddenList = dl->getForbiddenFiles();
 		const DirectoryListing::Directory::List forbiddenDirList = dl->getForbiddenDirs();
 
-		ou->setFileListComplete();
-		ou->getIdentity().setFileListQueued(Util::emptyString);
-
 		if(forbiddenList.size() > 0 || forbiddenDirList.size() > 0) {
 			int64_t fs = 0;
 			string s, c, sz, tth, stringForKick, forbiddenFilesList;
@@ -760,80 +757,82 @@ void ClientManager::checkCheating(const UserPtr& p, DirectoryListing* dl) {
 
 			if(forOverRide) {
 				ou->getIdentity().setCheatMsg(ou->getClient(), s, false, true, true);
-				ou->getClient().updated(*ou);
-
 				if(forFromFavs) {
 					sendAction(*ou, actionCommand);
 				} else {
 					sendRawCommand(ou->getUser(), stringForKick);
 				}
-				return;
 			} else if(totalPoints > 0) {
 				bool show = RSXBOOLSETTING(SHOW_ADL_OUT_OF_RANGE);
 				int rawToSend = RSXSETTING(ADL_OUT_OF_RANGE);
 				RawManager::getInstance()->calcADLAction(totalPoints, rawToSend, show);
-
 				ou->getIdentity().setCheatMsg(ou->getClient(), s, false, true, show);
-				ou->getClient().updated(*ou);
-
 				sendAction(*ou, rawToSend);
-				return;
 			}
 		}
 		//END
 	}
 	if(ou) {
+		ou->setFileListComplete();
+		ou->getIdentity().setFileListQueued(Util::emptyString);
 		ou->getClient().updated(*ou);
 	}
 }
 //RSX++ //autosearch stuff
 void ClientManager::kickFromAutosearch(const UserPtr& p, int action, const string& cheat, const string& file, const string& size, const string& tth, bool display/* = false*/) {
-	Lock l(cs);
-	OnlineIterC i = onlineUsers.find(p->getCID());
-	if(i == onlineUsers.end()) 
-		return;
-	OnlineUser& ou = *i->second;
-	int noOfFiles = Util::toInt(ou.getIdentity().get("A7")) + 1;
+	OnlineUser* ou = NULL;
+	{
+		Lock l(cs);
+		OnlineIterC i = onlineUsers.find(p->getCID());
+		if(i == onlineUsers.end()) 
+			return;
+		ou = i->second;
+		int noOfFiles = Util::toInt(ou->getIdentity().get("A7")) + 1;
 
-	ou.getIdentity().set("A1", file);
-	ou.getIdentity().set("A2", cheat);
-	ou.getIdentity().set("A3", size);
-	ou.getIdentity().set("A4", tth);
-	ou.getIdentity().set("A7", Util::toString(noOfFiles));
-	ou.getIdentity().setCheatMsg(ou.getClient(), cheat, false, true, display && !cheat.empty());
-	ou.getClient().updated(ou);
-	sendAction(ou, action);
+		ou->getIdentity().set("A1", file);
+		ou->getIdentity().set("A2", cheat);
+		ou->getIdentity().set("A3", size);
+		ou->getIdentity().set("A4", tth);
+		ou->getIdentity().set("A7", Util::toString(noOfFiles));
+		ou->getIdentity().setCheatMsg(ou->getClient(), cheat, false, true, display && !cheat.empty());
+		sendAction(*ou, action);
+	}
+	if(ou)
+		ou->getClient().updated(*ou);
 }
 
 void ClientManager::addCheckToQueue(const UserPtr& p, bool filelist) {
-	Lock l(cs);
-	OnlineIterC i = onlineUsers.find(p->getCID());
-	if(i == onlineUsers.end())
-		return;
-	OnlineUser& ou = *i->second;
+	OnlineUser* ou = NULL;
+	bool addCheck = false;
+	{
+		Lock l(cs);
+		OnlineIterC i = onlineUsers.find(p->getCID());
+		if(i == onlineUsers.end()) return;
+		ou = i->second;
 
-	if(ou.isCheckable(false) && ou.getClient().isOp()) {
-		if(!ou.getChecked(filelist)) {
-			if(filelist) {
-				if(ou.shouldCheckFileList()) {
-					try {
-						QueueManager::getInstance()->addList(ou.getUser(), QueueItem::FLAG_CHECK_FILE_LIST);
-						ou.getIdentity().setFileListQueued("1");
-					} catch(...) {
-						//...
-					}
-				}
-			} else {
-				if(ou.shouldTestSUR()) {
-					try {
-						QueueManager::getInstance()->addTestSUR(ou.getUser());
-						ou.getIdentity().setTestSURQueued("1");
-					} catch(...) {
-						//...
-					}
+		if(ou->isCheckable() && ou->getClient().isOp()) {
+			if(!ou->getChecked(filelist)) {
+				if((filelist && ou->shouldCheckFileList()) || (!filelist && ou->shouldTestSUR())) {
+					addCheck = true;
 				}
 			}
 		}
+	}
+
+	if(addCheck && ou != NULL) {
+		ou->inc();
+		try {
+			if(filelist) {
+				QueueManager::getInstance()->addList(p, QueueItem::FLAG_CHECK_FILE_LIST);
+				ou->getIdentity().setFileListQueued("1");
+			} else {
+				QueueManager::getInstance()->addTestSUR(p);
+				ou->getIdentity().setTestSURQueued("1");
+			}
+		} catch(...) {
+			//...
+		}
+		ou->dec();
 	}
 }
 //hub stats
@@ -866,53 +865,52 @@ void ClientManager::setCheating(const UserPtr& p, const string& aTestSURString, 
 		ou = i->second;
 
 		if(!aTestSURString.empty()) {
-			ou->getIdentity().set("TS", aTestSURString);
-			ou->getIdentity().updateClientType(*ou);
 			ou->setTestSURComplete();
 			ou->getIdentity().setTestSURQueued(Util::emptyString);
+			ou->getIdentity().set("TS", aTestSURString);
+			ou->getIdentity().updateClientType(*ou);
 		}
 
-		if(cc)
-			ou->setTestSURComplete();
-		if(cf)
-			ou->setFileListComplete();
+		if(cc) ou->setTestSURComplete();
+		if(cf) ou->setFileListComplete();
 
 		if(!aCheatString.empty())
 			ou->getIdentity().setCheatMsg(ou->getClient(), aCheatString, bc, bf, aDisplay);
 
-		ou->getClient().updated(*ou);
 		sendAction(*ou, aRawCommand);
 	}
+	if(ou)
+		ou->getClient().updated(*ou);
 }
 //RSX++
 void ClientManager::setListSize(const UserPtr& p, int64_t aFileLength, bool adc) {
+	OnlineUser* ou = NULL;
 	{
 		Lock l(cs);
 		OnlineIterC i = onlineUsers.find(p->getCID());
 		if(i == onlineUsers.end()) return;
 		
-		OnlineUser& ou = *i->second;
-		ou.getIdentity().set("LS", Util::toString(aFileLength));
+		ou = i->second;
+		ou->getIdentity().set("LS", Util::toString(aFileLength));
 
-		if(ou.getIdentity().getBytesShared() > 0) {
+		if(ou->getIdentity().getBytesShared() > 0) {
 			if((RSXSETTING(MAXIMUM_FILELIST_SIZE) > 0) && (aFileLength > RSXSETTING(MAXIMUM_FILELIST_SIZE)) && RSXSETTING(FILELIST_TOO_SMALL_BIG)) {
-				ou.getIdentity().setCheatMsg(ou.getClient(), "Too large filelist - %[userLSshort] for the specified share of %[userSSshort]", false, true, RSXBOOLSETTING(FILELIST_TOO_SMALL_BIG));
-				ou.getClient().updated(ou);
-				sendAction(ou, RSXSETTING(FILELIST_TOO_SMALL_BIG));
+				ou->getIdentity().setCheatMsg(ou->getClient(), "Too large filelist - %[userLSshort] for the specified share of %[userSSshort]", false, true, RSXBOOLSETTING(FILELIST_TOO_SMALL_BIG));
+				sendAction(*ou, RSXSETTING(FILELIST_TOO_SMALL_BIG));
 			} else if((aFileLength < RSXSETTING(MINIMUM_FILELIST_SIZE) && RSXSETTING(FILELIST_TOO_SMALL_BIG)) || (aFileLength < 100)) {
-				ou.getIdentity().setCheatMsg(ou.getClient(), "Too small filelist - %[userLSshort] for the specified share of %[userSSshort]", false, true, RSXBOOLSETTING(FILELIST_TOO_SMALL_BIG));
-				ou.getClient().updated(ou);
-				sendAction(ou, RSXSETTING(FILELIST_TOO_SMALL_BIG));
+				ou->getIdentity().setCheatMsg(ou->getClient(), "Too small filelist - %[userLSshort] for the specified share of %[userSSshort]", false, true, RSXBOOLSETTING(FILELIST_TOO_SMALL_BIG));
+				sendAction(*ou, RSXSETTING(FILELIST_TOO_SMALL_BIG));
 			}
 		} else if(adc == false) {
-			int64_t listLength = (!ou.getIdentity().get("LL").empty()) ? Util::toInt64(ou.getIdentity().get("LL")) : -1;
-			if(p->isSet(User::DCPLUSPLUS) && (listLength != -1) && (listLength * 3 < aFileLength) && (ou.getIdentity().getBytesShared() > 0)) {
-				ou.getIdentity().setCheatMsg(ou.getClient(), "Fake file list - ListLen = %[userLL], FileLength = %[userLS]", false, true, RSXBOOLSETTING(LISTLEN_MISMATCH));
-				ou.getClient().updated(ou);
-				sendAction(ou, RSXSETTING(LISTLEN_MISMATCH));
+			int64_t listLength = (!ou->getIdentity().get("LL").empty()) ? Util::toInt64(ou->getIdentity().get("LL")) : -1;
+			if(p->isSet(User::DCPLUSPLUS) && (listLength != -1) && (listLength * 3 < aFileLength) && (ou->getIdentity().getBytesShared() > 0)) {
+				ou->getIdentity().setCheatMsg(ou->getClient(), "Fake file list - ListLen = %[userLL], FileLength = %[userLS]", false, true, RSXBOOLSETTING(LISTLEN_MISMATCH));
+				sendAction(*ou, RSXSETTING(LISTLEN_MISMATCH));
 			}
 		}
 	}
+	if(ou)
+		ou->getClient().updated(*ou);
 }
 
 Client* ClientManager::getUserClient(const UserPtr& p) {
@@ -1022,7 +1020,7 @@ void ClientManager::sendAction(const UserPtr& p, const int aAction) {
 		return;
 	{
 		Lock l(cs);
-		OnlineIter i = onlineUsers.find(p->getCID());
+		OnlineIterC i = onlineUsers.find(p->getCID());
 		if(i == onlineUsers.end()) 
 			return;
 

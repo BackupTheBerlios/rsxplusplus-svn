@@ -53,6 +53,7 @@ AutoSearchManager::~AutoSearchManager() {
 
 void AutoSearchManager::removeRegExpFromSearches() {
 	//clear old data
+	Lock l(cs);
 	vs.clear();
 	for(Autosearch::List::const_iterator j = as.begin(); j != as.end(); j++) {
 		if((*j)->getEnabled()) {
@@ -82,7 +83,6 @@ void AutoSearchManager::getAllowedHubs() {
 
 void AutoSearchManager::on(TimerManagerListener::Minute, uint64_t /*aTick*/) throw() {
 	if(RSXBOOLSETTING(AUTOSEARCH_ENABLED_TIME) && RSXBOOLSETTING(AUTOSEARCH_ENABLED) && !as.empty()) {
-		Lock l(cs);
 
 		if(endOfList) {
 			recheckTime++;
@@ -105,39 +105,42 @@ void AutoSearchManager::on(TimerManagerListener::Minute, uint64_t /*aTick*/) thr
 			return;
 		}
 		//empty valid autosearch list? too bad
-		if(!vs.size()) {
+		if(vs.empty()) {
 			return;
 		}
-		Autosearch::List::const_iterator pos = vs.begin() + curPos;
-		users.clear();
 
-		if(pos < vs.end()) {
-			if((*pos) == NULL)
-				return;
-			SearchManager::getInstance()->search(allowedHubs, (*pos)->getSearchString(), 0, (SearchManager::TypeModes)(*pos)->getFileType(), SearchManager::SIZE_DONTCARE, "auto");
-			curSearch = (*pos)->getSearchString();
-			curPos++;
-			setTime(0);
-			LogManager::getInstance()->message("[A][S:" + Util::toString(curPos) + "]Searching for: " + (*pos)->getSearchString());
-		} else {
-			LogManager::getInstance()->message("[A]Next search after " + Util::toString(RSXSETTING(AUTOSEARCH_RECHECK_TIME))+ " minutes.");
-			setTime(0);
-			curPos = 0;
-			endOfList = true;
-			recheckTime = 0;
-			curSearch = Util::emptyString;
+		{
+			Lock l(cs);
+			Autosearch::List::const_iterator pos = vs.begin() + curPos;
+			users.clear();
+
+			if(pos < vs.end()) {
+				if((*pos) == NULL)
+					return;
+				SearchManager::getInstance()->search(allowedHubs, (*pos)->getSearchString(), 0, (SearchManager::TypeModes)(*pos)->getFileType(), SearchManager::SIZE_DONTCARE, "auto");
+				curSearch = (*pos)->getSearchString();
+				curPos++;
+				setTime(0);
+				LogManager::getInstance()->message("[A][S:" + Util::toString(curPos) + "]Searching for: " + (*pos)->getSearchString());
+			} else {
+				LogManager::getInstance()->message("[A]Next search after " + Util::toString(RSXSETTING(AUTOSEARCH_RECHECK_TIME))+ " minutes.");
+				setTime(0);
+				curPos = 0;
+				endOfList = true;
+				recheckTime = 0;
+				curSearch = Util::emptyString;
+			}
 		}
 	}
 }
 
 void AutoSearchManager::on(SearchManagerListener::SR, SearchResult* sr) throw() {
 	if(RSXBOOLSETTING(AUTOSEARCH_ENABLED)) {
-		Lock l(cs);
 		if(!as.empty() && !allowedHubs.empty()) {
 			UserPtr user = static_cast<UserPtr>(sr->getUser());
 			if(users.find(user) == users.end()) {
 				users.insert(user);
-
+				Lock l(cs);
 				for(Autosearch::List::const_iterator i = as.begin(); i != as.end(); ++i) {
 					if(curSearch.compare((*i)->getSearchString()) == 0) {
 						addResultToQueue(sr, (*i));

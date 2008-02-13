@@ -334,7 +334,7 @@ private:
 	void on(DownloadManagerListener::Tick, const DownloadList& aDownload) throw();
 	void on(DownloadManagerListener::Status, const UserConnection*, const string&) throw();
 	//RSX++
-	void on(DownloadManagerListener::CheckComplete, const UserPtr aUser) throw();
+	void on(DownloadManagerListener::CheckComplete, const UserPtr aUser, bool updateStatus) throw();
 	//END
 
 	void on(UploadManagerListener::Starting, const Upload* aUpload) throw();

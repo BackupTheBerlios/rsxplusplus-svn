@@ -401,6 +401,12 @@ void Client::sendActionCommand(const OnlineUser& ou, int actionId) {
 		}
 	}
 }
+
+bool Client::isActionActive(const int aAction) const {
+	FavoriteHubEntry* hub = FavoriteManager::getInstance()->getFavoriteHubEntry(getHubUrl());
+	return hub ? FavoriteManager::getInstance()->getActifAction(hub, aAction) : true;
+}
+
 //END
 
 /**

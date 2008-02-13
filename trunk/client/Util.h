@@ -16,8 +16,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#if !defined(UTIL_H)
-#define UTIL_H
+#ifndef DCPLUSPLUS_DCPP_UTIL_H
+#define DCPLUSPLUS_DCPP_UTIL_H
 
 #ifndef _WIN32
 #include <sys/stat.h>
@@ -370,7 +370,7 @@ public:
 
 	static wstring toStringW( int64_t val ) {
 		wchar_t buf[32];
-		snwprintf(buf, sizeof(buf), L"%ld", val);
+		snwprintf(buf, sizeof(buf), _T(I64_FMT), val);
 		return buf;
 	}
 
@@ -560,22 +560,6 @@ struct noCaseStringEq {
 		return Util::stricmp(a, b) == 0;
 	}
 };
-
-/** Case insensitive string ordering */
-//struct noCaseStringLess {
-//	bool operator()(const string* a, const string* b) const {
-//		return Util::stricmp(*a, *b) < 0;
-//	}
-//	bool operator()(const string& a, const string& b) const {
-//		return Util::stricmp(a, b) < 0;
-//	}
-//	bool operator()(const wstring* a, const wstring* b) const {
-//		return Util::stricmp(*a, *b) < 0;
-//	}
-//	bool operator()(const wstring& a, const wstring& b) const {
-//		return Util::stricmp(a, b) < 0;
-//	}
-//};
 
 #endif // !defined(UTIL_H)
 

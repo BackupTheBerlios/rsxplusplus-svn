@@ -30,8 +30,6 @@ const string defaultTestSURName = "TestSUR";
 
 void RsxUtil::init() {
 	generateTestSURString();
-	tags.push_back("<++ V:69");
-	//tags.push_back("<StrgDC++ V:2.00");
 }
 
 void RsxUtil::uinit() {
@@ -39,10 +37,11 @@ void RsxUtil::uinit() {
 }
 
 bool RsxUtil::checkVersion(const string& tag) {
-	//@todo - workaround, need to find a better way
-	for(StringIter i = tags.begin(); i != tags.end(); ++i) {
-		if(strncmp(tag.c_str(), (*i).c_str(), (*i).length()) == 0)
-			return true;
+	const char* aTag = tag.c_str();
+	if(strncmp(aTag, "<++ V:0.69", 10) == 0) {
+		return true;
+	} else if(strncmp(aTag, "<++ V:0.7", 9) == 0) {
+		return true;
 	}
 	return false;
 }

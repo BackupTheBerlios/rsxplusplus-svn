@@ -1301,11 +1301,15 @@ void TransferView::on(QueueManagerListener::Removed, const QueueItem* qi) throw(
 	speak(UPDATE_PARENT, ui);
 }
 //RSX++
-void TransferView::on(DownloadManagerListener::CheckComplete, const UserPtr aUser) {
+void TransferView::on(DownloadManagerListener::CheckComplete, const UserPtr aUser, bool updateStatus) {
 	UpdateInfo* ui = new UpdateInfo(aUser, true);
-	//to avoid no pk&lock bug in special cases ;)
-	//ConnectionManager::getInstance()->disconnect(aUser, true);
-	speak(REMOVE_ITEM, ui);
+	if(updateStatus) {
+		ui->setStatusString(_T("Check complete, idle"));
+		ui->setStatus(ItemInfo::STATUS_WAITING);
+		speak(UPDATE_ITEM, ui);
+	} else {
+		speak(REMOVE_ITEM, ui);
+	}
 }
 //END
 

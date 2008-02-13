@@ -166,6 +166,7 @@ void shutdown() {
 	UpdateManager::deleteInstance();
 	ToolbarManager::deleteInstance();
 	IgnoreManager::deleteInstance();
+	PluginsManager::deleteInstance();
 	//--
 	WebServerManager::deleteInstance();
 	ClientProfileManager::deleteInstance();	
@@ -192,7 +193,6 @@ void shutdown() {
 #ifdef _WIN32	
 	::WSACleanup();
 #endif
-	PluginsManager::deleteInstance(); //RSX++
 }
 
 /**

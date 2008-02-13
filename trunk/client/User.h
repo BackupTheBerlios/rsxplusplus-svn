@@ -208,7 +208,6 @@ private:
 
 	string isEmpty(const string& val) const { return val.empty() ? "N/A" : val; }
 	string getFilelistGeneratorVer() const;
-	bool isActionActive(Client& client, int id);
 	void logDetect(bool successful);
 	void checkTagState(OnlineUser& ou);
 	bool shouldRecheck() { 

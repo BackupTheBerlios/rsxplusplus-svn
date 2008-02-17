@@ -74,7 +74,7 @@ uint64_t MainFrame::iCurrentShutdownTime = 0;
 bool MainFrame::isShutdownStatus = false;
 
 MainFrame::MainFrame() : trayMessage(0), maximized(false), lastUpload(-1), lastUpdate(0), 
-lastUp(0), lastDown(0), oldshutdown(false), stopperThread(NULL), c(new HttpConnection()), 
+lastUp(0), lastDown(0), oldshutdown(false), stopperThread(NULL), 
 closing(false), awaybyminimize(false), missedAutoConnect(false), lastTTHdir(Util::emptyStringT), tabsontop(false),
 bTrayIcon(false), bAppMinimized(false), bIsPM(false), UPnP_TCPConnection(NULL), UPnP_UDPConnection(NULL), 
 QuickSearchBoxContainer(WC_COMBOBOX, this, QUICK_SEARCH_MAP), QuickSearchEditContainer(WC_EDIT ,this, QUICK_SEARCH_MAP)
@@ -312,8 +312,12 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	trayMenu.AppendMenu(MF_STRING, ID_APP_ABOUT, CTSTRING(MENU_ABOUT));
 	trayMenu.AppendMenu(MF_STRING, ID_APP_EXIT, CTSTRING(MENU_EXIT));
 
-	c->addListener(this);
-	c->downloadFile(VERSION_URL);
+	//RSX++
+	UpdateManager::getInstance()->addListener(this);
+	UpdateManager::getInstance()->downloadFile(UpdateManager::VERSION, VERSION_URL);
+	if(RSXBOOLSETTING(GET_UPDATE_PROFILE))
+		UpdateManager::getInstance()->downloadFile(UpdateManager::PROFILE_VERSION, RSXSETTING(PROFILE_VER_URL) + "profileVersion.xml");
+	//END
 
 	// ZoneAlarm - ref: http://www.unixwiz.net/backstealth/
 	if (BOOLSETTING(DETECT_BADSOFT)) {
@@ -858,8 +862,37 @@ LRESULT MainFrame::OnFileSettings(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 	}
 	return 0;
 }
+//RSX++ // UpdateManager stuff
+bool versionChecked = false;
+bool profileVerChecked = false;
 
-void MainFrame::on(HttpConnectionListener::Complete, HttpConnection* /*aConn*/, const string&) throw() {
+void MainFrame::on(UpdateManagerListener::Complete, const string& aContent, int aType) throw() {
+	if(aType == UpdateManager::VERSION) {
+		versionInfo = aContent;
+		onVersionCheck();
+		versionChecked = true;
+	} else if(aType == UpdateManager::PROFILE_VERSION) {
+		profileVerInfo = aContent;
+		onProfileVersionCheck();
+		profileVerChecked = true;
+	}
+	if(versionChecked && profileVerChecked)
+		UpdateManager::getInstance()->removeListener(this);
+}
+
+void MainFrame::on(UpdateManagerListener::Failed, const string& aError, int aType) throw() {
+	if(aType == UpdateManager::VERSION) {
+		LogManager::getInstance()->message("Failed on checking for updates: " + aError);
+		versionChecked = true;
+	} else if(aType == UpdateManager::PROFILE_VERSION) {
+		LogManager::getInstance()->message("Failed on checking for profile updates: " + aError);
+		profileVerChecked = true;
+	}
+	if(versionChecked && profileVerChecked)
+		UpdateManager::getInstance()->removeListener(this);
+}
+
+void MainFrame::onVersionCheck() {
 	try {
 		SimpleXML xml;
 		xml.fromXML(versionInfo);
@@ -907,31 +940,106 @@ void MainFrame::on(HttpConnectionListener::Complete, HttpConnection* /*aConn*/, 
 				}
 				xml.stepOut();
 			}
-			/*xml.resetCurrentChild();
-			if(RSXBOOLSETTING(GET_UPDATE_PROFILE)) {
-				if(xml.findChild("VersionProfile")) {
-					if((Util::toDouble(xml.getChildData()) > Util::toDouble(ClientProfileManager::getInstance()->getProfileVersion()))) {
-						showUpdate = true;
-					}
-				}
-				xml.resetCurrentChild();
-				if(xml.findChild("VersionProfileMyinfo")) {
-					if((Util::toDouble(xml.getChildData()) > Util::toDouble(ClientProfileManager::getInstance()->getMyinfoProfileVersion()))) {
-						showUpdate = true;
-					}
-				}
-			}*/
+			xml.resetCurrentChild();
 			xml.stepOut();
 		}
+
 		if(showUpdate && !BOOLSETTING(DONT_ANNOUNCE_NEW_VERSIONS)) {
-			UpdateDialog dlg(versionInfo);
+			UpdateDialog dlg(versionInfo, profileVerInfo);
 			dlg.DoModal();
 		}
 	} catch(const Exception& e) {
-		LogManager::getInstance()->message("[UpdateCheck] Error: " + e.getError());
+		LogManager::getInstance()->message("[UpdateCheck]Error: " + e.getError());
 	}
 }
 
+void MainFrame::onProfileVersionCheck() {
+	try {
+		SimpleXML xml;
+		xml.fromXML(profileVerInfo);
+
+		string cVer, mVer, iVer;
+		bool showDlg = false;
+
+		if(xml.findChild("ProfileVersionInfo")) {
+			xml.stepIn();
+			if(RSXBOOLSETTING(SHOW_CLIENT_NEW_VER)) {
+				if(xml.findChild("ClientProfile")) {
+					xml.stepIn();
+					if(xml.findChild("Version")) {
+						cVer = xml.getChildData();
+					}
+					if((Util::toDouble(cVer) > Util::toDouble(ClientProfileManager::getInstance()->getProfileVersion()))) {
+						showDlg = true;
+					}
+					xml.stepOut();
+					xml.resetCurrentChild();
+				}
+			}
+			if(RSXBOOLSETTING(SHOW_MYINFO_NEW_VER)) {
+				if(xml.findChild("MyInfoProfile")) {
+					xml.stepIn();
+					if(xml.findChild("Version")) {
+						mVer = xml.getChildData();
+					}
+
+					if((Util::toDouble(mVer) > Util::toDouble(ClientProfileManager::getInstance()->getMyinfoProfileVersion()))) {
+						showDlg = true;
+					}
+
+					xml.stepOut();
+					xml.resetCurrentChild();
+				}
+			}
+			if(RSXBOOLSETTING(SHOW_IPWATCH_NEW_VER)) {
+				if(xml.findChild("IpWatch")) {
+					xml.stepIn();
+					if(xml.findChild("Version")) {
+						iVer = xml.getChildData();
+					}
+					if(Util::toDouble(iVer) > Util::toDouble(IpManager::getInstance()->getIpWatchVersion())) {
+						showDlg = true;
+					}
+					xml.stepOut();
+					xml.resetCurrentChild();
+				}
+			}
+			/*if(xml.findChild("Autosearch")) {
+				xml.stepIn();
+				string ver, comment;
+				if(xml.findChild("Version")) {
+					ver = xml.getChildData();
+				}
+				if(xml.findChild("Comment")) {
+					comment = xml.getChildData();
+				}
+				xml.stepOut();
+				xml.resetCurrentChild();
+			}
+			if(xml.findChild("AdlSearch")) {
+				xml.stepIn();
+				string ver, comment;
+				if(xml.findChild("Version")) {
+					ver = xml.getChildData();
+				}
+				if(xml.findChild("Comment")) {
+					comment = xml.getChildData();
+				}
+				xml.stepOut();
+				xml.resetCurrentChild();
+			}*/
+			xml.stepOut();
+		}
+		if(showDlg) {
+			UpdateDialog dlg(versionInfo, profileVerInfo);
+			dlg.DoModal();
+		}
+	} catch(const Exception& e) {
+		LogManager::getInstance()->message("[UpdateCheck]Error: " + e.getError());
+	}
+	//profileVerInfo = Util::emptyString;
+}
+//END
 LRESULT MainFrame::onWebServerSocket(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
 	WebServerManager::getInstance()->getServerSocket().incoming();
 	return 0;
@@ -1060,12 +1168,6 @@ LRESULT MainFrame::onSize(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL&
 }
 
 LRESULT MainFrame::onEndSession(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
-	if(c != NULL) {
-		c->removeListener(this);
-		delete c;
-		c = NULL;
-	}
-
 	WINDOWPLACEMENT wp;
 	wp.length = sizeof(wp);
 	GetWindowPlacement(&wp);
@@ -1089,12 +1191,6 @@ LRESULT MainFrame::onEndSession(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 }
 
 LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled) {
-	if(c != NULL) {
-		c->removeListener(this);
-		delete c;
-		c = NULL;
-	}
-
 	if(!closing) {
 		if( oldshutdown ||(!BOOLSETTING(CONFIRM_EXIT)) || (MessageBox(CTSTRING(REALLY_EXIT), _T(APPNAME) _T(" ") _T(VERSIONSTRING), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2) == IDYES) ) {
 			//RSX++
@@ -1487,10 +1583,6 @@ void MainFrame::on(TimerManagerListener::Second, uint64_t aTick) throw() {
 		SettingsManager::getInstance()->set(SettingsManager::MAX_UPLOAD_SPEED_LIMIT, 0);
 		SettingsManager::getInstance()->set(SettingsManager::MAX_DOWNLOAD_SPEED_LIMIT, 0);
 	}		
-}
-
-void MainFrame::on(HttpConnectionListener::Data, HttpConnection* /*conn*/, const uint8_t* buf, size_t len) throw() {
-	versionInfo += string((const char*)buf, len);
 }
 
 void MainFrame::on(PartialList, const UserPtr& aUser, const string& text) throw() {

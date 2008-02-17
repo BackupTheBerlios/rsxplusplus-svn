@@ -85,6 +85,8 @@ static unsigned long CPU_Type = 0;
 // 3 = MMX2 for AMD Athlon/Duron and above (might also work on MMX2 (KATMAI) Intel machines)
 // 4 = SSE
 // 5 = SSE2 (only for Pentium 4 detection, the optimization used is SSE)
+// 6 = x64; on 64-bit compilers we can't use asm...
+
 unsigned long get_cpu_type()
 {
 #ifndef _WIN64
@@ -146,6 +148,8 @@ cpu_done:
 	mov			[CPU_Type], eax
 ret_eax:
   }
+#else
+  return 6;
 #endif
 }
 
@@ -153,9 +157,9 @@ static unsigned long memcpyProc = 0;
 static unsigned long memsetProc = 0;
 static unsigned long memzeroProc = 0;
 
+#ifndef _WIN64
 void* __stdcall memcpy2(void *dest, const void *src, size_t n)
 {
-#ifndef _WIN64
   __asm
   {
 	mov			ebx, [n]		; number of bytes to copy
@@ -529,12 +533,10 @@ $memcpy_last_few:			; dword aligned from before movsd's
 $memcpy_exit:
 	pop			eax // [dest]	; ret value = destination pointer
     }
-#endif
 }
 
 void* __stdcall memset2(void *dest, int c, size_t n)
 {
-#ifndef _WIN64
   __asm
   {
 	mov			ebx, [n]	; number of bytes to fill
@@ -768,12 +770,10 @@ $memset_last_few:		; dword aligned from before stosd's
 $memset_exit:
 	pop			eax // [dest]	; ret value = destination pointer
     }
-#endif
 }
 
 void __stdcall memzero2(void *dest, size_t n)
 {
-#ifndef _WIN64
   __asm
   {
 	mov			ebx, [n]	; number of bytes to fill
@@ -990,5 +990,5 @@ $memzero_last_few:		; dword aligned from before stosd's
 
 $memzero_exit:
     }
-#endif
 }
+#endif

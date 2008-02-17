@@ -84,7 +84,7 @@ void DownloadManager::on(TimerManagerListener::Second, uint64_t aTick) throw() {
 				{
 					if((d->getAverageSpeed() < SETTING(DISCONNECT_SPEED) * 1024))
 					{
-						if(aTick - d->getLastTick() > (uint32_t)SETTING(DISCONNECT_TIME) * 1000)
+						if(((aTick - d->getLastTick())/1000) > (uint32_t)SETTING(DISCONNECT_TIME) * 1000)
 						{
 							if(QueueManager::getInstance()->dropSource(d))
 							{
@@ -383,9 +383,9 @@ void DownloadManager::handleEndData(UserConnection* aSource) {
 	if(d->isSet(Download::FLAG_CHECK_FILE_LIST)) {
 		//@todo some nicer way...
 		removeConnection(aSource);
-		fire(DownloadManagerListener::Failed(), d, "FileList Check complete, idle");
-		QueueManager::getInstance()->putDownload(d, true, false);
-		return;
+		//QueueManager::getInstance()->putDownload(d, true, false);
+		//checkDownloads(aSource);
+		//return;
 	}
 	//END
 	//fire(DownloadManagerListener::Complete(), d, d->getType() == Transfer::TYPE_TREE);

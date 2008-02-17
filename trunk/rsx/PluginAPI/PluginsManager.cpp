@@ -89,6 +89,8 @@ PluginsManager::PluginsManager() {
 
 PluginsManager::~PluginsManager() {
 	//make some cleanup
+	Lock l(cs);
+	stopPlugins();
 	for_each(active.begin(), active.end(), DeleteFunction());
 	active.clear();
 }

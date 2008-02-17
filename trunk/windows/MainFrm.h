@@ -25,7 +25,6 @@
 
 #include "HubFrame.h"
 #include "../client/TimerManager.h"
-#include "../client/HttpConnection.h"
 #include "../client/FavoriteManager.h"
 #include "../client/QueueManagerListener.h"
 #include "../client/Util.h"
@@ -35,9 +34,12 @@
 #include "../client/ShareManager.h"
 #include "../client/DownloadManager.h"
 #include "../client/SettingsManager.h"
-#include "../rsx/rsx-settings/rsx-SettingsManager.h" //RSX++
 #include "../client/WebServerManager.h"
 #include "../client/AdlSearch.h"
+//RSX++
+#include "../rsx/rsx-settings/rsx-SettingsManager.h"
+#include "../rsx/UpdateManagerListener.h"
+//END
 #include "PopupManager.h"
 
 #include "FlatTabCtrl.h"
@@ -50,7 +52,7 @@
 
 class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFrame>,
 		public CMessageFilter, public CIdleHandler, public CSplitterImpl<MainFrame, false>, public Thread,
-		private TimerManagerListener, private HttpConnectionListener, private QueueManagerListener,
+		private TimerManagerListener, private UpdateManagerListener, private QueueManagerListener,
 		private LogManagerListener, private WebServerListener
 {
 public:
@@ -432,11 +434,11 @@ private:
 
 	CStatusBarCtrl ctrlStatus;
 	FlatTabCtrl ctrlTab;
-	HttpConnection* c;
 	string versionInfo;
 	CImageList images;
 	CToolBarCtrl ctrlToolbar;
 	//RSX++
+	string profileVerInfo;
 	CToolBarCtrl ctrlPluginToolbar;
 	CToolBarCtrl ctrlQuickSearchBar;
 	CComboBox QuickSearchBox;
@@ -486,6 +488,9 @@ private:
 	HWND createQuickSearchBar();
 	void updateQuickSearches(const tstring& search = Util::emptyStringT);
 	void setDefPrioMenu();
+	void onVersionCheck();
+	void onProfileVersionCheck();
+
 	//END
 	void updateTray(bool add = true);
 
@@ -508,9 +513,10 @@ private:
 	// TimerManagerListener
 	void on(TimerManagerListener::Second, uint64_t aTick) throw();
 	
-	// HttpConnectionListener
-	void on(HttpConnectionListener::Complete, HttpConnection* conn, string const& /*aLine*/) throw();
-	void on(HttpConnectionListener::Data, HttpConnection* /*conn*/, const uint8_t* buf, size_t len) throw();	
+	// UpdateManagerListener
+	void on(UpdateManagerListener::Complete, const string&, int) throw();
+	void on(UpdateManagerListener::Failed, const string&, int) throw();
+
 	// WebServerListener
 	void on(WebServerListener::Setup);
 	void on(WebServerListener::ShutdownPC, int);

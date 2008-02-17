@@ -67,11 +67,13 @@ public:
 			snwprintf(buf, sizeof(buf), _T("Ratio (up/down): %.2f"), ((double)SETTING(TOTAL_UPLOAD)) / ((double)SETTING(TOTAL_DOWNLOAD)));
 			SetDlgItemText(IDC_RATIO, buf);
 		}
-		SetDlgItemText(IDC_COMPILE_TIME, Text::toT("Compiled: " + WinUtil::getCompileDate()).c_str()); //RSX++
+		//RSX++
+		SetDlgItemText(IDC_COMPILE_TIME, WinUtil::getCompileInfo().c_str());
 		snwprintf(buf, sizeof(buf), _T("Uptime: %s"), Text::toT(WinUtil::formatTime(Util::getUptime())).c_str());
 		SetDlgItemText(IDC_UPTIME, buf);
 
 		TimerManager::getInstance()->addListener(this);
+		//END
 		CenterWindow(GetParent());
 		c.addListener(this);
 		c.downloadFile(VERSION_URL);

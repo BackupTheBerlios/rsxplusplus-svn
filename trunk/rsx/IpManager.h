@@ -1,4 +1,6 @@
 /*
+ * Copyright (C) 2007-2008 adrian_007, adrian-007 on o2 point pl
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -22,7 +24,6 @@
 #include "../client/Util.h"
 
 #include "../client/HttpConnection.h"
-#include "../client/SimpleXML.h"
 #include "../client/SettingsManager.h"
 
 class IPWatch {
@@ -49,9 +50,9 @@ class SimpleXML;
 class IpManager : public Singleton<IpManager>, private HttpConnectionListener {
 public:
 	void load() { WatchLoad(); }
-	void WatchLoad(const string& p = Util::emptyString);
+	void WatchLoad();
 	void WatchSave();
-	void reloadIpWatch(const string& filePath);
+	void reloadIpWatch();
 
 	IPWatch* addWatch(int m, const string& pat, int task, int act, bool disp, const string& cheat, int mt, const string& i) {
 		IPWatch* ipw = new IPWatch(m, pat, task, act, disp, cheat, mt, i);
@@ -94,7 +95,11 @@ private:
 	void clearWatchList() {
 		Lock l(cs);
 		for(IPWatch::Iter j = ipwatch.begin(); j!= ipwatch.end(); ++j) {
-			delete *j;
+			IPWatch* ipw = *j;
+			if(ipw != NULL) {
+				delete ipw;
+				ipw = NULL;
+			}
 		}
 		ipwatch.clear();
 	}
@@ -107,34 +112,7 @@ private:
 		downBuf += string((const char*)buf, len);
 	}
 
-	void on(HttpConnectionListener::Complete, HttpConnection* conn, const string&) throw() {
-		conn->removeListener(this);
-		if(!downBuf.empty()) {
-			SimpleXML xml;
-			xml.fromXML(downBuf);
-			if(xml.findChild("html")) {
-				xml.stepIn();
-				if(xml.findChild("body")) {
-					string x = xml.getChildData().substr(20);
-					if(Util::isPrivateIp(x)) {
-						SettingsManager::getInstance()->set(SettingsManager::INCOMING_CONNECTIONS, SettingsManager::INCOMING_FIREWALL_PASSIVE);
-					}
-					SettingsManager::getInstance()->set(SettingsManager::EXTERNAL_IP, x);				
-				} else {
-					SettingsManager::getInstance()->set(SettingsManager::EXTERNAL_IP, Util::getLocalIp());
-				}
-			}
-		}
-	}
-
-	void on(HttpConnectionListener::Failed, HttpConnection* conn, const string& /*aLine*/) throw() {
-		conn->removeListener(this);
-		if(!SETTING(NO_IP_OVERRIDE)) {
-			if(Util::isPrivateIp(Util::getLocalIp())) {
-				SettingsManager::getInstance()->set(SettingsManager::INCOMING_CONNECTIONS, SettingsManager::INCOMING_FIREWALL_PASSIVE);
-			}
-			SettingsManager::getInstance()->set(SettingsManager::EXTERNAL_IP, Util::getLocalIp());
-		}
-	}
+	void on(HttpConnectionListener::Complete, HttpConnection* conn, const string&) throw();
+	void on(HttpConnectionListener::Failed, HttpConnection* conn, const string& /*aLine*/) throw();
 };
 #endif //IP_MANAGER_H

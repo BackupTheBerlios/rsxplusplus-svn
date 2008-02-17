@@ -702,7 +702,7 @@ void WinUtil::decodeFont(const tstring& setting, LOGFONT &dest) {
 	}
 	
 	if(!face.empty()) {
-		memzero2(dest.lfFaceName, LF_FACESIZE);
+		memzero(dest.lfFaceName, LF_FACESIZE);
 		_tcscpy(dest.lfFaceName, face.c_str());
 	}
 }
@@ -721,7 +721,7 @@ bool WinUtil::browseDirectory(tstring& target, HWND owner /* = NULL */) {
 	BROWSEINFO bi;
 	LPMALLOC ma;
 	
-	memzero2(&bi, sizeof(bi));
+	memzero(&bi, sizeof(bi));
 	
 	bi.hwndOwner = owner;
 	bi.pszDisplayName = buf;
@@ -1755,6 +1755,7 @@ uint8_t WinUtil::getFlagImage(const char* country, bool fullname) {
 }
 
 float ProcSpeedCalc() {
+#ifndef _WIN64
 #define RdTSC __asm _emit 0x0f __asm _emit 0x31
 __int64 cyclesStart = 0, cyclesStop = 0;
 unsigned __int64 nCtr = 0, nFreq = 0, nCtrStop = 0;
@@ -1774,6 +1775,9 @@ unsigned __int64 nCtr = 0, nFreq = 0, nCtrStop = 0;
         mov DWORD PTR [cyclesStop + 4], edx
     }
 	return ((float)cyclesStop-(float)cyclesStart) / 1000000;
+#else
+	return 0;
+#endif
 }
 
 wchar_t arrayutf[42] = { L'¡', L'»', L'œ', L'…', L'Ã', L'Õ', L'º', L'“', L'”', L'ÿ', L'ä', L'ç', L'⁄', L'Ÿ', L'›', L'é', L'·', L'Ë', L'Ô', L'È', L'Ï', L'Ì', L'æ', L'Ú', L'Û', L'¯', L'ö', L'ù', L'˙', L'˘', L'˝', L'û', L'ƒ', L'À', L'÷', L'‹', L'‰', L'Î', L'ˆ', L'¸', L'£', L'≥' };
@@ -1906,28 +1910,39 @@ void WinUtil::flashWindow() {
 	}
 	//return false;
 }
-//RSX++ //to Yes/No
+//RSX++
 tstring WinUtil::toYesNo(bool value){
 	if(value)
 		return TSTRING(YES);
 	return TSTRING(NO);
 }
-//RSX++ //Stats stuff
+
 string WinUtil::CPUInfo() {
 	tstring result = _T("");
-	TCHAR buf[255];
 
 	CRegKey key;
 	ULONG len = 255;
 
 	if(key.Open( HKEY_LOCAL_MACHINE, _T("Hardware\\Description\\System\\CentralProcessor\\0"), KEY_READ) == ERROR_SUCCESS) {
-        if(key.QueryStringValue(_T("ProcessorNameString"), buf, &len) == ERROR_SUCCESS){
+		TCHAR buf[255];
+		if(key.QueryStringValue(_T("ProcessorNameString"), buf, &len) == ERROR_SUCCESS){
 			tstring tmp = buf;
 			result = tmp.substr( tmp.find_first_not_of(_T(" ")) );
+		}
+		DWORD speed;
+		if(key.QueryDWORDValue(_T("~MHz"), speed) == ERROR_SUCCESS){
+			result += _T(" (");
+			result += Util::toStringW(speed);
+			result += _T(" MHz)");
 		}
 	}
 	return result.empty() ? "Unknown" : Text::fromT(result);
 }
+
+tstring WinUtil::getCompileInfo() {
+	return Text::toT("Compiled: " __DATE__);
+}
+//END
 /**
  * @file
  * $Id: WinUtil.cpp 359 2008-01-17 17:53:50Z bigmuscle $

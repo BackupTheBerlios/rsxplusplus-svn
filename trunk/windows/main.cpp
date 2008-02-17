@@ -162,8 +162,12 @@ LONG __stdcall DCUnhandledExceptionFilter( LPEXCEPTION_POINTERS e )
 	f.write(LIT("\r\n"));
 
     f.write(LIT("\r\n"));
-    
+
+#ifdef _WIN64
+	STACKTRACE2(f, e->ContextRecord->Rip, e->ContextRecord->Rsp, e->ContextRecord->Rbp);
+#else
 	STACKTRACE2(f, e->ContextRecord->Eip, e->ContextRecord->Esp, e->ContextRecord->Ebp);
+#endif
 
 	f.write(LIT("\r\n"));
 
@@ -209,6 +213,7 @@ static void sendCmdLine(HWND hOther, LPTSTR lpstrCmdLine)
 }
 
 BOOL CALLBACK searchOtherInstance(HWND hWnd, LPARAM lParam) {
+#ifndef _WIN64 // PORT_ME
 	DWORD result;
 	LRESULT ok = ::SendMessageTimeout(hWnd, WMU_WHERE_ARE_YOU, 0, 0,
 		SMTO_BLOCK | SMTO_ABORTIFHUNG, 5000, &result);
@@ -220,6 +225,7 @@ BOOL CALLBACK searchOtherInstance(HWND hWnd, LPARAM lParam) {
 		*target = hWnd;
 		return FALSE;
 	}
+#endif
 	return TRUE;
 }
 
@@ -242,7 +248,7 @@ static void checkCommonControls() {
 			DLLVERSIONINFO dvi;
 			HRESULT hr;
 			
-			memzero2(&dvi, sizeof(dvi));
+			memzero(&dvi, sizeof(dvi));
 			dvi.cbSize = sizeof(dvi);
 			
 			hr = (*pDllGetVersion)(&dvi);

@@ -333,8 +333,9 @@ void PrivateFrame::onEnter()
 			} else if(Util::stricmp(s.c_str(), _T("help")) == 0) {
 				addLine(_T("*** ") + WinUtil::commands + _T(", /getlist, /clear, /grant, /close, /favorite, /winamp"), WinUtil::m_ChatTextSystem);
 			} else {
-				if(replyTo->isOnline() && !dropMessage) {
-					sendMessage(tstring(m));
+				if(replyTo->isOnline()) {
+					if(!dropMessage)
+						sendMessage(tstring(m));
 				} else {
 					ctrlStatus.SetText(0, CTSTRING(USER_WENT_OFFLINE));
 					resetText = false;
@@ -344,7 +345,6 @@ void PrivateFrame::onEnter()
 			if(replyTo->isOnline()) {
 				if(BOOLSETTING(CZCHARS_DISABLE))
 					s = WinUtil::disableCzChars(s);
-				
 				if(!dropMessage)
 					sendMessage(s);
 			} else {

@@ -1,4 +1,6 @@
 /*
+ * Copyright (C) 2007-2008 adrian_007, adrian-007 on o2 point pl
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -25,10 +27,20 @@
 
 class UpdateManager : public Singleton<UpdateManager>, public Speaker<UpdateManagerListener>, private HttpConnectionListener {
 public:
+
+	enum {
+		CLIENT = 0,
+		MYINFO = 1,
+		IPWATCH = 2,
+		VERSION = 3,
+		PROFILE_VERSION = 4
+	};
+
 	UpdateManager();
 	~UpdateManager();	
 
 	void downloadFile(int _id, const string& aUrl);
+
 private:
 	friend class Singleton<UpdateManager>;
 	typedef unordered_map<int, string> UpdateItems;

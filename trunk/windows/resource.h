@@ -54,6 +54,7 @@
 #define IDC_RECONNECT_DISCONNECTED      142
 #define IDC_COPY_BEGIN                  162
 #define IDC_COPY_END                    163
+#define IDB_FAVTABS						205
 #define IDB_FOLDERS                     206
 #define IDB_ARROWS                      208
 #define IDD_LINE                        209

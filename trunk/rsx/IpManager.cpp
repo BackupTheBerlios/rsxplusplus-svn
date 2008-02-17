@@ -1,4 +1,6 @@
 /*
+ * Copyright (C) 2007-2008 adrian_007, adrian-007 on o2 point pl
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -19,6 +21,7 @@
 
 #include "../client/ResourceManager.h"
 #include "../client/Pointer.h"
+#include "../client/SimpleXML.h"
 
 #include "IpManager.h"
 #include "RsxUtil.h"
@@ -31,19 +34,22 @@ IpManager::IpManager() : c(NULL), ipWatchVersion("1.00") {
 IpManager::~IpManager() {
 	WatchSave();
 	clearWatchList();
+
 	if(c != NULL) { 
+		c->removeListener(this);
 		delete c; 
 		c = NULL; 
 	}
 }
 
-void IpManager::reloadIpWatch(const string& filePath) {
+void IpManager::reloadIpWatch() {
 	Lock l(cs);
 	clearWatchList();
-	WatchLoad(filePath);
+	WatchLoad();
 }
 
 void IpManager::WatchSave() {
+	Lock l(cs);
 	try {
 		SimpleXML xml;
 
@@ -83,7 +89,7 @@ void IpManager::WatchSave() {
 		File::deleteFile(fname);
 		File::renameFile(fname + ".tmp", fname);
 	} catch(const Exception& e) {
-		dcdebug("FavoriteManager::recentsave: %s\n", e.getError().c_str());
+		dcdebug("IpManager::WatchSave: %s\n", e.getError().c_str());
 	}
 }
 
@@ -108,16 +114,46 @@ void IpManager::loadWatch(SimpleXML& aXml){
 	}
 }
 
-void IpManager::WatchLoad(const string& p) {
+void IpManager::WatchLoad() {
 	try {
 		SimpleXML xml;
-		xml.fromXML(File(p.empty() ? Util::getConfigPath() + "IPWatch.xml" : p, File::READ, File::OPEN).read());
+		xml.fromXML(File(Util::getConfigPath() + "IPWatch.xml", File::READ, File::OPEN).read());
 		if(xml.findChild("IPWatch")) {
 			xml.stepIn();
 			loadWatch(xml);
 			xml.stepOut();
 		}
 	} catch(const Exception& e) {
-		dcdebug("FavoriteManager::recentload: %s\n", e.getError().c_str());
+		dcdebug("IpManager::WatchLoad: %s\n", e.getError().c_str());
 	}	
+}
+
+void IpManager::on(HttpConnectionListener::Complete, HttpConnection* conn, const string&) throw() {
+	conn->removeListener(this);
+	if(!downBuf.empty()) {
+		SimpleXML xml;
+		xml.fromXML(downBuf);
+		if(xml.findChild("html")) {
+			xml.stepIn();
+			if(xml.findChild("body")) {
+				string x = xml.getChildData().substr(20);
+				if(Util::isPrivateIp(x)) {
+					SettingsManager::getInstance()->set(SettingsManager::INCOMING_CONNECTIONS, SettingsManager::INCOMING_FIREWALL_PASSIVE);
+				}
+				SettingsManager::getInstance()->set(SettingsManager::EXTERNAL_IP, x);				
+			} else {
+				SettingsManager::getInstance()->set(SettingsManager::EXTERNAL_IP, Util::getLocalIp());
+			}
+		}
+	}
+}
+
+void IpManager::on(HttpConnectionListener::Failed, HttpConnection* conn, const string& /*aLine*/) throw() {
+	conn->removeListener(this);
+	if(!SETTING(NO_IP_OVERRIDE)) {
+		if(Util::isPrivateIp(Util::getLocalIp())) {
+			SettingsManager::getInstance()->set(SettingsManager::INCOMING_CONNECTIONS, SettingsManager::INCOMING_FIREWALL_PASSIVE);
+		}
+		SettingsManager::getInstance()->set(SettingsManager::EXTERNAL_IP, Util::getLocalIp());
+	}
 }

@@ -62,6 +62,11 @@ extern CAppModule _Module;
 
 #define WM_SPEAKER (WM_APP + 500)
 
+#ifdef _WIN64
+#define GWL_WNDPROC GWLP_WNDPROC
+#define GWL_HINSTANCE GWLP_HINSTANCE
+#endif
+
 //{{AFX_INSERT_LOCATION}}
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.
 

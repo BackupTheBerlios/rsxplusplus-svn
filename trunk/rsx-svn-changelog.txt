@@ -1,3 +1,11 @@
+** SVN 51
+ ** version check improved
+ ** setting to change url to profile version xml (change it manually in RSXSettings.xml)
+ ** partial x64 port (needs a recompiled libs and warning fixes)
+ ** added fav tabs icons and a fav dlg icon
+ ** some stuff in downloadmanager
+ ** fixed dropping msg in pm frame
+
 ** SVN 50
  ** some workaround in dl manager
  ** added regex/wildcard match functions to PluginAPI

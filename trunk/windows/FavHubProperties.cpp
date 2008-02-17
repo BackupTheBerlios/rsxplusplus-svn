@@ -68,9 +68,9 @@ LRESULT FavHubProperties::OnInitDialog(UINT, WPARAM, LPARAM, BOOL&)
 	ctrlTabs.AddTab(_T("Custom"), ctrlCustomTab, 0, true);
 	ctrlTabs.AddTab(_T("Actions and Raws"), ctrlRaws,  1, true);
 	ctrlTabs.AddTab(_T("Detector"), ctrlOpTab, 2, true);
-	//@todo waitin' for icons for it ;)
-	//images.CreateFromImage(IDB_SEARCH_TYPES, 16, 0, CLR_DEFAULT, IMAGE_BITMAP, LR_CREATEDIBSECTION | LR_SHARED);
-	//ctrlTabs.SetImageList(images);
+
+	images.CreateFromImage(IDB_FAVTABS, 16, 0, CLR_DEFAULT, IMAGE_BITMAP, LR_CREATEDIBSECTION | LR_SHARED);
+	ctrlTabs.SetImageList(images);
 	ctrlTabs.SetCurSel(0);
 
 	StringList& glst = FavoriteManager::getInstance()->getFavGroups();
@@ -110,6 +110,10 @@ LRESULT FavHubProperties::OnInitDialog(UINT, WPARAM, LPARAM, BOOL&)
 	tmp.Attach(GetDlgItem(IDC_FAV_AWAY_MSG));
 	tmp.LimitText(2048);
 	tmp.Detach();
+
+	m_hIcon = ::LoadIcon(_Module.get_m_hInst(), MAKEINTRESOURCE(IDR_FAVORITES));
+	SetIcon(m_hIcon, FALSE);
+	SetIcon(m_hIcon, TRUE);
 	//END
 	CenterWindow(GetParent());
 	return FALSE;

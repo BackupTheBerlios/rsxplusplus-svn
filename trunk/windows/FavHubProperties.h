@@ -34,8 +34,13 @@ class FavoriteHubEntry;
 class FavHubProperties : public CDialogImpl<FavHubProperties> {
 public:
 	FavHubProperties::FavHubProperties(FavoriteHubEntry *_entry) : entry(_entry) { }
-	FavHubProperties() { };
-	~FavHubProperties() { };
+	FavHubProperties() : m_hIcon(NULL) { };
+	~FavHubProperties() {
+		if(m_hIcon) {
+			DeleteObject((HGDIOBJ)m_hIcon);
+			m_hIcon = NULL;
+		}
+	};
 
 	enum { IDD = IDD_FAVORITEHUB };
 	
@@ -62,6 +67,8 @@ protected:
 	CCustomTab ctrlCustomTab;
 	CImageList images;
 	//END
+private:
+	HICON m_hIcon;
 };
 
 #endif // !defined(FAV_HUB_PROPERTIES_H)

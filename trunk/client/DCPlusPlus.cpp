@@ -144,15 +144,17 @@ void startup(void (*f)(void*, const tstring&), void* p) {
 }
 
 void shutdown() {
-	//RSX++
-	PluginsManager::getInstance()->stopPlugins();
-	RsxUtil::uinit();
-	AutoSearchManager::deleteInstance();
-	//END
-
 	TimerManager::getInstance()->shutdown();
 	HashManager::getInstance()->shutdown();
 	ConnectionManager::getInstance()->shutdown();
+
+	//RSX++
+	RsxUtil::uinit();
+
+	PluginsManager::deleteInstance();
+	UpdateManager::deleteInstance();
+	IpManager::deleteInstance();
+	//END
 
 	BufferedSocket::waitShutdown();
 	
@@ -160,17 +162,15 @@ void shutdown() {
 	SettingsManager::getInstance()->save();
 	RSXSettingsManager::getInstance()->save(); //RSX++
 
-	ADLSearchManager::deleteInstance();
 	//RSX++
-	IpManager::deleteInstance();
-	UpdateManager::deleteInstance();
 	ToolbarManager::deleteInstance();
 	IgnoreManager::deleteInstance();
-	PluginsManager::deleteInstance();
+	AutoSearchManager::deleteInstance();
 	//--
 	WebServerManager::deleteInstance();
 	ClientProfileManager::deleteInstance();	
 	PopupManager::deleteInstance();
+	ADLSearchManager::deleteInstance();
 	RawManager::deleteInstance(); //RSX++
 	FinishedManager::deleteInstance();
 	ShareManager::deleteInstance();

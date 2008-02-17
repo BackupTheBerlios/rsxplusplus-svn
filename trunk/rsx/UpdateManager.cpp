@@ -1,4 +1,6 @@
-/* 
+/*
+ * Copyright (C) 2007-2008 adrian_007, adrian-007 on o2 point pl
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -27,10 +29,11 @@ UpdateManager::~UpdateManager() {
 
 void UpdateManager::downloadFile(int _id, const string& aUrl) {
 	Lock l(cs);
-	UpdateItems::const_iterator i = items.find(_id);
+	UpdateItems::iterator i = items.find(_id);
 	if(i != items.end()) {
 		return;
 	}
+
 	working = !items.empty();
 	items.insert(make_pair(_id, aUrl));
 
@@ -53,23 +56,23 @@ void UpdateManager::startDownload() {
 }
 
 void UpdateManager::on(HttpConnectionListener::Complete, HttpConnection*, const string&) throw() {
-	c.removeListener(this);
 	{
 		Lock l(cs);
 		items.erase(current);
-		working = false;
-		fire(UpdateManagerListener::Complete(), downBuf, current);
-		startDownload();
 	}
+	working = false;
+	c.removeListener(this);
+	fire(UpdateManagerListener::Complete(), downBuf, current);
+	startDownload();
 }
 
 void UpdateManager::on(HttpConnectionListener::Failed, HttpConnection*, const string& aLine) throw() {
-	c.removeListener(this);
 	{
 		Lock l(cs);
 		items.erase(current);
-		working = false;
-		fire(UpdateManagerListener::Failed(), aLine, current);
-		startDownload();
 	}
+	working = false;
+	c.removeListener(this);
+	fire(UpdateManagerListener::Failed(), aLine, current);
+	startDownload();
 }

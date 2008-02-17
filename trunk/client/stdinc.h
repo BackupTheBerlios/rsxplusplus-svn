@@ -106,12 +106,20 @@ typedef unsigned __int64 uint64_t;
 #include <stdint.h>
 #endif
 
-#undef memcpy
-#undef memset
-#undef memzero
-#define memcpy memcpy2
-#define memset memset2
-#define memzero memzero2
+#ifndef _WIN64
+# undef memcpy
+# undef memset
+# undef memzero
+# define memcpy memcpy2
+# define memset memset2
+# define memzero memzero2
+#else
+# undef memzero
+# define memzero(x, y) memset(x, 0, y)
+//@todo fix conversions in future
+#pragma warning(disable:4267)
+#pragma warning(disable:4244)
+#endif
 
 #ifdef _MSC_VER
 #include <crtdbg.h>

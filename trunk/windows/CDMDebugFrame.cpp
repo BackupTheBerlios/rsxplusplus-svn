@@ -15,7 +15,7 @@ LRESULT CDMDebugFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 	
 	EDITSTREAM es;
 	es.dwCookie = (DWORD)this;
-	es.pfnCallback = funWithWin32CallBacks;
+	es.pfnCallback = reinterpret_cast<EDITSTREAMCALLBACK>(funWithWin32CallBacks);
 	ctrlPad.StreamIn(SF_RTF, es);
 	ctrlPad.LimitText(0);
 	ctrlPad.SetFont(WinUtil::font);
@@ -180,7 +180,7 @@ void CDMDebugFrame::addLine(const string& aLine) {
 
 	EDITSTREAM es;
 	es.dwCookie = (DWORD)this;
-	es.pfnCallback = funWithWin32CallBacks;
+	es.pfnCallback = reinterpret_cast<EDITSTREAMCALLBACK>(funWithWin32CallBacks);
 	//save current state...
 	CHARRANGE cr;
 	int firstVisibleLine = ctrlPad.GetFirstVisibleLine();

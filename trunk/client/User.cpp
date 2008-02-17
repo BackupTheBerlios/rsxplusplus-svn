@@ -273,7 +273,7 @@ bool Identity::updateClientType(OnlineUser& ou) {
 			ClientManager::getInstance()->sendAction(ou, RSXSETTING(LISTLEN_MISMATCH));
 			logDetect(true);
 			return false;
-		} else if(strncmp(getTag().c_str(), "<++ V:", 6) == 0 && versionf < (float)1 && versionf >= (float)0.69) {
+		} else if(strncmp(getTag().c_str(), "<++ V:", 6) == 0 && versionf < (float)1.001 && versionf >= (float)0.69) {
 			//suppose to be dc++  >= 0.69
 			if(get("LL") != "42" && !get("LL").empty()) {
 				setClientType("Faked DC++");

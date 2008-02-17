@@ -161,23 +161,45 @@ int LuaManager::SendMessage(lua_State* L) {
 }
 
 int LuaManager::SendMessageEx(lua_State* L) {
-	if (lua_gettop(L) == 4 && lua_islightuserdata(L, -4) && lua_isnumber(L, -3) && lua_isnumber(L, -2) && lua_isnumber(L, -1)) {
-		::SendMessage(reinterpret_cast<HWND>(lua_touserdata(L, -4)), static_cast<UINT>(lua_tonumber(L, -3)),
-			static_cast<WPARAM>(lua_tonumber(L, -2)), static_cast<LPARAM>(lua_tonumber(L, -1)));
+	if (lua_gettop(L) == 4 && lua_islightuserdata(L, -4)) {
+		UINT aCmd = NULL;
+		WPARAM wParam = NULL;
+		LPARAM lParam = NULL;
+		if(lua_isnumber(L, -3)) {
+			aCmd = static_cast<UINT>(lua_tonumber(L, -3));
+		} else if(lua_isstring(L, -3)) {
+			aCmd = RsxUtil::str2wmmsg(lua_tostring(L, -3));
+		}
+
+		if(lua_isnumber(L, -2)) {
+			wParam = static_cast<WPARAM>(lua_tonumber(L, -2));
+		} else if(lua_isstring(L, -2)) {
+			wParam = reinterpret_cast<WPARAM>(lua_tostring(L, -2));
+		} else if(lua_islightuserdata(L, -2)) {
+			wParam = reinterpret_cast<WPARAM>(lua_touserdata(L, -2));
+		}
+
+		if(lua_isnumber(L, -1)) {
+			lParam = static_cast<LPARAM>(lua_tonumber(L, -1));
+		} else if(lua_isstring(L, -1)) {
+			lParam = reinterpret_cast<LPARAM>(lua_tostring(L, -1));
+		} else if(lua_islightuserdata(L, -1)) {
+			lParam = reinterpret_cast<LPARAM>(lua_touserdata(L, -1));
+		}
+
+		lua_pushlightuserdata(L, (void*)::SendMessage(reinterpret_cast<HWND>(lua_touserdata(L, -4)), aCmd, wParam, lParam));
+		return 1;
 	}
 	return 0;
 }
 
 int LuaManager::FindWindow(lua_State* L) {
-	//try to grab winamp handler with two strings in param....
-	if(lua_gettop(L) == 2) {
-		if(lua_isstring(L, -2) && (lua_isnumber(L, -1) && lua_tonumber(L, -1) == 0)) {
-			lua_pushlightuserdata(L, ::FindWindow(Text::toT(string(lua_tostring(L, -2))).c_str(), NULL));
-			return 1;
-		} else if(lua_isstring(L, -2) && lua_isstring(L, -1)) {
-			lua_pushlightuserdata(L, ::FindWindow(Text::toT(string(lua_tostring(L, -2))).c_str(), Text::toT(string(lua_tostring(L, -1))).c_str()));
-			return 1;
-		}
+	if(lua_gettop(L) == 2 && lua_isstring(L, -2) && lua_isstring(L, -1)) {
+		const tstring& s1 = Text::toT(string(lua_tostring(L, -2)));
+		const tstring& s2 = Text::toT(string(lua_tostring(L, -1)));
+
+		lua_pushlightuserdata(L, ::FindWindow(s1.empty() ? NULL : s1.c_str(), s2.empty() ? NULL : s2.c_str()));
+		return 1;
 	}
 	return 0;
 }

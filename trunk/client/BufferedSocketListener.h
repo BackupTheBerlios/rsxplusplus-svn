@@ -32,6 +32,7 @@ public:
 	typedef X<5> ModeChange;
 	typedef X<6> TransmitDone;
 	typedef X<7> Failed;
+	typedef X<8> Updated;
 
 	virtual void on(Connecting) throw() { }
 	virtual void on(Connected) throw() { }
@@ -41,6 +42,7 @@ public:
 	virtual void on(ModeChange) throw() { }
 	virtual void on(TransmitDone) throw() { }
 	virtual void on(Failed, const string&) throw() { }
+	virtual void on(Updated) throw() { }
 };
 
 #endif /*BUFFEREDSOCKETLISTENER_H_*/

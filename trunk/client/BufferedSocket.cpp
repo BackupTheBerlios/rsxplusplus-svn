@@ -405,7 +405,6 @@ void BufferedSocket::threadSendFile(InputStream* file) throw(Exception) {
 				}
 			}
 		}
-		//Thread::yield();
 	}
 }
 
@@ -491,6 +490,9 @@ bool BufferedSocket::checkEvents() {
 				case SHUTDOWN:
 					return false;
 				case ACCEPTED:
+					break;
+				case UPDATED:
+					fire(BufferedSocketListener::Updated());
 					break;
 			}
 

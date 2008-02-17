@@ -52,6 +52,7 @@ public:
 	static bool				isIpInRange(const string& aIp, const string& aRange);
 	static tstring			formatAdditionalInfo(const string& aIp, bool sIp, bool sCC);
 	static string			getSlowDLCheat(double dlSpeed);
+	static UINT				str2wmmsg(const string& str);
 
 	//simple function from cplusplus.com with changes ;)
 	template<int len>

@@ -1,3 +1,7 @@
+** SVN 52
+ ** little cleanup/improvements in script manager
+ ** DC++ SVN partial merge (might help with freezes)
+
 ** SVN 51
  ** version check improved
  ** setting to change url to profile version xml (change it manually in RSXSettings.xml)

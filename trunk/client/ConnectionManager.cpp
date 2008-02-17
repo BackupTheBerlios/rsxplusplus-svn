@@ -78,8 +78,7 @@ void ConnectionManager::getDownloadConnection(const UserPtr& aUser) {
 		if(i == downloads.end()) {
 			getCQI(aUser, true);
 		} else {
-			if(find(checkIdle.begin(), checkIdle.end(), aUser) == checkIdle.end())
-				checkIdle.push_back(aUser);
+			DownloadManager::getInstance()->checkIdle(aUser);
 		}
 	}
 }
@@ -125,7 +124,7 @@ UserConnection* ConnectionManager::getConnection(bool aNmdc, bool secure) throw(
 
 void ConnectionManager::putConnection(UserConnection* aConn) {
 	aConn->removeListener(this);
-	aConn->disconnect(true);
+	aConn->disconnect();
 
 	Lock l(cs);
 	userConnections.erase(remove(userConnections.begin(), userConnections.end(), aConn), userConnections.end());
@@ -134,15 +133,11 @@ void ConnectionManager::putConnection(UserConnection* aConn) {
 void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) throw() {
 	UserList passiveUsers;
 	ConnectionQueueItem::List removed;
-	UserList idlers;
 
 	{
 		Lock l(cs);
 
 		uint16_t attempts = 0;
-
-		idlers = checkIdle;
-		checkIdle.clear();
 
 		for(ConnectionQueueItem::Iter i = downloads.begin(); i != downloads.end(); ++i) {
 			ConnectionQueueItem* cqi = *i;
@@ -199,10 +194,6 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) throw()
 			putCQI(*m);
 		}
 
-	}
-
-	for(UserList::const_iterator i = idlers.begin(); i != idlers.end(); ++i) {
-		DownloadManager::getInstance()->checkIdle(*i);
 	}
 
 	for(UserList::iterator ui = passiveUsers.begin(); ui != passiveUsers.end(); ++ui) {

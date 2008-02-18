@@ -1,3 +1,122 @@
+** svn361
+	released 2.11
+
+** svn360
+	fixed small problem with queue priority
+
+** svn359
+	added user menu items to nick's context menu in PM
+	workaround for preview antifrag files
+	changes in Version update routine
+
+** svn358
+	fixed some problems with emoticons
+	autopriority enabled only when other priority not selected
+	fixed some problem with search results
+	bloom filters changed (DC++ SVN)
+
+** svn357
+	fixed crashes when adding files through magnet links
+	fixed unavailable filelist reporting (THX redsaq)
+	workaround for some lagging routers (THX klirik)
+
+** svn356
+	improved PFS a bit (to the state before removing FileChunksInfo)
+	reverted only unique TTHs in queue (there was some reason to removed it, but I can't remember it)
+	some fixes for adding files to queue
+
+** svn355
+	fixed crashes #9252, #9358, #9620, #9622
+	try to fix crashes #9257, #9315, #9451
+	fixed a bug when minislots were aplied to chunk size and not file size
+	fixed file size in Upload queue window
+	fixed DNS resolving for favorite hub's IP
+	reverted storing user's first nick to have it for offline users
+	fixed storing partially downloaded chunks
+	fixed slow downloads disconnecting
+	fixed antifragment downloading
+	"Download finished" popup is displayed only when whole file is complete
+	Socks5 password field isn't readable
+	hopefully fixed some problems with downloading from filelists
+	switched to VS 2008
+	updated bzip2
+	fixed an issue with nick encodings and nmdc connections (DC++ SVN)
+	fixed autopriority for new files
+	added "Naomi web filter" to crash libraries
+	double-sized chunks for really fast users
+
+** svn354
+	released 2.1
+
+** svn353
+	fixed possible crash in QueueFrame
+
+** svn352
+	hopefully fixed rare crash when closing Search window
+	fixed crash #7898
+	added "Microsoft Text Service Module" to crash libraries
+
+** svn351
+	added settings "Ask for magnet action"
+	light color theme set as default
+	reimplemented all queue progressbar colors -> downloaded bytes, running chunks, done chunks
+
+** svn350
+	fixed searching for alternate sources
+	"Download to - Add as source" menu displays filename only
+	segment size selected by last user speed
+
+** svn349
+	maximum search interval can be set up to 9999 seconds
+	fixed done segments loading from Queue.xml
+	finished uploads window display whole file size
+
+** svn348
+	reimplemented exact displaying of downloaded size
+	displaying "User offline" instead of CID
+
+** svn347
+	reimplemented settings for maximum simultaneous files
+
+** svn346
+	fixed finished downloads logging
+	fixed downloading when segment speed limit was set
+
+** svn345
+	partial file sharing should work again
+
+** svn344
+
+*** WARNING ***
+  This version breaks information about downloaded parts of your queue.
+  It's recommended to finish all started downloads before update.
+  Queue won't be deleted, only everything will start from the beginning.
+*** WARNING ***
+
+	removed FileChunksInfo
+	partial file sharing broken - i'll fix it later
+
+** svn343
+	released 2.06	
+
+** svn342
+	[ADC] sending favorite IP in I4
+	fixed deadlock in QueueManager
+	something for PMs
+
+** svn341
+	some Linux fixes (DC++ SVN)
+	hopefully fixed crashes due to invalid TTH block size
+
+** svn340
+	added hub bloom filter (DC++ SVN)
+
+** svn339
+	fixed TTH verify for small files
+	removed autodisconnecting when speed is below 1B/s
+	hopefully fixed timer problems (reconnect, wrong uptime etc.)
+	DC++ SVN merge
+
 ** svn338
 	allow files with $ in their name
 	some DC++ SVN merge

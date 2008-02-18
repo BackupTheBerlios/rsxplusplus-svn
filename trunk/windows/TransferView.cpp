@@ -189,7 +189,7 @@ LRESULT TransferView::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
 				string ext = Util::getFileExt(target);
 				if(ext.size()>1) ext = ext.substr(1);
 				PreviewAppsSize = WinUtil::SetupPreviewMenu(previewMenu, ext);
-				if(previewMenu.GetMenuItemCount() > 0) {
+				if(previewMenu.GetMenuItemCount() > 1) {
 					transferMenu.EnableMenuItem((UINT)(HMENU)previewMenu, MFS_ENABLED);
 				} else {
 					transferMenu.EnableMenuItem((UINT)(HMENU)previewMenu, MFS_DISABLED);
@@ -228,7 +228,7 @@ void TransferView::runUserCommand(UserCommand& uc) {
 	int i = -1;
 	while((i = ctrlTransfers.GetNextItem(i, LVNI_SELECTED)) != -1) {
 		const ItemInfo* itemI = ctrlTransfers.getItemData(i);
-		if(!itemI->user->isOnline())
+		if(!itemI->user || !itemI->user->isOnline())
 			continue;
 
 		StringMap tmp = ucParams;
@@ -750,6 +750,19 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 			if(!pp) 
 				continue;
 
+			if(ui->user) {
+				int pos = -1;
+				ItemInfo* ii = findItem(*ui, pos);
+				if(ii) {
+					ii->status = ui->status;
+					ii->statusString = ui->statusString;
+
+					if(!pp->parent->collapsed) {
+						updateItem(ctrlTransfers.findItem(ii), ui->updateMask);
+					}
+				}
+			}
+
 			pp->parent->update(*ui);
 			updateItem(ctrlTransfers.findItem(pp->parent), ui->updateMask);
 		}
@@ -964,9 +977,6 @@ void TransferView::on(DownloadManagerListener::Tick, const DownloadList& dl) {
 		}
 		statusString += Text::tformat(TSTRING(DOWNLOADED_BYTES), pos.c_str(), percent, elapsed.c_str());
 		ui->setStatusString(statusString);
-		if((d->getAverageSpeed() < 1) && ((GET_TICK() - d->getStart()) > 15000)) {
-			d->getUserConnection().disconnect();
-		}
 			
 		tasks.add(UPDATE_ITEM, ui);
 	}
@@ -1074,9 +1084,6 @@ void TransferView::on(UploadManagerListener::Tick, const UploadList& ul) {
 		ui->setStatusString(statusString);
 					
 		tasks.add(UPDATE_ITEM, ui);
-		if((u->getAverageSpeed() < 1) && ((GET_TICK() - u->getStart()) > 15000)) {
-			u->getUserConnection().disconnect(true);
-		}
 	}
 
 	PostMessage(WM_SPEAKER);
@@ -1273,6 +1280,7 @@ void TransferView::on(QueueManagerListener::StatusUpdated, const QueueItem* qi) 
 
 void TransferView::on(QueueManagerListener::Finished, const QueueItem* qi, const string&, int64_t) throw() {
 	UpdateInfo* ui = new UpdateInfo(const_cast<QueueItem*>(qi), true, true);
+
 	ui->setTarget(Text::toT(qi->getTarget()));
 	ui->setPos(0);
 	ui->setActual(0);

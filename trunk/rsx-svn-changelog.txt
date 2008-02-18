@@ -1,3 +1,7 @@
+** SVN 53
+ ** more cosmetic before release :)
+ ** sdc crash fixes + some more fixes
+
 ** SVN 52
  ** little cleanup/improvements in script manager
  ** DC++ SVN partial merge (might help with freezes)

@@ -419,17 +419,8 @@ void DownloadManager::failDownload(UserConnection* aSource, const string& reason
 		removeDownload(d);
 		//fire(DownloadManagerListener::Failed(), d, reason);
 
-		if (d->getType() == Transfer::TYPE_FULL_LIST ) {
-			if(reason.find("File Not Available") != string::npos || reason.find("File non disponibile") != string::npos ) {
-				fire(DownloadManagerListener::Failed(), d, "Check complete, idle");
-				ClientManager::getInstance()->setCheating(aSource->getUser(), "", "Filelist Not Available", RSXSETTING(FILELIST_NA), false, true, RSXBOOLSETTING(SHOW_FILELIST_NA), false, true);
-				QueueManager::getInstance()->putDownload(d, true, false);
-				//fire(DownloadManagerListener::CheckComplete(), aSource->getUser()); //RSX++
-				removeConnection(aSource);
-				return;
-			} else if(reason == STRING(DISCONNECTED)) {
-				ClientManager::getInstance()->fileListDisconnected(aSource->getUser());
-			}
+		if (d->getType() == Transfer::TYPE_FULL_LIST && reason == STRING(DISCONNECTED)) {
+			ClientManager::getInstance()->fileListDisconnected(aSource->getUser());
 		} else if( d->isSet(Download::FLAG_TESTSUR) ) {
 			fire(DownloadManagerListener::Failed(), d, "Check complete, idle");
 			if(reason == STRING(NO_SLOTS_AVAILABLE))
@@ -567,7 +558,6 @@ void DownloadManager::fileNotAvailable(UserConnection* aSource) {
 		return;
 	} else if (d->isSet(Download::FLAG_TESTSUR)) {
 		dcdebug("TestSUR File not available\n");
-		//fire(DownloadManagerListener::CheckComplete(), aSource->getUser());
 		fire(DownloadManagerListener::Failed(), d, "Check complete, idle");
 
 		ClientManager::getInstance()->setCheating(aSource->getUser(), "File Not Available", "", -1, false);

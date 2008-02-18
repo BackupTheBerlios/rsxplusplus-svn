@@ -62,7 +62,6 @@ public:
 		}
 	}
 
-
 	void stopCheck() {
 		if(clientEngine != NULL) {
 			delete clientEngine;
@@ -89,8 +88,6 @@ private:
 
 		void cancel() { 
 			inThread = false;
-			// called always after delete operator
-			users->myInfoEngine = NULL;
 			join();
 		}
 
@@ -121,9 +118,7 @@ private:
 				}
 				client->setCheckedAtConnect(true);
 			}
-			inThread = false;
-			// make some cleanup
-			delete this;
+			users->stopMyINFOCheck();
 			return 0;
 		}
 
@@ -227,11 +222,11 @@ private:
 										if(!ou->getChecked()) {
 											iterBreak = true;
 											try {
-												dcdebug("ThreadedCheck: Adding TestSUR to queue %s\n", ou->getIdentity().getNick().c_str());
+												//dcdebug("ThreadedCheck: Adding TestSUR to queue %s\n", ou->getIdentity().getNick().c_str());
 												QueueManager::getInstance()->addTestSUR(ou->getUser(), false);
 												ou->getIdentity().setTestSURQueued("1");
 											} catch(...) {
-												dcdebug("ThreadedCheck: Exception adding testsur %s\n", ou->getIdentity().getNick().c_str());
+												//dcdebug("ThreadedCheck: Exception adding testsur %s\n", ou->getIdentity().getNick().c_str());
 											}
 											ou->dec();
 											break;
@@ -244,7 +239,7 @@ private:
 												ou->getIdentity().setTestSURQueued(Util::emptyString);
 											}
 										} catch(...) {
-											dcdebug("ThreadedCheck: Exception removing testsur %s\n", ou->getIdentity().getNick().c_str());
+											//dcdebug("ThreadedCheck: Exception removing testsur %s\n", ou->getIdentity().getNick().c_str());
 										}
 										ou->dec();
 										break;
@@ -255,11 +250,11 @@ private:
 										if(ou->shouldCheckFileList(!getCheckClients())) {
 											if(!ou->getChecked(true)) {
 												try {
-													dcdebug("Adding FileList check to queue %s\n", ou->getIdentity().getNick());
+													//dcdebug("Adding FileList check to queue %s\n", ou->getIdentity().getNick());
 													QueueManager::getInstance()->addList(ou->getUser(), QueueItem::FLAG_CHECK_FILE_LIST);
 													ou->getIdentity().setFileListQueued("1");
 												} catch(...) {
-													dcdebug("ThreadedCheck: Exception adding filelist %s\n", ou->getIdentity().getNick().c_str());
+													//dcdebug("ThreadedCheck: Exception adding filelist %s\n", ou->getIdentity().getNick().c_str());
 												}
 												ou->dec();
 												break;

@@ -32,7 +32,6 @@ IpManager::IpManager() : c(NULL), ipWatchVersion("1.00") {
 }
 
 IpManager::~IpManager() {
-	WatchSave();
 	clearWatchList();
 
 	if(c != NULL) { 

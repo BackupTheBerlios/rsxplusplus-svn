@@ -56,7 +56,7 @@ private:
 
 	int current;
 	CriticalSection cs;
-	HttpConnection c;
+	HttpConnection* c;
 	string downBuf;
 	UpdateItems items;
 };

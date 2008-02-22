@@ -65,11 +65,10 @@ private:
 	~AdcHub() throw();
 
 	/** Map session id to OnlineUser */
-	typedef unordered_map<uint32_t, OnlineUser*> SIDMap;
+	typedef unordered_map<uint32_t, OnlineUser*> ADCMap;
+	typedef UserMap<true, ADCMap> SIDMap;
 	typedef SIDMap::const_iterator SIDIter;
-	//RSX++
-	typedef UserMap<true, SIDMap> ADCUsers;
-	ADCUsers users;
+	SIDMap users;
 
 	void startChecking() { users.startCheck(this, getCheckClients(), getCheckFilelists()); }
 	void startCustomCheck(bool clients, bool filelists) { users.startCheck(this, clients, filelists); }

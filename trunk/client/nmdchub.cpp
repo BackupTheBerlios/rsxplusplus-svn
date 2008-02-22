@@ -73,7 +73,7 @@ void NmdcHub::refreshUserList(bool refreshOnly) {
 		}
 	} else {
 		//RSX++ //make sure we dont check user
-		users.stopMyINFOCheck();
+		//users.stopMyINFOCheck();
 		//END
 		clearUsers();
 		getNickList();
@@ -486,7 +486,7 @@ void NmdcHub::onLine(const string& aLine) throw() {
 			}
 		}
 		//RSX++ // $MyINFO check
-		if(getCheckedAtConnect() && getCheckMyInfo()) {
+		if(/*getCheckedAtConnect() && */getCheckMyInfo()) {
 			u.getIdentity().myInfoDetect(u);
 		}
 		//END
@@ -781,9 +781,9 @@ void NmdcHub::onLine(const string& aLine) throw() {
 
 			//RSX++
 			if(isOp()) {
-				if(getCheckMyInfo()) {
-					users.startMyINFOCheck(this);
-				}
+				//if(getCheckMyInfo()) {
+				//	users.startMyINFOCheck(this);
+				//}
 				if(getCheckOnConnect()) {
 					users.startCheck(this, getCheckClients(), getCheckFilelists(), true);
 				}

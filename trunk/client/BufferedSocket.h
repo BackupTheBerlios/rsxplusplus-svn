@@ -79,7 +79,7 @@ public:
 	void write(const char* aBuf, size_t aLen) throw();
 	/** Send the file f over this socket. */
 	void transmitFile(InputStream* f) { Lock l(cs); addTask(SEND_FILE, new SendFileInfo(f)); }
-	
+
 	/** Send an updated signal to all listeners */
 	void updated() { Lock l(cs); addTask(UPDATED, 0); }
 

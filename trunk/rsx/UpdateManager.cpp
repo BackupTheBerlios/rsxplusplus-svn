@@ -21,9 +21,17 @@
 
 #include "UpdateManager.h"
 
-UpdateManager::UpdateManager() : current(0), working(false) { }
+UpdateManager::UpdateManager() : c(NULL), current(0), working(false) { 
+	c = new HttpConnection;
+}
+
 UpdateManager::~UpdateManager() {
-	c.removeListener(this);
+	if(c) {
+		c->removeListeners();
+		delete c;
+		c = NULL;
+	}
+	
 	items.clear();
 }
 
@@ -48,31 +56,31 @@ void UpdateManager::startDownload() {
 	downBuf = Util::emptyString;
 	working = true;
 	UpdateItems::const_iterator i = items.begin();
-	if(i != items.end()) {
+	if(i != items.end() && c) {
 		current = i->first;
-		c.addListener(this);
-		c.downloadFile(i->second);
+		c->addListener(this);
+		c->downloadFile(i->second);
 	}
 }
 
-void UpdateManager::on(HttpConnectionListener::Complete, HttpConnection*, const string&) throw() {
+void UpdateManager::on(HttpConnectionListener::Complete, HttpConnection* conn, const string&) throw() {
 	{
 		Lock l(cs);
 		items.erase(current);
 	}
+	conn->removeListener(this);
 	working = false;
-	c.removeListener(this);
 	fire(UpdateManagerListener::Complete(), downBuf, current);
 	startDownload();
 }
 
-void UpdateManager::on(HttpConnectionListener::Failed, HttpConnection*, const string& aLine) throw() {
+void UpdateManager::on(HttpConnectionListener::Failed, HttpConnection* conn, const string& aLine) throw() {
 	{
 		Lock l(cs);
 		items.erase(current);
 	}
+	conn->removeListener(this);
 	working = false;
-	c.removeListener(this);
 	fire(UpdateManagerListener::Failed(), aLine, current);
 	startDownload();
 }

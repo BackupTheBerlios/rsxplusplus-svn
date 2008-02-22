@@ -124,7 +124,7 @@ UserConnection* ConnectionManager::getConnection(bool aNmdc, bool secure) throw(
 
 void ConnectionManager::putConnection(UserConnection* aConn) {
 	aConn->removeListener(this);
-	aConn->disconnect();
+	aConn->disconnect(true);
 
 	Lock l(cs);
 	userConnections.erase(remove(userConnections.begin(), userConnections.end(), aConn), userConnections.end());
@@ -718,7 +718,7 @@ void ConnectionManager::on(UserConnectionListener::Failed, UserConnection* aSour
 			dcassert(i != downloads.end());
 			ConnectionQueueItem* cqi = *i;
 			cqi->setState(ConnectionQueueItem::WAITING);
-			cqi->setLastAttempt((aSource->getLastActivity() == 0) ? 0 : GET_TICK());
+			cqi->setLastAttempt(GET_TICK());
 			fire(ConnectionManagerListener::Failed(), cqi, aError);
 		} else if(aSource->isSet(UserConnection::FLAG_UPLOAD)) {
 			ConnectionQueueItem::Iter i = find(uploads.begin(), uploads.end(), aSource->getUser());

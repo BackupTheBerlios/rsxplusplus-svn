@@ -27,17 +27,16 @@
 template<bool isADC, typename BaseMap>
 class UserMap : public BaseMap {
 public:
-	UserMap() : clientEngine(NULL), myInfoEngine(NULL) { };
+	UserMap() : clientEngine(NULL) { };
 	~UserMap() {
-		stopMyINFOCheck();
-		stopCheck();
+		//stopMyINFOCheck();
+		//stopCheck();
 		QueueManager::getInstance()->removeOfflineChecks();
 	};
 
 	void startMyINFOCheck(Client* c) { 
-		if(myInfoEngine == NULL) {
-			myInfoEngine = new ThreadedMyINFOCheck(this, c);
-			myInfoEngine->startCheck();
+		if(!myInfoEngine.isRunning()) {
+			myInfoEngine.startCheck(c);
 		}
 	}
 
@@ -56,9 +55,8 @@ public:
 	}
 
 	void stopMyINFOCheck() {
-		if(myInfoEngine != NULL) {
-			delete myInfoEngine;
-			myInfoEngine = NULL;
+		if(myInfoEngine.isRunning()) {
+			myInfoEngine.cancel();
 		}
 	}
 
@@ -78,54 +76,52 @@ private:
 	//myinfo check engine
 	class ThreadedMyINFOCheck : public Thread, public FastAlloc<ThreadedMyINFOCheck> {
 	public:
-		ThreadedMyINFOCheck(UserMap* _u, Client* _c) : client(_c), users(_u), 
-			inThread(false) { };
+		ThreadedMyINFOCheck() : client(NULL), inThread(false) { };
 		~ThreadedMyINFOCheck() { cancel(); }
-
-		bool isChecking() { 
-			return inThread; 
-		}
 
 		void cancel() { 
 			inThread = false;
 			join();
 		}
 
-		void startCheck() {
-			if(!client || !users) {
+		bool isRunning() { return inThread; }
+
+		void startCheck(Client* _c) {
+			client = _c;
+			if(!client) {
 				return;
 			}
-
-			if(!inThread)
+			if(!inThread) {
 				start();
+			}
 		}
+
 	private:
 		int run() {
+			dcassert(client != NULL);
 			inThread = true;
 			setThreadPriority(Thread::HIGH);
 			if(client && client->isConnected() && !client->getCheckedAtConnect()) {
-				Lock l(client->cs);
-				for(BaseMap::const_iterator i = users->begin(); i != users->end(); i++) {
-					OnlineUser* ou = i->second;
-					if(!inThread || !ou || !(client && client->isConnected())) 
-						break;
-					ou->inc();
-					if(ou->isCheckable(false)) {
-						ou->getIdentity().myInfoDetect(*ou);
+				//get users, release lock and then check them
+				OnlineUser::List ul;
+				{
+					Lock l(client->cs);
+					client->getUserList(ul);
+				}
+				for(OnlineUser::List::const_iterator i = ul.begin(); i != ul.end(); ++i) {
+					if((*i)->isCheckable(false)) {
+						(*i)->getIdentity().myInfoDetect(*(*i));
 					}
-					ou->dec();
+					(*i)->dec();
 					sleep(1);
 				}
 				client->setCheckedAtConnect(true);
 			}
-			users->stopMyINFOCheck();
 			return 0;
 		}
-
 		bool inThread;
 		Client* client;
-		UserMap* users;
-	}*myInfoEngine;
+	}myInfoEngine;
 
 	//clients check engine
 	class ThreadedCheck : public Thread, public FastAlloc<ThreadedCheck> {

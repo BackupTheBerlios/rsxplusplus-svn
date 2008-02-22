@@ -140,7 +140,7 @@ public:
 	void setHub(bool hub) { set("HU", hub ? "1" : Util::emptyString); }
 	void setBot(bool bot) { set("BO", bot ? "1" : Util::emptyString); }
 	void setHidden(bool hidden) { set("HI", hidden ? "1" : Util::emptyString); }
-	const string getTag() const;
+	string getTag() const;
 	bool supports(const string& name) const;
 	bool isHub() const { return isClientType(CT_HUB) || isSet("HU"); }
 	bool isOp() const { return isClientType(CT_OP) || isSet("OP"); }
@@ -156,7 +156,7 @@ public:
 	bool isClientChecked() const { return isSet("TC"); }
 	bool isFileListChecked() const { return isSet("FC"); }
 	//END
-	const string get(const char* name) const;
+	string get(const char* name) const;
 	void set(const char* name, const string& val);
 	bool isSet(const char* name) const;	
 	string getSIDString() const { uint32_t sid = getSID(); return string((const char*)&sid, 4); }

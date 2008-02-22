@@ -185,7 +185,7 @@ void AdcHub::handle(AdcCommand::INF, AdcCommand& c) throw() {
 		u->getUser()->setFlag(User::TLS);
 	}
 	//RSX++ // $MyINFO check
-	if(getCheckedAtConnect() && getCheckMyInfo()) {
+	if(/*getCheckedAtConnect() && */getCheckMyInfo()) {
 		u->getIdentity().myInfoDetect(*u);
 	}
 	//RSX++ // IP check
@@ -207,9 +207,9 @@ void AdcHub::handle(AdcCommand::INF, AdcCommand& c) throw() {
 	}
 	//RSX++ // threaded checks
 	if(isOp()) {
-		if(getCheckMyInfo()) {
-			users.startMyINFOCheck(this);
-		}
+		//if(getCheckMyInfo()) {
+		//	users.startMyINFOCheck(this);
+		//}
 		if(getCheckOnConnect()) {
 			users.startCheck(this, getCheckClients(), getCheckFilelists(), true);
 		}

@@ -189,6 +189,7 @@ void shutdown() {
 	TimerManager::deleteInstance();
 	DebugManager::deleteInstance();
 	ResourceManager::deleteInstance();
+	ScriptManager::deleteInstance(); //RSX++
 
 #ifdef _WIN32	
 	::WSACleanup();

@@ -1,3 +1,7 @@
+** RSX++ 1.00 Beta 3 ** 23/02/2008
+ ** fixed major problems with some deadlocks
+ ** Threaded MyINFO check temporary suspended due to instability
+
 ** RSX++ 1.00 Beta 2 ** xx/02/2008
  ** updated to StrongDC++ 2.11
  ** PCRE updated to 7.5

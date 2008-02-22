@@ -124,7 +124,7 @@ void DownloadManager::on(TimerManagerListener::Second, uint64_t aTick) throw() {
 
 void DownloadManager::checkIdle(const UserPtr& user) {
 	Lock l(cs);
-	for(UserConnectionList::iterator i = idlers.begin(); i != idlers.end(); ++i) {
+	for(UserConnectionList::const_iterator i = idlers.begin(); i != idlers.end(); ++i) {
 		UserConnection* uc = *i;
 		if(uc->getUser() == user) {
 			uc->updated();
@@ -186,11 +186,10 @@ void DownloadManager::checkDownloads(UserConnection* aConn) {
 		if(!errorMessage.empty()) {
 			fire(DownloadManagerListener::Status(), aConn, errorMessage);
 		}
-		aConn->setLastActivity(0);
 
 		Lock l(cs);
 		aConn->setState(UserConnection::STATE_IDLE);
-		idlers.push_back(aConn);
+ 	    idlers.push_back(aConn);
 		return;
 	}
 
@@ -199,14 +198,16 @@ void DownloadManager::checkDownloads(UserConnection* aConn) {
 	}
 
 	aConn->setState(UserConnection::STATE_SND);
-
+	
+	if(aConn->isSet(UserConnection::FLAG_SUPPORTS_XML_BZLIST) && d->getType() == Transfer::TYPE_FULL_LIST) {
+		d->setFlag(Download::FLAG_XML_BZ_LIST);
+	}
+	
 	{
 		Lock l(cs);
 		downloads.push_back(d);
 	}
-	if(aConn->isSet(UserConnection::FLAG_SUPPORTS_XML_BZLIST) && d->getType() == Transfer::TYPE_FULL_LIST) {
-		d->setFlag(Download::FLAG_XML_BZ_LIST);
-	}
+	// TODO fire(DownloadManagerListener::Requesting(), d);
 	aConn->send(d->getCommand(aConn->isSet(UserConnection::FLAG_SUPPORTS_ZLIB_GET)));
 }
 
@@ -306,7 +307,7 @@ void DownloadManager::startData(UserConnection* aSource, int64_t start, int64_t 
 	} else {
 		aSource->setDataMode();
 	}
-}
+}	
 
 void DownloadManager::on(UserConnectionListener::Data, UserConnection* aSource, const uint8_t* aData, size_t aLen) throw() {
 	Download* d = aSource->getDownload();
@@ -367,16 +368,14 @@ void DownloadManager::endData(UserConnection* aSource) {
 	}
 
 	removeDownload(d);
-	//RSX++
-	if(d->isSet(Download::FLAG_CHECK_FILE_LIST)) {
-		removeConnection(aSource);
-		QueueManager::getInstance()->putDownload(d, true);
-		return;
-	}
-	//END
 	//fire(DownloadManagerListener::Complete(), d, d->getType() == Transfer::TYPE_TREE);
 
 	QueueManager::getInstance()->putDownload(d, true, false);	
+	//RSX++
+	//if(d->isSet(Download::FLAG_CHECK_FILE_LIST)) {
+	//	aSource->disconnect(true);
+	//}
+	//END
 	checkDownloads(aSource);
 }
 
@@ -390,12 +389,14 @@ int64_t DownloadManager::getRunningAverage() {
 	return avg;
 }
 
-void DownloadManager::on(UserConnectionListener::MaxedOut, UserConnection* aSource, string param) throw() { 
+void DownloadManager::on(UserConnectionListener::MaxedOut, UserConnection* aSource, string param) throw() {
 	noSlots(aSource, param);
 }
+
 void DownloadManager::noSlots(UserConnection* aSource, string param) {
 	if(aSource->getState() != UserConnection::STATE_SND) {
-		dcdebug("DM::onMaxedOut Bad state, ignoring\n");
+		dcdebug("DM::noSlots Bad state, disconnecting\n");
+		aSource->disconnect();
 		return;
 	}
 
@@ -427,8 +428,7 @@ void DownloadManager::failDownload(UserConnection* aSource, const string& reason
 				ClientManager::getInstance()->setCheating(aSource->getUser(), "MaxedOut", "No slots for TestSUR - SlotLocker", -1, true);
 			else
 				ClientManager::getInstance()->setCheating(aSource->getUser(), reason, "", -1, true);
-			QueueManager::getInstance()->putDownload(d, true, false);
-			//fire(DownloadManagerListener::CheckComplete(), aSource->getUser()); //RSX++
+			QueueManager::getInstance()->putDownload(d, true);
 			removeConnection(aSource);
 			return;
 		}
@@ -562,7 +562,8 @@ void DownloadManager::fileNotAvailable(UserConnection* aSource) {
 
 		ClientManager::getInstance()->setCheating(aSource->getUser(), "File Not Available", "", -1, false);
 		
-		QueueManager::getInstance()->putDownload(d, true, false);
+		QueueManager::getInstance()->putDownload(d, true);
+		//removeConnection(aSource);
 		checkDownloads(aSource);
 		return;
 	}

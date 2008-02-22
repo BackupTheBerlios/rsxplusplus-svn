@@ -94,17 +94,15 @@ private:
 
 	// UserConnectionListener
 	void on(Data, UserConnection*, const uint8_t*, size_t) throw();
-	//void on(Error, UserConnection*, const string&) throw();
 	void on(Failed, UserConnection*, const string&) throw();
 	void on(MaxedOut, UserConnection*, string param = Util::emptyString) throw();
 	void on(FileNotAvailable, UserConnection*) throw();
-	void on(Updated, UserConnection*) throw();
 	void on(ListLength, UserConnection* aSource, const string& aListLength);
-
+	void on(Updated, UserConnection*) throw();
+		
 	void on(AdcCommand::SND, UserConnection*, const AdcCommand&) throw();
 	void on(AdcCommand::STA, UserConnection*, const AdcCommand&) throw();
 
-	bool prepareFile(UserConnection* aSource, int64_t start, int64_t newSize, bool z);
 	// TimerManagerListener
 	void on(TimerManagerListener::Second, uint64_t aTick) throw();
 };

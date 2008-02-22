@@ -84,11 +84,10 @@ private:
 
 	//mutable CriticalSection cs;
 
-	typedef unordered_map<string*, OnlineUser*, noCaseStringHash, noCaseStringEq> NickMap;
+	typedef unordered_map<string*, OnlineUser*, noCaseStringHash, noCaseStringEq> NMDCMap;
+	typedef UserMap<false, NMDCMap> NickMap;
 	typedef NickMap::const_iterator NickIter;
-	//RSX++
-	typedef UserMap<false, NickMap> NMDCUsers;
-	NMDCUsers users;
+	NickMap users;
 
 	void startChecking() { users.startCheck(this, getCheckClients(), getCheckFilelists()); }
 	void startCustomCheck(bool clients, bool filelists) { users.startCheck(this, clients, filelists); }

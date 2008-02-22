@@ -1,3 +1,7 @@
+** SVN 54
+ ** critical problem fixes
+ ** threaded myinfo check suspended due to instability (back in next rev)
+
 ** SVN 53
  ** more cosmetic before release :)
  ** sdc crash fixes + some more fixes

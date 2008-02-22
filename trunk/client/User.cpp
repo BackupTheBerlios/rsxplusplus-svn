@@ -112,7 +112,7 @@ bool Identity::isClientType(ClientType ct) const {
 	return (type & ct) == ct;
 }
 
-const string Identity::getTag() const {
+string Identity::getTag() const {
 	if(!get("TA").empty())
 		return get("TA");
 	if(get("VE").empty() || get("HN").empty() || get("HR").empty() || get("HO").empty() || get("SL").empty())
@@ -121,7 +121,7 @@ const string Identity::getTag() const {
 		get("HR") + "/" + get("HO") + ",S:" + get("SL") + ">";
 }
 
-const string Identity::get(const char* name) const {
+string Identity::get(const char* name) const {
 	FastLock l(cs);
 	InfMap::const_iterator i = info.find(*(short*)name);
 	return i == info.end() ? Util::emptyString : i->second;

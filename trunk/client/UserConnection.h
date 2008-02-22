@@ -98,11 +98,14 @@ public:
 		// UploadManager
 		STATE_GET,			// Waiting for GET
 		STATE_SEND,			// Waiting for $Send
-		STATE_RUNNING,		// Transmitting data
 
 		// DownloadManager
 		STATE_SND,	// Waiting for SND
 		STATE_IDLE, // No more downloads for the moment
+
+		// Up & down
+		STATE_RUNNING,		// Transmitting data
+
 	};
 
 	short getNumber() const { return (short)((((size_t)this)>>2) & 0x7fff); }

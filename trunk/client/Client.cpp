@@ -71,7 +71,6 @@ void Client::reconnect() {
 }
 
 void Client::shutdown() {
-	putDetectors(); //RSX++
 	if(socket) {
 		BufferedSocket::putSocket(socket);
 		socket = 0;
@@ -189,10 +188,6 @@ void Client::on(Connected) throw() {
 }
 
 void Client::on(Failed, const string& aLine) throw() {
-	//RSX++ //just in case...
-	//putSender(true);
-	putDetectors();
-	//END
 	updateActivity(); 
 	state = STATE_DISCONNECTED;
 	FavoriteManager::getInstance()->removeUserCommand(getHubUrl());
@@ -201,10 +196,6 @@ void Client::on(Failed, const string& aLine) throw() {
 }
 
 void Client::disconnect(bool graceLess) {
-	//RSX++
-	//putSender();
-	putDetectors();
-	//END
 	if(socket) 
 		socket->disconnect(graceLess);
 }

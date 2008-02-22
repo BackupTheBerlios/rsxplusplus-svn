@@ -814,13 +814,13 @@ void ClientManager::addCheckToQueue(const UserPtr& p, bool filelist) {
 			if(!ou->getChecked(filelist)) {
 				if((filelist && ou->shouldCheckFileList()) || (!filelist && ou->shouldTestSUR())) {
 					addCheck = true;
+					ou->inc();
 				}
 			}
 		}
 	}
 
-	if(addCheck && ou != NULL) {
-		ou->inc();
+	if(addCheck) {
 		try {
 			if(filelist) {
 				QueueManager::getInstance()->addList(p, QueueItem::FLAG_CHECK_FILE_LIST);

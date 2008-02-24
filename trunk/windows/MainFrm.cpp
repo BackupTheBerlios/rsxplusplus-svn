@@ -1227,6 +1227,7 @@ LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 			WebServerManager::getInstance()->removeListener(this);
 			SearchManager::getInstance()->disconnect();
 			ConnectionManager::getInstance()->disconnect();
+			listQueue.forceClose = true;
 			listQueue.shutdown();
 
 			stopUPnP();
@@ -1678,6 +1679,8 @@ int MainFrame::FileListQueue::run() {
 	setThreadPriority(Thread::LOW);
 
 	while(true) {
+		if(forceClose)
+			break;
 		s.wait(15000);
 		if(stop || fileLists.empty()) {
 			break;

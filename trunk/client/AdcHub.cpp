@@ -186,7 +186,11 @@ void AdcHub::handle(AdcCommand::INF, AdcCommand& c) throw() {
 	}
 	//RSX++ // $MyINFO check
 	if(/*getCheckedAtConnect() && */getCheckMyInfo()) {
-		u->getIdentity().myInfoDetect(*u);
+		const string& report = u->getIdentity().myInfoDetect(*u);
+		if(!report.empty()) {
+			cheatMessage(report);
+			updated(*u);
+		}
 	}
 	//RSX++ // IP check
 	if(!u->getIdentity().getIp().empty())

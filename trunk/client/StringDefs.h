@@ -918,6 +918,7 @@ enum Strings { // @DontAdd
 	SETTINGS_SHOW_CLIENT_NEW_VER, // "Notify on new Client Profile Version"
 	SETTINGS_SHOW_MYINFO_NEW_VER,  // "Notify on new MyINFO Profile Version"
 	SETTINGS_SHOW_IPWATCH_NEW_VER,  // "Notify on new IP Watch Version"
+	SETTINGS_USE_WILDCARDS_TO_PROTECT, // "Use Wildcards to match protected users"
 
 	SETTINGS_FSTRING, // "Line"
 	SETTINGS_IPW_ACTION, // "Action"

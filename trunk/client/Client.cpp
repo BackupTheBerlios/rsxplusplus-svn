@@ -263,22 +263,22 @@ void Client::on(Second, uint64_t aTick) throw() {
 //RSX++ // Lua
 bool ClientScriptInstance::onHubFrameEnter(Client* aClient, const string& aLine) {
 	bool r1 = false;
-	{
+	//{
 		Lock l(ScriptInstance::cs);
 		MakeCall("dcpp", "OnCommandEnter", 1, aClient, aLine);
 		r1 = GetLuaBool();
-	}
+	//}
 	bool r2 = PluginsManager::getInstance()->onOutgoingMessage(aClient, aLine);
 	return r1 || r2;
 }
 
 bool ClientScriptInstance::onClientMessage(Client* aClient, const string& prot, const string& aLine) {
 	bool r1 = false;
-	{
+	//{
 		Lock l(ScriptInstance::cs);
 		MakeCall(prot, "DataArrival", 1, aClient, aLine);
 		r1 = GetLuaBool();
-	}
+	//}
 	bool r2 = PluginsManager::getInstance()->onIncommingMessage(aClient, aLine);
 	return r1 || r2;
 }

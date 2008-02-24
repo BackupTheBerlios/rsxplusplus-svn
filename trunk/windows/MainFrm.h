@@ -407,12 +407,12 @@ private:
 	};
 	class FileListQueue: public Thread {
 	public:
-		bool stop;
+		bool stop, forceClose;
 		Semaphore s;
 		CriticalSection cs;
 		list<DirectoryListInfo*> fileLists;
 
-		FileListQueue() : stop(true) {}
+		FileListQueue() : stop(true), forceClose(false) {}
 		~FileListQueue() throw() {
 			shutdown();
 		}

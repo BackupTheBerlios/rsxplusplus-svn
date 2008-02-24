@@ -58,6 +58,7 @@ RSXAdvanced::ListItem RSXAdvanced::listItems[] = {
 	{ RSXSettingsManager::IGNORE_PM_SPAMMERS,					ResourceManager::SETTINGS_IGNORE_PM_SPAMMERS },
 	{ RSXSettingsManager::PROTECT_PM_USERS,						ResourceManager::SETTINGS_PROTECT_PM_USERS },
 	{ RSXSettingsManager::SORT_PROTECTED_AFTER_FAV,				ResourceManager::SETTINGS_SORT_PROTECTED_AFTER_FAV },
+	{ RSXSettingsManager::USE_WILDCARDS_TO_PROTECT,				ResourceManager::SETTINGS_USE_WILDCARDS_TO_PROTECT },
 	{ RSXSettingsManager::GET_UPDATE_PROFILE,					ResourceManager::SETTINGS_GET_UPDATE_PROFILE },
 	{ RSXSettingsManager::SHOW_CLIENT_NEW_VER,					ResourceManager::SETTINGS_SHOW_CLIENT_NEW_VER },
 	{ RSXSettingsManager::SHOW_MYINFO_NEW_VER,					ResourceManager::SETTINGS_SHOW_MYINFO_NEW_VER },

@@ -129,12 +129,19 @@ public:
 	}
 	//RSX++ //check slot count
 	void checkSlots(const UserPtr& p, int slots) {
-		Lock l(cs);
-		OnlineIterC i = onlineUsers.find(p->getCID());
-		if(i == onlineUsers.end()) return;
-
-		if(i->second->getIdentity().get("SC").empty())
-			i->second->getIdentity().checkSlotsCount((*i->second), slots);
+		Client* c = NULL;
+		string report = Util::emptyString;
+		{
+			Lock l(cs);
+			OnlineIterC i = onlineUsers.find(p->getCID());
+			if(i == onlineUsers.end()) return;
+			c = &i->second->getClient();
+			if(i->second->getIdentity().get("SC").empty())
+				report = i->second->getIdentity().checkSlotsCount((*i->second), slots);
+		}
+		if(c != NULL && !report.empty()) {
+			c->cheatMessage(report);
+		}
 	}
 	//END
 	void updateUser(const UserPtr& p) {
@@ -165,13 +172,20 @@ public:
 	}
 
 	void setGenerator(const UserPtr& p, const string& aGenerator, const string& aCID, const string& aBase) {
-		Lock l(cs);
-		OnlineIterC i = onlineUsers.find(p->getCID());
-		if(i == onlineUsers.end()) return;
-		i->second->getIdentity().set("GE", aGenerator);
-		i->second->getIdentity().set("FI", aCID);
-		i->second->getIdentity().set("FB", aBase);
-		i->second->getIdentity().checkFilelistGenerator((*i->second)); //RSX++
+		Client* c = NULL;
+		string report = Util::emptyString;
+		{
+			Lock l(cs);
+			OnlineIterC i = onlineUsers.find(p->getCID());
+			if(i == onlineUsers.end()) return;
+			i->second->getIdentity().set("GE", aGenerator);
+			i->second->getIdentity().set("FI", aCID);
+			i->second->getIdentity().set("FB", aBase);
+			report = i->second->getIdentity().checkFilelistGenerator((*i->second));
+		}
+		if(c != NULL && !report.empty()) {
+			c->cheatMessage(report);
+		}
 	}
 
 	void setUnknownCommand(const UserPtr& p, const string& aUnknownCommand) {

@@ -109,17 +109,19 @@ public:
 	}
 
 	void removeOfflineChecks() {
-		Lock l(cs);
-		const QueueItem::StringMap& queue = fileQueue.getQueue();
-		if(queue.size() > 1) {
-			for(QueueItem::StringIter i = queue.begin(); i != queue.end(); ++i) {
+		StringList targets;
+		{
+			Lock l(cs);
+			for(QueueItem::StringIter i = fileQueue.getQueue().begin(); i != fileQueue.getQueue().end(); ++i) {
 				if(i->second->isSet(QueueItem::FLAG_TESTSUR) || i->second->isSet(QueueItem::FLAG_CHECK_FILE_LIST)) {
 					if(i->second->countOnlineUsers() == 0) {
-						remove(i->second->getTarget());
-						i = queue.begin();
+						targets.push_back(i->second->getTarget());
 					}
 				}
 			}
+		}
+		for(StringIter i = targets.begin(); i != targets.end(); ++i) {
+			try { remove((*i)); } catch(...) { /* exception */ }
 		}
 	}
 

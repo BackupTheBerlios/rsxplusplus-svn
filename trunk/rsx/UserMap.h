@@ -34,10 +34,10 @@ public:
 		QueueManager::getInstance()->removeOfflineChecks();
 	};
 
-	void startMyINFOCheck(Client* c) { 
-		if(!myInfoEngine.isRunning()) {
+	void startMyINFOCheck(Client* /*c*/) { 
+		/*if(!myInfoEngine.isRunning()) {
 			myInfoEngine.startCheck(c);
-		}
+		}*/
 	}
 
 	void startCheck(Client* c, bool cc, bool cf, bool cOnConnect = false) {
@@ -55,9 +55,9 @@ public:
 	}
 
 	void stopMyINFOCheck() {
-		if(myInfoEngine.isRunning()) {
+		/*if(myInfoEngine.isRunning()) {
 			myInfoEngine.cancel();
-		}
+		}*/
 	}
 
 	void stopCheck() {
@@ -74,7 +74,7 @@ public:
 private:
 
 	//myinfo check engine
-	class ThreadedMyINFOCheck : public Thread, public FastAlloc<ThreadedMyINFOCheck> {
+	/*class ThreadedMyINFOCheck : public Thread, public FastAlloc<ThreadedMyINFOCheck> {
 	public:
 		ThreadedMyINFOCheck() : client(NULL), inThread(false) { };
 		~ThreadedMyINFOCheck() { cancel(); }
@@ -109,10 +109,12 @@ private:
 					client->getUserList(ul);
 				}
 				for(OnlineUser::List::const_iterator i = ul.begin(); i != ul.end(); ++i) {
-					if((*i)->isCheckable(false)) {
-						(*i)->getIdentity().myInfoDetect(*(*i));
+					OnlineUser* ou = *i;
+					if(ou->isCheckable(false)) {
+						if(ou->getIdentity().myInfoDetect(*ou))
+							ou->getClient().updated(*ou);
 					}
-					(*i)->dec();
+					ou->dec();
 					sleep(1);
 				}
 				client->setCheckedAtConnect(true);
@@ -121,7 +123,7 @@ private:
 		}
 		bool inThread;
 		Client* client;
-	}myInfoEngine;
+	}myInfoEngine;*/
 
 	//clients check engine
 	class ThreadedCheck : public Thread, public FastAlloc<ThreadedCheck> {
@@ -148,7 +150,7 @@ private:
 		}
 
 	private:
-		int run() {
+		int run() throw() {
 			inThread = true;
 			setThreadPriority(Thread::LOW);
 			if(checkOnConnect && !keepChecking) { 
@@ -165,7 +167,6 @@ private:
 			canCheckFilelist = !checkClients || !RSXBOOLSETTING(CHECK_ALL_CLIENTS_BEFORE_FILELISTS);
 			bool iterBreak = false;
 			const uint64_t	sleepTime =	static_cast<uint64_t>(RSXSETTING(SLEEP_TIME));
-			uint8_t secs = 0;
 			OnlineUser* ou = NULL;
 
 			while(keepChecking) {
@@ -204,8 +205,9 @@ private:
 										//nasty...
 										ou->setTestSURComplete();
 										ou->setFileListComplete();
-										ou->getIdentity().setCheatMsg(ou->getClient(), "No ADC 1.0/0.10 support", true, false, false);
+										string report = ou->setCheat("No ADC 1.0/0.10 support", true, false, false);
 										ou->updateUser();
+										client->cheatMessage(report);
 										ou->dec();
 										//prevent spam but don't break, it'd be a time loss
 										sleep(5);
@@ -264,17 +266,6 @@ private:
 					}
 					if(!canCheckFilelist) {
 						canCheckFilelist = !iterBreak;
-					}
-					if(secs >= 30) {
-						try {
-							QueueManager::getInstance()->removeOfflineChecks();
-							secs = 0;
-						} catch(...) {
-							// oh well, try again in 10 secs.
-							secs = 20;
-						}
-					} else {
-						secs++;
 					}
 					sleep(sleepTime);
 				} else {

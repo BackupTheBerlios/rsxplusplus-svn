@@ -1,3 +1,15 @@
+** SVN 55
+ ** prevent freeze on remove offline checks
+ ** some workaround for less queue manager calls when detectors are running
+ ** fixed some flood valules init
+ ** removed $BotList support
+ ** reverted to sdc setCheat way
+ ** removed option to separate protected patterns by space
+ ** improved protection check
+ ** option to use wildcards for protected user matcher
+ ** let say little stability improvements...
+ NOTE: broken sorting of protected users
+
 ** SVN 54
  ** critical problem fixes
  ** threaded myinfo check suspended due to instability (back in next rev)

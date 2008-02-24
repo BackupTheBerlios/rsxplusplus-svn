@@ -913,7 +913,10 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 						}
 						if(samenumbers) {
 							tstring detectString = Util::formatExactSize(u.onlineUser->getIdentity().getBytesShared()) + _T(" - the share size had too many same numbers in it");
-							u.onlineUser->getIdentity().setCheatMsg(*client, Text::fromT(detectString), false, true, RSXBOOLSETTING(SHOW_FAKESHARE_RAW));
+							string report = u.onlineUser->setCheat(Text::fromT(detectString), false, true, RSXBOOLSETTING(SHOW_FAKESHARE_RAW));
+							if(!report.empty())
+								client->cheatMessage(report);
+
 							if(RSXSETTING(FAKESHARE_RAW))
 								ClientManager::getInstance()->sendAction((*u.onlineUser), RSXSETTING(FAKESHARE_RAW));
 

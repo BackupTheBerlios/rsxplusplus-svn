@@ -137,7 +137,7 @@ void DownloadManager::addConnection(UserConnectionPtr conn) {
 	if(!conn->isSet(UserConnection::FLAG_SUPPORTS_TTHF) || !conn->isSet(UserConnection::FLAG_SUPPORTS_ADCGET)) {
 		// Can't download from these...
 		//RSX++ // No TTHF/ADCGET support
-		ClientManager::getInstance()->setCheating(conn->getUser(), "", "No TTHF/ADCGET support", RSXSETTING(NO_TTHF), true, false, RSXBOOLSETTING(SHOW_NO_TTHF), true, true);
+		ClientManager::getInstance()->setCheating(conn->getUser(), "", "No TTHF/ADCGET support", RSXSETTING(NO_TTHF), true, true, RSXBOOLSETTING(SHOW_NO_TTHF));
 		//END
 		conn->getUser()->setFlag(User::OLD_CLIENT);
 		QueueManager::getInstance()->removeSource(conn->getUser(), QueueItem::Source::FLAG_NO_TTHF);
@@ -193,7 +193,7 @@ void DownloadManager::checkDownloads(UserConnection* aConn) {
 		return;
 	}
 
-	if(d->isSet(Download::FLAG_TESTSUR) && aConn->isSet(UserConnection::FLAG_NMDC)) {
+	if(aConn->isSet(UserConnection::FLAG_NMDC) && d->isSet(Download::FLAG_TESTSUR)) {
 		aConn->getListLen();
 	}
 
@@ -225,7 +225,7 @@ void DownloadManager::on(AdcCommand::SND, UserConnection* aSource, const AdcComm
 	int64_t start = Util::toInt64(cmd.getParam(2));
 	int64_t bytes = Util::toInt64(cmd.getParam(3));
 	//RSX++ // set filelist size
-	DownloadPtr download = aSource->getDownload();
+	const DownloadPtr download = aSource->getDownload();
 	if(download && download->getPos() == 0 && download->isSet(Download::FLAG_CHECK_FILE_LIST)) {	
 		ClientManager::getInstance()->setListSize(aSource->getUser(), bytes, true);
 	}

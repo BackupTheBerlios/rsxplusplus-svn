@@ -69,7 +69,7 @@ const string RSXSettingsManager::settingTags[] =
 	"UseChatFilter", "AutosearchEnable", "AutosearchTime", "AutosearchEvery", 
 	"AutosearchRecheckTime", "UseHighLight", "GetUpdateProfile", "UseFiltersOnNewHubs", "UseHighlightsOnNewHubs", "ProtectPMUser",
 	"UseSlowDownloadKick", "SortProtectedAfterFavs", "IpInChat", "CountryInChat",
-	"ShowClientNewVer", "ShowMyInfoNewVer", "ShowIpWatchNewVer",
+	"ShowClientNewVer", "ShowMyInfoNewVer", "ShowIpWatchNewVer", "UseWildcardsToProtect",
 	"SENTRY",
 	// Int64
 	"TotalDetects", "TotalFailedDetects", "TotalRawCommandsSent",
@@ -207,6 +207,7 @@ RSXSettingsManager::RSXSettingsManager()
 	setDefault(USE_HL_FAV,					false);
 	setDefault(IP_IN_CHAT,					false);
 	setDefault(COUNTRY_IN_CHAT,				false);
+	setDefault(USE_WILDCARDS_TO_PROTECT,	false);
 	setDefault(DEFAULT_PRIO,				3); //normal prio
 }
 

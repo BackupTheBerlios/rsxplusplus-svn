@@ -92,8 +92,8 @@ public:
 		CT_HUB = 32
 	};
 
-	Identity() { }
-	Identity(const UserPtr& ptr, uint32_t aSID) : user(ptr) { setSID(aSID); }
+	Identity() { resetCounters(); }
+	Identity(const UserPtr& ptr, uint32_t aSID) : user(ptr) { setSID(aSID); resetCounters(); }
 	Identity(const Identity& rhs) { *this = rhs; } // Use operator= since we have to lock before reading...
 	Identity& operator=(const Identity& rhs) { FastLock l(cs); user = rhs.user; info = rhs.info; return *this; }
 
@@ -170,22 +170,22 @@ public:
 	void getParams(StringMap& map, const string& prefix, bool compatibility) const;
 
 	//RSX++
-	void setCheatMsg(Client& c, const string& aCheatDescription, bool aBadClient, bool aBadFilelist = false, bool aDisplayCheat = true);
+	string setCheat(const Client& c, const string& aCheatDescription, bool aBadClient, bool aBadFilelist = false, bool aDisplayCheat = true);
 	bool canICheckUser(OnlineUser& ou, bool filelist = false);
 	bool isMyInfoSpamming();
 	bool isCtmSpamming();
 	bool isPmSpamming();
 
-	void myInfoDetect(OnlineUser& ou);
-	bool updateClientType(OnlineUser& ou);
+	const string myInfoDetect(OnlineUser& ou);
+	const string updateClientType(OnlineUser& ou);
 	void checkIP(OnlineUser& ou);
-	void checkFilelistGenerator(OnlineUser& ou);
-	void checkrmDC(OnlineUser& ou);
-	void checkSlotsCount(OnlineUser& ou, int realSlots);
+	const string checkFilelistGenerator(OnlineUser& ou);
+	const string checkrmDC(OnlineUser& ou);
+	const string checkSlotsCount(OnlineUser& ou, int realSlots);
 
 	string getVersion() const;
 	void cleanUser();
-	bool isProtectedUser(const Client& c, bool OpBotHubCheck) const;
+	bool isProtectedUser(const Client& c, bool OpBotHubCheck);
 	//END
 	UserPtr& getUser() { return user; }
 	GETSET(UserPtr, user, User);
@@ -205,6 +205,12 @@ private:
 	uint64_t lastMyInfo;
 	uint64_t lastCte;	
 	uint64_t lastPm;
+
+	void resetCounters() {
+		set("MC", Util::emptyString);
+		myinfoFloodCounter = cteFloodCounter = pmFloodCounter = 0;
+		lastMyInfo = lastCte = lastPm = 0;
+	}
 
 	string isEmpty(const string& val) const { return val.empty() ? "N/A" : val; }
 	string getFilelistGeneratorVer() const;
@@ -279,7 +285,10 @@ public:
 
 	bool isInList;
 	//RSX++
-	bool isProtectedUser(bool checkOp = true) const { return identity.isProtectedUser(getClient(), checkOp); }
+	inline const string setCheat(const string& aCheat, bool aBadClient, bool aBadFilelist = false, bool aDisplayCheat = true) {
+		return identity.setCheat(getClient(), aCheat, aBadClient, aBadFilelist, aDisplayCheat);
+	}
+	inline const bool isProtectedUser(bool checkOp = true) { return identity.isProtectedUser(getClient(), checkOp); }
 	bool getChecked(bool filelist = false);
 	bool isCheckable(bool delay = true) const;
 	bool shouldTestSUR() const { return (!identity.isTestSURQueued() && !identity.isClientChecked()); }

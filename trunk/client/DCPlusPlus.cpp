@@ -148,14 +148,6 @@ void shutdown() {
 	HashManager::getInstance()->shutdown();
 	ConnectionManager::getInstance()->shutdown();
 
-	//RSX++
-	RsxUtil::uinit();
-
-	PluginsManager::deleteInstance();
-	UpdateManager::deleteInstance();
-	IpManager::deleteInstance();
-	//END
-
 	BufferedSocket::waitShutdown();
 	
 	QueueManager::getInstance()->saveQueue();
@@ -163,10 +155,15 @@ void shutdown() {
 	RSXSettingsManager::getInstance()->save(); //RSX++
 
 	//RSX++
+	RsxUtil::uinit();
+	PluginsManager::deleteInstance();
+	ScriptManager::deleteInstance();
+	UpdateManager::deleteInstance();
+	IpManager::deleteInstance();
 	ToolbarManager::deleteInstance();
 	IgnoreManager::deleteInstance();
 	AutoSearchManager::deleteInstance();
-	//--
+	//END
 	WebServerManager::deleteInstance();
 	ClientProfileManager::deleteInstance();	
 	PopupManager::deleteInstance();
@@ -189,7 +186,6 @@ void shutdown() {
 	TimerManager::deleteInstance();
 	DebugManager::deleteInstance();
 	ResourceManager::deleteInstance();
-	ScriptManager::deleteInstance(); //RSX++
 
 #ifdef _WIN32	
 	::WSACleanup();

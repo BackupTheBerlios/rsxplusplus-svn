@@ -388,15 +388,13 @@ void NmdcHub::onLine(const string& aLine) throw() {
 			return;
 
 		string connection = (i == j) ? Util::emptyString : param.substr(i, j-i-1);
-		if (!(supportFlags & SUPPORTS_BOTLIST)) { //RSX++ //$BotList
-			if(connection.empty()) {
-				// No connection = bot...
-				u.getUser()->setFlag(User::BOT);
-				u.getIdentity().setBot(true);
-			} else {
-				u.getUser()->unsetFlag(User::BOT);
-				u.getIdentity().setBot(false);
-			}
+		if(connection.empty()) {
+			// No connection = bot...
+			u.getUser()->setFlag(User::BOT);
+			u.getIdentity().setBot(true);
+		} else {
+			u.getUser()->unsetFlag(User::BOT);
+			u.getIdentity().setBot(false);
 		}
 
 		u.getIdentity().setHub(false);
@@ -487,7 +485,11 @@ void NmdcHub::onLine(const string& aLine) throw() {
 		}
 		//RSX++ // $MyINFO check
 		if(/*getCheckedAtConnect() && */getCheckMyInfo()) {
-			u.getIdentity().myInfoDetect(u);
+			const string& report = u.getIdentity().myInfoDetect(u);
+			if(!report.empty()) {
+				updated(u);
+				cheatMessage(report);
+			}
 		}
 		//END
 		fire(ClientListener::UserUpdated(), this, u);
@@ -535,7 +537,7 @@ void NmdcHub::onLine(const string& aLine) throw() {
 						if(RSXBOOLSETTING(SHOW_CTM_SPAM_KICK)) {
 							cheatMessage("*** " + u->getIdentity().getNick() + " - ConnectToMe Spam detected!! (IP: " + server + ")");
 						}
-						return;	
+						break;	
 					}
 				}
 			}
@@ -598,11 +600,7 @@ void NmdcHub::onLine(const string& aLine) throw() {
 				supportFlags |= SUPPORTS_NOGETINFO;
 			} else if(*i == "UserIP2") {
 				supportFlags |= SUPPORTS_USERIP2;
-			//RSX++ //$BotList
-			} else if(*i == "BotList") {
-				supportFlags |= SUPPORTS_BOTLIST;
 			}
-			//END
 		}
 	} else if(cmd == "$UserCommand") {
 		string::size_type i = 0;
@@ -661,7 +659,6 @@ void NmdcHub::onLine(const string& aLine) throw() {
 				feat.push_back("UserIP2");
 				feat.push_back("TTHSearch");
 				feat.push_back("ZPipe0");
-				feat.push_back("BotList"); //RSX++ //$BotList
 
 				if(BOOLSETTING(COMPRESS_TRANSFERS))
 					feat.push_back("GetZBlock");
@@ -857,26 +854,6 @@ void NmdcHub::onLine(const string& aLine) throw() {
 		socket->setMode(BufferedSocket::MODE_ZPIPE);
 	} else if(cmd == "$HubTopic") {
 		fire(ClientListener::HubTopic(), this, param);
-	//RSX++ //$BotList
-	} else if(cmd == "$BotList") {
-		if(!(supportFlags & SUPPORTS_BOTLIST))
-			supportFlags |= SUPPORTS_BOTLIST;
-		if(!param.empty()) {
-			OnlineUser::List v;
-			StringTokenizer<string> t(param, "$$");
-			StringList& sl = t.getTokens();
-			for(StringIter it = sl.begin(); it != sl.end(); ++it) {
-				if(it->empty())
-					continue;
-				OnlineUser& ou = getUser(*it);
-				ou.getUser()->setFlag(User::BOT);
-				ou.getIdentity().setBot(true);
-				v.push_back(&ou);
-			}
-
-			fire(ClientListener::UsersUpdated(), this, v);
-		}
-	//END
 	} else {
 		dcassert(cmd[0] == '$');
 		dcdebug("NmdcHub::onLine Unknown command %s\n", aLine.c_str());

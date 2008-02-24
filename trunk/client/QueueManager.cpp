@@ -548,29 +548,6 @@ void QueueManager::add(const string& aTarget, int64_t aSize, const TTHValue& roo
     
 	string target = checkTarget(aTarget, aSize, aFlags);
 
-	//RSX++
-	if(!((aFlags & QueueItem::FLAG_DIRECTORY_DOWNLOAD) || (aFlags & QueueItem::FLAG_USER_LIST))) {
-		string targetPath = Util::getFilePath(aTarget);
-		if(targetPath.compare(SETTING(DOWNLOAD_DIRECTORY)) == 0) { 
-			//only this is what we're looking for - ignore other paths
-			DirectoriesEx::List lst = FavoriteManager::getInstance()->getDirectoriesEx();
-			if(lst.size() > 0){
-				string tmpFile = Util::getFileName(target);
-				for(DirectoriesEx::Iter j = lst.begin(); j != lst.end(); j++){
-					if(Wildcard::patternMatch(tmpFile, (*j)->getExtension(), ';')) {
-						//look for variable, accepted only at start
-						if(strncmp((*j)->getPath().c_str(), "%[dd]", 5) == 0) {
-							target = checkTarget((SETTING(DOWNLOAD_DIRECTORY) + (*j)->getPath().substr(5) + tmpFile), aSize, aFlags);
-						} else {
-							target = checkTarget(((*j)->getPath() + tmpFile), aSize, aFlags);
-						}
-					}
-				}
-			}
-		}
-	}
-	//END
-
 	// Check if it's a zero-byte file, if so, create and return...
 	if(aSize == 0) {
 		if(!BOOLSETTING(SKIP_ZERO_BYTE)) {
@@ -579,17 +556,39 @@ void QueueManager::add(const string& aTarget, int64_t aSize, const TTHValue& roo
 		}
 		return;
 	}
-	//RSX++ //Download skiplist
-	if(!((aFlags & QueueItem::FLAG_USER_LIST) || (aFlags & QueueItem::FLAG_TESTSUR))) {
+
+	//RSX++
+	if(!( (aFlags & QueueItem::FLAG_USER_LIST) || (aFlags & QueueItem::FLAG_TESTSUR) )) {
 		if(!RSXSETTING(SKIPLIST_DOWNLOAD).empty() ){
 			int pos = aTarget.rfind("\\")+1;
 			if(Wildcard::patternMatch(aTarget.substr(pos), RSXSETTING(SKIPLIST_DOWNLOAD), ';')) {
 				return;
 			}
 		}
+
+		if(!(aFlags & QueueItem::FLAG_DIRECTORY_DOWNLOAD)) {
+			const string& targetPath = Util::getFilePath(aTarget);
+			if(targetPath.compare(SETTING(DOWNLOAD_DIRECTORY)) == 0) { 
+				//only this is what we're looking for - ignore other paths
+				DirectoriesEx::List& lst = FavoriteManager::getInstance()->getDirectoriesEx();
+				if(lst.size() > 0){
+					const string& tmpFile = Util::getFileName(target);
+					for(DirectoriesEx::Iter j = lst.begin(); j != lst.end(); j++){
+						if(Wildcard::patternMatch(tmpFile, (*j)->getExtension(), ';')) {
+							//look for variable, accepted only at start
+							if(strncmp((*j)->getPath().c_str(), "%[dd]", 5) == 0) {
+								target = checkTarget((SETTING(DOWNLOAD_DIRECTORY) + (*j)->getPath().substr(5) + tmpFile), aSize, aFlags);
+							} else {
+								target = checkTarget(((*j)->getPath() + tmpFile), aSize, aFlags);
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 	//END
-	
+
 	{
 		Lock l(cs);
 

@@ -431,7 +431,7 @@ const string Identity::myInfoDetect(OnlineUser& ou) {
 	return Util::emptyString;
 }
 //RSX++ //Protected users
-bool Identity::isProtectedUser(const Client& c, bool OpBotHubCheck) {
+bool Identity::isProtectedUser(const Client& c, bool OpBotHubCheck) const {
 	if(isSet("PR") || getUser()->isSet(User::PROTECTED))
 		return true;
 
@@ -459,7 +459,7 @@ bool Identity::isProtectedUser(const Client& c, bool OpBotHubCheck) {
 		}
 	}
 	if(ret == true) {
-		set("PR", "1");
+		const_cast<Identity&>(*this).set("PR", "1");
 	}
 	return ret;
 }
@@ -807,8 +807,8 @@ int OnlineUser::compareItems(const OnlineUser* a, const OnlineUser* b, uint8_t c
 		}
 		//RSX++
 		if(RSXBOOLSETTING(SORT_PROTECTED_AFTER_FAV)) {
-			bool a_isProt = a->getIdentity().isSet("PR") && !a->getIdentity().isOp(), 
-				b_isProt = b->getIdentity().isSet("PR") && !b->getIdentity().isOp();
+			bool a_isProt = /*a->isProtectedUser(false)*/a->getIdentity().isSet("PR") && !a->getIdentity().isOp(), 
+				b_isProt = /*b->isProtectedUser(false)*/ b->getIdentity().isSet("PR") && !b->getIdentity().isOp();
 			if(a_isProt && !b_isProt)
 				return -1;
 			if(!a_isProt && b_isProt)

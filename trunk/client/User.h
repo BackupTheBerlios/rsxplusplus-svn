@@ -185,7 +185,7 @@ public:
 
 	string getVersion() const;
 	void cleanUser();
-	bool isProtectedUser(const Client& c, bool OpBotHubCheck);
+	bool isProtectedUser(const Client& c, bool OpBotHubCheck) const;
 	//END
 	UserPtr& getUser() { return user; }
 	GETSET(UserPtr, user, User);
@@ -288,7 +288,7 @@ public:
 	inline const string setCheat(const string& aCheat, bool aBadClient, bool aBadFilelist = false, bool aDisplayCheat = true) {
 		return identity.setCheat(getClient(), aCheat, aBadClient, aBadFilelist, aDisplayCheat);
 	}
-	inline const bool isProtectedUser(bool checkOp = true) { return identity.isProtectedUser(getClient(), checkOp); }
+	inline bool isProtectedUser(bool checkOp = true) const { return identity.isProtectedUser(getClient(), checkOp); }
 	bool getChecked(bool filelist = false);
 	bool isCheckable(bool delay = true) const;
 	bool shouldTestSUR() const { return (!identity.isTestSURQueued() && !identity.isClientChecked()); }

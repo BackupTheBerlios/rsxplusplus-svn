@@ -1,3 +1,7 @@
+** SVN 56
+ ** svn rev bump :P
+ TODO: rewrite protection check
+
 ** SVN 55
  ** prevent freeze on remove offline checks
  ** some workaround for less queue manager calls when detectors are running

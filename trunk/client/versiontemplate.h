@@ -17,17 +17,18 @@
  */
 
 #define APPNAME "RSX++"
-#define VERSIONSTRING "1.00B3"
+#define VERSIONSTRING "1.00"
 #define VERSIONFLOAT 1.003
 
 #define DCVERSIONSTRING "0.704"
 #define DCVERSIONFLOAT 0.7042
 
 #define SVNVERSION "svn360"
-//RSX++ //////////////////////////////////////////////////////////
-#define SVN_REVISION 56
 
-//#define SVN_REVISION_STR "56"
+// RSX++
+#define SVN_REVISION $revision
+
+#define SVN_REVISION_STR "$revision"
 
 #define __HOMESITE "http://rsxplusplus.sf.net/"
 #define __WIKI "http://rsxplusplus.wiki.sourceforge.net/"
@@ -39,8 +40,3 @@
 #endif
 
 /* Update the .rc file as well... */
-
-/**
- * @file
- * $Id: version.h 360 2008-01-19 13:57:05Z bigmuscle $
- */

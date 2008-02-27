@@ -1,3 +1,9 @@
+** SVN 57
+ ** removed MakeDefs project
+ ** added makedefs.py
+ ** added versiontemplate.py
+ NOTE: now you have to install Python to run some scripts
+
 ** SVN 56
  ** svn rev bump :P
  TODO: rewrite protection check

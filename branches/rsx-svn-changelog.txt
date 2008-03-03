@@ -1,3 +1,9 @@
+** SVN 59
+ ** removed option to sort protected first [f*** up order in sorting and might cause problems]
+
+** SVN 58
+ ** nothing special
+
 ** SVN 57
  ** removed MakeDefs project
  ** added makedefs.py

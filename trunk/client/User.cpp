@@ -805,16 +805,6 @@ int OnlineUser::compareItems(const OnlineUser* a, const OnlineUser* b, uint8_t c
 			if(!a_isFav && b_isFav)
 				return 1;
 		}
-		//RSX++
-		if(RSXBOOLSETTING(SORT_PROTECTED_AFTER_FAV)) {
-			bool a_isProt = /*a->isProtectedUser(false)*/a->getIdentity().isSet("PR") && !a->getIdentity().isOp(), 
-				b_isProt = /*b->isProtectedUser(false)*/ b->getIdentity().isSet("PR") && !b->getIdentity().isOp();
-			if(a_isProt && !b_isProt)
-				return -1;
-			if(!a_isProt && b_isProt)
-				return 1;
-		}
-		//END
 		// workaround for faster hub loading
 		// lstrcmpiA(a->identity.getNick().c_str(), b->identity.getNick().c_str());
 	}

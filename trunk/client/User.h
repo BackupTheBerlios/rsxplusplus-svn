@@ -216,13 +216,13 @@ private:
 	string getFilelistGeneratorVer() const;
 	void logDetect(bool successful);
 	void checkTagState(OnlineUser& ou);
-	bool shouldRecheck() { 
+	/*bool shouldRecheck() { 
 		if(get("R1").empty()) { 
 			set("R1", "1"); 
 			return true; 
 		} 
 		return false; 
-	}
+	}*/
 	//END
 };
 
@@ -299,10 +299,11 @@ public:
 	void updateUser();
 	
 	/** User Interface **/
+	// get field value from user identity
 	string iGet(const char* name) const { 
 		return getIdentity().get(name); 
 	}
-	// get field value from user identity
+	// get user nick
 	string iGetNick() const { 
 		return getNick(); 
 	}

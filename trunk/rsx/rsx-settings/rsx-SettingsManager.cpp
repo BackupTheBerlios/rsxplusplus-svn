@@ -68,7 +68,7 @@ const string RSXSettingsManager::settingTags[] =
 
 	"UseChatFilter", "AutosearchEnable", "AutosearchTime", "AutosearchEvery", 
 	"AutosearchRecheckTime", "UseHighLight", "GetUpdateProfile", "UseFiltersOnNewHubs", "UseHighlightsOnNewHubs", "ProtectPMUser",
-	"UseSlowDownloadKick", "SortProtectedAfterFavs", "IpInChat", "CountryInChat",
+	"UseSlowDownloadKick", "IpInChat", "CountryInChat",
 	"ShowClientNewVer", "ShowMyInfoNewVer", "ShowIpWatchNewVer", "UseWildcardsToProtect",
 	"SENTRY",
 	// Int64
@@ -135,7 +135,6 @@ RSXSettingsManager::RSXSettingsManager()
 	setDefault(FLASH_WINDOW_ON_PM,					false);
 	setDefault(FLASH_WINDOW_ON_NEW_PM,				true);
 	setDefault(AUTO_START,							false);
-	setDefault(SORT_PROTECTED_AFTER_FAV,			true);
 	setDefault(SHOW_CLIENT_NEW_VER,					true);
 	setDefault(SHOW_MYINFO_NEW_VER,					true);
 	setDefault(SHOW_IPWATCH_NEW_VER,				true);

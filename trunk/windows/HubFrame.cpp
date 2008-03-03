@@ -2829,12 +2829,11 @@ LRESULT HubFrame::onEmoPackChange(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl
 bool HubFrame::getFilters(const Identity& i, const tstring& msg) {
 	if(RSXBOOLSETTING(USE_CHAT_FILTER) && client->getUseFilter()) {
 		CHARFORMAT2 cf;
-		Filters::List& ul = FavoriteManager::getInstance()->getFilters();
-		for(Filters::Iter j = ul.begin(); j != ul.end(); ++j) {
-			//string filterlines = ((*j)->getFstring());
-			if(/*!filterlines.empty() && */Wildcard::patternMatch(Text::fromT(msg), (*j)->getFstring()/*filterlines*/, '|')) {
+		const Filters::List& ul = FavoriteManager::getInstance()->getFilters();
+		for(Filters::List::const_iterator j = ul.begin(); j != ul.end(); ++j) {
+			if(Wildcard::patternMatch(Text::fromT(msg), (*j)->getFstring(), '|')) {
 				if((*j)->getUseColor()) {
-					memset(&cf, 0, sizeof(CHARFORMAT2));
+					memzero(&cf, sizeof(CHARFORMAT2));
 					cf.cbSize = sizeof(cf);
 					cf.dwReserved = 0;
 					cf.dwMask = CFM_BACKCOLOR | CFM_COLOR | CFM_BOLD | CFM_ITALIC | CFM_UNDERLINE | CFM_STRIKEOUT;

@@ -912,7 +912,6 @@ enum Strings { // @DontAdd
 	MENU_RECONNECT_DISCONNECTED, // "Reconnect disconnected"
 	SETTINGS_LOG_WEBSERVER, // "Log webserver"
 	SETTINGS_RAW_CMD_LOG, // "Log Raw Commands"
-	SETTINGS_SORT_PROTECTED_AFTER_FAV, // "Sort protected after favorite users"
 	SETTINGS_STARTUP_PRIORITY, // "Startup process priority:"
 	
 	SETTINGS_SHOW_CLIENT_NEW_VER, // "Notify on new Client Profile Version"

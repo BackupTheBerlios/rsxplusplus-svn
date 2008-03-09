@@ -18,10 +18,6 @@
 
 #include "stdafx.h"
 
-#ifndef _STLPORT_VERSION
-#error "You need STLPort 5.2.x to compile plugin"
-#endif
-
 /**
  * @file
  * $Id: stdafx.cpp 42 2007-10-31 18:27:40Z adrian_007 $

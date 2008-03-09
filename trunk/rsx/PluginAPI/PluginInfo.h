@@ -52,5 +52,5 @@ private:
 
 /**
  * @file
- * $Id: MainFrm.cpp,v 1.20 2004/07/21 13:15:15 bigmuscle Exp
+ * $Id$
  */

@@ -22,9 +22,9 @@
 class iClient;
 class iUser {
 public:
-	virtual string iGet(const char* name) const = 0;
-	virtual string iGetNick() const = 0;
-	virtual void sendPM(const std::string& aMsg) = 0;
+	virtual const char* iGet(const char* name) const = 0;
+	virtual const char* iGetNick() const = 0;
+	virtual void sendPM(const char* aMsg) = 0;
 	virtual iClient* getUserClient() = 0;
 };
 #endif

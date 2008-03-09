@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007 adrian_007, adrian-007 on o2 point pl
+ * Copyright (C) 2007-2008 adrian_007, adrian-007 on o2 point pl
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,5 +37,5 @@ public:
 
 /**
  * @file
- * $Id: PluginAPI.h 32 2007-09-16 20:49:44Z adrian_007 $
+ * $Id: PluginInterface.h 47 2008-01-27 18:26:07Z adrian_007 $
  */

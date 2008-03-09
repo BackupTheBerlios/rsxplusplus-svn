@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007 adrian_007, adrian-007 on o2 point pl
+ * Copyright (C) 2007-2008 adrian_007, adrian-007 on o2 point pl
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,17 +22,17 @@
 class iUser;
 class iClient {
 public:
-	virtual void iHubMessage(const string& aMsg) = 0;
-	virtual void iAddHubLine(const string& aMsg, int mType = 0) = 0;
-	virtual void iSendUserCmd(const string& aUserCmd) = 0;
-	virtual string iGetField(const char* name) const = 0;
-	virtual string iGetMyField(const char* name) const = 0;
-	virtual const string& iGetHubUrl() const = 0;
-	virtual iUser* getUserByNick(const std::string& aNick) = 0;
+	virtual void iHubMessage(const char* aMsg) = 0;
+	virtual void iAddHubLine(const char* aMsg, int mType = 0) = 0;
+	virtual void iSendUserCmd(const char* aUserCmd) = 0;
+	virtual const char* iGetField(const char* name) const = 0;
+	virtual const char* iGetMyField(const char* name) const = 0;
+	virtual const char* iGetHubUrl() const = 0;
+	virtual iUser* getUserByNick(const char* aNick) = 0;
 };
 #endif
 
 /**
  * @file
- * $Id: PluginAPI.h 32 2007-09-16 20:49:44Z adrian_007 $
+ * $Id: ClientInterface.h 47 2008-01-27 18:26:07Z adrian_007 $
  */

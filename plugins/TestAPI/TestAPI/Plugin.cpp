@@ -56,12 +56,13 @@ bool Plugin::onOutgoingMessage(iClient* c, const char* aMsg) {
 			string::size_type i = tmp1.find(" ");
 			if(i != string::npos) {
 				string nick = tmp1.substr(0, i);
-				iUser* iu = c->getUserByNick(nick);
+				iUser* iu = c->getUserByNick(nick.c_str());
 				if(iu != NULL) {
 					string m = tmp1.substr(i+1);
-					iu->sendPM(m);
+					iu->sendPM(m.c_str());
 				}
-				PluginAPI::logMessage("sent to " + nick);
+				const string& logm = "sent to " + nick;
+				PluginAPI::logMessage(logm.c_str());
 			}
 			return true;
 		}
@@ -70,18 +71,20 @@ bool Plugin::onOutgoingMessage(iClient* c, const char* aMsg) {
 }
 
 bool Plugin::onIncommingPM(iUser* from, const char* msg) {
-	PluginAPI::logMessage("private message from " + from->iGetNick() + " hub: " + from->getUserClient()->iGetHubUrl());
+	const string& logm = "private message from " + string(from->iGetNick()) + " hub: " + string(from->getUserClient()->iGetHubUrl());
+	PluginAPI::logMessage(logm.c_str());
 	return false;
 }
 
 bool Plugin::onOutgoingPM(iUser* to, const char* msg) {
-	PluginAPI::logMessage("private message to " + to->iGetNick() + " hub: " + to->getUserClient()->iGetHubUrl());
+	const string& logm = "private message to " + string(to->iGetNick()) + " hub: " + string(to->getUserClient()->iGetHubUrl());
+	PluginAPI::logMessage(logm.c_str());
 	return false;
 }
 
 void Plugin::onToolbarClick() {
 	const string& tmp = PluginAPI::getSetting(PLUGIN_ID, "setting123");
-	MessageBox(r_hwnd, PluginAPI::toW(tmp).c_str(), _T("iPlugin"), 0);
+	MessageBox(r_hwnd, PluginAPI::toW(tmp.c_str()), _T("iPlugin"), 0);
 	PluginAPI::showToolTip("TestAPI Popup", "This is a test of RSX++ PluginAPI ;)", PluginAPI::TT_INFO);
 }
 

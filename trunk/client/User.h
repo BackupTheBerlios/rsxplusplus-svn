@@ -300,15 +300,15 @@ public:
 	
 	/** User Interface **/
 	// get field value from user identity
-	string iGet(const char* name) const { 
-		return getIdentity().get(name); 
+	const char* iGet(const char* name) const { 
+		return getIdentity().get(name).c_str(); 
 	}
 	// get user nick
-	string iGetNick() const { 
-		return getNick(); 
+	const char* iGetNick() const { 
+		return getNick().c_str(); 
 	}
 	// send private message to user
-	void sendPM(const std::string& aMsg);
+	void sendPM(const char* aMsg);
 	//get user client
 	iClient* getUserClient();
 	//END

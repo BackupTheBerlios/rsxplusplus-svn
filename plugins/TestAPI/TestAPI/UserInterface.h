@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007 adrian_007, adrian-007 on o2 point pl
+ * Copyright (C) 2007-2008 adrian_007, adrian-007 on o2 point pl
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,14 +22,14 @@
 class iClient;
 class iUser {
 public:
-	virtual string iGet(const char* name) const = 0;
-	virtual string iGetNick() const = 0;
-	virtual void sendPM(const std::string& aMsg) = 0;
+	virtual const char* iGet(const char* name) const = 0;
+	virtual const char* iGetNick() const = 0;
+	virtual void sendPM(const char* aMsg) = 0;
 	virtual iClient* getUserClient() = 0;
 };
 #endif
 
 /**
  * @file
- * $Id: PluginAPI.h 32 2007-09-16 20:49:44Z adrian_007 $
+ * $Id: UserInterface.h 47 2008-01-27 18:26:07Z adrian_007 $
  */

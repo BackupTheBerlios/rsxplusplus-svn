@@ -286,7 +286,7 @@ void PrivateFrame::onEnter()
 		currentCommand = Util::emptyStringT;
 		bool dropMessage = false;
 		if(client) {
-			iUser* iu = client->getUserByNick(replyTo->getFirstNick());
+			iUser* iu = client->getUserByNick(replyTo->getFirstNick().c_str());
 			if(iu != NULL)
 				dropMessage = PluginsManager::getInstance()->onOutgoingPM(iu, Text::fromT(s));
 		}

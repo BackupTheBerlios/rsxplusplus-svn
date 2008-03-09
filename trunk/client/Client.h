@@ -91,32 +91,32 @@ public:
 
 	/** Client Interface **/
 	// send message to hub
-	void iHubMessage(const string& aMsg) {
-		hubMessage(aMsg);
+	void iHubMessage(const char* aMsg) {
+		hubMessage(string(aMsg));
 	}
 	// add text to hub frame
-	void iAddHubLine(const string& aMsg, int mType = 0) {
-		addHubLine(aMsg, mType);
+	void iAddHubLine(const char* aMsg, int mType = 0) {
+		addHubLine(string(aMsg), mType);
 	}
 	// get field value from hub identity
-	string iGetField(const char* name) const { 
-		return getHubIdentity().get(name); 
+	const char* iGetField(const char* name) const { 
+		return getHubIdentity().get(name).c_str(); 
 	}
 	// get field value from my identity
-	string iGetMyField(const char* name) const { 
-		return getMyIdentity().get(name);
+	const char* iGetMyField(const char* name) const { 
+		return getMyIdentity().get(name).c_str();
 	}
 	// get hub address
-	const string& iGetHubUrl() const { 
-		return hubUrl; 
+	const char* iGetHubUrl() const { 
+		return hubUrl.c_str(); 
 	}
 	// send user/raw command
-	void iSendUserCmd(const string& aUserCmd) { 
-		sendUserCmd(aUserCmd); 
+	void iSendUserCmd(const char* aUserCmd) { 
+		sendUserCmd(string(aUserCmd)); 
 	}
 	// get pointer to user interface (search by nick)
-	iUser* getUserByNick(const std::string& aNick) { 
-		OnlineUser* ou = findUser(aNick);
+	iUser* getUserByNick(const char* aNick) { 
+		OnlineUser* ou = findUser(string(aNick));
 		return ou;
 	}
 	//END

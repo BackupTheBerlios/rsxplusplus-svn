@@ -31,7 +31,7 @@ BOOL APIENTRY DllMain(HANDLE /*hInst*/, DWORD /*reason*/, LPVOID /*reserved*/) {
 extern "C" {
 	__declspec(dllexport) int __cdecl pluginAPI() {
 		//API version of client/user/plugin interfaces
-		return 1000; //1.0.0.0
+		return 1100; //1.1.0.0
 	}
 
 	__declspec(dllexport) int __cdecl pluginId() {

@@ -1,3 +1,10 @@
+** SVN 61
+ ** new PluginAPI revision - now fully type-safe, stlport independient
+ ** separated directories for stlport and wtl
+
+** SVN 60
+ ** nothing special again :P
+
 ** SVN 59
  ** removed option to sort protected first [f*** up order in sorting and might cause problems]
 

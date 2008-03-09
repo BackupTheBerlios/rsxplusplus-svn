@@ -33,56 +33,61 @@
 
 #include "../../windows/MainFrm.h"
 
-void PluginAPI::setPluginInfo(int id, const string n, const string v, int i) {
-	PluginsManager::getInstance()->setPluginInfo(id, n, v, i);
+void PluginAPI::setPluginInfo(int id, const char* n, const char* v, int i) {
+	PluginsManager::getInstance()->setPluginInfo(id, string(n), string(v), i);
 }
 
-string PluginAPI::fromW(const wstring& aStr) {
-	return Text::fromT(aStr);
+const char* PluginAPI::fromW(const wchar_t* aStr) {
+	return Text::fromT(wstring(aStr)).c_str();
 }
 
-wstring PluginAPI::toW(const string& aStr) {
-	return Text::toT(aStr);
+const wchar_t* PluginAPI::toW(const char* aStr) {
+	return Text::toT(string(aStr)).c_str();
 }
 
-void PluginAPI::logMessage(const string& aMsg) {
-	LogManager::getInstance()->message(aMsg);
+void PluginAPI::logMessage(const char* aMsg) {
+	LogManager::getInstance()->message(string(aMsg));
 }
 
-void PluginAPI::logMessage(const wstring& aMsg) {
-	logMessage(Text::fromT(aMsg));
+void PluginAPI::logMessage(const wchar_t* aMsg) {
+	LogManager::getInstance()->message(Text::fromT(wstring(aMsg)));
 }
 
-const string& PluginAPI::getSetting(int id, const string& aName) {
-	return PluginsManager::getInstance()->getSetting(id, aName);
+const char* PluginAPI::getSetting(int id, const char* aName) {
+	return PluginsManager::getInstance()->getSetting(id, string(aName)).c_str();
 }
 
-void PluginAPI::setSetting(int id, const string& aName, const string& aVal) {
-	PluginsManager::getInstance()->setSetting(id, aName, aVal);
+void PluginAPI::setSetting(int id, const char* aName, const char* aVal) {
+	PluginsManager::getInstance()->setSetting(id, string(aName), string(aVal));
 }
 
-string PluginAPI::formatParams(const string& frm, std::tr1::unordered_map<string, string>& params) {
-	return Util::formatParams(frm, params, false);
+const char* PluginAPI::formatParams(const char* frm, std::vector<pair<char*, char*> >& params) {
+	StringMap tmp;
+	for(std::vector<pair<char*, char*> >::const_iterator i = params.begin(); i != params.end(); ++i)
+		tmp.insert(make_pair((*i).first, (*i).second));
+
+	string ret = Util::formatParams(string(frm), tmp, false);
+	return ret.c_str();
 }
 
 void PluginAPI::getMainWnd(HWND& h) {
 	h = MainFrame::getMainFrame()->m_hWnd;
 }
 
-void PluginAPI::showToolTip(const string& pTitle, const string& pMsg, int pIcon) {
-	showToolTip(Text::toT(pTitle), Text::toT(pMsg), pIcon);
+void PluginAPI::showToolTip(const char* pTitle, const char* pMsg, int pIcon) {
+	showToolTip(Text::toT(string(pTitle)).c_str(), Text::toT(string(pMsg)).c_str(), pIcon);
 }
 
-void PluginAPI::showToolTip(const wstring& pTitle, const wstring& pMsg, int pIcon) {
-	MainFrame::getMainFrame()->ShowBalloonTip(pMsg.c_str(), pTitle.c_str(), pIcon);
+void PluginAPI::showToolTip(const wchar_t* pTitle, const wchar_t* pMsg, int pIcon) {
+	MainFrame::getMainFrame()->ShowBalloonTip(pMsg, pTitle, pIcon);
 }
 
-string PluginAPI::getVersion(int type) {
+const char* PluginAPI::getVersion(int type) {
 	switch(type) {
-		case CLIENT_PROFILE: return ClientProfileManager::getInstance()->getProfileVersion();
-		case MYINFO_PROFILE: return ClientProfileManager::getInstance()->getMyinfoProfileVersion();
-		case IP_WATCH_PROFILE: return IpManager::getInstance()->getIpWatchVersion();
-		case AUTOSEARCH_PROFILE: return AutoSearchManager::getInstance()->getVersion();
+		case CLIENT_PROFILE: return ClientProfileManager::getInstance()->getProfileVersion().c_str();
+		case MYINFO_PROFILE: return ClientProfileManager::getInstance()->getMyinfoProfileVersion().c_str();
+		case IP_WATCH_PROFILE: return IpManager::getInstance()->getIpWatchVersion().c_str();
+		case AUTOSEARCH_PROFILE: return AutoSearchManager::getInstance()->getVersion().c_str();
 		case ADLS_PROFILE: return "1.00";
 		case RSX_VERSION: return VERSIONSTRING;
 		case RSX_REVISION: return "0";
@@ -90,27 +95,27 @@ string PluginAPI::getVersion(int type) {
 	}
 }
 
-string PluginAPI::getDataPath() {
-	return Util::getDataPath();
+const char* PluginAPI::getDataPath() {
+	return Util::getDataPath().c_str();
 }
 
-const string& PluginAPI::getClientSetting(const string& aName, bool rsxmng/* = false*/) {
+const char* PluginAPI::getClientSetting(const char* aName, bool rsxmng/* = false*/) {
 	if(rsxmng) {
-		return RSXSettingsManager::getInstance()->getString(aName);
+		return RSXSettingsManager::getInstance()->getString(string(aName)).c_str();
 	} else {
-		return SettingsManager::getInstance()->getString(aName);
+		return SettingsManager::getInstance()->getString(string(aName)).c_str();
 	}
 }
 
-int PluginAPI::getClientSettingInt(const string& aName, bool rsxmng/* = false*/) {
+int PluginAPI::getClientSettingInt(const char* aName, bool rsxmng/* = false*/) {
 	if(rsxmng) {
-		return RSXSettingsManager::getInstance()->getInt(aName);
+		return RSXSettingsManager::getInstance()->getInt(string(aName));
 	} else {
-		return SettingsManager::getInstance()->getInt(aName);
+		return SettingsManager::getInstance()->getInt(string(aName));
 	}
 }
 
-bool PluginAPI::RegExMatch(const string& strToMatch, const string& regEx, const string& opt /*= ""*/) {
+bool PluginAPI::RegExMatch(const char* strToMatch, const char* regEx, const char* opt /*= ""*/) {
 	PME reg(regEx, opt);
 	if(reg.IsValid()) {
 		return reg.match(strToMatch) > 0;
@@ -118,8 +123,8 @@ bool PluginAPI::RegExMatch(const string& strToMatch, const string& regEx, const 
 	return false;
 }
 
-bool PluginAPI::WildcardMatch(const string& strToMatch, const string& pattern, const string& delim) {
-	return Wildcard::patternMatch(strToMatch, pattern, (char)delim.c_str());
+bool PluginAPI::WildcardMatch(const char* strToMatch, const char* pattern, char delim, bool useSet) {
+	return Wildcard::patternMatch(strToMatch, pattern, delim, useSet);
 }
 
 /**

@@ -780,8 +780,8 @@ const string Identity::checkSlotsCount(OnlineUser& ou, int realSlots) {
 	return report;
 }
 //iUser methods
-void OnlineUser::sendPM(const std::string& aMsg) {
-	ClientManager::getInstance()->privateMessage(identity.getUser(), aMsg);
+void OnlineUser::sendPM(const char* aMsg) {
+	ClientManager::getInstance()->privateMessage(identity.getUser(), string(aMsg));
 }
 
 iClient* OnlineUser::getUserClient() { 

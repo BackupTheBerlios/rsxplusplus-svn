@@ -58,30 +58,30 @@ public:
 		RSX_REVISION
 	};
 
-	EXIMP static void setPluginInfo(int id, const string n, const string v, int i);
+	EXIMP static void setPluginInfo(int id, const char* n, const char* v, int i);
 
-	EXIMP static void logMessage(const string& aMsg);
-	EXIMP static void logMessage(const wstring& aMsg);
+	EXIMP static void logMessage(const char* aMsg);
+	EXIMP static void logMessage(const wchar_t* aMsg);
 
-	EXIMP static string fromW(const wstring& aStr);
-	EXIMP static wstring toW(const string& aStr);
-	EXIMP static string formatParams(const string& frm, std::tr1::unordered_map<string, string>& params);
+	EXIMP static const char* fromW(const wchar_t* aStr);
+	EXIMP static const wchar_t* toW(const char* aStr);
+	EXIMP static const char* formatParams(const char* frm, std::vector<pair<char*, char*> >& params);
 
-	EXIMP static string getDataPath();
-	EXIMP static string getVersion(int type);
+	EXIMP static const char* getDataPath();
+	EXIMP static const char* getVersion(int type);
 	EXIMP static void getMainWnd(HWND& h);
 
-	EXIMP static const string& getSetting(int id, const string& aName);
-	EXIMP static void setSetting(int id, const string& aName, const string& aVal);
+	EXIMP static const char* getSetting(int id, const char* aName);
+	EXIMP static void setSetting(int id, const char* aName, const char* aVal);
 
-	EXIMP static const string& getClientSetting(const string& aName, bool rsxmng = false);
-	EXIMP static int getClientSettingInt(const string& aName, bool rsxmng = false);
+	EXIMP static const char* getClientSetting(const char* aName, bool rsxmng = false);
+	EXIMP static int getClientSettingInt(const char* aName, bool rsxmng = false);
 
-	EXIMP static void showToolTip(const string& pTitle, const string& pMsg, int pIcon);
-	EXIMP static void showToolTip(const wstring& pTitle, const wstring& pMsg, int pIcon);
+	EXIMP static void showToolTip(const char* pTitle, const char* pMsg, int pIcon);
+	EXIMP static void showToolTip(const wchar_t* pTitle, const wchar_t* pMsg, int pIcon);
 
-	EXIMP static bool RegExMatch(const string& strToMatch, const string& regEx, const string& opt = "");
-	EXIMP static bool WildcardMatch(const string& strToMatch, const string& pattern, const string& delim);
+	EXIMP static bool RegExMatch(const char* strToMatch, const char* regEx, const char* opt = "");
+	EXIMP static bool WildcardMatch(const char* strToMatch, const char* pattern, char delim, bool useSet);
 };
 #endif
 

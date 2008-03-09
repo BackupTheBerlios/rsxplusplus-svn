@@ -40,11 +40,8 @@ typedef unsigned __int64 uint64_t;
 
 #include <algorithm>
 #include <string>
-#include <map>
-#include <set>
-
-#include <unordered_map>
-#include <unordered_set>
+#include <vector>
+//#include <set>
 
 using namespace std;
 

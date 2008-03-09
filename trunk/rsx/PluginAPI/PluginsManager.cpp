@@ -28,8 +28,8 @@
 #include "../../client/LogManager.h"
 #include "../../client/SimpleXML.h"
 
-// revision: 1.0.0.0
-#define API_VERSION 1000
+// revision: 1.1.0.0
+#define API_VERSION 1100
 
 // @todo
 // add download function from url
@@ -326,5 +326,5 @@ void PluginsManager::loadSettings() {
 
 /**
  * @file
- * $Id: MainFrm.cpp,v 1.20 2004/07/21 13:15:15 bigmuscle Exp
+ * $Id$
  */

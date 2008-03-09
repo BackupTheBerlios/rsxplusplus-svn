@@ -193,7 +193,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine=""
+				CommandLine="versiontemplate.py"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -1120,7 +1120,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Building StringDefs.cpp and Example.xml from StringDefs.h..."
-						CommandLine="makedefs.py"
+						CommandLine="makedefs.py&#x0D;&#x0A;"
 						Outputs=".\client\StringDefs.cpp"
 					/>
 				</FileConfiguration>
@@ -1140,7 +1140,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Building StringDefs.cpp and Example.xml from StringDefs.h..."
-						CommandLine="makedefs.py"
+						CommandLine="makedefs.py&#x0D;&#x0A;"
 						Outputs=".\client\StringDefs.cpp"
 					/>
 				</FileConfiguration>
@@ -1248,7 +1248,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Checking SVN revision..."
-						CommandLine="versiontemplate.py"
+						CommandLine="versiontemplate.py&#x0D;&#x0A;"
 						Outputs=".\client\version.h"
 					/>
 				</FileConfiguration>
@@ -1258,7 +1258,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Checking SVN revision..."
-						CommandLine="versiontemplate.py"
+						CommandLine="versiontemplate.py&#x0D;&#x0A;"
 						Outputs=".\client\version.h"
 					/>
 				</FileConfiguration>

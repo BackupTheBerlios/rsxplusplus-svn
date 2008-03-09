@@ -533,11 +533,6 @@ void QueueManager::add(const string& aTarget, int64_t aSize, const TTHValue& roo
 	if(aUser == ClientManager::getInstance()->getMe()) {
 		throw QueueException(STRING(NO_DOWNLOADS_FROM_SELF));
 	}
-	//RSX++
-	if(aUser->isSet(User::BOT)) {
-		throw QueueException(STRING(NO_DOWNLOADS_FROM_SELF));
-	}
-	//END
 
 	// Check if we're not downloading something already in our share
 	if (BOOLSETTING(DONT_DL_ALREADY_SHARED)){

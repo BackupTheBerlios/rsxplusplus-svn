@@ -1,3 +1,6 @@
+** SVN 62
+ ** initial import of new detection engine
+
 ** SVN 61
  ** new PluginAPI revision - now fully type-safe, stlport independient
  ** separated directories for stlport and wtl

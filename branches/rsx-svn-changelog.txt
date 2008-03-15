@@ -1,3 +1,8 @@
+** SVN 65
+ ** initial support for new detection engine
+ ** some more twearks
+ ** disabled emulation on adc hubs
+
 ** SVN 64
  ** added profile info
  ** added flags to DetectionEntry (dunno if it work @ save/load)

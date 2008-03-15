@@ -28,12 +28,10 @@ DetectionManager::DetectionManager() {
 	setProfileVersion("N/A");
 	setProfileMessage("N/A");
 	setProfileUrl("N/A");
-
-	load();
 }
 
 DetectionManager::~DetectionManager() {
-	save();
+	//save();
 }
 
 void DetectionManager::load(bool fromHttp) {
@@ -145,7 +143,10 @@ void DetectionManager::load(bool fromHttp) {
 }
 
 void DetectionManager::reload(bool /*fromHttp*/) {
-
+	Lock l(cs);
+	det.clear();
+	params.clear();
+	load();
 }
 
 void DetectionManager::save() {
@@ -241,12 +242,6 @@ void DetectionManager::addDetectionItem(int id, bool isEnabled, const StringMap&
 
 	if(aMap.empty()) {
 		for(StringMap::const_iterator j = aMap.begin(); j != aMap.end(); j++) {
-				//use own formatting like SSShort
-				//if(i->first.length() != 2) {
-				//	const string& err = i->first + " is not a valid ADC field";
-				//	throw(err.c_str());
-				//	return;
-				//}
 			if(j->second.empty()) {
 				const string& err = "Pattern for field " + j->first + " is empty!";
 				throw(err.c_str());

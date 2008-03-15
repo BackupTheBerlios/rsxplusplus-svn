@@ -48,7 +48,7 @@ void DetectionManager::load(bool fromHttp) {
 						int id = xml.getIntChildAttrib("ProfileID");
 						if(id < 1) continue;
 						xml.stepIn();
-						
+
 						DetectionEntry item;
 						item.Id = id;
 
@@ -97,6 +97,18 @@ void DetectionManager::load(bool fromHttp) {
 				}
 				xml.stepOut();
 			}
+			xml.resetCurrentChild();
+			if(xml.findChild("Params")) {
+				xml.stepIn();
+				while(xml.findChild("Param")) {
+					const string& name = xml.getChildAttrib("Name");
+					const string& pattern = xml.getChildAttrib("Pattern");
+					if(!name.empty() && !pattern.empty())
+						params.insert(make_pair(name, pattern));
+				}
+				xml.stepOut();
+			}
+			xml.stepOut();
 		}
 	} catch(const Exception& e) {
 		dcdebug("DetectionManager::load: %s\n", e.getError().c_str());
@@ -148,6 +160,16 @@ void DetectionManager::save() {
 			xml.stepOut();
 		}
 		xml.stepOut();
+		xml.addTag("Params");
+		xml.stepIn();
+		{
+			for(StringMap::const_iterator j = params.begin(); j != params.end(); ++j) {
+				xml.addTag("Param");
+				xml.addChildAttrib("Name", j->first);
+				xml.addChildAttrib("Pattern", j->second);
+			}
+		}
+		xml.stepOut();
 		xml.stepOut();
 
 		const string& fname = Util::getConfigPath() + "Profiles2.xml";
@@ -160,11 +182,11 @@ void DetectionManager::save() {
 		File::renameFile(fname + ".tmp", fname);
 
 	} catch(const Exception& e) {
-		dcdebug("FavoriteManager::saveClientProfiles: %s\n", e.getError().c_str());
+		dcdebug("DetectionManager::save: %s\n", e.getError().c_str());
 	}
 }
 
-void DetectionManager::addDetectionItem(int id, const StringMap& aMap, const string& name, const string& aCD, const string& aComment) throw(DetectorMngException) {
+void DetectionManager::addDetectionItem(int id, const StringMap& aMap, const string& name, const string& aCD, const string& aComment) throw(Exception) {
 	Lock l(cs);
 	{
 		for(DetectionItems::const_iterator i = det.begin(); i != det.end(); ++i) {
@@ -239,6 +261,55 @@ bool DetectionManager::moveDetectionItem(const int aId, int pos) {
 		}
 	}
 	return false;
+}
+
+void DetectionManager::addParam(const string& aName, const string& aPattern) throw(Exception) {
+	Lock l(cs);
+	if(aName.empty()) {
+		throw("Name must not be empty!");
+		return;
+	}
+	if(aPattern.empty()) {
+		throw("Pattern must not be empty!");
+		return;
+	}
+	StringMap::iterator i = params.find(aName);
+	if(i != params.end()) {
+		throw("Param already exist!");
+		return;
+	}
+	params.insert(make_pair(aName, aPattern));
+}
+
+void DetectionManager::changeParam(const string& aOldName, const string& aName, const string& aPattern) throw(Exception) {
+	Lock l(cs);
+	if(aPattern.empty()) {
+		throw("Pattern must not be empty!");
+		return;
+	}
+	if(aName.empty()) {
+		throw("Name must not be empty!");
+		return;
+	}
+
+	StringMap::iterator i = params.find(aName);
+	if(i != params.end()) {
+		throw("Param with this name already exist!");
+		return;
+	}
+	i = params.find(aOldName);
+	if(i != params.end()) {
+		params.erase(i);
+		params.insert(make_pair(aName, aPattern));
+	}
+}
+
+void DetectionManager::removeParam(const string& aName) {
+	Lock l(cs);
+	StringMap::iterator i = params.find(aName);
+	if(i != params.end()) {
+		params.erase(i);
+	}
 }
 
 /**

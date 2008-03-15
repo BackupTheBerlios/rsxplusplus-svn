@@ -1,3 +1,7 @@
+** SVN 63
+ ** added params support
+ ** Crise's suggestions
+
 ** SVN 62
  ** initial import of new detection engine
 

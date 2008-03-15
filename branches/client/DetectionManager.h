@@ -23,8 +23,6 @@
 #include "CriticalSection.h"
 #include "DetectionEntry.h"
 
-STANDARD_EXCEPTION(DetectorMngException);
-
 class DetectionManager : public Singleton<DetectionManager> {
 public:
 	typedef std::vector<DetectionEntry> DetectionItems;
@@ -36,7 +34,7 @@ public:
 	void reload(bool fromHttp = false);
 	void save();
 
-	void addDetectionItem(int id, const StringMap& aMap, const string& name, const string& aCD, const string& aComment) throw(DetectorMngException);
+	void addDetectionItem(int id, const StringMap& aMap, const string& name, const string& aCD, const string& aComment) throw(Exception);
 	void removeDetectionItem(const int id);
 	void updateDetectionItem(const DetectionEntry& e);
 	void getDetectionItem(const int aId, DetectionEntry& e);
@@ -47,8 +45,24 @@ public:
 		return det;
 	}
 
+	const DetectionItems& getProfiles(StringMap& p) {
+		Lock l(cs);
+		p = params;
+		return det;
+	}
+
+	const StringMap& getParams() {
+		Lock l(cs);
+		return params;
+	}
+
+	void addParam(const string& aName, const string& aPattern) throw(Exception);
+	void changeParam(const string& aOldName, const string& aName, const string& aPattern) throw(Exception);
+	void removeParam(const string& aName);
+
 private:
 	DetectionItems det;
+	StringMap params;
 
 	friend class Singleton<DetectionManager>;
 	CriticalSection cs;

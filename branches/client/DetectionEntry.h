@@ -19,9 +19,17 @@
 #ifndef DETECTION_ENTRY_H
 #define DETECTION_ENTRY_H
 
-class DetectionEntry {
+#include "Flags.h"
+
+class DetectionEntry : public Flags {
 public:
-	DetectionEntry() : Id(-1), name(""), cheat(""), comment(""), rawToSend(0) { };
+	enum ClientFlag {
+		GREEN		= 0x01,
+		YELLOW		= 0x02,
+		RED			= 0x04
+	};
+
+	DetectionEntry() : Id(-1), name(""), cheat(""), comment(""), rawToSend(0), isEnabled(true) { };
 	~DetectionEntry() { };
 
 	int Id;
@@ -31,7 +39,7 @@ public:
 	string cheat;
 	string comment;
 	int rawToSend;
-	int flag;
+	bool isEnabled;
 
 private:
 

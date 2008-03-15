@@ -34,7 +34,7 @@ public:
 	void reload(bool fromHttp = false);
 	void save();
 
-	void addDetectionItem(int id, const StringMap& aMap, const string& name, const string& aCD, const string& aComment) throw(Exception);
+	void addDetectionItem(int id, bool isEnabled, const StringMap& aMap, const string& name, const string& aCD, const string& aComment, Flags::MaskType flags) throw(Exception);
 	void removeDetectionItem(const int id);
 	void updateDetectionItem(const DetectionEntry& e);
 	void getDetectionItem(const int aId, DetectionEntry& e);
@@ -59,6 +59,10 @@ public:
 	void addParam(const string& aName, const string& aPattern) throw(Exception);
 	void changeParam(const string& aOldName, const string& aName, const string& aPattern) throw(Exception);
 	void removeParam(const string& aName);
+
+	GETSET(string, profileVersion, ProfileVersion);
+	GETSET(string, profileMessage, ProfileMessage);
+	GETSET(string, profileUrl, ProfileUrl);
 
 private:
 	DetectionItems det;

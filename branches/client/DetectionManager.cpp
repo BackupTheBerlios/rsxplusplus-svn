@@ -25,6 +25,10 @@
 #include "DetectionManager.h"
 
 DetectionManager::DetectionManager() {
+	setProfileVersion("N/A");
+	setProfileMessage("N/A");
+	setProfileUrl("N/A");
+
 	load();
 }
 
@@ -69,13 +73,17 @@ void DetectionManager::load(bool fromHttp) {
 							xml.resetCurrentChild();
 						}
 						if(xml.findChild("ClientFlag")) {
-							item.flag = Util::toInt(xml.getChildData());
+							item.setFlag((Flags::MaskType)Util::toInt(xml.getChildData()));
 							xml.resetCurrentChild();
 						}
-
+						if(xml.findChild("IsEnabled")) {
+							item.isEnabled = (Util::toInt(xml.getChildData()) > 0);
+							xml.resetCurrentChild();
+						}
+						
+						StringMap infFields;
 						if(xml.findChild("InfFields")) {
 							xml.stepIn();
-							StringMap infFields;
 							while(xml.findChild("InfField")) {
 								const string& field = xml.getChildAttrib("Field");
 								const string& pattern = xml.getChildAttrib("Pattern");
@@ -83,13 +91,13 @@ void DetectionManager::load(bool fromHttp) {
 									continue;
 								infFields.insert(make_pair(field, pattern));
 							}
-							{
-								Lock l(cs);
-								item.infMap = infFields;
-								det.push_back(item);
-							}
 							xml.stepOut();
 							xml.resetCurrentChild();
+						}
+						if(!infFields.empty()) {
+							Lock l(cs);
+							item.infMap = infFields;
+							det.push_back(item);
 						}
 						xml.stepOut();
 					}
@@ -105,6 +113,27 @@ void DetectionManager::load(bool fromHttp) {
 					const string& pattern = xml.getChildAttrib("Pattern");
 					if(!name.empty() && !pattern.empty())
 						params.insert(make_pair(name, pattern));
+				}
+				xml.stepOut();
+			}
+			xml.resetCurrentChild();
+			if(xml.findChild("ProfileInfo")) {
+				xml.stepIn();
+				if(xml.findChild("DetectionProfile")) {
+					xml.stepIn();
+					if(xml.findChild("Version")) {
+						setProfileVersion(xml.getChildData());
+						xml.resetCurrentChild();
+					}
+					if(xml.findChild("Message")) {
+						setProfileMessage(xml.getChildData());
+						xml.resetCurrentChild();
+					}
+					if(xml.findChild("URL")) {
+						setProfileUrl(xml.getChildData());
+						xml.resetCurrentChild();
+					}
+					xml.stepOut();
 				}
 				xml.stepOut();
 			}
@@ -141,7 +170,8 @@ void DetectionManager::save() {
 					xml.addTag("Cheat", i->cheat);
 					xml.addTag("Comment", i->comment);
 					xml.addTag("RawToSend", i->rawToSend);
-					xml.addTag("ClientFlag", i->flag);
+					xml.addTag("ClientFlag", i->getFlags());
+					xml.addTag("IsEnabled", i->isEnabled);
 
 					xml.addTag("InfFields");
 					xml.stepIn();
@@ -170,6 +200,19 @@ void DetectionManager::save() {
 			}
 		}
 		xml.stepOut();
+		xml.addTag("ProfileInfo");
+		xml.stepIn();
+		{
+			xml.addTag("DetectionProfile");
+			xml.stepIn();
+			{
+				xml.addTag("Version", getProfileVersion());
+				xml.addTag("Message", getProfileMessage());
+				xml.addTag("URL", getProfileUrl());
+			}
+			xml.stepOut();
+		}
+		xml.stepOut();
 		xml.stepOut();
 
 		const string& fname = Util::getConfigPath() + "Profiles2.xml";
@@ -186,38 +229,43 @@ void DetectionManager::save() {
 	}
 }
 
-void DetectionManager::addDetectionItem(int id, const StringMap& aMap, const string& name, const string& aCD, const string& aComment) throw(Exception) {
+void DetectionManager::addDetectionItem(int id, bool isEnabled, const StringMap& aMap, const string& name, const string& aCD, const string& aComment, Flags::MaskType flags) throw(Exception) {
 	Lock l(cs);
-	{
-		for(DetectionItems::const_iterator i = det.begin(); i != det.end(); ++i) {
-			if(i->Id == id) {
-				throw("Profile with same ID already exist!");
-				return;
-			}
+
+	for(DetectionItems::const_iterator i = det.begin(); i != det.end(); ++i) {
+		if(i->Id == id) {
+			throw("Profile with same ID already exist!");
+			return;
 		}
 	}
 
-	{
-		for(StringMap::const_iterator i = aMap.begin(); i != aMap.end(); ++i) {
-			if(i->first.length() != 2) {
-				const string& err = i->first + " is not a valid ADC field";
-				throw(err.c_str());
-				return;
-			}
-			if(i->second.empty()) {
-				const string& err = "Pattern for field " + i->first + " is empty!";
+	if(aMap.empty()) {
+		for(StringMap::const_iterator j = aMap.begin(); j != aMap.end(); j++) {
+				//use own formatting like SSShort
+				//if(i->first.length() != 2) {
+				//	const string& err = i->first + " is not a valid ADC field";
+				//	throw(err.c_str());
+				//	return;
+				//}
+			if(j->second.empty()) {
+				const string& err = "Pattern for field " + j->first + " is empty!";
 				throw(err.c_str());
 				return;
 			}
 		}
+	} else {
+		throw("INF Params List must not be empty!");
+		return;
 	}
 
 	DetectionEntry entry;
 	entry.Id = id;
+	entry.isEnabled = isEnabled;
 	entry.infMap = aMap;
 	entry.name = name;
 	entry.cheat = aCD;
 	entry.comment = aComment;
+	entry.setFlag(flags);
 
 	det.push_back(entry);
 }

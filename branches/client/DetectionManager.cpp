@@ -24,16 +24,6 @@
 
 #include "DetectionManager.h"
 
-DetectionManager::DetectionManager() {
-	setProfileVersion("N/A");
-	setProfileMessage("N/A");
-	setProfileUrl("N/A");
-}
-
-DetectionManager::~DetectionManager() {
-	//save();
-}
-
 void DetectionManager::load(bool fromHttp) {
 	const string& aPath = Util::getConfigPath() + (fromHttp ? "Profiles2.xml.new" : "Profiles2.xml");
 	try {
@@ -304,55 +294,6 @@ bool DetectionManager::moveDetectionItem(const int aId, int pos) {
 		}
 	}
 	return false;
-}
-
-void DetectionManager::addParam(const string& aName, const string& aPattern) throw(Exception) {
-	Lock l(cs);
-	if(aName.empty()) {
-		throw("Name must not be empty!");
-		return;
-	}
-	if(aPattern.empty()) {
-		throw("Pattern must not be empty!");
-		return;
-	}
-	StringMap::iterator i = params.find(aName);
-	if(i != params.end()) {
-		throw("Param already exist!");
-		return;
-	}
-	params.insert(make_pair(aName, aPattern));
-}
-
-void DetectionManager::changeParam(const string& aOldName, const string& aName, const string& aPattern) throw(Exception) {
-	Lock l(cs);
-	if(aPattern.empty()) {
-		throw("Pattern must not be empty!");
-		return;
-	}
-	if(aName.empty()) {
-		throw("Name must not be empty!");
-		return;
-	}
-
-	StringMap::iterator i = params.find(aName);
-	if(i != params.end()) {
-		throw("Param with this name already exist!");
-		return;
-	}
-	i = params.find(aOldName);
-	if(i != params.end()) {
-		params.erase(i);
-		params.insert(make_pair(aName, aPattern));
-	}
-}
-
-void DetectionManager::removeParam(const string& aName) {
-	Lock l(cs);
-	StringMap::iterator i = params.find(aName);
-	if(i != params.end()) {
-		params.erase(i);
-	}
 }
 
 /**

@@ -27,8 +27,8 @@ class DetectionManager : public Singleton<DetectionManager> {
 public:
 	typedef std::vector<DetectionEntry> DetectionItems;
 
-	DetectionManager();
-	~DetectionManager();
+	DetectionManager() : profileVersion("N/A"), profileMessage("N/A"), profileUrl("N/A") { }
+	~DetectionManager() { }
 
 	void load(bool fromHttp = false);
 	void reload(bool fromHttp = false);
@@ -51,14 +51,10 @@ public:
 		return det;
 	}
 
-	const StringMap& getParams() {
+	StringMap& getParams() {
 		Lock l(cs);
 		return params;
 	}
-
-	void addParam(const string& aName, const string& aPattern) throw(Exception);
-	void changeParam(const string& aOldName, const string& aName, const string& aPattern) throw(Exception);
-	void removeParam(const string& aName);
 
 	GETSET(string, profileVersion, ProfileVersion);
 	GETSET(string, profileMessage, ProfileMessage);

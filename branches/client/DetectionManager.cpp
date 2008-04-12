@@ -24,11 +24,10 @@
 
 #include "DetectionManager.h"
 
-void DetectionManager::load(bool fromHttp) {
-	const string& aPath = Util::getConfigPath() + (fromHttp ? "Profiles2.xml.new" : "Profiles2.xml");
+void DetectionManager::load() {
 	try {
 		SimpleXML xml;
-		xml.fromXML(File(aPath, File::READ, File::OPEN).read());
+		xml.fromXML(File(Util::getConfigPath() + "Profiles2.xml", File::READ, File::OPEN).read());
 
 		if(xml.findChild("Profiles")) {
 			xml.stepIn();
@@ -132,11 +131,27 @@ void DetectionManager::load(bool fromHttp) {
 	}
 }
 
-void DetectionManager::reload(bool /*fromHttp*/) {
+void DetectionManager::reload() {
 	Lock l(cs);
 	det.clear();
 	params.clear();
 	load();
+}
+
+void DetectionManager::reloadFromHttp(bool /*bz2 = false*/) {
+	Lock l(cs);
+	DetectionManager::DetectionItems oldDet = det;
+	det.clear();
+	params.clear();
+	load();
+	for(DetectionManager::DetectionItems::iterator j = det.begin(); j != det.end(); ++j) {
+		for(DetectionManager::DetectionItems::const_iterator k = oldDet.begin(); k != oldDet.end(); ++k) {
+			if(k->name.compare(j->name) == 0) {
+				j->rawToSend = k->rawToSend;
+				j->cheat = k->cheat;
+			}
+		}
+	}
 }
 
 void DetectionManager::save() {

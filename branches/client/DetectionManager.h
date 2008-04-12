@@ -30,8 +30,9 @@ public:
 	DetectionManager() : profileVersion("N/A"), profileMessage("N/A"), profileUrl("N/A") { }
 	~DetectionManager() { }
 
-	void load(bool fromHttp = false);
-	void reload(bool fromHttp = false);
+	void load();
+	void reload();
+	void reloadFromHttp(bool bz2 = false);
 	void save();
 
 	void addDetectionItem(int id, bool isEnabled, const StringMap& aMap, const string& name, const string& aCD, const string& aComment, Flags::MaskType flags) throw(Exception);

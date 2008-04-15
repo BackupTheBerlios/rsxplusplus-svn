@@ -146,9 +146,10 @@ void DetectionManager::reloadFromHttp(bool /*bz2 = false*/) {
 	load();
 	for(DetectionManager::DetectionItems::iterator j = det.begin(); j != det.end(); ++j) {
 		for(DetectionManager::DetectionItems::const_iterator k = oldDet.begin(); k != oldDet.end(); ++k) {
-			if(k->name.compare(j->name) == 0) {
+			if(k->Id == j-Id) {
 				j->rawToSend = k->rawToSend;
 				j->cheat = k->cheat;
+				j->isEnabled = k->isEnabled;
 			}
 		}
 	}

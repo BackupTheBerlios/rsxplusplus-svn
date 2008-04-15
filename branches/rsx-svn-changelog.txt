@@ -1,3 +1,9 @@
+** SVN 66 (Crise)
+ ** cleaned up DetectionManager constructor/destructor
+ ** changed params handling (less code in DetectionManager, while same functionality when combined with the new ParamsPage code)
+ ** ClientsPage and ParamsPage updated
+ ** TODO: DetectionEntryDlg
+
 ** SVN 65
  ** initial support for new detection engine
  ** some more twearks

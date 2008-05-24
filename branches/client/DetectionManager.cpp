@@ -241,22 +241,19 @@ void DetectionManager::addDetectionItem(int id, bool isEnabled, const StringMap&
 
 	for(DetectionItems::const_iterator i = det.begin(); i != det.end(); ++i) {
 		if(i->Id == id) {
-			throw("Profile with same ID already exist!");
-			return;
+			throw Exception("Profile with same ID already exist!");
 		}
 	}
 
 	if(aMap.empty()) {
 		for(StringMap::const_iterator j = aMap.begin(); j != aMap.end(); j++) {
 			if(j->second.empty()) {
-				const string& err = "Pattern for field " + j->first + " is empty!";
-				throw(err.c_str());
-				return;
+				//const string& err = "Pattern for field " + j->first + " is empty!";
+				throw Exception("Pattern for field " + j->first + " is empty!");
 			}
 		}
 	} else {
-		throw("INF Params List must not be empty!");
-		return;
+		throw Exception("INF Params List must not be empty!");
 	}
 
 	DetectionEntry entry;

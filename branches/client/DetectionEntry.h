@@ -21,19 +21,23 @@
 
 #include "Flags.h"
 
+namespace dcpp {
+
 class DetectionEntry : public Flags {
 public:
+	typedef deque<pair<string, string> > StringMapV;
+
 	enum ClientFlag {
 		GREEN		= 0x01,
 		YELLOW		= 0x02,
 		RED			= 0x04
 	};
 
-	DetectionEntry() : Id(-1), name(""), cheat(""), comment(""), rawToSend(0), isEnabled(true) { };
+	DetectionEntry() : Id(0), name(""), cheat(""), comment(""), rawToSend(0), isEnabled(true) { };
 	~DetectionEntry() { };
 
 	int Id;
-	StringMap infMap;
+	StringMapV infMap;
 
 	string name;
 	string cheat;
@@ -44,6 +48,7 @@ public:
 private:
 
 };
+} // namespace dcpp
 #endif
 
 /**

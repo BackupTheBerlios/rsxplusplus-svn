@@ -24,10 +24,23 @@
 
 #include "DetectionManager.h"
 
-void DetectionManager::load() {
+namespace dcpp {
+
+DetectionManager::DetectionManager() {
+	setProfileVersion("N/A");
+	setProfileMessage("N/A");
+	setProfileUrl("N/A");
+}
+
+DetectionManager::~DetectionManager() {
+	save();
+}
+
+void DetectionManager::load(bool fromHttp) {
+	const string& aPath = Util::getConfigPath() + (fromHttp ? "Profiles2.xml.new" : "Profiles2.xml");
 	try {
 		SimpleXML xml;
-		xml.fromXML(File(Util::getConfigPath() + "Profiles2.xml", File::READ, File::OPEN).read());
+		xml.fromXML(File(aPath, File::READ, File::OPEN).read());
 
 		if(xml.findChild("Profiles")) {
 			xml.stepIn();
@@ -67,8 +80,7 @@ void DetectionManager::load() {
 							item.isEnabled = (Util::toInt(xml.getChildData()) > 0);
 							xml.resetCurrentChild();
 						}
-						
-						StringMap infFields;
+
 						if(xml.findChild("InfFields")) {
 							xml.stepIn();
 							while(xml.findChild("InfField")) {
@@ -76,15 +88,15 @@ void DetectionManager::load() {
 								const string& pattern = xml.getChildAttrib("Pattern");
 								if(field.empty() || pattern.empty())
 									continue;
-								infFields.insert(make_pair(field, pattern));
+								item.infMap.push_back(make_pair(field, pattern));
 							}
 							xml.stepOut();
 							xml.resetCurrentChild();
 						}
-						if(!infFields.empty()) {
-							Lock l(cs);
-							item.infMap = infFields;
-							det.push_back(item);
+						try {
+							addDetectionItem(item);
+						} catch(const Exception&) {
+							//...
 						}
 						xml.stepOut();
 					}
@@ -131,28 +143,11 @@ void DetectionManager::load() {
 	}
 }
 
-void DetectionManager::reload() {
+void DetectionManager::reload(bool /*fromHttp*/) {
 	Lock l(cs);
 	det.clear();
 	params.clear();
 	load();
-}
-
-void DetectionManager::reloadFromHttp(bool /*bz2 = false*/) {
-	Lock l(cs);
-	DetectionManager::DetectionItems oldDet = det;
-	det.clear();
-	params.clear();
-	load();
-	for(DetectionManager::DetectionItems::iterator j = det.begin(); j != det.end(); ++j) {
-		for(DetectionManager::DetectionItems::const_iterator k = oldDet.begin(); k != oldDet.end(); ++k) {
-			if(k->Id == j-Id) {
-				j->rawToSend = k->rawToSend;
-				j->cheat = k->cheat;
-				j->isEnabled = k->isEnabled;
-			}
-		}
-	}
 }
 
 void DetectionManager::save() {
@@ -183,8 +178,8 @@ void DetectionManager::save() {
 					xml.addTag("InfFields");
 					xml.stepIn();
 					{
-						const StringMap& InfMap = i->infMap;
-						for(StringMap::const_iterator j = InfMap.begin(); j != InfMap.end(); ++j) {
+						const DetectionEntry::StringMapV& InfMap = i->infMap;
+						for(DetectionEntry::StringMapV::const_iterator j = InfMap.begin(); j != InfMap.end(); ++j) {
 							xml.addTag("InfField");
 							xml.addChildAttrib("Field", j->first);
 							xml.addChildAttrib("Pattern", j->second);
@@ -222,7 +217,7 @@ void DetectionManager::save() {
 		xml.stepOut();
 		xml.stepOut();
 
-		const string& fname = Util::getConfigPath() + "Profiles2.xml";
+		string fname = Util::getConfigPath() + "Profiles2.xml";
 
 		File f(fname + ".tmp", File::WRITE, File::CREATE | File::TRUNCATE);
 		f.write(SimpleXML::utf8Header);
@@ -236,39 +231,37 @@ void DetectionManager::save() {
 	}
 }
 
-void DetectionManager::addDetectionItem(int id, bool isEnabled, const StringMap& aMap, const string& name, const string& aCD, const string& aComment, Flags::MaskType flags) throw(Exception) {
+void DetectionManager::addDetectionItem(const DetectionEntry& e) throw(Exception) {
 	Lock l(cs);
-
-	for(DetectionItems::const_iterator i = det.begin(); i != det.end(); ++i) {
-		if(i->Id == id) {
-			throw Exception("Profile with same ID already exist!");
-		}
-	}
-
-	if(aMap.empty()) {
-		for(StringMap::const_iterator j = aMap.begin(); j != aMap.end(); j++) {
-			if(j->second.empty()) {
-				//const string& err = "Pattern for field " + j->first + " is empty!";
-				throw Exception("Pattern for field " + j->first + " is empty!");
-			}
-		}
-	} else {
-		throw Exception("INF Params List must not be empty!");
-	}
-
-	DetectionEntry entry;
-	entry.Id = id;
-	entry.isEnabled = isEnabled;
-	entry.infMap = aMap;
-	entry.name = name;
-	entry.cheat = aCD;
-	entry.comment = aComment;
-	entry.setFlag(flags);
-
-	det.push_back(entry);
+	validateItem(e);
+	det.push_back(e);
 }
 
-void DetectionManager::removeDetectionItem(const int id) {
+void DetectionManager::validateItem(const DetectionEntry& e) throw(Exception) {
+	Lock l(cs);
+	{
+		for(DetectionItems::const_iterator i = det.begin(); i != det.end(); ++i) {
+			if(i->Id == e.Id || e.Id <= 0) {
+				throw Exception("Item with this ID already exist!");
+			}
+		}
+	}
+	{
+		const DetectionEntry::StringMapV& inf = e.infMap;
+		if(inf.empty())
+			throw Exception("INF Map can't be empty!");
+		for(DetectionEntry::StringMapV::const_iterator i = inf.begin(); i != inf.end(); ++i) {
+			if(i->first == Util::emptyString)
+				throw Exception("INF name can't be empty!");
+			else if(i->second == Util::emptyString)
+				throw Exception("INF pattern can't be empty!");
+		}
+	}
+	if(e.name.empty())
+		throw Exception("Item's name can't be empty!");
+}
+
+void DetectionManager::removeDetectionItem(const int id) throw() {
 	Lock l(cs);
 	for(DetectionItems::iterator i = det.begin(); i != det.end(); ++i) {
 		if(i->Id == id) {
@@ -278,24 +271,26 @@ void DetectionManager::removeDetectionItem(const int id) {
 	}
 }
 
-void DetectionManager::updateDetectionItem(const DetectionEntry& e) {
+void DetectionManager::updateDetectionItem(const int aId, const DetectionEntry& e) throw(Exception) {
 	Lock l(cs);
+	validateItem(e);
 	for(DetectionItems::iterator i = det.begin(); i != det.end(); ++i) {
-		if(i->Id == e.Id) {
+		if(i->Id == aId) {
 			*i = e;
-			return;
+			break;
 		}
 	}
 }
 
-void DetectionManager::getDetectionItem(const int aId, DetectionEntry& e) {
+bool DetectionManager::getDetectionItem(const int aId, DetectionEntry& e) throw() {
 	Lock l(cs);
 	for(DetectionItems::iterator i = det.begin(); i != det.end(); ++i) {
 		if(i->Id == aId) {
 			e = *i;
-			return;
+			return true;
 		}
 	}
+	return false;
 }
 
 bool DetectionManager::moveDetectionItem(const int aId, int pos) {
@@ -308,6 +303,67 @@ bool DetectionManager::moveDetectionItem(const int aId, int pos) {
 	}
 	return false;
 }
+
+void DetectionManager::setItemEnabled(const int aId, bool enabled) throw() {
+	Lock l(cs);
+	for(DetectionItems::iterator i = det.begin(); i != det.end(); ++i) {
+		if(i->Id == aId) {
+			i->isEnabled = enabled;
+			break;
+		}
+	}
+}
+
+void DetectionManager::addParam(const string& aName, const string& aPattern) throw(Exception) {
+	Lock l(cs);
+	if(aName.empty()) {
+		throw("Name must not be empty!");
+		return;
+	}
+	if(aPattern.empty()) {
+		throw("Pattern must not be empty!");
+		return;
+	}
+	StringMap::iterator i = params.find(aName);
+	if(i != params.end()) {
+		throw("Param already exist!");
+		return;
+	}
+	params.insert(make_pair(aName, aPattern));
+}
+
+void DetectionManager::changeParam(const string& aOldName, const string& aName, const string& aPattern) throw(Exception) {
+	Lock l(cs);
+	if(aPattern.empty()) {
+		throw("Pattern must not be empty!");
+		return;
+	}
+	if(aName.empty()) {
+		throw("Name must not be empty!");
+		return;
+	}
+
+	StringMap::iterator i = params.find(aName);
+	if(i != params.end()) {
+		throw("Param with this name already exist!");
+		return;
+	}
+	i = params.find(aOldName);
+	if(i != params.end()) {
+		params.erase(i);
+		params.insert(make_pair(aName, aPattern));
+	}
+}
+
+void DetectionManager::removeParam(const string& aName) {
+	Lock l(cs);
+	StringMap::iterator i = params.find(aName);
+	if(i != params.end()) {
+		params.erase(i);
+	}
+}
+
+}; // namespace dcpp
 
 /**
  * @file

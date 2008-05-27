@@ -45,11 +45,11 @@ public:
 	int rawToSend;
 	bool isEnabled;
 
-private:
-
 };
+
 } // namespace dcpp
-#endif
+
+#endif // DETECTION_ENTRY_H
 
 /**
  * @file

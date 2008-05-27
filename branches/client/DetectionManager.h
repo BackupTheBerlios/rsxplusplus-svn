@@ -27,10 +27,10 @@ namespace dcpp {
 
 class DetectionManager : public Singleton<DetectionManager> {
 public:
-	typedef std::vector<DetectionEntry> DetectionItems;
+	typedef vector<DetectionEntry> DetectionItems;
 
-	DetectionManager();
-	~DetectionManager();
+	DetectionManager() : profileVersion("N/A"), profileMessage("N/A"), profileUrl("N/A") { };
+	~DetectionManager() throw() { save(); };
 
 	void load();
 	void reload();
@@ -57,30 +57,26 @@ public:
 		return det;
 	}
 
-	const StringMap& getParams() {
+	const StringMap& getParams() throw() {
 		Lock l(cs);
 		return params;
 	}
-
-	void addParam(const string& aName, const string& aPattern) throw(Exception);
-	void changeParam(const string& aOldName, const string& aName, const string& aPattern) throw(Exception);
-	void removeParam(const string& aName);
 
 	GETSET(string, profileVersion, ProfileVersion);
 	GETSET(string, profileMessage, ProfileMessage);
 	GETSET(string, profileUrl, ProfileUrl);
 
 private:
-	//void validateEntry(DetectionEntry e, bool checkId = true) throw(Exception);
-
 	DetectionItems det;
 	StringMap params;
 
 	friend class Singleton<DetectionManager>;
 	CriticalSection cs;
 };
+
 }; // namespace dcpp
-#endif
+
+#endif // DETECTION_MANAGER_H
 
 /**
  * @file

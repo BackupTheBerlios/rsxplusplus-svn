@@ -32,8 +32,9 @@ public:
 	DetectionManager();
 	~DetectionManager();
 
-	void load(bool fromHttp = false);
-	void reload(bool fromHttp = false);
+	void load();
+	void reload();
+	void reloadFromHttp(bool bz2 = false);
 	void save();
 
 	void addDetectionItem(const DetectionEntry& e) throw(Exception);

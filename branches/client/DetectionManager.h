@@ -29,22 +29,22 @@ class DetectionManager : public Singleton<DetectionManager> {
 public:
 	typedef vector<DetectionEntry> DetectionItems;
 
-	DetectionManager() : profileVersion("N/A"), profileMessage("N/A"), profileUrl("N/A") { };
+	DetectionManager() : profileVersion("N/A"), profileMessage("N/A"), profileUrl("N/A"), lastId(0) { };
 	~DetectionManager() throw() { save(); };
 
 	void load();
-	void reload();
-	void reloadFromHttp(bool bz2 = false);
 	void save();
 
-	void addDetectionItem(const DetectionEntry& e) throw(Exception);
-	void updateDetectionItem(const int aId /* old id */, const DetectionEntry& e) throw(Exception);
-	void validateItem(const DetectionEntry& e) throw(Exception);
-	void removeDetectionItem(const int id) throw();
+	void addDetectionItem(DetectionEntry& e) throw(Exception);
+	void updateDetectionItem(const uint32_t aOrigId, const DetectionEntry& e) throw(Exception);
+	void removeDetectionItem(const uint32_t id) throw();
 
-	bool getDetectionItem(const int aId, DetectionEntry& e) throw();
-	bool moveDetectionItem(const int aId, int pos);
-	void setItemEnabled(const int aId, bool enabled) throw();
+	bool getDetectionItem(const uint32_t aId, DetectionEntry& e) throw();
+	bool moveDetectionItem(const uint32_t aId, int pos);
+	void setItemEnabled(const uint32_t aId, bool enabled) throw();
+
+	const DetectionItems& reload();
+	const DetectionItems& reloadFromHttp(bool bz2 = false);
 
 	const DetectionItems& getProfiles() throw() {
 		Lock l(cs);
@@ -57,7 +57,7 @@ public:
 		return det;
 	}
 
-	const StringMap& getParams() throw() {
+	StringMap& getParams() throw() {
 		Lock l(cs);
 		return params;
 	}
@@ -69,6 +69,9 @@ public:
 private:
 	DetectionItems det;
 	StringMap params;
+	uint32_t lastId;
+
+	void validateItem(const DetectionEntry& e, bool checkIds) throw(Exception);
 
 	friend class Singleton<DetectionManager>;
 	CriticalSection cs;

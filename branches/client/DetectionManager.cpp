@@ -29,7 +29,7 @@ namespace dcpp {
 void DetectionManager::load() {
 	try {
 		SimpleXML xml;
-		xml.fromXML(File(Util::getConfigPath() + "Profiles2.xml", File::READ, File::OPEN).read());
+		xml.fromXML(File(Util::getConfigPath() + "Profiles.xml", File::READ, File::OPEN).read());
 
 		if(xml.findChild("Profiles")) {
 			xml.stepIn();
@@ -38,12 +38,12 @@ void DetectionManager::load() {
 				while(xml.findChild("DetectionProfile")) {
 					xml.stepIn();
 					if(xml.findChild("DetectionEntry")) {
-						int id = xml.getIntChildAttrib("ProfileID");
-						if(id < 1) continue;
+						lastId = Util::toUInt32(xml.getChildAttrib("ProfileID", Util::toString(++lastId)));
+						if(lastId < 1) continue;
 						xml.stepIn();
 
 						DetectionEntry item;
-						item.Id = id;
+						item.Id = lastId;
 
 						if(xml.findChild("Name")) {
 							item.name = xml.getChildData();
@@ -58,11 +58,11 @@ void DetectionManager::load() {
 							xml.resetCurrentChild();
 						}
 						if(xml.findChild("RawToSend")) {
-							item.rawToSend = Util::toInt(xml.getChildData());
+							item.rawToSend = Util::toUInt32(xml.getChildData());
 							xml.resetCurrentChild();
 						}
 						if(xml.findChild("ClientFlag")) {
-							item.setFlag((Flags::MaskType)Util::toInt(xml.getChildData()));
+							item.clientFlag = Util::toUInt32(xml.getChildData());
 							xml.resetCurrentChild();
 						}
 						if(xml.findChild("IsEnabled")) {
@@ -132,14 +132,16 @@ void DetectionManager::load() {
 	}
 }
 
-void DetectionManager::reload() {
+const DetectionManager::DetectionItems& DetectionManager::reload() {
 	Lock l(cs);
 	det.clear();
 	params.clear();
 	load();
+
+	return det;
 }
 
-void DetectionManager::reloadFromHttp(bool /*bz2 = false*/) {
+const DetectionManager::DetectionItems& DetectionManager::reloadFromHttp(bool /*bz2 = false*/) {
 	Lock l(cs);
 	DetectionManager::DetectionItems oldDet = det;
 	det.clear();
@@ -147,13 +149,16 @@ void DetectionManager::reloadFromHttp(bool /*bz2 = false*/) {
 	load();
 	for(DetectionManager::DetectionItems::iterator j = det.begin(); j != det.end(); ++j) {
 		for(DetectionManager::DetectionItems::const_iterator k = oldDet.begin(); k != oldDet.end(); ++k) {
-			if(k->Id == j-Id) {
+			if(k->Id == j->Id) {
 				j->rawToSend = k->rawToSend;
 				j->cheat = k->cheat;
+				j->clientFlag = k->clientFlag;
 				j->isEnabled = k->isEnabled;
 			}
 		}
 	}
+
+	return det;
 }
 
 void DetectionManager::save() {
@@ -177,8 +182,8 @@ void DetectionManager::save() {
 					xml.addTag("Name", i->name);
 					xml.addTag("Cheat", i->cheat);
 					xml.addTag("Comment", i->comment);
-					xml.addTag("RawToSend", i->rawToSend);
-					xml.addTag("ClientFlag", i->getFlags());
+					xml.addTag("RawToSend", Util::toString(i->rawToSend));
+					xml.addTag("ClientFlag", Util::toString(i->clientFlag));
 					xml.addTag("IsEnabled", i->isEnabled);
 
 					xml.addTag("InfFields");
@@ -223,7 +228,7 @@ void DetectionManager::save() {
 		xml.stepOut();
 		xml.stepOut();
 
-		string fname = Util::getConfigPath() + "Profiles2.xml";
+		string fname = Util::getConfigPath() + "Profiles.xml";
 
 		File f(fname + ".tmp", File::WRITE, File::CREATE | File::TRUNCATE);
 		f.write(SimpleXML::utf8Header);
@@ -237,15 +242,33 @@ void DetectionManager::save() {
 	}
 }
 
-void DetectionManager::addDetectionItem(const DetectionEntry& e) throw(Exception) {
+void DetectionManager::addDetectionItem(DetectionEntry& e) throw(Exception) {
 	Lock l(cs);
-	validateItem(e);
+	if(det.size() >= 2147483647)
+		throw Exception("No more items can be added!");
+
+	validateItem(e, true);
+
+	if(e.Id == 0) {
+		e.Id = ++lastId;
+
+		// This should only happen if lastId (aka. unsigned int) goes over it's capacity ie. virtually never :P
+		while(e.Id == 0) {
+			e.Id = Util::rand(1, 2147483647);
+			for(DetectionItems::iterator i = det.begin(); i != det.end(); ++i) {
+				if(i->Id == e.Id) {
+					e.Id = 0;
+				}
+			}
+		}
+	}
+
 	det.push_back(e);
 }
 
-void DetectionManager::validateItem(const DetectionEntry& e) throw(Exception) {
+void DetectionManager::validateItem(const DetectionEntry& e, bool checkIds) throw(Exception) {
 	Lock l(cs);
-	{
+	if(checkIds && e.Id > 0) {
 		for(DetectionItems::const_iterator i = det.begin(); i != det.end(); ++i) {
 			if(i->Id == e.Id || e.Id <= 0) {
 				throw Exception("Item with this ID already exist!");
@@ -259,16 +282,16 @@ void DetectionManager::validateItem(const DetectionEntry& e) throw(Exception) {
 			throw Exception("INF Map can't be empty!");
 		for(DetectionEntry::StringMapV::const_iterator i = inf.begin(); i != inf.end(); ++i) {
 			if(i->first == Util::emptyString)
-				throw Exception("INF name can't be empty!");
+				throw Exception("INF entry name can't be empty!");
 			else if(i->second == Util::emptyString)
-				throw Exception("INF pattern can't be empty!");
+				throw Exception("INF entry pattern can't be empty!");
 		}
 	}
 
 	if(e.name.empty()) throw Exception("Item's name can't be empty!");
 }
 
-void DetectionManager::removeDetectionItem(const int id) throw() {
+void DetectionManager::removeDetectionItem(const uint32_t id) throw() {
 	Lock l(cs);
 	for(DetectionItems::iterator i = det.begin(); i != det.end(); ++i) {
 		if(i->Id == id) {
@@ -278,18 +301,18 @@ void DetectionManager::removeDetectionItem(const int id) throw() {
 	}
 }
 
-void DetectionManager::updateDetectionItem(const int aId, const DetectionEntry& e) throw(Exception) {
+void DetectionManager::updateDetectionItem(const uint32_t aOrigId, const DetectionEntry& e) throw(Exception) {
 	Lock l(cs);
-	validateItem(e);
+	validateItem(e, e.Id != aOrigId);
 	for(DetectionItems::iterator i = det.begin(); i != det.end(); ++i) {
-		if(i->Id == aId) {
+		if(i->Id == aOrigId) {
 			*i = e;
 			break;
 		}
 	}
 }
 
-bool DetectionManager::getDetectionItem(const int aId, DetectionEntry& e) throw() {
+bool DetectionManager::getDetectionItem(const uint32_t aId, DetectionEntry& e) throw() {
 	Lock l(cs);
 	for(DetectionItems::iterator i = det.begin(); i != det.end(); ++i) {
 		if(i->Id == aId) {
@@ -300,7 +323,7 @@ bool DetectionManager::getDetectionItem(const int aId, DetectionEntry& e) throw(
 	return false;
 }
 
-bool DetectionManager::moveDetectionItem(const int aId, int pos) {
+bool DetectionManager::moveDetectionItem(const uint32_t aId, int pos) {
 	Lock l(cs);
 	for(DetectionItems::iterator i = det.begin(); i != det.end(); ++i) {
 		if(i->Id == aId) {
@@ -311,7 +334,7 @@ bool DetectionManager::moveDetectionItem(const int aId, int pos) {
 	return false;
 }
 
-void DetectionManager::setItemEnabled(const int aId, bool enabled) throw() {
+void DetectionManager::setItemEnabled(const uint32_t aId, bool enabled) throw() {
 	Lock l(cs);
 	for(DetectionItems::iterator i = det.begin(); i != det.end(); ++i) {
 		if(i->Id == aId) {

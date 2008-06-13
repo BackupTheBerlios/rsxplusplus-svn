@@ -323,6 +323,21 @@ bool DetectionManager::getDetectionItem(const uint32_t aId, DetectionEntry& e) t
 	return false;
 }
 
+bool DetectionManager::getNextDetectionItem(const uint32_t aId, int pos, DetectionEntry& e) throw() {
+	Lock l(cs);
+	for(DetectionItems::iterator i = det.begin(); i != det.end(); ++i) {
+		if(i->Id == aId) {
+			i = i + pos;
+			if(i != det.end()) {
+				e = *i;
+				return true;
+			}
+			return false;
+		}
+	}
+	return false;
+}
+
 bool DetectionManager::moveDetectionItem(const uint32_t aId, int pos) {
 	Lock l(cs);
 	for(DetectionItems::iterator i = det.begin(); i != det.end(); ++i) {

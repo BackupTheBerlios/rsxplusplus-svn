@@ -32,8 +32,13 @@
 #undef ATTACH
 #define ATTACH(id, var) var.Attach(GetDlgItem(id))
 
-LRESULT DetectionEntryDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
-{
+LRESULT DetectionEntryDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
+
+	if(origId < 1) {
+		::EnableWindow(GetDlgItem(IDC_BACK), false);
+		::EnableWindow(GetDlgItem(IDC_NEXT), false);
+	}
+
 	ATTACH(IDC_NAME, ctrlName);
 	ATTACH(IDC_COMMENT, ctrlComment);
 	ATTACH(IDC_CHEAT, ctrlCheat);
@@ -43,8 +48,8 @@ LRESULT DetectionEntryDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 
 	CRect rc;
 	ctrlParams.GetClientRect(rc);
-	ctrlParams.InsertColumn(0, CTSTRING(SETTINGS_NAME), LVCFMT_LEFT, rc.Width() / 3, 0);
-	ctrlParams.InsertColumn(1, CTSTRING(REGEXP), LVCFMT_LEFT, (rc.Width() / 3) * 2, 1);
+	ctrlParams.InsertColumn(0, CTSTRING(SETTINGS_NAME), LVCFMT_LEFT, rc.Width() / 10, 0);
+	ctrlParams.InsertColumn(1, CTSTRING(REGEXP), LVCFMT_LEFT, ((rc.Width() / 10) * 9) - 17, 1);
 	ctrlParams.SetExtendedListViewStyle(LVS_EX_FULLROWSELECT);
 
 	createList();
@@ -115,6 +120,26 @@ LRESULT DetectionEntryDlg::onRemove(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
 	return 0;
 }
 
+LRESULT DetectionEntryDlg::onNext(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+	updateVars();
+	try {
+		DetectionManager::getInstance()->updateDetectionItem(origId, curEntry);
+	} catch(const Exception& e) {
+		::MessageBox((HWND)*this, Text::toT(e.getError()).c_str(), _T(APPNAME) _T(" ") _T(VERSIONSTRING), MB_ICONSTOP | MB_OK);
+		return 0;
+	}
+
+	if(DetectionManager::getNextDetectionItem(curEntry.Id, ((wID == IDC_NEXT) ? 1 : -1), curEntry)) {
+		if(idChanged) {
+			idChanged = false;
+			::EnableWindow(GetDlgItem(IDC_DETECT_ID), false);
+			::EnableWindow(GetDlgItem(IDC_ID_EDIT), true);
+		}
+	}
+
+	return 0;
+}
+
 LRESULT DetectionEntryDlg::OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
 	if(wID == IDOK) { 
 		updateVars();
@@ -182,8 +207,9 @@ void DetectionEntryDlg::updateControls() {
 		}
 
 		SetDlgItemText(IDC_DETECT_ID, Util::toStringW(curEntry.Id).c_str());
-		CheckDlgButton(IDC_ENABLE, curEntry.isEnabled ? BST_CHECKED : BST_UNCHECKED);
-		ctrlRaw.SetCurSel(getId(curEntry.rawToSend));
-		ctrlLevel.SetCurSel(curEntry.clientFlag - 1);
 	}
+
+	CheckDlgButton(IDC_ENABLE, curEntry.isEnabled ? BST_CHECKED : BST_UNCHECKED);
+	ctrlRaw.SetCurSel(getId(curEntry.rawToSend));
+	ctrlLevel.SetCurSel(curEntry.clientFlag - 1);
 }

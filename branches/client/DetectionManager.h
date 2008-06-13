@@ -35,16 +35,17 @@ public:
 	void load();
 	void save();
 
+	const DetectionItems& reload();
+	const DetectionItems& reloadFromHttp(bool bz2 = false);
+
 	void addDetectionItem(DetectionEntry& e) throw(Exception);
 	void updateDetectionItem(const uint32_t aOrigId, const DetectionEntry& e) throw(Exception);
 	void removeDetectionItem(const uint32_t id) throw();
 
+	bool getNextDetectionItem(const uint32_t aId, int pos, DetectionEntry& e) throw();
 	bool getDetectionItem(const uint32_t aId, DetectionEntry& e) throw();
 	bool moveDetectionItem(const uint32_t aId, int pos);
 	void setItemEnabled(const uint32_t aId, bool enabled) throw();
-
-	const DetectionItems& reload();
-	const DetectionItems& reloadFromHttp(bool bz2 = false);
 
 	const DetectionItems& getProfiles() throw() {
 		Lock l(cs);

@@ -327,8 +327,8 @@ bool DetectionManager::getNextDetectionItem(const uint32_t aId, int pos, Detecti
 	Lock l(cs);
 	for(DetectionItems::iterator i = det.begin(); i != det.end(); ++i) {
 		if(i->Id == aId) {
-			i = i + pos;
-			if(i != det.end()) {
+			i += pos;
+			if(i < det.end() && i >= det.begin()) {
 				e = *i;
 				return true;
 			}

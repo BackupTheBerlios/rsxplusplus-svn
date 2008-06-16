@@ -129,14 +129,16 @@ LRESULT DetectionEntryDlg::onNext(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl
 		return 0;
 	}
 
-	if(DetectionManager::getNextDetectionItem(curEntry.Id, ((wID == IDC_NEXT) ? 1 : -1), curEntry)) {
-		if(idChanged) {
-			idChanged = false;
-			::EnableWindow(GetDlgItem(IDC_DETECT_ID), false);
-			::EnableWindow(GetDlgItem(IDC_ID_EDIT), true);
-		}
+	if(DetectionManager::getInstance()->getNextDetectionItem(curEntry.Id, ((wID == IDC_NEXT) ? 1 : -1), curEntry) && idChanged) {
+		idChanged = false;
+		::EnableWindow(GetDlgItem(IDC_DETECT_ID), false);
+		::EnableWindow(GetDlgItem(IDC_ID_EDIT), true);
 	}
 
+	origId = curEntry.Id;
+	ctrlParams.DeleteAllItems();
+
+	updateControls();
 	return 0;
 }
 

@@ -1,3 +1,6 @@
+** SVN 78
+ ** fixed no next line in pm frame
+
 ** SVN 77
  ** let say trunk import... lots of things i've changed since last commit, so i don't remember what was changed :P
 

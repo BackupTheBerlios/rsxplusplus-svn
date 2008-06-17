@@ -413,9 +413,9 @@ void PrivateFrame::addLine(const Identity& from, const tstring& aLine, CHARFORMA
 	}
 
 	if(BOOLSETTING(TIME_STAMPS)) {
-		ctrlClient.AppendText(from, ctrlClient.getMyNick(), Text::toT("[" + Util::getShortTimeString() + "] "), aLine.c_str(), cf);
+		ctrlClient.AppendText(from, ctrlClient.getMyNick(), Text::toT("[" + Util::getShortTimeString() + "] "), aLine + _T('\n'), cf);
 	} else {
-		ctrlClient.AppendText(from, ctrlClient.getMyNick(), _T(""), aLine.c_str(), cf);
+		ctrlClient.AppendText(from, ctrlClient.getMyNick(), _T(""), aLine + _T('\n'), cf);
 	}
 	//... end
 	addClientLine(CTSTRING(LAST_CHANGE) +  Text::toT(Util::getTimeString()));

@@ -34,14 +34,14 @@
 #define FILE_LIST_NAME _T("File Lists")
 
 int QueueFrame::columnIndexes[] = { COLUMN_TARGET, COLUMN_STATUS, COLUMN_SEGMENTS, COLUMN_SIZE, COLUMN_PROGRESS, COLUMN_DOWNLOADED, COLUMN_PRIORITY,
-COLUMN_USERS, COLUMN_PATH, COLUMN_EXACT_SIZE, COLUMN_ERRORS, COLUMN_ADDED, COLUMN_TTH, COLUMN_TYPE };
+COLUMN_USERS, COLUMN_PATH, COLUMN_EXACT_SIZE, COLUMN_ERRORS, COLUMN_ADDED, COLUMN_TTH };
 
-int QueueFrame::columnSizes[] = { 200, 300, 70, 75, 100, 120, 75, 200, 200, 75, 200, 100, 125, 75 };
+int QueueFrame::columnSizes[] = { 200, 300, 70, 75, 100, 120, 75, 200, 200, 75, 200, 100, 125 };
 
 static ResourceManager::Strings columnNames[] = { ResourceManager::FILENAME, ResourceManager::STATUS, ResourceManager::SEGMENTS, ResourceManager::SIZE, 
 ResourceManager::DOWNLOADED_PARTS, ResourceManager::DOWNLOADED,
 ResourceManager::PRIORITY, ResourceManager::USERS, ResourceManager::PATH, ResourceManager::EXACT_SIZE, ResourceManager::ERRORS,
-ResourceManager::ADDED, ResourceManager::TTH_ROOT, ResourceManager::TYPE };
+ResourceManager::ADDED, ResourceManager::TTH_ROOT };
 
 LRESULT QueueFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 {
@@ -219,7 +219,7 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const {
 						tmp += TSTRING(PASSIVE_USER);
 					} else if(j->isSet(QueueItem::Source::FLAG_BAD_TREE)) {
 						tmp += TSTRING(INVALID_TREE);
-					} else if(j->isSet(QueueItem::Source::FLAG_SLOW)) {
+					} else if(j->isSet(QueueItem::Source::FLAG_SLOW_SOURCE)) {
 						tmp += TSTRING(SLOW_USER);
 					} else if(j->isSet(QueueItem::Source::FLAG_NO_TTHF)) {
 						tmp += TSTRING(SOURCE_TOO_OLD);						
@@ -234,11 +234,7 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const {
 		case COLUMN_ADDED: return Text::toT(Util::formatTime("%Y-%m-%d %H:%M", getAdded()));
 		case COLUMN_TTH: 
 			return qi->isSet(QueueItem::FLAG_USER_LIST) || qi->isSet(QueueItem::FLAG_TESTSUR) ? Util::emptyStringT : Text::toT(getTTH().toBase32());
-		case COLUMN_TYPE: {
-			tstring type = Text::toT(Util::getFileExt(getTarget()));
-			if(type.size() > 0 && type[0] == '.')
-				type.erase(0, 1);
-		}
+
 		default: return Util::emptyStringT;
 	}
 }
@@ -532,9 +528,11 @@ void QueueFrame::on(QueueManagerListener::Removed, const QueueItem* aQI) {
 	speak(REMOVE_ITEM, new StringTask(aQI->getTarget()));
 }
 
-void QueueFrame::on(QueueManagerListener::Moved, const QueueItem* aQI, const string& oldTarget) {
+void QueueFrame::on(QueueManagerListener::Moved, const QueueItem* /*aQI*/, const string& oldTarget) {
 	speak(REMOVE_ITEM, new StringTask(oldTarget));
-	speak(ADD_ITEM,	new QueueItemInfoTask(new QueueItemInfo(aQI)));
+	
+	// we need to call speaker now to properly remove item before other actions
+	onSpeaker(0, 0, 0, *reinterpret_cast<BOOL*>(NULL));
 }
 
 void QueueFrame::on(QueueManagerListener::SourcesUpdated, const QueueItem* aQI) {
@@ -644,10 +642,7 @@ void QueueFrame::moveSelected() {
 			ext2 += (TCHAR)0;
 			ext2 += _T("*.") + ext;
 		}
-		ext2 += _T("*.*");
-		ext2 += (TCHAR)0;
-		ext2 += _T("*.*");
-		ext2 += (TCHAR)0;
+		ext2 += _T("*.*\0*.*\0\0");
 
 		tstring path = Text::toT(ii->getPath());
 		if(WinUtil::browseFile(target, m_hWnd, true, path, ext2.c_str(), ext.empty() ? NULL : ext.c_str())) {
@@ -677,25 +672,33 @@ void QueueFrame::moveSelectedDir() {
 	tstring name = Text::toT(curDir);
 	
 	if(WinUtil::browseDirectory(name, m_hWnd)) {
+		tmp.clear();
 		moveDir(ctrlDirs.GetSelectedItem(), Text::fromT(name));
+
+		for(vector<pair<QueueItemInfo*, string>>::const_iterator i = tmp.begin(); i != tmp.end(); ++i) {
+			QueueManager::getInstance()->move((*i).first->getTarget(), (*i).second + Util::getFileName((*i).first->getTarget()));
+		}
+
+		tmp.clear();
 	}
 }
 
 void QueueFrame::moveDir(HTREEITEM ht, const string& target) {
+
 	HTREEITEM next = ctrlDirs.GetChildItem(ht);
 	while(next != NULL) {
 		// must add path separator since getLastDir only give us the name
 		moveDir(next, target + Util::getLastDir(getDir(next)) + PATH_SEPARATOR);
 		next = ctrlDirs.GetNextSiblingItem(next);
 	}
+
 	string* s = (string*)ctrlDirs.GetItemData(ht);
 
 	DirectoryPairC p = directories.equal_range(*s);
-	
+
 	for(DirectoryIterC i = p.first; i != p.second; ++i) {
-		QueueItemInfo* ii = i->second;
-		QueueManager::getInstance()->move(ii->getTarget(), target + Util::getFileName(ii->getTarget()));
-	}			
+		tmp.push_back(make_pair(i->second, target));
+	}
 }
 
 QueueItem::SourceList sources;
@@ -835,8 +838,8 @@ LRESULT QueueFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, B
 							nick += _T(" (") + TSTRING(NO_NEEDED_PART) + _T(")");
 						} else if(i->isSet(QueueItem::Source::FLAG_NO_TTHF)) {
 							nick += _T(" (") + TSTRING(SOURCE_TOO_OLD) + _T(")");
-						} else if(i->isSet(QueueItem::Source::FLAG_SLOW)) {
-							nick += _T(" (") + TSTRING(SLOW_USER) + _T(" [") + Util::formatBytesW(i->getUser()->getLastDownloadSpeed()) + _T("/s])");
+						} else if(i->isSet(QueueItem::Source::FLAG_SLOW_SOURCE)) {
+							nick += _T(" (") + TSTRING(SLOW_USER) + _T(")");
 						}
 						mi.fMask = MIIM_ID | MIIM_TYPE | MIIM_DATA;
 						mi.fType = MFT_STRING;
@@ -950,7 +953,7 @@ LRESULT QueueFrame::onCopyMagnet(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWnd
 	if(ctrlQueue.GetSelectedCount() == 1) {
 		int i = ctrlQueue.GetNextItem(-1, LVNI_SELECTED);
 		const QueueItemInfo* ii = ctrlQueue.getItemData(i);
-		WinUtil::copyMagnet(ii->getTTH(), Text::toT(Util::getFileName(ii->getTarget())), ii->getSize());
+		WinUtil::copyMagnet(ii->getTTH(), Util::getFileName(ii->getTarget()), ii->getSize());
 	}
 	return 0;
 }
@@ -1402,7 +1405,7 @@ LRESULT QueueFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled) {
 
 			// draw something nice...
 			CRect rc;
-			ctrlQueue.GetSubItemRect((int)cd->nmcd.dwItemSpec, COLUMN_PROGRESS, LVIR_BOUNDS, rc);
+			ctrlQueue.GetSubItemRect((int)cd->nmcd.dwItemSpec, cd->iSubItem, LVIR_BOUNDS, rc);
 			CBarShader statusBar(rc.Height(), rc.Width(), SETTING(PROGRESS_BACK_COLOR), qii->getSize());
 
 			vector<Segment> v;
@@ -1496,5 +1499,5 @@ void QueueFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/) throw() {
 
 /**
  * @file
- * $Id: QueueFrame.cpp 353 2008-01-01 14:52:02Z bigmuscle $
+ * $Id: QueueFrame.cpp 385 2008-04-26 13:05:09Z BigMuscle $
  */

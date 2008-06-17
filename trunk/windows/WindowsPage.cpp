@@ -17,13 +17,13 @@
  */
 
 #include "stdafx.h"
+
 #include "../client/DCPlusPlus.h"
-#include "Resource.h"
-
-#include "WindowsPage.h"
-
 #include "../client/SettingsManager.h"
 #include "../client/FavoriteManager.h"
+
+#include "Resource.h"
+#include "WindowsPage.h"
 #include "WinUtil.h"
 
 PropPage::Item WindowsPage::items[] = { { 0, 0, PropPage::T_END } };
@@ -89,5 +89,5 @@ void WindowsPage::write() {
 
 /**
  * @file
- * $Id: WindowsPage.cpp 222 2006-07-14 12:41:24Z bigmuscle $
+ * $Id: WindowsPage.cpp 373 2008-02-06 17:23:49Z bigmuscle $
  */

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2007 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,8 @@
 
 #include "Streams.h"
 #include "Util.h"
+
+namespace dcpp {
 
 template<bool managed>
 class CountOutputStream : public OutputStream {
@@ -93,7 +95,7 @@ class FilteredOutputStream : public OutputStream {
 public:
 	using OutputStream::write;
 
-	FilteredOutputStream(OutputStream* aFile) : f(aFile), buf(BUF_SIZE), flushed(false) { }
+	FilteredOutputStream(OutputStream* aFile) : f(aFile), buf(new uint8_t[BUF_SIZE]), flushed(false), more(true) { }
 	~FilteredOutputStream() throw() { if(manage) delete f; }
 
 	size_t flush() throw(Exception) {
@@ -106,9 +108,9 @@ public:
 		for(;;) {
 			size_t n = BUF_SIZE;
 			size_t zero = 0;
-			bool more = filter(NULL, zero, buf, n);
+			more = filter(NULL, zero, &buf[0], n);
 
-			written += f->write(buf, n);
+			written += f->write(&buf[0], n);
 
 			if(!more)
 				break;
@@ -126,11 +128,11 @@ public:
 			size_t n = BUF_SIZE;
 			size_t m = len;
 
-			bool more = filter(wb, m, buf, n);
+			more = filter(wb, m, &buf[0], n);
 			wb += m;
 			len -= m;
 
-			written += f->write(buf, n);
+			written += f->write(&buf[0], n);
 
 			if(!more) {
 				if(len > 0) {
@@ -143,20 +145,23 @@ public:
 		return written;
 	}
 
+	virtual bool eof() { return !more; }
+
 private:
 	static const size_t BUF_SIZE = 64*1024;
 
 	OutputStream* f;
 	Filter filter;
 
-	AutoArray<uint8_t> buf;
+	boost::scoped_array<uint8_t> buf;
 	bool flushed;
+	bool more;
 };
 
 template<class Filter, bool managed>
 class FilteredInputStream : public InputStream {
 public:
-	FilteredInputStream(InputStream* aFile) : f(aFile), buf(BUF_SIZE), pos(0), valid(0), more(true) { }
+	FilteredInputStream(InputStream* aFile) : f(aFile), buf(new uint8_t[BUF_SIZE]), pos(0), valid(0), more(true) { }
 	~FilteredInputStream() throw() { if(managed) delete f; }
 
 	/**
@@ -175,13 +180,13 @@ public:
 			size_t curRead = BUF_SIZE;
 			if(valid == 0) {
 				dcassert(pos == 0);
-				valid = f->read(buf, curRead);
+				valid = f->read(&buf[0], curRead);
 				totalRead += curRead;
 			}
 
 			size_t n = len - totalProduced;
 			size_t m = valid - pos;
-			more = filter(buf + pos, m, rb, n);
+			more = filter(&buf[pos], m, rb, n);
 			pos += m;
 			if(pos == valid) {
 				valid = pos = 0;
@@ -198,15 +203,17 @@ private:
 
 	InputStream* f;
 	Filter filter;
-	AutoArray<uint8_t> buf;
+	boost::scoped_array<uint8_t> buf;
 	size_t pos;
 	size_t valid;
 	bool more;
 };
 
+} // namespace dcpp
+
 #endif // !defined(FILTERED_FILE_H)
 
 /**
 * @file
-* $Id: FilteredFile.h 317 2007-08-04 14:52:24Z bigmuscle $
+* $Id: FilteredFile.h 386 2008-05-10 19:29:01Z BigMuscle $
 */

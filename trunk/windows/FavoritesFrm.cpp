@@ -45,7 +45,7 @@ LRESULT FavoriteHubsFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
 	// Create listview columns
 	WinUtil::splitTokens(columnIndexes, SETTING(FAVORITESFRAME_ORDER), COLUMN_LAST);
 	WinUtil::splitTokens(columnSizes, SETTING(FAVORITESFRAME_WIDTHS), COLUMN_LAST);
-
+	
 	for(int j=0; j<COLUMN_LAST; j++) {
 		int fmt = LVCFMT_LEFT;
 		ctrlHubs.InsertColumn(j, CTSTRING_I(columnNames[j]), fmt, columnSizes[j], j);
@@ -287,7 +287,7 @@ LRESULT FavoriteHubsFrame::onNew(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWnd
 
 	while (true) {
 		if(dlg.DoModal((HWND)*this) == IDOK) {
-			if (FavoriteManager::getInstance()->checkFavHubExists(e)){
+			if (FavoriteManager::getInstance()->isFavoriteHub(e.getServer())){
 				MessageBox(
 					CTSTRING(FAVORITE_HUB_ALREADY_EXISTS), _T(" "), MB_ICONWARNING | MB_OK);
 			} else {

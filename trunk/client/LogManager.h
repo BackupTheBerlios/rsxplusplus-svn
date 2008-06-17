@@ -24,6 +24,8 @@
 #include "Singleton.h"
 #include "TimerManager.h"
 
+namespace dcpp {
+
 class LogManagerListener {
 public:
 	virtual ~LogManagerListener() { }
@@ -114,9 +116,11 @@ private:
 
 #define LOG(area, msg) LogManager::getInstance()->log(area, msg)
 
+} // namespace dcpp
+
 #endif // !defined(LOG_MANAGER_H)
 
 /**
  * @file
- * $Id: LogManager.h 317 2007-08-04 14:52:24Z bigmuscle $
+ * $Id: LogManager.h 373 2008-02-06 17:23:49Z bigmuscle $
  */

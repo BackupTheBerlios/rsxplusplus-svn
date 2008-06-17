@@ -27,6 +27,8 @@
 #include "version.h"
 #include "SSLSocket.h"
 
+namespace dcpp {
+
 STANDARD_EXCEPTION(CryptoException);
 
 class File;
@@ -75,9 +77,11 @@ private:
 	}
 };
 
+} // namespace dcpp
+
 #endif // !defined(CRYPTO_MANAGER_H)
 
 /**
  * @file
- * $Id: CryptoManager.h 332 2007-10-27 14:21:52Z bigmuscle $
+ * $Id: CryptoManager.h 373 2008-02-06 17:23:49Z bigmuscle $
  */

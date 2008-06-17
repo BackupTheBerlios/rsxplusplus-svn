@@ -26,7 +26,6 @@
 #define EXTENDEDTRACEINITIALIZE( IniSymbolPath )	InitSymInfo( IniSymbolPath )
 #define EXTENDEDTRACEUNINITIALIZE()			         UninitSymInfo()
 #define STACKTRACE2(file, eip, esp, ebp) StackTrace(GetCurrentThread(), _T(""), file, eip, esp, ebp)
-class File;
 
 BOOL InitSymInfo( PCSTR );
 BOOL UninitSymInfo();
@@ -45,5 +44,5 @@ void StackTrace( HANDLE, LPCTSTR, File& file, DWORD eip, DWORD esp, DWORD ebp);
 
 /**
  * @file
- * $Id: ExtendedTrace.h 221 2006-07-10 20:42:30Z bigmuscle $
+ * $Id: ExtendedTrace.h 373 2008-02-06 17:23:49Z bigmuscle $
  */

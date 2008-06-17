@@ -21,13 +21,14 @@
 #pragma once
 #endif // _MSC_VER > 1000
 #include <atlcrack.h>
+#include "ExCImage.h"
 
 #include "../client/Util.h"
 #include "../client/ClientProfileManager.h"
 #include "../client/ResourceManager.h"
-#include "../client/RawManager.h"
+#include "CRawCombo.h"
 
-class AutosearchPageDlg : public CDialogImpl<AutosearchPageDlg>, protected RawSelector {
+class AutosearchPageDlg : public CDialogImpl<AutosearchPageDlg> {
 public:
 	tstring	search, comment;
 	int fileType, action, rawToSend;
@@ -60,9 +61,10 @@ private:
 //	enum { BUF_LEN = 1024 };
 	void fixControls();
 	CImageList ftImage;
+	ExCImage::Ptr icons;
 
 	CEdit ctrlSearch, ctrlCheatingDescription;
-	CComboBox cRaw;
+	CRawCombo cRaw;
 	CComboBoxEx ctrlFileType;
 	CComboBox cAction;
 	CButton cDisplay;

@@ -14,25 +14,13 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#if !defined(FILTERPAGE_DLG_H)
+#ifndef FILTERPAGE_DLG_H
 #define FILTERPAGE_DLG_H
-
-#if _MSC_VER > 1000
-#pragma once
-#endif // _MSC_VER > 1000
 
 #include "WinUtil.h"
 #include "../client/Util.h"
 
 class FilterPageDlg : public CDialogImpl<FilterPageDlg> {
-	CEdit ctrlFstring;
-	CButton ctrlHasFontColor;
-	CButton ctrlHasBgColor;
-	CButton ctrlUseColor;
-	CButton ctrlBold;
-	CButton ctrlItalic;
-	CButton ctrlUnderline;
-	CButton ctrlStrikeout;
 public:
 	enum { IDD = IDD_ADD_FILTER_PAGE };
 
@@ -71,6 +59,14 @@ public:
 	COLORREF fontColor, backColor;
 
 private:
+	CEdit ctrlFstring;
+	CButton ctrlHasFontColor;
+	CButton ctrlHasBgColor;
+	CButton ctrlUseColor;
+	CButton ctrlBold;
+	CButton ctrlItalic;
+	CButton ctrlUnderline;
+	CButton ctrlStrikeout;
 	void fixControls();
 };
 

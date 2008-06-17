@@ -192,7 +192,6 @@ private:
 		COLUMN_ERRORS,
 		COLUMN_ADDED,
 		COLUMN_TTH,
-		COLUMN_TYPE,
 		COLUMN_LAST
 	};
 	enum Tasks {
@@ -232,7 +231,7 @@ private:
 		int imageIndex() const { return WinUtil::getIconIndex(Text::toT(getTarget()));	}
 
 		const QueueItem* getQueueItem() const { return qi; }
-		const string getPath() const { return Util::getFilePath(getTarget()); }
+		string getPath() const { return Util::getFilePath(getTarget()); }
 
 		bool isSet(Flags::MaskType aFlag) const { return (qi->getFlags() & aFlag) == aFlag; }
 
@@ -341,6 +340,9 @@ private:
 
 	void moveNode(HTREEITEM item, HTREEITEM parent);
 
+	// temporary vector for moving directories
+	vector<pair<QueueItemInfo*, string>> tmp;
+
 	void clearTree(HTREEITEM item);
 
 	QueueItemInfo* getItemInfo(const string& target) const;
@@ -367,5 +369,5 @@ private:
 
 /**
  * @file
- * $Id: QueueFrame.h 353 2008-01-01 14:52:02Z bigmuscle $
+ * $Id: QueueFrame.h 389 2008-06-08 10:51:15Z BigMuscle $
  */

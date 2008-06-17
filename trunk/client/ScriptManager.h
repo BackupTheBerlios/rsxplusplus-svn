@@ -29,6 +29,8 @@
 
 #include <lunar.h>
 
+namespace dcpp {
+
 class ScriptManagerListener {
 public:
 	typedef ScriptManagerListener* Ptr;
@@ -57,16 +59,13 @@ struct LuaManager {
 	int InjectHubMessageNMDC(lua_State* L);
 	int InjectHubMessageADC(lua_State* L);
 	int HubWindowAttention(lua_State* L);
-	int FindWindow(lua_State* L);
-	int SendMessage(lua_State* L);
 	int DropUserConnection(lua_State* L);
 	//RSX++
 	int GetRSXSetting(lua_State* L);
-	int MessageBox(lua_State* L);
-	int SendMessageEx(lua_State* L);
-	int IsWindow(lua_State* L);
 	int OpenLink(lua_State* L);
 	int DecodeURI(lua_State* L);
+	int BuildType(lua_State*);
+	int GetVer(lua_State* L);
 	//END
 
 	int CreateClient(lua_State* L);
@@ -132,7 +131,7 @@ class ScriptManager : public ScriptInstance, public Singleton<ScriptManager>, pu
 	Socket s;
 	friend class Singleton<ScriptManager>;
 	ScriptManager();
-	~ScriptManager() { 
+	~ScriptManager() throw() { 
 		lua_close(L); 
 		if(timerEnabled)
 			TimerManager::getInstance()->removeListener(this);
@@ -152,5 +151,6 @@ private:
 	void on(ClientDisconnected, const Client* aClient) throw();
 	void on(Second, uint64_t /* ticks */);
 };
+}; // namespace dcpp
 
 #endif // !defined(SCRIPTMANAGER_H)

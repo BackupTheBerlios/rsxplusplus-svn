@@ -153,7 +153,7 @@ public:
 		}
 		BitBlt(hDC.m_hDC, x1, y1, x2, y2, fci->hDC, 0, 0, SRCCOPY);
 	}
-
+	//RSX++
 	static void StealthyFill(CDC& dc, int x1, int y1, int x2, int y2, COLORREF c);
 
 	static void EnlightenFlood(const COLORREF& clr, COLORREF& a, COLORREF& b);

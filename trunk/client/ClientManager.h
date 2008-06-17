@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2007 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,8 +16,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#if !defined(CLIENT_MANAGER_H)
-#define CLIENT_MANAGER_H
+#ifndef DCPLUSPLUS_DCPP_CLIENT_MANAGER_H
+#define DCPLUSPLUS_DCPP_CLIENT_MANAGER_H
 
 #include "TimerManager.h"
 
@@ -25,12 +25,15 @@
 #include "Singleton.h"
 #include "SettingsManager.h"
 #include "User.h"
+#include "Socket.h"
 #include "DirectoryListing.h"
 
 #include "ClientManagerListener.h"
 //RSX++
 #include "../rsx/IpManager.h"
 //END
+
+namespace dcpp {
 
 class UserCommand;
 
@@ -65,13 +68,15 @@ public:
 	UserPtr findUser(const CID& cid) const throw();
 	UserPtr findLegacyUser(const string& aNick) const throw();
 
+	void updateNick(const UserPtr& user, const string& nick) throw();
+
 	bool isOnline(const UserPtr& aUser) const {
 		Lock l(cs);
 		return onlineUsers.find(aUser->getCID()) != onlineUsers.end();
 	}
 	
 	void setIPUser(const string& IP, const UserPtr& user, bool resolveHost = false) {
-		const string& aHost = resolveHost ? Socket::getRemoteHost(IP) : Util::emptyString;
+		string aHost = resolveHost ? Socket::getRemoteHost(IP) : Util::emptyString;
 		Lock l(cs);
 		OnlinePairC p = onlineUsers.equal_range(user->getCID());
 		for(OnlineIterC i = p.first; i != p.second; i++) {
@@ -86,7 +91,7 @@ public:
 		}
 	}
 	
-	const string getMyNMDCNick(const UserPtr& p) const {
+	string getMyNMDCNick(const UserPtr& p) const {
 		Lock l(cs);
 		OnlineIterC i = onlineUsers.find(p->getCID());
 		if(i != onlineUsers.end()) {
@@ -116,7 +121,7 @@ public:
 		if(i == onlineUsers.end()) return;
 
 		i->second->getIdentity().cleanUser();
-		i->second->updateUser();
+		i->second->getClient().updated(*i->second);
 	}
 	//RSX++ //Hide Share
 	bool getSharingHub(const UserPtr& p) {
@@ -202,15 +207,15 @@ public:
 	CID makeCid(const string& nick, const string& hubUrl) const throw();
 
 	void putOnline(OnlineUser* ou) throw();
-	void putOffline(OnlineUser* ou) throw();
+	void putOffline(OnlineUser* ou, bool disconnect = false) throw();
 
 	UserPtr& getMe();
 	
 	void connect(const UserPtr& p, const string& token);
 	void send(AdcCommand& c, const CID& to);
-	void privateMessage(const UserPtr& p, const string& msg);
+	void privateMessage(const UserPtr& p, const string& msg, bool thirdPerson);
 
-	void userCommand(const UserPtr& p, const ::UserCommand& uc, StringMap& params, bool compatibility);
+	void userCommand(const UserPtr& p, const UserCommand& uc, StringMap& params, bool compatibility);
 	void sendRawCommand(const UserPtr& user, const string& aRaw, bool checkProtection = false);
 
 	int getMode(const string& aHubUrl) const;
@@ -223,7 +228,6 @@ public:
 	void sendAction(const UserPtr& p, const int aAction);
 	void sendAction(OnlineUser& ou, const int aAction);
 	void kickFromAutosearch(const UserPtr& p, int action, const string& cheat, const string& file, const string& size, const string& tth, bool display = false);
-	Client* getUserClient(const UserPtr& p);
 	void multiHubKick(const UserPtr& p, const string& aRaw);
 	tstring getHubsLoadInfo() const;
 	//END
@@ -240,7 +244,8 @@ public:
 	void fileListDisconnected(const UserPtr& p);
 	void connectionTimeout(const UserPtr& p);
 	void checkCheating(const UserPtr& p, DirectoryListing* dl);
-	void setCheating(const UserPtr& p, const string& aTestSURString, const string& aCheatString, const int aRawCommand, bool bc, bool bf = false, bool aDisplay = true, bool cc = false, bool cf = false);
+	void setCheating(const UserPtr& p, const string& _ccResponse, const string& _cheatString, int _actionId, bool _displayCheat,
+		bool _badClient, bool _badFileList, bool _clientCheckComplete, bool _fileListCheckComplete);
 	//RSX++
 	void addCheckToQueue(const UserPtr& p, bool filelist);
 	static bool ucExecuteLua(const string& cmd, StringMap& params);
@@ -253,6 +258,8 @@ private:
 	typedef unordered_map<CID, UserPtr> UserMap;
 	typedef UserMap::iterator UserIter;
 
+	typedef unordered_map<CID, std::string> NickMap;
+
 	typedef unordered_multimap<CID, OnlineUser*> OnlineMap;
 	typedef OnlineMap::iterator OnlineIter;
 	typedef OnlineMap::const_iterator OnlineIterC;
@@ -264,6 +271,7 @@ private:
 	
 	UserMap users;
 	OnlineMap onlineUsers;
+	NickMap nicks;
 
 	UserPtr me;
 	
@@ -279,23 +287,27 @@ private:
 		TimerManager::getInstance()->removeListener(this); 
 	}
 
+	void updateNick(const OnlineUser& user) throw();
+	
 	// ClientListener
-	void on(Connected, const Client* c) throw() { fire(ClientManagerListener::ClientConnected(), c); }
-	void on(UserUpdated, const Client*, const OnlineUser& user) throw() { fire(ClientManagerListener::UserUpdated(), user); }
-	void on(UsersUpdated, const Client* c, const UserList&) throw() { fire(ClientManagerListener::ClientUpdated(), c); }
+	void on(Connected, const Client* c) throw();
+	void on(UserUpdated, const Client*, const OnlineUser& user) throw();
+	void on(UsersUpdated, const Client* c, const OnlineUserList&) throw();
 	void on(Failed, const Client*, const string&) throw();
-	void on(HubUpdated, const Client* c) throw() { fire(ClientManagerListener::ClientUpdated(), c); }
+	void on(HubUpdated, const Client* c) throw();
 	void on(HubUserCommand, const Client*, int, int, const string&, const string&) throw();
-	void on(NmdcSearch, Client* aClient, const string& aSeeker, int aSearchType, int64_t aSize, 
+	void on(NmdcSearch, Client* aClient, const string& aSeeker, int aSearchType, int64_t aSize,
 		int aFileType, const string& aString, bool) throw();
 	void on(AdcSearch, const Client* c, const AdcCommand& adc, const CID& from) throw();
 	// TimerManagerListener
 	void on(TimerManagerListener::Minute, uint64_t aTick) throw();
 };
 
+} // namespace dcpp
+
 #endif // !defined(CLIENT_MANAGER_H)
 
 /**
  * @file
- * $Id: ClientManager.h 355 2008-01-05 14:43:39Z bigmuscle $
+ * $Id: ClientManager.h 387 2008-05-16 10:41:48Z BigMuscle $
  */

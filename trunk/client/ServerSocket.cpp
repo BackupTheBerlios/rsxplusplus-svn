@@ -22,6 +22,8 @@
 #include "ServerSocket.h"
 #include "SettingsManager.h"
 
+namespace dcpp {
+
 void ServerSocket::listen(uint16_t aPort) throw(SocketException) {
 	socket.disconnect();
 	socket.create(Socket::TYPE_TCP);
@@ -31,7 +33,9 @@ void ServerSocket::listen(uint16_t aPort) throw(SocketException) {
 	socket.listen();
 }
 
+} // namespace dcpp
+
 /**
  * @file
- * $Id: ServerSocket.cpp 317 2007-08-04 14:52:24Z bigmuscle $
+ * $Id: ServerSocket.cpp 373 2008-02-06 17:23:49Z bigmuscle $
  */

@@ -50,11 +50,12 @@ LRESULT NotepadFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	if(!closed) {
 		SettingsManager::getInstance()->removeListener(this);
 		if(dirty || ctrlPad.GetModify()) {
-				AutoArray<TCHAR> buf(ctrlPad.GetWindowTextLength() + 1);
-			ctrlPad.GetWindowText(buf, ctrlPad.GetWindowTextLength() + 1);
+			tstring tmp;
+			tmp.resize(ctrlPad.GetWindowTextLength());
+
+			ctrlPad.GetWindowText(&tmp[0], tmp.size() + 1);
 			try {
-				string tmp(Text::fromT(tstring(buf, ctrlPad.GetWindowTextLength())));
-				File(Util::getNotepadFile(), File::WRITE, File::CREATE | File::TRUNCATE).write(tmp);
+				File(Util::getNotepadFile(), File::WRITE, File::CREATE | File::TRUNCATE).write(Text::fromT(tmp));
 			} catch(const FileException&) {
 				// Oops...
 			}
@@ -107,5 +108,5 @@ void NotepadFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/) throw()
 
 /**
  * @file
- * $Id: NotepadFrame.cpp 292 2007-06-13 12:15:07Z bigmuscle $
+ * $Id: NotepadFrame.cpp 382 2008-03-09 10:40:22Z BigMuscle $
  */

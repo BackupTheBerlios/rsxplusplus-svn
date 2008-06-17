@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2007 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,11 +16,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#if !defined(QUEUE_ITEM_H)
-#define QUEUE_ITEM_H
-
-class QueueManager;
-class Download;
+#ifndef DCPLUSPLUS_DCPP_QUEUE_ITEM_H
+#define DCPLUSPLUS_DCPP_QUEUE_ITEM_H
 
 #include "User.h"
 #include "FastAlloc.h"
@@ -29,7 +26,12 @@ class Download;
 #include "forward.h"
 #include "Segment.h"
 
-class QueueItem : public Flags, public FastAlloc<QueueItem>, public PointerBase {
+namespace dcpp {
+
+class QueueManager;
+class Download;
+
+class QueueItem : public Flags, public FastAlloc<QueueItem>, public intrusive_ptr_base {
 public:
 	typedef QueueItem* Ptr;
 	typedef deque<Ptr> List;
@@ -55,8 +57,6 @@ public:
 	enum FileFlags {
 		/** Normal download, no flags set */
 		FLAG_NORMAL				= 0x00, 
-		/** This download should be resumed if possible */
-		FLAG_RESUME				= 0x01,
 		/** This is a user file listing download */
 		FLAG_USER_LIST			= 0x02,
 		/** The file list is downloaded to use for directory download (used with USER_LIST) */
@@ -83,14 +83,14 @@ public:
 	 * Source parts info
 	 * Meaningful only when Source::FLAG_PARTIAL is set
 	 */
-	class PartialSource : public FastAlloc<PartialSource>, public PointerBase {
+	class PartialSource : public FastAlloc<PartialSource>, public intrusive_ptr_base {
 	public:
 		PartialSource(const string& aMyNick, const string& aHubIpPort, const string& aIp, uint16_t udp) : 
 		  myNick(aMyNick), hubIpPort(aHubIpPort), ip(aIp), udpPort(udp), nextQueryTime(0), pendingQueryCount(0) { }
 		
 		~PartialSource() { }
 
-		typedef Pointer<PartialSource> Ptr;
+		typedef boost::intrusive_ptr<PartialSource> Ptr;
 
 		GETSET(PartsInfo, partialInfo, PartialInfo);
 		GETSET(string, myNick, MyNick);
@@ -110,14 +110,14 @@ public:
 			FLAG_REMOVED			= 0x04,
 			FLAG_NO_TTHF			= 0x08,
 			FLAG_BAD_TREE			= 0x10,
-			FLAG_SLOW				= 0x20,
+			FLAG_SLOW_SOURCE		= 0x20,
 			FLAG_NO_TREE			= 0x40,
 			FLAG_NO_NEED_PARTS		= 0x80,
 			FLAG_PARTIAL			= 0x100,
 			FLAG_TTH_INCONSISTENCY	= 0x200,
 			FLAG_MASK				= FLAG_FILE_NOT_AVAILABLE
 				| FLAG_PASSIVE | FLAG_REMOVED | FLAG_BAD_TREE
-				| FLAG_SLOW | FLAG_NO_TREE | FLAG_TTH_INCONSISTENCY
+				| FLAG_SLOW_SOURCE | FLAG_NO_TREE | FLAG_TTH_INCONSISTENCY
 		};
 
 		Source(const UserPtr& aUser) : user(aUser), partialSource(NULL) { }
@@ -136,7 +136,7 @@ public:
 	typedef SourceList::const_iterator SourceConstIter;
 
 	typedef set<Segment> SegmentSet;
-	typedef SegmentSet::const_iterator SegmentIter;
+	typedef SegmentSet::const_iterator SegmentConstIter;
 	
 	QueueItem(const string& aTarget, int64_t aSize, Priority aPriority, Flags::MaskType aFlag,
 		time_t aAdded, const TTHValue& tth) :
@@ -214,7 +214,7 @@ public:
 	/**
 	 * Get shared parts info, max 255 parts range pairs
 	 */
-	void getPartialInfo(PartsInfo& partialInfo, int64_t blockSize);
+	void getPartialInfo(PartsInfo& partialInfo, int64_t blockSize) const;
 
 	int64_t getDownloadedBytes() const;
 	double getDownloadedFraction() const { return static_cast<double>(getDownloadedBytes()) / getSize(); }
@@ -222,7 +222,7 @@ public:
 	DownloadList& getDownloads() { return downloads; }
 	
 	/** Next segment that is not done and not being downloaded, zero-sized segment returned if there is none is found */
-	Segment getNextSegment(int64_t blockSize, int64_t userSpeed, const PartialSource::Ptr partialSource) const;
+	Segment getNextSegment(int64_t blockSize, int64_t wantedSize, int64_t lastSpeed, const PartialSource::Ptr partialSource) const;
 	
 	void addSegment(const Segment& segment);
 	
@@ -305,9 +305,11 @@ private:
 	void removeSource(const UserPtr& aUser, Flags::MaskType reason);
 };
 
+} // namespace dcpp
+
 #endif // !defined(QUEUE_ITEM_H)
 
 /**
 * @file
-* $Id: QueueItem.h 356 2008-01-11 20:48:10Z bigmuscle $
+* $Id: QueueItem.h 389 2008-06-08 10:51:15Z BigMuscle $
 */

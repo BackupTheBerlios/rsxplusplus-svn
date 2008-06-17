@@ -16,11 +16,13 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#if !defined(CID_H)
-#define CID_H
+#ifndef DCPLUSPLUS_DCPP_CID_H
+#define DCPLUSPLUS_DCPP_CID_H
 
 #include "Encoder.h"
 #include "Util.h"
+
+namespace dcpp {
 
 class CID {
 public:
@@ -32,7 +34,9 @@ public:
 
 	bool operator==(const CID& rhs) const { return memcmp(cid, rhs.cid, sizeof(cid)) == 0; }
 	bool operator<(const CID& rhs) const { return memcmp(cid, rhs.cid, sizeof(cid)) < 0; }
-
+#ifdef NATIVE_MSVC_TR1
+	operator size_t() const { return toHash(); }
+#endif //NATIVE_MSVC_TR1
 	string toBase32() const { return Encoder::toBase32(cid, sizeof(cid)); }
 	string& toBase32(string& tmp) const { return Encoder::toBase32(cid, sizeof(cid), tmp); }
 
@@ -53,18 +57,20 @@ private:
 	uint8_t cid[SIZE];
 };
 
+} // namespace dcpp
+#ifndef NATIVE_MSVC_TR1
 namespace std {
 template<>
-struct hash<::CID> {
-	size_t operator()(const ::CID& rhs) const {
+struct hash<dcpp::CID> {
+	size_t operator()(const dcpp::CID& rhs) const {
 		return *reinterpret_cast<const size_t*>(rhs.data());
 	}
 };
 }
-
+#endif //NATIVE_MSVC_TR1
 #endif // !defined(CID_H)
 
 /**
 * @file
-* $Id: CID.h 355 2008-01-05 14:43:39Z bigmuscle $
+* $Id: CID.h 373 2008-02-06 17:23:49Z bigmuscle $
 */

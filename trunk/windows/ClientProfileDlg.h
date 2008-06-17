@@ -8,16 +8,16 @@
 
 #include "../client/Util.h"
 #include "../client/ClientProfileManager.h"
-#include "../client/RawManager.h" //RSX++
+#include "CRawCombo.h" //RSX++
 
-class ClientProfileDlg : public CDialogImpl<ClientProfileDlg>, protected RawSelector
+class ClientProfileDlg : public CDialogImpl<ClientProfileDlg>
 {
 	CEdit ctrlName, ctrlVersion, ctrlTag, ctrlExtendedTag, ctrlLock, ctrlPk, ctrlSupports, 
 		ctrlTestSUR, ctrlUserConCom, ctrlStatus, ctrlCheatingDescription, ctrlAddLine, 
 		ctrlConnection, ctrlComment, ctrlRegExpText, ctrlID;
 
-	CComboBox ctrlRaw, ctrlRegExpCombo;
-
+	CComboBox ctrlRegExpCombo;
+	CRawCombo ctrlRaw;
 	CButton ctrlTagVersion, ctrlUseExtraVersion, ctrlCheckMismatch, ctrlRegExpButton, ctrlRecheck, ctrlSkipExtended;
 public:
 	

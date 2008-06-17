@@ -24,6 +24,8 @@
 #include <sys/time.h>
 #endif
 
+namespace dcpp {
+
 class Semaphore  
 {
 #ifdef _WIN32
@@ -91,9 +93,11 @@ private:
 
 };
 
+} // namespace dcpp
+
 #endif // !defined(SEMAPHORE_H)
 
 /**
  * @file
- * $Id: Semaphore.h 317 2007-08-04 14:52:24Z bigmuscle $
+ * $Id: Semaphore.h 373 2008-02-06 17:23:49Z bigmuscle $
  */

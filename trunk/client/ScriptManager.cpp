@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007 cologic, cologic@parsoma.net
+ * Copyright (C) 2008 cologic, cologic@parsoma.net
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,12 +17,12 @@
  */
 
 #include "stdinc.h"
+#include "DCPlusPlus.h"
 
 #include "ScriptManager.h"
 #include "Util.h"
 #include "StringTokenizer.h"
 #include "Client.h"
-#include "ClientListener.h"
 #include "UserConnection.h"
 #include "ClientManager.h"
 #include "DownloadManager.h"
@@ -30,10 +30,14 @@
 #include "NmdcHub.h"
 #include "AdcHub.h"
 #include "Thread.h"
+#include "version.h"
 #include <cstddef>
 #include <shellapi.h>
+//RSX++ // my custom lua libraries
+#include "lua_WindowsLib.h"
+//END
 
-ScriptManager* Singleton<ScriptManager>::instance = NULL;
+namespace dcpp {
 
 static void callalert (lua_State *L, int status) {
 	if (status != 0) {
@@ -82,8 +86,6 @@ Lunar<LuaManager>::RegType LuaManager::methods[] = {
 	{"InjectHubMessage", &LuaManager::InjectHubMessageNMDC},
 	{"InjectHubMessageADC", &LuaManager::InjectHubMessageADC},
 	{"HubWindowAttention", &LuaManager::HubWindowAttention},
-	{"FindWindowHandle", &LuaManager::FindWindow},
-	{"SendWindowMessage", &LuaManager::SendMessage},
 	{"CreateClient", &LuaManager::CreateClient},
 	{"DeleteClient", &LuaManager::DeleteClient},
 	{"RunTimer", &LuaManager::RunTimer},
@@ -94,11 +96,10 @@ Lunar<LuaManager>::RegType LuaManager::methods[] = {
 	{"DropUserConnection", &LuaManager::DropUserConnection},
 	//RSX++
 	{"GetRSXSetting", &LuaManager::GetRSXSetting},
-	{"MessageBox", &LuaManager::MessageBox},
-	{"SendWindowMessageEx", &LuaManager::SendMessageEx},
-	{"IsWindow", &LuaManager::IsWindow},
 	{"OpenLink", &LuaManager::OpenLink},
 	{"DecodeURI", &LuaManager::DecodeURI},
+	{"BuildType", &LuaManager::BuildType},
+	{"GetVersion", &LuaManager::GetVer},
 	//END
 	{0}
 };
@@ -147,68 +148,6 @@ int LuaManager::HubWindowAttention(lua_State* L) {
 		reinterpret_cast<Client *>(lua_touserdata(L, -1))->attention();
 	}
 
-	return 0;
-}
-
-int LuaManager::SendMessage(lua_State* L) {
-	if (lua_gettop(L) == 4 && lua_islightuserdata(L, -4) && lua_isnumber(L, -3) &&
-			lua_islightuserdata(L, -2) && lua_islightuserdata(L, -1)) {
-		::SendMessage(reinterpret_cast<HWND>(lua_touserdata(L, -4)), static_cast<UINT>(lua_tonumber(L, -3)),
-			reinterpret_cast<WPARAM>(lua_touserdata(L, -2)), reinterpret_cast<LPARAM>(lua_touserdata(L, -1)));
-	}
-
-	return 0;
-}
-
-int LuaManager::SendMessageEx(lua_State* L) {
-	if (lua_gettop(L) == 4 && lua_islightuserdata(L, -4)) {
-		UINT aCmd = NULL;
-		WPARAM wParam = NULL;
-		LPARAM lParam = NULL;
-		if(lua_isnumber(L, -3)) {
-			aCmd = static_cast<UINT>(lua_tonumber(L, -3));
-		} else if(lua_isstring(L, -3)) {
-			aCmd = RsxUtil::str2wmmsg(lua_tostring(L, -3));
-		}
-
-		if(lua_isnumber(L, -2)) {
-			wParam = static_cast<WPARAM>(lua_tonumber(L, -2));
-		} else if(lua_isstring(L, -2)) {
-			wParam = reinterpret_cast<WPARAM>(lua_tostring(L, -2));
-		} else if(lua_islightuserdata(L, -2)) {
-			wParam = reinterpret_cast<WPARAM>(lua_touserdata(L, -2));
-		}
-
-		if(lua_isnumber(L, -1)) {
-			lParam = static_cast<LPARAM>(lua_tonumber(L, -1));
-		} else if(lua_isstring(L, -1)) {
-			lParam = reinterpret_cast<LPARAM>(lua_tostring(L, -1));
-		} else if(lua_islightuserdata(L, -1)) {
-			lParam = reinterpret_cast<LPARAM>(lua_touserdata(L, -1));
-		}
-
-		lua_pushlightuserdata(L, (void*)::SendMessage(reinterpret_cast<HWND>(lua_touserdata(L, -4)), aCmd, wParam, lParam));
-		return 1;
-	}
-	return 0;
-}
-
-int LuaManager::FindWindow(lua_State* L) {
-	if(lua_gettop(L) == 2 && lua_isstring(L, -2) && lua_isstring(L, -1)) {
-		const tstring& s1 = Text::toT(string(lua_tostring(L, -2)));
-		const tstring& s2 = Text::toT(string(lua_tostring(L, -1)));
-
-		lua_pushlightuserdata(L, ::FindWindow(s1.empty() ? NULL : s1.c_str(), s2.empty() ? NULL : s2.c_str()));
-		return 1;
-	}
-	return 0;
-}
-
-int LuaManager::IsWindow(lua_State* L) {
-	if(lua_gettop(L) == 1) {
-		if(lua_islightuserdata(L, -1))
-			return ::IsWindow(reinterpret_cast<HWND>(lua_touserdata(L, -1)));
-	}
 	return 0;
 }
 
@@ -295,43 +234,6 @@ int LuaManager::GetRSXSetting(lua_State* L) {
 	return 0;
 }
 
-int LuaManager::MessageBox(lua_State* L) {
-	if(lua_gettop(L) == 4 && lua_isstring(L, -1) && lua_isstring(L, -2) && lua_isstring(L, -3) && lua_isstring(L, -4)) {
-		string icon = lua_tostring(L, -1);
-		string buttons = lua_tostring(L, -2);
-		UINT flags = 0;
-		bool returnValue = false;
-
-		if(icon == "error") {
-			flags = MB_ICONHAND;
-		} else if(icon == "question") {
-			flags = MB_ICONQUESTION;
-		} else if(icon == "warning") {
-			flags = MB_ICONEXCLAMATION;
-		} else if(icon == "info") {
-			flags = MB_ICONASTERISK;
-		} else if(icon == "info2") {
-			flags = MB_ICONINFORMATION;
-		}
-
-		if(buttons == "ok") {
-			flags += MB_OK;
-		} else if(buttons == "yesno") {
-			flags += MB_YESNO;
-			returnValue = true;
-		}
-
-		if(returnValue) {
-			if((::MessageBox(0, reinterpret_cast<LPCWSTR>(Text::toT(lua_tostring(L, -4)).c_str()), reinterpret_cast<LPCWSTR>(Text::toT(lua_tostring(L, -3)).c_str()), flags)) == IDYES)
-				return 1;
-		} else {
-			::MessageBox(0, reinterpret_cast<LPCWSTR>(Text::toT(lua_tostring(L, -4)).c_str()), reinterpret_cast<LPCWSTR>(Text::toT(lua_tostring(L, -3)).c_str()), flags);
-			return 0;
-		}
-	}
-	return 0;
-}
-
 int LuaManager::OpenLink(lua_State *L) {
 	if(lua_gettop(L) == 1 && lua_isstring(L, -1)) {
 		::ShellExecute(NULL, _T("open"), Text::toT(lua_tostring(L, -1)).c_str(), NULL, NULL, SW_SHOWNORMAL);
@@ -345,6 +247,22 @@ int LuaManager::DecodeURI(lua_State* L) {
 		lua_pushstring(L, Util::encodeURI(lua_tostring(L, -1)).c_str());
 		return 1;
 	}
+	return 0;
+}
+
+int LuaManager::BuildType(lua_State* L) {
+#if defined(_DEBUG)
+	lua_pushstring(L, "DEBUG");
+#elif defined(SVNBUILD)
+	lua_pushstring(L, "SVN");
+#else
+	lua_pushstring(L, "RELEASE");
+#endif
+	return 0;
+}
+
+int LuaManager::GetVer(lua_State* L) {
+	lua_pushstring(L, VERSIONSTRING);
 	return 0;
 }
 //END
@@ -445,6 +363,7 @@ void ScriptManager::load() {
 	luaL_openlibs(L);
 
 	Lunar<LuaManager>::Register(L);
+	luaL_register(L, lua_winlib::libname, lua_winlib::lib);
 /*
  * let say we don't need formatting from lua, because we have it already hard coded in client
  * also, it don't want to work so leave it... ;D
@@ -513,7 +432,7 @@ string ScriptInstance::GetClientType(const Client* aClient) {
 		return "nmdch";
 	}
 }
-
+//RSX++
 string ScriptInstance::colorize(string& aLine) {
 	Lock l(cs);
 	MakeCall("dcpp", "OnColorize", 1, aLine);
@@ -523,6 +442,10 @@ string ScriptInstance::colorize(string& aLine) {
 	return aLine;
 }
 
+void ScriptManager::onRaw(const string& aRawName, const string& aRaw, const Client* aClient) throw() {
+	MakeCall("raw", aRawName, 0, aRaw, aClient);
+}
+//END
 void ScriptManager::on(ClientDisconnected, const Client* aClient) throw() {
 	MakeCall(GetClientType(aClient), "OnHubRemoved", 0, aClient);
 }
@@ -531,12 +454,8 @@ void ScriptManager::on(ClientConnected, const Client* aClient) throw() {
 	MakeCall(GetClientType(aClient), "OnHubAdded", 0, aClient);
 }
 
-void ScriptManager::on(Second, uint64_t /* ticks */) {
+void ScriptManager::on(Second, uint64_t /* ticks */) throw() {
 	MakeCall("dcpp", "OnTimer", 0, 0);
-}
-
-void ScriptManager::onRaw(const string& aRawName, const string& aRaw, const Client* aClient) throw() {
-	MakeCall("raw", aRawName, 0, aRaw, aClient);
 }
 
 void ScriptInstance::LuaPush(int i) { lua_pushnumber(L, i); }
@@ -564,7 +483,9 @@ bool ScriptInstance::MakeCallRaw(const string& table, const string& method, int 
 	return false;
 }
 
+} // namespace dcpp
+
 /**
  * @file ScriptManager.cpp
- * $Id: ScriptManager.cpp,v 1.2 2004/06/19 12:57:22 cologic Exp $
+ * $Id: ScriptManager.cpp,v 1.3 2008/01/18 12:57:22 cologic Exp $
  */

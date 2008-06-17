@@ -25,6 +25,8 @@
 #include "ResourceManager.h"
 #include "TimerManager.h"
 
+namespace dcpp {
+
 string Socket::udpServer;
 uint16_t Socket::udpPort;
 
@@ -85,7 +87,7 @@ void Socket::accept(const Socket& listeningSocket) throw(SocketException) {
 
 	do {
 		sock = ::accept(listeningSocket.sock, (sockaddr*)&sock_addr, &sz);
-	} while (sock /*== SOCKET_ERROR*/ < 0 && getLastError() == EINTR);
+	} while (sock == SOCKET_ERROR && getLastError() == EINTR);
 	check(sock);
 
 #ifdef _WIN32
@@ -629,7 +631,7 @@ void Socket::disconnect() throw() {
 	close();
 }
 
-const string Socket::getRemoteHost(const string& aIp) {
+string Socket::getRemoteHost(const string& aIp) {
 	if(aIp.empty())
 		return Util::emptyString;
 	hostent *h = NULL;
@@ -644,7 +646,9 @@ const string Socket::getRemoteHost(const string& aIp) {
 	}
 }
 
+} // namespace dcpp
+
 /**
  * @file
- * $Id: Socket.cpp 340 2007-12-20 12:30:13Z bigmuscle $
+ * $Id: Socket.cpp 389 2008-06-08 10:51:15Z BigMuscle $
  */

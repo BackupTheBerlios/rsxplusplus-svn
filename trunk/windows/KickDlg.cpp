@@ -39,9 +39,11 @@ LRESULT RsxKickDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 LRESULT RsxKickDlg::OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
 	if(wID == IDOK) {
 		int len = ctrlCommand.GetWindowTextLength() + 1;
-		AutoArray<TCHAR> buf(len);
-		GetDlgItemText(IDC_KICK_DLG_CMD, buf, len);
-		rawCommand = buf;
+		tstring buf;
+		buf.resize(len);
+
+		GetDlgItemText(IDC_KICK_DLG_CMD, &buf[0], len);
+		rawCommand = &buf[0];
 	}
 	EndDialog(wID);
 	return 0;

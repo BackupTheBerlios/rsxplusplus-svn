@@ -44,11 +44,7 @@ LRESULT ClientProfileDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM 
 	ATTACH(IDC_ADD_LINE, ctrlAddLine);
 	ATTACH(IDC_COMMENT, ctrlComment);
 
-	createList();
-	ATTACH(IDC_CLIENT_PROFILE_RAW, ctrlRaw);
-	for(ActionList::const_iterator i = idAction.begin(); i != idAction.end(); ++i) {
-		ctrlRaw.AddString(RawManager::getInstance()->getNameActionId(i->second).c_str());
-	}
+	ctrlRaw.attach(GetDlgItem(IDC_CLIENT_PROFILE_RAW), 0);
 
 	ATTACH(IDC_REGEXP_TESTER_COMBO, ctrlRegExpCombo);
 	ctrlRegExpCombo.AddString(_T("Version"));
@@ -169,7 +165,7 @@ void ClientProfileDlg::updateVars() {
 	useExtraVersion = ctrlUseExtraVersion.GetCheck() == BST_CHECKED;
 	checkMismatch = ctrlCheckMismatch.GetCheck() == BST_CHECKED;
 
-	rawToSend = getIdAction(ctrlRaw.GetCurSel()); //adrian edit
+	rawToSend = ctrlRaw.getActionId(); //adrian edit
 	id = GetDlgItemInt(IDC_CP_ID);
 }
 
@@ -193,7 +189,7 @@ void ClientProfileDlg::updateControls() {
 	//ctrlTagVersion.SetCheck((tagVersion) ? BST_CHECKED : BST_UNCHECKED);
 	ctrlUseExtraVersion.SetCheck(useExtraVersion ? BST_CHECKED : BST_UNCHECKED);
 	ctrlCheckMismatch.SetCheck(checkMismatch ? BST_CHECKED : BST_UNCHECKED);
-	ctrlRaw.SetCurSel(getId(rawToSend));
+	ctrlRaw.setPos(rawToSend);
 
 	ctrlName.SetFocus();
 }

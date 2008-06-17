@@ -21,6 +21,8 @@
 
 #include "TimerManager.h"
 
+namespace dcpp {
+
 #ifdef _WIN32
 DWORD TimerManager::lastTick = 0;
 uint32_t TimerManager::cycles = 0;
@@ -67,7 +69,9 @@ uint64_t TimerManager::getTick() {
 #endif
 }
 
+} // namespace dcpp
+
 /**
  * @file
- * $Id: TimerManager.cpp 339 2007-12-15 15:04:37Z bigmuscle $
+ * $Id: TimerManager.cpp 373 2008-02-06 17:23:49Z bigmuscle $
  */

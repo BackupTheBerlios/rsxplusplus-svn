@@ -18,25 +18,23 @@
 
 #define APPNAME "RSX++"
 #define VERSIONSTRING "1.00"
-#define VERSIONFLOAT 1.003
+#define VERSIONFLOAT 1.004
 
-#define DCVERSIONSTRING "0.704"
-#define DCVERSIONFLOAT 0.7042
+#define DCVERSIONSTRING "0.706"
+#define DCVERSIONFLOAT 0.7061
 
-#define SVNVERSION "svn360"
+#define SVNVERSION "svn390"
 
 // RSX++
 #define SVN_REVISION $revision
 
+#ifdef SVNBUILD
 #define SVN_REVISION_STR "$revision"
+#endif
 
 #define __HOMESITE "http://rsxplusplus.sf.net/"
 #define __WIKI "http://rsxplusplus.wiki.sourceforge.net/"
 #define __FORUM "http://rsxplusplus.sf.net/forum/"
 #define VERSION_URL "http://rsxplusplus.sf.net/version.xml"
-
-#ifdef SVN_REVISION_STR
-#define EXTRA_VER _T(" SVN:") _T(SVN_REVISION_STR) _T(" [") _T(DCVERSIONSTRING) _T("/") _T(SVNVERSION) _T("]")
-#endif
 
 /* Update the .rc file as well... */

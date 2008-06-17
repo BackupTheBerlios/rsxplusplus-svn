@@ -17,13 +17,13 @@
  */
 
 #include "stdafx.h"
-#include "../client/DCPlusPlus.h"
-#include "Resource.h"
 
-#include "AppearancePage.h"
+#include "../client/DCPlusPlus.h"
 #include "../client/SettingsManager.h"
 #include "../client/StringTokenizer.h"
 
+#include "Resource.h"
+#include "AppearancePage.h"
 #include "WinUtil.h"
 
 PropPage::TextItem AppearancePage::texts[] = {
@@ -61,7 +61,6 @@ PropPage::ListItem AppearancePage::listItems[] = {
 	{ SettingsManager::CZCHARS_DISABLE, ResourceManager::SETCZDC_CZCHARS_DISABLE },
 	{ SettingsManager::USE_OLD_SHARING_UI, ResourceManager::SETTINGS_USE_OLD_SHARING_UI },
 	{ SettingsManager::SUPPRESS_MAIN_CHAT, ResourceManager::SETTINGS_ADVANCED_SUPPRESS_MAIN_CHAT },
-	{ SettingsManager::USE_VERTICAL_VIEW, ResourceManager::SETTINGS_USE_VERTICAL_VIEW },
 	{ SettingsManager::TABS_ON_TOP, ResourceManager::TABS_ON_TOP },
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
@@ -116,5 +115,5 @@ LRESULT AppearancePage::onClickedHelp(WORD /* wNotifyCode */, WORD /*wID*/, HWND
 
 /**
  * @file
- * $Id: AppearancePage.cpp 265 2006-12-13 10:16:32Z bigmuscle $
+ * $Id: AppearancePage.cpp 373 2008-02-06 17:23:49Z bigmuscle $
  */

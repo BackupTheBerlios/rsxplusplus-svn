@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2007 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,8 +16,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef DCPLUSPLUS_CLIENT_BUFFERED_SOCKET_H
-#define DCPLUSPLUS_CLIENT_BUFFERED_SOCKET_H
+#ifndef DCPLUSPLUS_DCPP_BUFFERED_SOCKET_H
+#define DCPLUSPLUS_DCPP_BUFFERED_SOCKET_H
 
 #include "forward.h"
 #include "BufferedSocketListener.h"
@@ -27,8 +27,9 @@
 #include "Util.h"
 #include "Socket.h"
 
-class BufferedSocket : public Speaker<BufferedSocketListener>, public Thread
-{
+namespace dcpp {
+
+class BufferedSocket : public Speaker<BufferedSocketListener>, private Thread {
 public:
 	enum Modes {
 		MODE_LINE,
@@ -41,7 +42,7 @@ public:
 	 * @param sep Line separator
 	 * @return An unconnected socket
 	 */
-	static BufferedSocket* getSocket(char sep) throw() { 
+	static BufferedSocket* getSocket(char sep) throw(ThreadException) {
 		return new BufferedSocket(sep); 
 	}
 
@@ -55,8 +56,8 @@ public:
 			Thread::sleep(100);
 	}
 
-	void accept(const Socket& srv, bool secure, bool allowUntrusted) throw(SocketException, ThreadException);
-	void connect(const string& aAddress, uint16_t aPort, bool secure, bool allowUntrusted, bool proxy) throw(SocketException, ThreadException);
+	void accept(const Socket& srv, bool secure, bool allowUntrusted) throw(SocketException);
+	void connect(const string& aAddress, uint16_t aPort, bool secure, bool allowUntrusted, bool proxy) throw(SocketException);
 
 	/** Sets data mode for aBytes bytes. Must be called within onLine. */
 	void setDataMode(int64_t aBytes = -1) { mode = MODE_DATA; dataBytes = aBytes; }
@@ -68,12 +69,12 @@ public:
 	void setLineMode(size_t aRollback) { setMode (MODE_LINE, aRollback);}
 	void setMode(Modes mode, size_t aRollback = 0);
 	Modes getMode() const { return mode; }
-	const string& getIp() const { return sock ? sock->getIp() : Util::emptyString; }
-	const uint16_t getPort() { return sock ? sock->getPort() : 0; }
-	bool isConnected() const { return sock && sock->isConnected(); }
+	const string& getIp() const { return sock->getIp(); }
+	const uint16_t getPort() { return sock->getPort(); }
+	bool isConnected() const { return sock->isConnected(); }
 	
-	bool isSecure() const { return sock && sock->isSecure(); }
-	bool isTrusted() const { return sock && sock->isTrusted(); }
+	bool isSecure() const { return sock->isSecure(); }
+	bool isTrusted() const { return sock->isTrusted(); }
 
 	void write(const string& aData) { write(aData.data(), aData.length()); }
 	void write(const char* aBuf, size_t aLen) throw();
@@ -85,7 +86,8 @@ public:
 
 	void disconnect(bool graceless = false) throw() { Lock l(cs); if(graceless) disconnecting = true; addTask(DISCONNECT, 0); }
 
-	string getLocalIp() const { return sock ? sock->getLocalIp() : Util::getLocalIp(); }
+	string getLocalIp() const { return sock->getLocalIp(); }
+	bool hasSocket() const { return sock.get() != NULL; }
 
 	GETSET(char, separator, Separator)
 private:
@@ -97,6 +99,12 @@ private:
 		SHUTDOWN,
 		ACCEPTED,
 		UPDATED
+	};
+
+	enum State {
+		STARTING, // Waiting for CONNECT/ACCEPTED/SHUTDOWN
+		RUNNING,
+		FAILED
 	};
 
 	struct TaskData { 
@@ -113,18 +121,14 @@ private:
 		InputStream* stream;
 	};
 
-	BufferedSocket(char aSeparator) throw();
-
-	// Dummy...
-	BufferedSocket(const BufferedSocket&);
-	BufferedSocket& operator=(const BufferedSocket&);
+	BufferedSocket(char aSeparator) throw(ThreadException);
 
 	~BufferedSocket() throw();
 
 	CriticalSection cs;
 
 	Semaphore taskSem;
-	vector<pair<Tasks, TaskData*> > tasks;
+	deque<pair<Tasks, boost::shared_ptr<TaskData> > > tasks;
 	ByteVector inbuf;
 	ByteVector writeBuf;
 	ByteVector sendBuf;
@@ -134,11 +138,12 @@ private:
 	size_t rollback;
 
 	Modes mode;
+	State state;
+	
+	std::auto_ptr<UnZFilter> filterIn;
+	std::auto_ptr<Socket> sock;
 
-	UnZFilter *filterIn;
-	Socket* sock;
 	bool disconnecting;
-	bool failed;
 	
 	int run();
 
@@ -154,13 +159,16 @@ private:
 	bool checkEvents();
 	void checkSocket();
 
+	void setSocket(std::auto_ptr<Socket> s);
 	void shutdown();
-	void addTask(Tasks task, TaskData* data) { tasks.push_back(make_pair(task, data)); taskSem.signal(); }
+	void addTask(Tasks task, TaskData* data);
 };
+
+} // namespace dcpp
 
 #endif // !defined(BUFFERED_SOCKET_H)
 
 /**
  * @file
- * $Id: BufferedSocket.h 340 2007-12-20 12:30:13Z bigmuscle $
+ * $Id: BufferedSocket.h 385 2008-04-26 13:05:09Z BigMuscle $
  */

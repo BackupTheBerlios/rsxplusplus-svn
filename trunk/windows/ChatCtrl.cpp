@@ -20,10 +20,13 @@
 #include "Resource.h"
 #include "../client/DCPlusPlus.h"
 #include "../client/FavoriteManager.h"
+#include "../client/UploadManager.h"
 
 #include "ChatCtrl.h"
 #include "AGEmotionSetup.h"
-#include "atlstr.h"
+#include "PrivateFrame.h"
+//#include "atlstr.h"
+#include "StdString.h"
 
 #include "../client/pme.h" //RSX++
 #include "MainFrm.h" //RSX++
@@ -35,12 +38,13 @@ CAGEmotionSetup* g_pEmotionsSetup = NULL;
 tstring ChatCtrl::sSelectedLine = Util::emptyStringT;
 tstring ChatCtrl::sSelectedIP = Util::emptyStringT;
 tstring ChatCtrl::sSelectedUser = Util::emptyStringT;
+tstring ChatCtrl::sSelectedURL = Util::emptyStringT;
 
 static const TCHAR* Links[] = { _T("http://"), _T("https://"), _T("www."), _T("ftp://"), 
 	_T("magnet:?"), _T("dchub://"), _T("irc://"), _T("ed2k://"), _T("mms://"), _T("file://"),
 	_T("adc://"), _T("adcs://") };
 
-ChatCtrl::ChatCtrl() : m_boAutoScroll(true), client(NULL) {
+ChatCtrl::ChatCtrl() : ccw(_T("edit"), this), client(NULL) {
 	if(g_pEmotionsSetup == NULL) {
 		g_pEmotionsSetup = new CAGEmotionSetup();
 	}
@@ -64,17 +68,25 @@ void ChatCtrl::AdjustTextSize() {
 		SetSel(0, LineIndex(LineFromChar(2000)));
 		ReplaceSel(_T(""));
 		SetRedraw(TRUE);
+
+		//scrollToEnd();
 	}
 }
 
-void ChatCtrl::AppendText(const Identity& i, const tstring& sMyNick, const tstring& sTime, const LPCTSTR sMsg, CHARFORMAT2& cf, bool bUseEmo/* = true*/, bool useHL/* = true*/, const tstring& aIpCc) {
+void ChatCtrl::AppendText(const Identity& i, const tstring& sMyNick, const tstring& sTime, const tstring& sMsg, CHARFORMAT2& cf, bool bUseEmo/* = true*/, bool useHL/* = true*/, const tstring& aIpCc) {
 	SetRedraw(FALSE);
-	long lSelBeginSaved, lSelEndSaved;
-	GetSel(lSelBeginSaved, lSelEndSaved);
-	POINT cr;
-	GetScrollPos(&cr);
+
+	SCROLLINFO si = { 0 };
+	POINT pt = { 0 };
+
+	si.cbSize = sizeof(si);
+	si.fMask = SIF_PAGE | SIF_RANGE | SIF_POS;
+	GetScrollInfo(SB_VERT, &si);
+	GetScrollPos(&pt);
 
 	long lSelBegin = 0, lSelEnd = 0;
+	long lSelBeginSaved, lSelEndSaved;
+	GetSel(lSelBeginSaved, lSelEndSaved);
 
 	// Insert TimeStamp and format with default style
 	if(!sTime.empty()) {
@@ -92,7 +104,7 @@ void ChatCtrl::AppendText(const Identity& i, const tstring& sMyNick, const tstri
 		SetParaFormat(pf);
 	}
 	//RSX++
-	bool bMyMess = i.getUser() == ClientManager::getInstance()->getMe();
+	bool isMyMessage = i.getUser() == ClientManager::getInstance()->getMe();
 
 	if(!aIpCc.empty()) {
 		lSelEnd = lSelBegin = GetTextLengthEx(GTL_NUMCHARS);
@@ -100,7 +112,7 @@ void ChatCtrl::AppendText(const Identity& i, const tstring& sMyNick, const tstri
 		ReplaceSel(aIpCc.c_str(), false);
 		lSelEnd = GetTextLengthEx(GTL_NUMCHARS);
 		SetSel(lSelBegin, lSelEnd - 1);
-		SetSelectionCharFormat(bMyMess ? WinUtil::m_ChatTextMyOwn : WinUtil::m_ChatTextGeneral);
+		SetSelectionCharFormat(isMyMessage ? WinUtil::m_ChatTextMyOwn : WinUtil::m_ChatTextGeneral);
 
 		PARAFORMAT2 pf;
 		memzero(&pf, sizeof(PARAFORMAT2));
@@ -110,25 +122,27 @@ void ChatCtrl::AppendText(const Identity& i, const tstring& sMyNick, const tstri
 	}
 	//END
 
-	CAtlString sText;
+	TCHAR* sText = (TCHAR*)sMsg.c_str();
 	tstring sAuthor = Text::toT(i.getNick());
-	//bool bMyMess = i.getUser() == ClientManager::getInstance()->getMe();
+	//bool isMyMessage = i.getUser() == ClientManager::getInstance()->getMe();
 	if(!sAuthor.empty()) {
 		size_t iLen = (sMsg[0] == _T('*')) ? 1 : 0;
-		size_t iAuthorLen = _tcslen(sAuthor.c_str())+1;
-   		sText = sMsg+iAuthorLen+iLen;
+		size_t iAuthorLen = _tcslen(sAuthor.c_str()) + 1;
+   		sText += iAuthorLen + iLen;
+   		
 		lSelEnd = lSelBegin = GetTextLengthEx(GTL_NUMCHARS);
 		SetSel(lSelEnd, lSelEnd);
-		ReplaceSel(((tstring)sMsg).substr(0, iAuthorLen+iLen).c_str(), false);
-		if(bMyMess) {
+		ReplaceSel(sMsg.substr(0, iAuthorLen+iLen).c_str(), false);
+		
+		if(isMyMessage) {
 			SetSel(lSelBegin, lSelBegin+iLen+1);
 			SetSelectionCharFormat(WinUtil::m_ChatTextMyOwn);
 			SetSel(lSelBegin+iLen+1, lSelBegin+iLen+iAuthorLen);
 			SetSelectionCharFormat(WinUtil::m_TextStyleMyNick);
 		} else {
 			bool isFavorite = FavoriteManager::getInstance()->isFavoriteUser(i.getUser());
-
-			if(BOOLSETTING(BOLD_AUTHOR_MESS) || isFavorite || i.isOp()) {
+			bool isProtected = client ? i.isProtectedUser(*client, false) : i.isSet("PR"); //RSX++
+			if(BOOLSETTING(BOLD_AUTHOR_MESS) || isFavorite || i.isOp() || isProtected) {
 				SetSel(lSelBegin, lSelBegin+iLen+1);
 				SetSelectionCharFormat(cf);
 				SetSel(lSelBegin+iLen+1, lSelBegin+iLen+iAuthorLen);
@@ -136,6 +150,8 @@ void ChatCtrl::AppendText(const Identity& i, const tstring& sMyNick, const tstri
 					SetSelectionCharFormat(WinUtil::m_TextStyleFavUsers);
 				} else if(i.isOp()) {
 					SetSelectionCharFormat(WinUtil::m_TextStyleOPs);
+				} else if(isProtected) {
+					SetSelectionCharFormat(WinUtil::m_TextStyleProtected); //RSX++
 				} else {
 					SetSelectionCharFormat(WinUtil::m_TextStyleBold);
 				}
@@ -145,16 +161,19 @@ void ChatCtrl::AppendText(const Identity& i, const tstring& sMyNick, const tstri
             }
 		}
 	} else {
+		bool thirdPerson = false;
         switch(sMsg[0]) {
-            case _T('<'): {
-                if((_tcschr((TCHAR*)sMsg+1, _T('>'))) != NULL) {
-                    size_t iAuthorLen = _tcslen(sMsg+1)+1;
-                    sText = sMsg+iAuthorLen;
+			case _T('*'):
+				thirdPerson = true;
+            case _T('<'):
+				sText = _tcschr(sText + 1 + (int)thirdPerson, thirdPerson ? _T(' ') : _T('>'));
+                if(sText != NULL) {
+                    size_t iAuthorLen = sText - sMsg.c_str();
 		            lSelEnd = lSelBegin = GetTextLengthEx(GTL_NUMCHARS);
 		            SetSel(lSelEnd, lSelEnd);
-            		ReplaceSel(((tstring)sMsg).substr(0, iAuthorLen).c_str(), false);
+            		ReplaceSel(sMsg.substr(0, iAuthorLen).c_str(), false);
         			if(BOOLSETTING(BOLD_AUTHOR_MESS)) {
-        				SetSel(lSelBegin, lSelBegin+1);
+        				SetSel(lSelBegin, lSelBegin + 1);
         				SetSelectionCharFormat(cf);
                         SetSel(lSelBegin+1, lSelBegin+iAuthorLen);
         				SetSelectionCharFormat(WinUtil::m_TextStyleBold);
@@ -162,45 +181,26 @@ void ChatCtrl::AppendText(const Identity& i, const tstring& sMyNick, const tstri
         				SetSel(lSelBegin, lSelBegin+iAuthorLen);
         				SetSelectionCharFormat(cf);
                     }
-				} else {
-					sText = sMsg;
 				}
-                break;
-            }
-            case _T('*'): {
-                if(sMsg[1] == _T(' ') && (_tcschr((wchar_t *)sMsg+2, _T(' '))) != NULL) {
-                    size_t iAuthorLen = _tcslen(sMsg+2)+1;
-                    sText = sMsg+iAuthorLen+1;
-		            lSelEnd = lSelBegin = GetTextLengthEx(GTL_NUMCHARS);
-		            SetSel(lSelEnd, lSelEnd);
-            		ReplaceSel(((tstring)sMsg).substr(0, iAuthorLen+1).c_str(), false);
-        			if(BOOLSETTING(BOLD_AUTHOR_MESS)) {
-        				SetSel(lSelBegin, lSelBegin+2);
-        				SetSelectionCharFormat(cf);
-      					SetSel(lSelBegin+2, lSelBegin+1+iAuthorLen);
-        				SetSelectionCharFormat(WinUtil::m_TextStyleBold);
-        			} else {
-        				SetSel(lSelBegin, lSelBegin+1+iAuthorLen);
-        				SetSelectionCharFormat(cf);
-                    }
-				} else {
-					sText = sMsg;
-				}
-                break;
-            }
-            default:
-                sText = sMsg;
-                break;
         }
 	}
-
-	sText.Remove(_T('\r'));
-	sText += "\n";
-
+				   			
+	{
+		 TCHAR *fsrc, *fdst;
+		 fsrc = fdst = sText;
+		 while(*fsrc) {
+			  if (*fsrc != '\r') {
+				   *fdst = *fsrc;
+				   fdst++;
+			  }
+			  fsrc++;
+		 }
+		 *fdst = _T('\0');
+	}
 	//RSX++ //remove emots from links; no setting to on/off it - in links shouldn't be emots anyway
 	if(bUseEmo) {
 		for(size_t i = 0; i < (sizeof(Links) / sizeof(Links[0])); i++) {
-			if(sText.Find(Links[i]) != tstring::npos) {
+			if(sMsg.find(Links[i]) != tstring::npos) {
 				bUseEmo = false;
 				break;
 			}
@@ -215,7 +215,7 @@ void ChatCtrl::AppendText(const Identity& i, const tstring& sMyNick, const tstri
 		while(true) {
 			TCHAR *rpl = NULL;
 			CAGEmotion* pFoundEmotion = NULL;
-			int len = sText.GetLength();
+			int len = _tcslen(sText);
 			for(CAGEmotion::Iter pEmotion = Emoticons.begin(); pEmotion != Emoticons.end(); ++pEmotion) {
 				nIdxFound = -1;
 				TCHAR *txt = Util::strstr(sText, (*pEmotion)->getEmotionText().c_str(), &nIdxFound);
@@ -229,34 +229,40 @@ void ChatCtrl::AppendText(const Identity& i, const tstring& sMyNick, const tstri
 			}
 
 			if(rpl && (smiles < MAX_EMOTICONS)) {
-				AppendTextOnly(sMyNick, sText.Left(rpl - sText), cf, bMyMess, sAuthor, useHL);
+				AppendTextOnly(sMyNick, tstring(sText, rpl - sText).c_str(), cf, isMyMessage, sAuthor, useHL);
 				lSelEnd = GetTextLengthEx(GTL_NUMCHARS);
 				SetSel(lSelEnd, lSelEnd);
 				CImageDataObject::InsertBitmap(GetOleInterface(), 
-					pFoundEmotion->getEmotionBmp(bMyMess ? WinUtil::m_ChatTextMyOwn.crBackColor : WinUtil::m_ChatTextGeneral.crBackColor));
+					pFoundEmotion->getEmotionBmp(isMyMessage ? WinUtil::m_ChatTextMyOwn.crBackColor : WinUtil::m_ChatTextGeneral.crBackColor));
 
 				sText = rpl + pFoundEmotion->getEmotionText().size();
 				smiles++;
 			} else {
 				if(_tcslen(sText) > 0) {
-					AppendTextOnly(sMyNick, sText, cf, bMyMess, sAuthor, useHL);
+					AppendTextOnly(sMyNick, sText, cf, isMyMessage, sAuthor, useHL);
 				}
 				break;
 			}
 		}
 	} else {
-		AppendTextOnly(sMyNick, sText, cf, bMyMess, sAuthor, useHL);
+		AppendTextOnly(sMyNick, sText, cf, isMyMessage, sAuthor, useHL);
 	}
 	SetSel(lSelBeginSaved, lSelEndSaved);
-	SetScrollPos(&cr);
-	GoToEnd();
+	
+	if(	isMyMessage || ((si.nPage == 0 || (size_t)si.nPos >= (size_t)si.nMax - si.nPage - 5) &&
+		(lSelBeginSaved == lSelEndSaved || !sSelectedUser.empty() || !sSelectedIP.empty() || !sSelectedURL.empty())))
+	{
+		PostMessage(EM_SCROLL, SB_BOTTOM, 0);
+	} else {
+		SetScrollPos(&pt);
+	}
 
 	// Force window to redraw
 	SetRedraw(TRUE);
 	InvalidateRect(NULL);
 }
 
-void ChatCtrl::AppendTextOnly(const tstring& sMyNick, const LPCTSTR sText, CHARFORMAT2& cf, bool bMyMess, const tstring& sAuthor, bool useHL/* = true*/) {
+void ChatCtrl::AppendTextOnly(const tstring& sMyNick, const TCHAR* sText, CHARFORMAT2& cf, bool isMyMessage, const tstring& sAuthor, bool useHL/* = true*/) {
 	// Insert text at the end
 	long lSelEnd = GetTextLengthEx(GTL_NUMCHARS);
 	long lSelBegin = lSelEnd;
@@ -264,41 +270,41 @@ void ChatCtrl::AppendTextOnly(const tstring& sMyNick, const LPCTSTR sText, CHARF
 	ReplaceSel(sText, false);
 
 	// Set text format
-	CAtlString sMsgLower = sText;
-	sMsgLower.MakeLower();
+	tstring sMsgLower = sText;
+	std::transform(sMsgLower.begin(), sMsgLower.end(), sMsgLower.begin(), _totlower);
 
 	lSelEnd = GetTextLengthEx(GTL_NUMCHARS);
 	SetSel(lSelBegin, lSelEnd);
-	SetSelectionCharFormat(bMyMess ? WinUtil::m_ChatTextMyOwn : cf);
-
+	SetSelectionCharFormat(isMyMessage ? WinUtil::m_ChatTextMyOwn : cf);
+	
 	// Zvyrazneni vsech URL a nastaveni "klikatelnosti"
 	long lSearchFrom = 0;
 	for(size_t i = 0; i < (sizeof(Links) / sizeof(Links[0])); i++) {
-		long linkStart = sMsgLower.Find(Links[i], lSearchFrom);
+		long linkStart = sMsgLower.find(Links[i], lSearchFrom);
 		while(linkStart > 0) {
 			long linkEnd;
-			long linkEndSpace = sMsgLower.Find(_T(" "), linkStart);
-			long linkEndLine = sMsgLower.Find(_T("\n"), linkStart);
+			long linkEndSpace = sMsgLower.find(_T(" "), linkStart);
+			long linkEndLine = sMsgLower.find(_T("\n"), linkStart);
 			if((linkEndSpace <= linkStart && linkEndLine > linkStart) || (linkEndSpace > linkEndLine && linkEndLine > linkStart)) {
 				linkEnd = linkEndLine;
 			} else if(linkEndSpace > linkStart) {
 				linkEnd = linkEndSpace;
 			} else {
-				linkEnd = _tcslen(sMsgLower);
+				linkEnd = sMsgLower.size();
 			}
 			SetSel(lSelBegin + linkStart, lSelBegin + linkEnd);
 			SetSelectionCharFormat(WinUtil::m_TextStyleURL);
-			linkStart = sMsgLower.Find(Links[i], linkEnd);
+			linkStart = sMsgLower.find(Links[i], linkEnd);
 		}
 	}
 
 	// Zvyrazneni vsech vyskytu vlastniho nicku
 	long lMyNickStart = -1, lMyNickEnd = -1;	
-	CAtlString sNick = sMyNick.c_str();
-	sNick.MakeLower();
+	tstring sNick = sMyNick.c_str();
+	std::transform(sNick.begin(), sNick.end(), sNick.begin(), _totlower);
 
-	while((lMyNickStart = sMsgLower.Find(sNick, lSearchFrom)) >= 0) {
-		lMyNickEnd = lMyNickStart + sNick.GetLength();
+	while((lMyNickStart = sMsgLower.find(sNick, lSearchFrom)) >= 0) {
+		lMyNickEnd = lMyNickStart + sNick.size();
 		SetSel(lSelBegin + lMyNickStart, lSelBegin + lMyNickEnd);
 		SetSelectionCharFormat(WinUtil::m_TextStyleMyNick);
 		lSearchFrom = lMyNickEnd;
@@ -316,10 +322,10 @@ void ChatCtrl::AppendTextOnly(const tstring& sMyNick, const LPCTSTR sText, CHARF
 
 		lSearchFrom = 0;
 		sNick = Text::toT(pUser.getNick()).c_str();
-		sNick.MakeLower();
+		std::transform(sNick.begin(), sNick.end(), sNick.begin(), _totlower);
 
-		while((lMyNickStart = sMsgLower.Find(sNick, lSearchFrom)) >= 0) {
-			lMyNickEnd = lMyNickStart + sNick.GetLength();
+		while((lMyNickStart = sMsgLower.find(sNick, lSearchFrom)) >= 0) {
+			lMyNickEnd = lMyNickStart + sNick.size();
 			SetSel(lSelBegin + lMyNickStart, lSelBegin + lMyNickEnd);
 			SetSelectionCharFormat(WinUtil::m_TextStyleFavUsers);
 			lSearchFrom = lMyNickEnd;
@@ -329,7 +335,7 @@ void ChatCtrl::AppendTextOnly(const tstring& sMyNick, const LPCTSTR sText, CHARF
 	//RSX++ //crappy highlights implement
 	if(client && useHL) {
 		if(client->getUseHL() && RSXBOOLSETTING(USE_HIGHLIGHT)) {
-			CAtlString sDat = "";
+		//	CStdString sDat = "";
 			long HLStart = 0, HLEnd = 0;
 
 			tstring textToMatch = Util::emptyStringT;
@@ -342,33 +348,30 @@ void ChatCtrl::AppendTextOnly(const tstring& sMyNick, const LPCTSTR sText, CHARF
 
 			HighLight::List hll = FavoriteManager::getInstance()->getHLs();
 			for(HighLight::Iter i = hll.begin(); i != hll.end(); i++) {
-				//if((*i)->getHstring().length() < 5)
-				//	return;
 				textToMatch = Text::toT((*i)->getHstring());
-
-				memset(&hlcf, 0, sizeof(CHARFORMAT2));
-				hlcf.cbSize = sizeof(hlcf);
-				hlcf.dwReserved = 0;
-				hlcf.dwMask = CFM_BACKCOLOR | CFM_COLOR | CFM_BOLD | CFM_ITALIC | CFM_UNDERLINE | CFM_STRIKEOUT;
-				if((*i)->getHasBgColor())
-					hlcf.crBackColor = (*i)->getBackColor();
-				else
-					hlcf.crBackColor = SETTING(TEXT_GENERAL_BACK_COLOR);
-				if((*i)->getHasFontColor())
-					hlcf.crTextColor = (*i)->getFontColor();
-				else
-					hlcf.crTextColor = SETTING(TEXT_GENERAL_FORE_COLOR);
-				if((*i)->getBoldFont())
-					hlcf.dwEffects |= CFE_BOLD;
-				if((*i)->getItalicFont())
-					hlcf.dwEffects |= CFE_ITALIC;
-				if((*i)->getUnderlineFont())
-					hlcf.dwEffects |= CFM_UNDERLINE;
-				if((*i)->getStrikeoutFont())
-					 hlcf.dwEffects |= CFM_STRIKEOUT;
-
 				PME regexp(textToMatch, _T("gims"));
 				if(regexp.IsValid()) {
+					memzero(&hlcf, sizeof(CHARFORMAT2));
+					hlcf.cbSize = sizeof(hlcf);
+					hlcf.dwReserved = 0;
+					hlcf.dwMask = CFM_BACKCOLOR | CFM_COLOR | CFM_BOLD | CFM_ITALIC | CFM_UNDERLINE | CFM_STRIKEOUT;
+					if((*i)->getHasBgColor())
+						hlcf.crBackColor = (*i)->getBackColor();
+					else
+						hlcf.crBackColor = SETTING(TEXT_GENERAL_BACK_COLOR);
+					if((*i)->getHasFontColor())
+						hlcf.crTextColor = (*i)->getFontColor();
+					else
+						hlcf.crTextColor = SETTING(TEXT_GENERAL_FORE_COLOR);
+					if((*i)->getBoldFont())
+						hlcf.dwEffects |= CFE_BOLD;
+					if((*i)->getItalicFont())
+						hlcf.dwEffects |= CFE_ITALIC;
+					if((*i)->getUnderlineFont())
+						hlcf.dwEffects |= CFM_UNDERLINE;
+					if((*i)->getStrikeoutFont())
+						 hlcf.dwEffects |= CFM_STRIKEOUT;
+
 					while(regexp.match(msg) > 0) {
 						if(regexp.NumBackRefs() == 1) {
 							HLStart = regexp.GetStartPos(0);
@@ -417,7 +420,7 @@ void ChatCtrl::AppendTextOnly(const tstring& sMyNick, const LPCTSTR sText, CHARF
 	//END
 }
 
-bool ChatCtrl::HitNick(POINT p, tstring& sNick, int& iBegin, int& iEnd) {
+bool ChatCtrl::HitNick(const POINT& p, tstring& sNick, int& iBegin, int& iEnd) {
 	if(client == NULL) return false;
 	
 	int iCharPos = CharFromPos(p), line = LineFromChar(iCharPos), len = LineLength(iCharPos) + 1;
@@ -442,9 +445,10 @@ bool ChatCtrl::HitNick(POINT p, tstring& sNick, int& iBegin, int& iEnd) {
 	if(len <= 0)
 		return false;
 
-	AutoArray<TCHAR> buf(len+1);
-	GetTextRange(lSelBegin, lSelEnd, buf);
-	tstring sText(buf, len);
+	tstring sText;
+	sText.resize(len);
+
+	GetTextRange(lSelBegin, lSelEnd, &sText[0]);
 
 	int iLeft = 0, iRight = 0, iCRLF = sText.size(), iPos = sText.find(_T('<'));
 	if(iPos >= 0) {
@@ -502,7 +506,7 @@ bool ChatCtrl::HitNick(POINT p, tstring& sNick, int& iBegin, int& iEnd) {
 	return false;
 }
 
-bool ChatCtrl::HitIP(POINT p, tstring& sIP, int& iBegin, int& iEnd) {
+bool ChatCtrl::HitIP(const POINT& p, tstring& sIP, int& iBegin, int& iEnd) {
 	int iCharPos = CharFromPos(p), len = LineLength(iCharPos) + 1;
 	if(len < 3)
 		return false;
@@ -510,15 +514,16 @@ bool ChatCtrl::HitIP(POINT p, tstring& sIP, int& iBegin, int& iEnd) {
 	DWORD lPosBegin = FindWordBreak(WB_LEFT, iCharPos);
 	DWORD lPosEnd = FindWordBreak(WB_RIGHTBREAK, iCharPos);
 	len = lPosEnd - lPosBegin;
-	
-	AutoArray<TCHAR> buf(len+1);
-	GetTextRange(lPosBegin, lPosEnd, buf);
+
+	tstring sText;
+	sText.resize(len);
+	GetTextRange(lPosBegin, lPosEnd, &sText[0]);
+
 	for(int i = 0; i < len; i++) {
-		if(!((buf[i] == 0) || (buf[i] == '.') || ((buf[i] >= '0') && (buf[i] <= '9')))) {
+		if(!((sText[i] == 0) || (sText[i] == '.') || ((sText[i] >= '0') && (sText[i] <= '9')))) {
 			return false;
 		}
 	}
-	tstring sText(buf, len);
 
 	sText += _T('.');
 	int iFindBegin = 0, iPos = -1, iEnd2 = 0;
@@ -560,34 +565,18 @@ bool ChatCtrl::HitURL() {
 	return boOK;
 }
 
-tstring ChatCtrl::LineFromPos(POINT p) const {
+tstring ChatCtrl::LineFromPos(const POINT& p) const {
 	int iCharPos = CharFromPos(p), line = LineFromChar(iCharPos), len = LineLength(iCharPos) + 1;
 	if(len < 3) {
 		return Util::emptyStringT;
 	}
-	AutoArray<TCHAR> buf(len+1);
-	GetLine(line, buf, len);
-	tstring x(buf, len-1);
-	return x;
-}
 
-void ChatCtrl::GoToEnd() {
-/** TODO make auto-scroll dependent on scrollbar position
-	SCROLLINFO si;
-	si.cbSize = sizeof(si);
-	si.fMask = SIF_PAGE | SIF_RANGE | SIF_POS;
-	GetScrollInfo(SB_VERT, &si);
+	tstring tmp;
+	tmp.resize(len + 1);
 
-	if (si.nPos >= si.nMax - si.nPage- 14)
-*/
-	if(m_boAutoScroll)
-		PostMessage(EM_SCROLL, SB_BOTTOM, 0);
-}
+	GetLine(line, &tmp[0], len);
 
-void ChatCtrl::SetAutoScroll(bool boAutoScroll) {
-	m_boAutoScroll = boAutoScroll;
-	 if(boAutoScroll)
-		GoToEnd();
+	return tmp;
 }
 
 LRESULT ChatCtrl::OnRButtonDown(POINT pt) {
@@ -623,8 +612,413 @@ LRESULT ChatCtrl::OnRButtonDown(POINT pt) {
 	}
 	return 1;
 }
+
+LRESULT ChatCtrl::onContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/) {
+	POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };        // location of mouse click
+
+	if(pt.x == -1 && pt.y == -1) {
+		CRect erc;
+		GetRect(&erc);
+		pt.x = erc.Width() / 2;
+		pt.y = erc.Height() / 2;
+		ClientToScreen(&pt);
+	}
+
+	POINT ptCl = pt;
+	ScreenToClient(&ptCl); 
+	OnRButtonDown(ptCl);
+
+	bool boHitURL = HitURL();
+	if (!boHitURL)
+		sSelectedURL = Util::emptyStringT;
+
+	OMenu menu;
+	menu.CreatePopupMenu();
+
+	if (copyMenu.m_hMenu != NULL) {
+		// delete copy menu if it exists
+		copyMenu.DestroyMenu();
+		copyMenu.m_hMenu = NULL;
+	}
+
+	if(sSelectedUser.empty()) {
+
+		if(!sSelectedIP.empty()) {
+			menu.InsertSeparatorFirst(sSelectedIP);
+			menu.AppendMenu(MF_STRING, IDC_WHOIS_IP, (CTSTRING(WHO_IS) + sSelectedIP).c_str() );
+			if (client && client->isOp()) {
+				menu.AppendMenu(MF_SEPARATOR);
+				menu.AppendMenu(MF_STRING, IDC_BAN_IP, (_T("!banip ") + sSelectedIP).c_str());
+				menu.SetMenuDefaultItem(IDC_BAN_IP);
+				menu.AppendMenu(MF_STRING, IDC_UNBAN_IP, (_T("!unban ") + sSelectedIP).c_str());
+				menu.AppendMenu(MF_SEPARATOR);
+			}
+		} else {
+			menu.InsertSeparatorFirst(_T("Text"));
+		}
+
+		menu.AppendMenu(MF_STRING, ID_EDIT_COPY, CTSTRING(COPY));
+		menu.AppendMenu(MF_STRING, IDC_COPY_ACTUAL_LINE,  CTSTRING(COPY_LINE));
+
+		if(!sSelectedURL.empty()) 
+  			menu.AppendMenu(MF_STRING, IDC_COPY_URL, CTSTRING(COPY_URL));
+	} else {
+		bool isMe = (sSelectedUser == Text::toT(client->getMyNick()));
+
+		// click on nick
+		copyMenu.CreatePopupMenu();
+		copyMenu.InsertSeparatorFirst(TSTRING(COPY));
+
+		for(int j=0; j < OnlineUser::COLUMN_LAST; j++) {
+			copyMenu.AppendMenu(MF_STRING, IDC_COPY + j, CTSTRING_I(HubFrame::columnNames[j]));
+		}
+
+		menu.InsertSeparatorFirst(sSelectedUser);
+
+		if(BOOLSETTING(LOG_PRIVATE_CHAT)) {
+			menu.AppendMenu(MF_STRING, IDC_OPEN_USER_LOG,  CTSTRING(OPEN_USER_LOG));
+			menu.AppendMenu(MF_SEPARATOR);
+		}		
+
+		menu.AppendMenu(MF_STRING, IDC_SELECT_USER, CTSTRING(SELECT_USER_LIST));
+		menu.AppendMenu(MF_SEPARATOR);
+		
+		if(!isMe) {
+			menu.AppendMenu(MF_STRING, IDC_PUBLIC_MESSAGE, CTSTRING(SEND_PUBLIC_MESSAGE));
+			menu.AppendMenu(MF_STRING, IDC_PRIVATEMESSAGE, CTSTRING(SEND_PRIVATE_MESSAGE));
+			menu.AppendMenu(MF_SEPARATOR);
+			
+			const OnlineUser* ou = client->findUser(Text::fromT(sSelectedUser));
+			if (client->isOp() || !ou->getIdentity().isOp()) {
+				if(HubFrame::ignoreList.find(ou->getUser()) == HubFrame::ignoreList.end()) {
+					menu.AppendMenu(MF_STRING, IDC_IGNORE, CTSTRING(IGNORE_USER));
+				} else {    
+					menu.AppendMenu(MF_STRING, IDC_UNIGNORE, CTSTRING(UNIGNORE_USER));
+				}
+				menu.AppendMenu(MF_SEPARATOR);
+			}
+		}
+		
+		menu.AppendMenu(MF_POPUP, (UINT)(HMENU)copyMenu, CTSTRING(COPY));
+		
+		if(!isMe) {
+			menu.AppendMenu(MF_POPUP, (UINT)(HMENU)WinUtil::grantMenu, CTSTRING(GRANT_SLOTS_MENU));
+			menu.AppendMenu(MF_SEPARATOR);
+			menu.AppendMenu(MF_STRING, IDC_GETLIST, CTSTRING(GET_FILE_LIST));
+			menu.AppendMenu(MF_STRING, IDC_MATCH_QUEUE, CTSTRING(MATCH_QUEUE));
+			menu.AppendMenu(MF_STRING, IDC_ADD_TO_FAVORITES, CTSTRING(ADD_TO_FAVORITES));
+			
+			// add user commands
+			prepareMenu(menu, ::UserCommand::CONTEXT_CHAT, client->getHubUrl());
+		}
+
+		// default doubleclick action
+		switch(SETTING(CHAT_DBLCLICK)) {
+        case 0:
+			menu.SetMenuDefaultItem(IDC_SELECT_USER);
+			break;
+        case 1:
+			menu.SetMenuDefaultItem(IDC_PUBLIC_MESSAGE);
+			break;
+        case 2:
+			menu.SetMenuDefaultItem(IDC_PRIVATEMESSAGE);
+			break;
+        case 3:
+			menu.SetMenuDefaultItem(IDC_GETLIST);
+			break;
+        case 4:
+			menu.SetMenuDefaultItem(IDC_MATCH_QUEUE);
+			break;
+        case 6:
+			menu.SetMenuDefaultItem(IDC_ADD_TO_FAVORITES);
+			break;
+		} 
+	}
+
+	menu.AppendMenu(MF_SEPARATOR);
+	menu.AppendMenu(MF_STRING, ID_EDIT_SELECT_ALL, CTSTRING(SELECT_ALL));
+	menu.AppendMenu(MF_STRING, ID_EDIT_CLEAR_ALL, CTSTRING(CLEAR));
+	menu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, pt.x, pt.y, m_hWnd);
+
+	return 0;
+}
+
+LRESULT ChatCtrl::onSize(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled) {
+	if(wParam != SIZE_MINIMIZED && HIWORD(lParam) > 0) {
+		scrollToEnd();
+	}
+
+	bHandled = FALSE;
+	return 0;
+}
+
+LRESULT ChatCtrl::onLButtonDown(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled) {
+	sSelectedLine = Util::emptyStringT;
+	sSelectedIP = Util::emptyStringT;
+	sSelectedUser = Util::emptyStringT;
+	sSelectedURL = Util::emptyStringT;
+
+	bHandled = FALSE;
+	return 0;
+}
+
+LRESULT ChatCtrl::onClientEnLink(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/) {
+	ENLINK* pEL = (ENLINK*)pnmh;
+
+	if ( pEL->msg == WM_LBUTTONUP ) {
+		long lBegin = pEL->chrg.cpMin, lEnd = pEL->chrg.cpMax;
+		TCHAR* sURLTemp = new TCHAR[(lEnd - lBegin)+1];
+		if(sURLTemp) {
+			GetTextRange(lBegin, lEnd, sURLTemp);
+			tstring sURL = sURLTemp;
+
+			WinUtil::openLink(sURL);
+
+			delete[] sURLTemp;
+		}
+	} else if(pEL->msg == WM_RBUTTONUP) {
+		sSelectedURL = Util::emptyStringT;
+		long lBegin = pEL->chrg.cpMin, lEnd = pEL->chrg.cpMax;
+		TCHAR* sURLTemp = new TCHAR[(lEnd - lBegin)+1];
+		if(sURLTemp) {
+			GetTextRange(lBegin, lEnd, sURLTemp);
+			sSelectedURL = sURLTemp;
+			delete[] sURLTemp;
+		}
+
+		SetSel(lBegin, lEnd);
+		InvalidateRect(NULL);
+	}
+
+	return 0;
+}
+
+LRESULT ChatCtrl::onEditCopy(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+	Copy();
+	return 0;
+}
+
+LRESULT ChatCtrl::onEditSelectAll(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+	SetSelAll();
+	return 0;
+}
+
+LRESULT ChatCtrl::onEditClearAll(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+	SetWindowText(Util::emptyStringT.c_str());
+	return 0;
+}
+
+LRESULT ChatCtrl::onCopyActualLine(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+	if(!sSelectedLine.empty()) {
+		WinUtil::setClipboard(sSelectedLine);
+	}
+	return 0;
+}
+
+LRESULT ChatCtrl::onBanIP(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+	if(!sSelectedIP.empty()) {
+		tstring s = _T("!banip ") + sSelectedIP + _T(" ");
+		client->hubMessage(Text::fromT(s));
+	}
+	return 0;
+}
+
+LRESULT ChatCtrl::onUnBanIP(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+	if(!sSelectedIP.empty()) {
+		tstring s = _T("!unban ") + sSelectedIP + _T(" ");
+		client->hubMessage(Text::fromT(s));
+	}
+	return 0;
+}
+
+LRESULT ChatCtrl::onCopyURL(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+	if(!sSelectedURL.empty()) {
+		WinUtil::setClipboard(sSelectedURL);
+	}
+	return 0;
+}
+
+LRESULT ChatCtrl::onWhoisIP(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+	if(!sSelectedIP.empty()) {
+ 		WinUtil::openLink(_T("http://www.ripe.net/perl/whois?form_type=simple&full_query_string=&searchtext=") + sSelectedIP);
+ 	}
+	return 0;
+}
+
+LRESULT ChatCtrl::onOpenUserLog(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+	OnlineUser* ou = client->findUser(Text::fromT(sSelectedUser));
+	if(ou) {
+		StringMap params;
+
+		params["userNI"] = ou->getIdentity().getNick();
+		params["hubNI"] = client->getHubName();
+		params["myNI"] = client->getMyNick();
+		params["userCID"] = ou->getUser()->getCID().toBase32();
+		params["hubURL"] = client->getHubUrl();
+
+		tstring file = Text::toT(Util::validateFileName(SETTING(LOG_DIRECTORY) + Util::formatParams(SETTING(LOG_FILE_PRIVATE_CHAT), params, false)));
+		if(Util::fileExists(Text::fromT(file))) {
+			ShellExecute(NULL, NULL, file.c_str(), NULL, NULL, SW_SHOWNORMAL);
+		} else {
+			MessageBox(CTSTRING(NO_LOG_FOR_USER),CTSTRING(NO_LOG_FOR_USER), MB_OK );	  
+		}
+	}
+
+	return 0;
+}
+
+LRESULT ChatCtrl::onPrivateMessage(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+	OnlineUser* ou = client->findUser(Text::fromT(sSelectedUser));
+	if(ou)
+		PrivateFrame::openWindow(ou->getUser(), client);
+
+	return 0;
+}
+
+LRESULT ChatCtrl::onGetList(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+	OnlineUser* ou = client->findUser(Text::fromT(sSelectedUser));
+	if(ou)
+		ou->getList();
+
+	return 0;
+}
+
+LRESULT ChatCtrl::onMatchQueue(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+	OnlineUser* ou = client->findUser(Text::fromT(sSelectedUser));
+	if(ou)
+		ou->matchQueue();
+
+	return 0;
+}
+
+LRESULT ChatCtrl::onGrantSlot(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+	const OnlineUser* ou = client->findUser(Text::fromT(sSelectedUser));
+	if(ou) {
+		uint64_t time = 0;
+		switch(wID) {
+			case IDC_GRANTSLOT:			time = 600; break;
+			case IDC_GRANTSLOT_DAY:		time = 3600; break;
+			case IDC_GRANTSLOT_HOUR:	time = 24*3600; break;
+			case IDC_GRANTSLOT_WEEK:	time = 7*24*3600; break;
+			case IDC_UNGRANTSLOT:		time = 0; break;
+		}
+		
+		if(time > 0)
+			UploadManager::getInstance()->reserveSlot(ou->getUser(), time);
+		else
+			UploadManager::getInstance()->unreserveSlot(ou->getUser());
+	}
+
+	return 0;
+}
+
+LRESULT ChatCtrl::onAddToFavorites(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+	OnlineUser* ou = client->findUser(Text::fromT(sSelectedUser));
+	if(ou)
+		ou->addFav();
+
+	return 0;
+}
+
+LRESULT ChatCtrl::onIgnore(UINT /*uMsg*/, WPARAM /*wParam*/, HWND /*lParam*/, BOOL& /*bHandled*/){
+	OnlineUser* ou = client->findUser(Text::fromT(sSelectedUser));
+	if(ou)
+		HubFrame::ignoreList.insert(ou->getUser());
+
+	return 0;
+}
+
+LRESULT ChatCtrl::onUnignore(UINT /*uMsg*/, WPARAM /*wParam*/, HWND /*lParam*/, BOOL& /*bHandled*/){
+	OnlineUser* ou = client->findUser(Text::fromT(sSelectedUser));
+	if(ou)
+		HubFrame::ignoreList.erase(ou->getUser());
+
+	return 0;
+}
+
+LRESULT ChatCtrl::onCopyUserInfo(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+	tstring sCopy;
+	
+	const OnlineUser* ou = client->findUser(Text::fromT(sSelectedUser));
+	if(ou) {
+		sCopy = ou->getText(static_cast<uint8_t>(wID - IDC_COPY));
+	}
+
+	if (!sCopy.empty())
+		WinUtil::setClipboard(sCopy);
+
+	return 0;
+}
+
+LRESULT ChatCtrl::onReport(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+	const OnlineUser* ou = client->findUser(Text::fromT(sSelectedUser));
+	if(ou)
+		client->cheatMessage(ou->getIdentity().getReport());
+	//ClientManager::getInstance()->reportUser(ou->getUser());
+
+	return 0;
+}
+
+LRESULT ChatCtrl::onGetUserResponses(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+	const OnlineUser* ou = client->findUser(Text::fromT(sSelectedUser));
+	if(ou) {
+		try {
+			QueueManager::getInstance()->addTestSUR(ou->getUser(), false);
+		} catch(const Exception& e) {
+			LogManager::getInstance()->message(e.getError());		
+		}
+	}
+
+	return 0;
+}
+
+LRESULT ChatCtrl::onCheckList(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+	const OnlineUser* ou = client->findUser(Text::fromT(sSelectedUser));
+	if(ou) {
+		try {
+			QueueManager::getInstance()->addList(ou->getUser(), QueueItem::FLAG_CHECK_FILE_LIST);
+		} catch(const Exception& e) {
+			LogManager::getInstance()->message(e.getError());		
+		}
+	}
+	return 0;
+}
+
+void ChatCtrl::runUserCommand(UserCommand& uc) {
+	StringMap ucParams;
+
+	if(!WinUtil::getUCParams(m_hWnd, uc, ucParams))
+		return;
+
+	client->getMyIdentity().getParams(ucParams, "my", true);
+	client->getHubIdentity().getParams(ucParams, "hub", false);
+
+	const OnlineUser* ou = client->findUser(Text::fromT(sSelectedUser));
+	if(ou != NULL) {
+		StringMap tmp = ucParams;
+		ou->getIdentity().getParams(tmp, "user", true);
+		client->escapeParams(tmp);
+		client->sendUserCmd(Util::formatParams(uc.getCommand(), tmp, false));
+	}
+}
+
+void ChatCtrl::scrollToEnd() {
+	SCROLLINFO si = { 0 };
+	POINT pt = { 0 };
+
+	si.cbSize = sizeof(si);
+	si.fMask = SIF_PAGE | SIF_RANGE | SIF_POS;
+	GetScrollInfo(SB_VERT, &si);
+	GetScrollPos(&pt);
+
+	// this must be called twice to work properly :(
+	PostMessage(EM_SCROLL, SB_BOTTOM, 0);
+	PostMessage(EM_SCROLL, SB_BOTTOM, 0);
+
+	SetScrollPos(&pt);
+}
 //RSX++ //handle highlights actions
-void ChatCtrl::handleActions(const tstring& msgAuthor) {
+void ChatCtrl::handleActions(const dcpp::tstring& msgAuthor) {
 	tstring matchStrings = Util::emptyStringT;
 	string soundFilePath = Util::emptyString;
 	int matches = 0;
@@ -643,14 +1037,12 @@ void ChatCtrl::handleActions(const tstring& msgAuthor) {
 			soundFilePath = (*i).soundPath;
 		}
 	}
+	if(matchStrings.length() >= 2)
+		matchStrings = matchStrings.substr(0, matchStrings.length()-2);
 
 	if(matches > 0) {
-		//@todo
-		tstring popupMsg = msgAuthor+ _T(" (") + Util::toStringW(matches) + _T(" match(es)) - ") +  matchStrings;
-		popupMsg = popupMsg.substr(0, popupMsg.length()-2); //remove last ", "
-		tstring popupTitle;
-		popupTitle = _T("Highlights");
-
+		const tstring& popupMsg = msgAuthor+ _T(" (") + Util::toStringW(matches) + _T(" match(es)) - ") +  matchStrings;
+		const tstring& popupTitle = _T("Highlights");
 		MainFrame::getMainFrame()->ShowBalloonTip(popupMsg.c_str(), popupTitle.c_str());
 	}
 	if(!soundFilePath.empty()) {
@@ -662,3 +1054,4 @@ void ChatCtrl::handleActions(const tstring& msgAuthor) {
 	//clear vector
 	actions.clear();
 }
+//END

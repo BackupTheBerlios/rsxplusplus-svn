@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2007 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,8 +16,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef DCPLUSPLUS_CLIENT_FAVORITE_MANAGER_H
-#define DCPLUSPLUS_CLIENT_FAVORITE_MANAGER_H
+#ifndef DCPLUSPLUS_DCPP_FAVORITE_MANAGER_H
+#define DCPLUSPLUS_DCPP_FAVORITE_MANAGER_H
 
 #include "SettingsManager.h"
 
@@ -32,6 +32,8 @@
 #include "ClientManager.h"
 #include "StringTokenizer.h" //RSX++
 
+namespace dcpp {
+	
 class HubEntry {
 public:
 	typedef vector<HubEntry> List;
@@ -294,7 +296,7 @@ public:
 	int getSelectedHubList() { return lastServer; }
 	void refresh(bool forceDownload = false);
 	HubTypes getHubListType() { return listType; }
-	HubEntry::List getPublicHubs() {
+	HubEntryList getPublicHubs() {
 		Lock l(cs);
 		return publicListMatrix[publicListServer];
 	}
@@ -314,14 +316,14 @@ public:
 	void setAutoGrant(const UserPtr& aUser, bool grant);
 	void userUpdated(const OnlineUser& info);
 	time_t getLastSeen(const UserPtr& aUser) const;
-	string getUserURL(const UserPtr& aUser) const;
+	std::string getUserURL(const UserPtr& aUser) const;
 	
 // Favorite Hubs
-	FavoriteHubEntry::List& getFavoriteHubs() { return favoriteHubs; }
+	FavoriteHubEntryList& getFavoriteHubs() { return favoriteHubs; }
 
 	void addFavorite(const FavoriteHubEntry& aEntry);
 	void removeFavorite(const FavoriteHubEntry* entry);
-	bool checkFavHubExists(const FavoriteHubEntry& aEntry);
+	bool isFavoriteHub(const std::string& aUrl);
 	FavoriteHubEntry* getFavoriteHubEntry(const string& aServer) const;
 
 // Favorite Directories
@@ -488,7 +490,7 @@ public:
 	void recentsave();
 	
 private:
-	FavoriteHubEntry::List favoriteHubs;
+	FavoriteHubEntryList favoriteHubs;
 	StringPairList favoriteDirs;
 	RecentHubEntry::List recentHubs;
 	PreviewApplication::List previewApplications;
@@ -506,7 +508,7 @@ private:
 	mutable CriticalSection cs;
 
 	// Public Hubs
-	typedef map<string, HubEntry::List> PubListMap;
+	typedef unordered_map<string, HubEntryList> PubListMap;
 	PubListMap publicListMatrix;
 	string publicListServer;
 	bool useHttp, running;
@@ -523,15 +525,7 @@ private:
 	FavoriteManager();
 	~FavoriteManager() throw();
 	
-	FavoriteHubEntry::Iter getFavoriteHub(const string& aServer) {
-		for(FavoriteHubEntry::Iter i = favoriteHubs.begin(); i != favoriteHubs.end(); ++i) {
-			if(Util::stricmp((*i)->getServer(), aServer) == 0) {
-				return i;
-			}
-		}
-		return favoriteHubs.end();
-	}
-
+	FavoriteHubEntryList::const_iterator getFavoriteHub(const string& aServer);
 	void loadXmlList(const string& xml);
 
 	RecentHubEntry::Iter getRecentHub(const string& aServer) const {
@@ -584,9 +578,11 @@ private:
 	string getConfigFile() { return Util::getConfigPath() + "Favorites.xml"; }
 };
 
+} // namespace dcpp
+
 #endif // !defined(FAVORITE_MANAGER_H)
 
 /**
  * @file
- * $Id: FavoriteManager.h 355 2008-01-05 14:43:39Z bigmuscle $
+ * $Id: FavoriteManager.h 382 2008-03-09 10:40:22Z BigMuscle $
  */

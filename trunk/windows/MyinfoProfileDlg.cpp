@@ -19,7 +19,7 @@
 #include "Resource.h"
 
 #include "MyinfoProfileDlg.h"
-#include "../rsx/RegexpHandler.h"
+#include "../rsx/RegexUtil.h"
 #include "../client/ClientProfileManager.h"
 #include "../rsx/rsx-settings/rsx-SettingsManager.h"
 
@@ -107,7 +107,7 @@ void MyinfoProfileDlg::updateTag() {
 	tstring exp;
 
 	GET_TEXT(IDC_TAG, exp);
-	exp = Text::toT(RegexpHandler::formatRegExp(Text::fromT(exp), params));
+	exp = Text::toT(RegexUtil::formatRegExp(Text::fromT(exp), params));
 	SetDlgItemText(IDC_FORMATTED_TAG, exp.c_str());
 }
 
@@ -238,15 +238,15 @@ LRESULT MyinfoProfileDlg::onMatch(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 				tstring versionExp;
 				GET_TEXT(IDC_TAG, exp); 
 				
-				verTagExp = RegexpHandler::formatRegExp(Text::fromT(exp), params);
+				verTagExp = RegexUtil::formatRegExp(Text::fromT(exp), params);
 				formattedExp = verTagExp;
 				string::size_type j = formattedExp.find("%[version]");
 				if(j != string::npos) {
 					formattedExp.replace(j, 10, ".*");
-					version = RegexpHandler::getVersion(verTagExp, Text::fromT(text));
+					version = RegexUtil::getVersion(verTagExp, Text::fromT(text));
 					GET_TEXT(IDC_VERSION, versionExp)
 				}
-				string temp = RegexpHandler::matchExp(formattedExp, Text::fromT(text));
+				string temp = RegexUtil::matchExp(formattedExp, Text::fromT(text));
 				if(temp.find(STRING(S_MISSMATCH)) != string::npos || temp.find(STRING(S_INVALID)) != string::npos){
 					MessageBox(Text::toT(temp).c_str(), CTSTRING(REGEX_TESTER), MB_OK);
 					return 0;
@@ -255,7 +255,7 @@ LRESULT MyinfoProfileDlg::onMatch(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 					MessageBox(CTSTRING(S_MATCH), CTSTRING(REGEX_TESTER), MB_OK);
 					return 0;
 				} else {
-					MessageBox(Text::toT(RegexpHandler::matchExp(Text::fromT(versionExp), version)).c_str(), CTSTRING(REGEX_TESTER), MB_OK);
+					MessageBox(Text::toT(RegexUtil::matchExp(Text::fromT(versionExp), version)).c_str(), CTSTRING(REGEX_TESTER), MB_OK);
 					return 0;
 				}
 			}
@@ -275,7 +275,7 @@ LRESULT MyinfoProfileDlg::onMatch(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 		case CONNECTION: GET_TEXT(IDC_MYINFO_CONNECTION, exp); break;
 		default: dcdebug("We shouldn't be here!\n");
 	}
-	MessageBox(Text::toT(RegexpHandler::matchExp(Text::fromT(exp), Text::fromT(text))).c_str(), CTSTRING(REGEX_TESTER), MB_OK);
+	MessageBox(Text::toT(RegexUtil::matchExp(Text::fromT(exp), Text::fromT(text))).c_str(), CTSTRING(REGEX_TESTER), MB_OK);
 	return 0;
 }
 

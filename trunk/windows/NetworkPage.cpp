@@ -17,14 +17,16 @@
  */
 
 #include "stdafx.h"
-#include "../client/DCPlusPlus.h"
-#include "Resource.h"
 
-#include "NetworkPage.h"
+#include "../client/DCPlusPlus.h"
 #include "../client/SettingsManager.h"
 #include "../client/Socket.h"
-#include "WinUtil.h"
+
 #include "../rsx/rsx-settings/rsx-SettingsManager.h" //RSX++
+
+#include "Resource.h"
+#include "NetworkPage.h"
+#include "WinUtil.h"
 
 #include <IPHlpApi.h>
 #pragma comment(lib, "iphlpapi.lib")

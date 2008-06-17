@@ -19,6 +19,8 @@
 #if !defined(CONNECTION_MANAGER_LISTENER_H)
 #define CONNECTION_MANAGER_LISTENER_H
 
+namespace dcpp {
+
 class ConnectionQueueItem;
 
 class ConnectionManagerListener {
@@ -39,9 +41,11 @@ public:
 	virtual void on(StatusChanged, const ConnectionQueueItem*) throw() { }
 };
 
+} // namespace dcpp
+
 #endif // !defined(CONNECTION_MANAGER_LISTENER_H)
 
 /**
 * @file
-* $Id: ConnectionManagerListener.h 317 2007-08-04 14:52:24Z bigmuscle $
+* $Id: ConnectionManagerListener.h 373 2008-02-06 17:23:49Z bigmuscle $
 */

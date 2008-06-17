@@ -7,8 +7,7 @@
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
-#include "wtl\atlres.h"
-
+#include "wtl\atlres.h"
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
 
@@ -20,19 +19,6 @@
 LANGUAGE LANG_CZECH, SUBLANG_DEFAULT
 #pragma code_page(1250)
 #endif //_WIN32
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Bitmap
-//
-
-IDB_STATE               BITMAP                  "res\\state.bmp"
-IDB_SEARCH_TYPES        BITMAP                  "res\\search_icons.bmp"
-IDB_SPEEDS              BITMAP                  "res\\speeds.bmp"
-IDB_FAVSTATES           BITMAP                  "res\\fav.bmp"
-IDB_FLAGS               BITMAP                  "res\\flags.bmp"
-IDB_EMOTICON            BITMAP                  "res\\emoticon.bmp"
-IDB_FAVTABS             BITMAP                  "res\\favtabs.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -897,10 +883,145 @@ LANGUAGE LANG_POLISH, SUBLANG_DEFAULT
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// Bitmap
+// Dialog
 //
 
-IDB_RSX_SPLASH          BITMAP                  "res\\rsx_splash.bmp"
+IDD_PLUGINS_LIST DIALOGEX 15, 15, 338, 138
+STYLE DS_SETFONT | DS_MODALFRAME | DS_3DLOOK | DS_FIXEDSYS | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+CAPTION "Plugins List"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    CONTROL         "",IDC_PLUGINS_LIST,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_ALIGNLEFT | LVS_NOSORTHEADER | WS_BORDER | WS_TABSTOP,7,7,324,125
+END
+
+IDD_DETECTION_LIST_PAGE DIALOGEX 0, 0, 276, 301
+STYLE DS_SETFONT | DS_3DLOOK | DS_FIXEDSYS | WS_CHILD | WS_DISABLED | WS_CAPTION
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    CONTROL         "",IDC_DETECTION_LIST,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | LVS_NOSORTHEADER | WS_BORDER | WS_TABSTOP,5,5,266,267
+    PUSHBUTTON      "&Add",IDC_DETECTION_LIST_ADD,5,280,50,14
+    PUSHBUTTON      "&Edit",IDC_DETECTION_LIST_EDIT,57,280,50,14
+    PUSHBUTTON      "&Remove",IDC_DETECTION_LIST_REMOVE,110,280,50,14
+END
+
+IDD_DETECTION_LIST_ITEM DIALOGEX 0, 0, 340, 254
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION
+CAPTION "Add/Change Detection Item"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,225,234,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,280,234,50,14
+    GROUPBOX        "Identity Fields",IDC_STATIC,5,5,329,136
+    CONTROL         "",IDC_INF_LIST,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | LVS_NOSORTHEADER | WS_BORDER | WS_TABSTOP,10,15,320,97
+    PUSHBUTTON      "&Remove",IDC_DETECTION_ITEM_REMOVE,280,119,50,14
+    EDITTEXT        IDC_DETECTION_ITEM_CHEAT,55,177,275,12,ES_AUTOHSCROLL
+    EDITTEXT        IDC_DETECTION_ITEM_COMMENT,55,193,275,12,ES_AUTOHSCROLL
+    RTEXT           "Cheat:",IDC_STATIC,28,178,23,8
+    RTEXT           "Comment:",IDC_STATIC,17,194,34,8
+    LTEXT           "ID:",IDC_STATIC,273,211,11,8
+    EDITTEXT        IDC_DETECTION_ITEM_ID,290,209,40,12,ES_AUTOHSCROLL | ES_NUMBER
+    COMBOBOX        IDC_DETECTION_ITEM_ACTION,55,209,104,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    RTEXT           "Action:",IDC_STATIC,27,211,24,8
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,10,151,320,1
+    PUSHBUTTON      "&Add",IDC_DETECTION_ITEM_ADD,170,119,50,14
+    PUSHBUTTON      ">>",IDC_DETECTION_ITEM_NEXT,109,234,50,14,WS_DISABLED
+    PUSHBUTTON      "<<",IDC_DETECTION_ITEM_BACK,55,234,50,14,WS_DISABLED
+    RTEXT           "Name:",IDC_STATIC,29,163,22,8
+    EDITTEXT        IDC_DETECTION_ITEM_NAME,55,161,275,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "&Change",IDC_DETECTION_ITEM_CHANGE,225,119,50,14
+END
+
+IDD_ADD_STRING_PAIR DIALOGEX 0, 0, 291, 68
+STYLE DS_SETFONT | DS_MODALFRAME | DS_3DLOOK | DS_FIXEDSYS | WS_POPUP | WS_CAPTION
+CAPTION "Add/Change Identity Field"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,177,47,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,234,47,50,14
+    EDITTEXT        IDC_ADD_STRING_PAIR_FIRST,72,13,212,12,ES_AUTOHSCROLL
+    EDITTEXT        IDC_ADD_STRING_PAIR_SECOND,72,29,212,12,ES_AUTOHSCROLL
+    RTEXT           "Static",IDC_ADD_STRING_PAIR_FNAME,7,15,59,8
+    RTEXT           "Static",IDC_ADD_STRING_PAIR_SNAME,7,31,59,8
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_PLUGINS_LIST, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 331
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 131
+    END
+
+    IDD_DETECTION_LIST_PAGE, DIALOG
+    BEGIN
+        LEFTMARGIN, 5
+        RIGHTMARGIN, 271
+        TOPMARGIN, 5
+        BOTTOMMARGIN, 296
+        HORZGUIDE, 287
+    END
+
+    IDD_DETECTION_LIST_ITEM, DIALOG
+    BEGIN
+        LEFTMARGIN, 5
+        RIGHTMARGIN, 334
+        VERTGUIDE, 10
+        VERTGUIDE, 51
+        VERTGUIDE, 55
+        VERTGUIDE, 170
+        VERTGUIDE, 330
+        TOPMARGIN, 5
+        BOTTOMMARGIN, 249
+        HORZGUIDE, 15
+        HORZGUIDE, 126
+    END
+
+    IDD_ADD_STRING_PAIR, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 284
+        VERTGUIDE, 66
+        VERTGUIDE, 72
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 61
+        HORZGUIDE, 19
+        HORZGUIDE, 35
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// PNG
+//
+
+IDP_RSX_SPLASH          PNG                     "res\\rsx_splash.png"
+IDP_ARROWS              PNG                     "res\\arrows.png"
+IDP_EMOTICON            PNG                     "res\\emoticon.png"
+IDP_FAVSTATES           PNG                     "res\\fav.png"
+IDP_FLAGS               PNG                     "res\\flags.png"
+IDP_FOLDERS             PNG                     "res\\folders.png"
+IDP_O_SETTINGS_DLG      PNG                     "res\\o_settings_dlg.png"
+IDP_SEARCH_TYPES        PNG                     "res\\search_icons.png"
+IDP_SPEEDS              PNG                     "res\\speeds.png"
+IDP_STATE               PNG                     "res\\state.png"
+IDP_TOOLBAR             PNG                     "res\\toolbar.png"
+IDP_TOOLBAR20           PNG                     "res\\toolbar20.png"
+IDP_TOOLBAR20_HOT       PNG                     "res\\toolbar20-highlight.png"
+IDP_TSPEEDS             PNG                     "res\\TranferSpeeds.png"
+IDP_TSPEEDSBW           PNG                     "res\\TransferSpeedsBW.png"
+IDP_USERS               PNG                     "res\\users.png"
+IDP_FAVTABS             PNG                     "res\\favtabs.png"
 #endif    // Polish resources
 /////////////////////////////////////////////////////////////////////////////
 
@@ -913,19 +1034,6 @@ IDB_RSX_SPLASH          BITMAP                  "res\\rsx_splash.bmp"
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 #pragma code_page(1252)
 #endif //_WIN32
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Bitmap
-//
-
-IDB_FOLDERS             BITMAP                  "res\\folders.bmp"
-IDB_ARROWS              BITMAP                  "res\\arrows.bmp"
-IDB_USERS               BITMAP                  "res\\users.bmp"
-IDB_TOOLBAR             BITMAP                  "res\\toolbar.bmp"
-IDB_TOOLBAR20           BITMAP                  "res\\toolbar20.bmp"
-IDB_TOOLBAR20_HOT       BITMAP                  "res\\toolbar20-highlight.bmp"
-IDB_O_SETTINGS_DLG      BITMAP                  "res\\o_settings_dlg.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -950,8 +1058,8 @@ BEGIN
     GROUPBOX        "",IDC_STATIC,7,7,226,104,0,WS_EX_TRANSPARENT
     EDITTEXT        IDC_TTH,30,93,180,8,ES_AUTOHSCROLL | ES_READONLY | NOT WS_BORDER
     LTEXT           "TTH:",IDC_STATIC,13,93,15,8
-    ICON            IDR_MAINFRAME,IDC_STATIC,110,15,21,20,SS_CENTERIMAGE,WS_EX_TRANSPARENT
-    LTEXT           "Compiled:",IDC_COMPILE_TIME,7,278,73,8,SS_CENTERIMAGE | WS_DISABLED
+    ICON            IDR_MAINFRAME,IDC_STATIC,110,15,20,20,SS_CENTERIMAGE,WS_EX_TRANSPARENT
+    LTEXT           "Compiled:",IDC_COMPILE_TIME,7,278,84,8,SS_CENTERIMAGE | WS_DISABLED
     CTEXT           "http://rsxplusplus.sf.net/",IDC_ABOUT_LINK,47,70,147,8
     CTEXT           "Uptime: %s",IDC_UPTIME,20,221,200,8
 END
@@ -1084,9 +1192,7 @@ FONT 8, "MS Shell Dlg", 400, 0, 0xEE
 BEGIN
     GROUPBOX        "Options",IDC_SETTINGS_APPEARANCE_OPTIONS,7,7,261,108
     CONTROL         "",IDC_APPEARANCE_BOOLEANS,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | LVS_NOCOLUMNHEADER | WS_BORDER | WS_TABSTOP,16,18,244,89
-    GROUPBOX        "Language file",IDC_SETTINGS_LANGUAGE_FILE,7,261,261,32
-    EDITTEXT        IDC_LANGUAGE,16,273,188,14,ES_AUTOHSCROLL
-    PUSHBUTTON      "&Browse...",IDC_BROWSE,210,273,50,14
+    GROUPBOX        "Language",IDC_SETTINGS_LANGUAGE_FILE,7,261,261,32
     GROUPBOX        "Default away message",IDC_SETTINGS_DEFAULT_AWAY_MSG,7,225,140,35
     EDITTEXT        IDC_DEFAULT_AWAY_MESSAGE,16,235,122,20,ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL | ES_WANTRETURN | WS_VSCROLL
     GROUPBOX        "Set timestamps",IDC_SETTINGS_TIME_STAMPS_FORMAT,151,226,117,34
@@ -1094,6 +1200,8 @@ BEGIN
     PUSHBUTTON      "?",IDC_TIMESTAMP_HELP,246,239,14,14
     GROUPBOX        "Bold options",IDC_SETTINGS_BOLD_CONTENTS,7,119,261,99
     CONTROL         "",IDC_BOLD_BOOLEANS,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_ALIGNLEFT | LVS_NOCOLUMNHEADER | WS_BORDER | WS_TABSTOP,16,131,244,78
+    EDITTEXT        IDC_LANGUAGE,16,273,188,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "&Browse...",IDC_BROWSE,210,273,50,14
 END
 
 IDD_LOGPAGE DIALOGEX 0, 0, 275, 300
@@ -1243,25 +1351,25 @@ CAPTION "Chat Colors and fonts"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
     CONTROL         "Bold Authors of messages in chat",IDC_BOLD_AUTHOR_MESS,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,13,121,245,10
-    PUSHBUTTON      "Import theme",IDC_IMPORT,206,199,64,14
-    PUSHBUTTON      "Export theme",IDC_EXPORT,206,215,64,14
-    GROUPBOX        "Color and Font Styles",IDC_STYLES,7,7,260,146
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,13,148,245,10
+    PUSHBUTTON      "Import theme",IDC_IMPORT,206,226,64,14
+    PUSHBUTTON      "Export theme",IDC_EXPORT,206,242,64,14
+    GROUPBOX        "Color and Font Styles",IDC_STYLES,7,7,263,174
     LTEXT           "Available styles",IDC_AVAILABLE_STYLES,14,19,64,8
-    PUSHBUTTON      "Back color",IDC_BACK_COLOR,12,134,70,14
-    PUSHBUTTON      "Text color",IDC_TEXT_COLOR,101,134,70,14
-    PUSHBUTTON      "Text style",IDC_TEXT_STYLE,192,134,70,14
+    PUSHBUTTON      "Back color",IDC_BACK_COLOR,12,161,70,14
+    PUSHBUTTON      "Text color",IDC_TEXT_COLOR,101,161,70,14
+    PUSHBUTTON      "Text style",IDC_TEXT_STYLE,192,161,70,14
     LTEXT           "Preview",IDC_CZDC_PREVIEW,144,19,64,8
-    CONTROL         "",IDC_PREVIEW,"RichEdit20A",ES_MULTILINE | ES_READONLY | WS_BORDER | WS_VSCROLL | WS_TABSTOP,142,27,120,91
-    LISTBOX         IDC_TEXT_STYLES,12,28,120,89,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
-    GROUPBOX        "Tab Colours, Progress Bars and Misc",IDC_CHATCOLORS,7,158,143,48
-    COMBOBOX        IDC_TABCOLOR_LIST,13,169,129,65,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    PUSHBUTTON      "Select Colour",IDC_SELECT_TAB_COLOR,65,187,47,14
-    EDITTEXT        IDC_SAMPLE_TAB_COLOR,117,187,26,14,ES_AUTOHSCROLL | ES_READONLY
-    PUSHBUTTON      "Reset",IDC_RESET_TAB_COLOR,15,187,46,14
-    PUSHBUTTON      "&Text style",IDC_SELTEXT,215,160,50,14
-    GROUPBOX        "Select Style",IDC_STYLES_SELECTOR,7,212,143,33
-    COMBOBOX        IDC_SELECT_STYLES,13,223,129,65,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "",IDC_PREVIEW,"RichEdit20A",ES_MULTILINE | ES_READONLY | WS_BORDER | WS_VSCROLL | WS_TABSTOP,142,28,120,114
+    LISTBOX         IDC_TEXT_STYLES,12,28,120,114,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    GROUPBOX        "Tab Colours, Progress Bars and Misc",IDC_CHATCOLORS,7,185,143,48
+    COMBOBOX        IDC_TABCOLOR_LIST,13,196,129,65,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Select Colour",IDC_SELECT_TAB_COLOR,65,214,47,14
+    EDITTEXT        IDC_SAMPLE_TAB_COLOR,117,214,26,14,ES_AUTOHSCROLL | ES_READONLY
+    PUSHBUTTON      "Reset",IDC_RESET_TAB_COLOR,15,214,46,14
+    PUSHBUTTON      "&Text style",IDC_SELTEXT,215,187,50,14
+    GROUPBOX        "Select Style",IDC_STYLES_SELECTOR,7,239,143,33
+    COMBOBOX        IDC_SELECT_STYLES,13,250,129,65,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
 END
 
 IDD_KICK DIALOGEX 0, 0, 238, 62
@@ -1619,11 +1727,11 @@ STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_VISIBLE | WS_DISABLED | WS_CAPTIO
 EXSTYLE WS_EX_STATICEDGE
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
-    CONTROL         "",IDC_FILELIST_DETECTOR_LIST,"SysListView32",LVS_REPORT | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | LVS_NOSORTHEADER | WS_BORDER | WS_TABSTOP,14,25,247,137
+    CONTROL         "",IDC_FILELIST_DETECTOR_LIST,"SysListView32",LVS_REPORT | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | LVS_NOSORTHEADER | WS_BORDER | WS_TABSTOP,14,13,247,149
     PUSHBUTTON      "&Add",IDC_ADD,14,167,46,14
     PUSHBUTTON      "Chang&e",IDC_CHANGE,114,167,46,14,BS_CENTER
     PUSHBUTTON      "&Remove",IDC_REMOVE,215,167,46,14
-    GROUPBOX        "",IDC_STATIC,7,8,261,180
+    GROUPBOX        "",IDC_STATIC,7,3,261,185
     GROUPBOX        "Fake share settings",IDC_FAKE_SHARE_SET,7,194,261,51
     LTEXT           "% fake share accepted",IDC_FAKE_SHARE_ACCEPTED,174,210,87,9
     LTEXT           "Min filelist size",IDC_STATIC,85,210,47,8
@@ -1644,7 +1752,6 @@ BEGIN
     CONTROL         "",IDC_MINIMUM_FILELIST_SIZE_SPIN,"msctls_updown32",UDS_SETBUDDYINT | UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_NOTHOUSANDS,69,207,11,14
     EDITTEXT        IDC_MAXIMUM_FILELIST_SIZE,14,224,66,13,ES_AUTOHSCROLL | ES_NUMBER
     CONTROL         "",IDC_MAXIMUM_FILELIST_SIZE_SPIN,"msctls_updown32",UDS_SETBUDDYINT | UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_NOTHOUSANDS,69,223,11,14
-    COMBOBOX        IDC_FILELIST_PAGE_LIST_TYPE,14,7,159,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
 END
 
 IDD_ADD_FILELIST_PROFILE DIALOGEX 0, 0, 262, 93
@@ -1855,6 +1962,7 @@ BEGIN
         VERTGUIDE, 260
         TOPMARGIN, 7
         BOTTOMMARGIN, 293
+        HORZGUIDE, 279
     END
 
     IDD_LOGPAGE, DIALOG
@@ -1934,7 +2042,6 @@ BEGIN
     BEGIN
         RIGHTMARGIN, 270
         BOTTOMMARGIN, 295
-        HORZGUIDE, 141
     END
 
     IDD_KICK, DIALOG
@@ -2230,14 +2337,12 @@ END
 
 2 TEXTINCLUDE 
 BEGIN
-    "#include ""atlres.h""\r\n"
-    "\0"
+    "#include ""wtl\\atlres.h""\r\0"
 END
 
 3 TEXTINCLUDE 
 BEGIN
-    "\r\n"
-    "\0"
+    "\r\0"
 END
 
 #endif    // APSTUDIO_INVOKED
@@ -2372,7 +2477,6 @@ LANGUAGE LANG_FINNISH, SUBLANG_DEFAULT
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
 IDR_TUSER               ICON                    "res\\TranferUser.ico"
-IDR_PEERGUARDIAN        ICON                    "res\\pg2.ico"
 #endif    // Finnish resources
 /////////////////////////////////////////////////////////////////////////////
 
@@ -2385,14 +2489,6 @@ IDR_PEERGUARDIAN        ICON                    "res\\pg2.ico"
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_UK
 #pragma code_page(1252)
 #endif //_WIN32
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Bitmap
-//
-
-IDB_TSPEEDS             BITMAP                  "res\\TranferSpeeds.bmp"
-IDB_TSPEEDSBW           BITMAP                  "res\\TransferSpeedsBW.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -2529,8 +2625,7 @@ END
 //
 // Generated from the TEXTINCLUDE 3 resource.
 //
-
-
+
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED
 

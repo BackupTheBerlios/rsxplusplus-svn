@@ -8,7 +8,7 @@
 #include "PropPage.h"
 #include "ExListViewCtrl.h"
 
-class ClientProfile;
+#include "../client/ClientProfileManager.h"
 
 class ClientsPage : public CPropertyPage<IDD_CLIENTS_PAGE>, public PropPage
 {

@@ -28,7 +28,6 @@
 #define SETTINGS_BUF_LEN 1024
 #define DIM_EDIT_EXPERIMENT 0
 
-class SettingsManager;
 #include "../client/ResourceManager.h"
 
 class PropPage
@@ -40,7 +39,7 @@ public:
 	virtual PROPSHEETPAGE *getPSP() = 0;
 	virtual void write() = 0;
 
-	enum Type { T_STR, T_STR_RSX, T_INT, T_INT_RSX, T_BOOL, T_BOOL_RSX, T_CUSTOM, T_INT64, T_END };
+	enum Type { T_STR, T_INT, T_BOOL, T_CUSTOM, T_INT64, T_BOOL_RSX, T_STR_RSX, T_INT_RSX, T_END };
 
 	struct Item
 	{
@@ -63,7 +62,7 @@ protected:
 	std::map<WORD, CDimEdit *> ctrlMap;
 #endif
 	SettingsManager *settings;
-	//RSX++ // RSX++ list item
+	//RSX++ edit
 	void read(HWND page, Item const* items, ListItem* listItems = NULL, HWND list = NULL, bool isRSX = false);
 	void write(HWND page, Item const* items, ListItem* listItems = NULL, HWND list = NULL, bool isRSX = false);
 	void translate(HWND page, TextItem* textItems);
@@ -73,5 +72,5 @@ protected:
 
 /**
  * @file
- * $Id: PropPage.h 213 2006-05-08 08:36:23Z bigmuscle $
+ * $Id: PropPage.h 373 2008-02-06 17:23:49Z bigmuscle $
  */

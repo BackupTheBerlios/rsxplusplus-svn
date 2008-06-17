@@ -39,6 +39,7 @@
 //RSX++
 #include "../rsx/rsx-settings/rsx-SettingsManager.h"
 #include "../rsx/UpdateManagerListener.h"
+#include "ExCImage.h"
 //END
 #include "PopupManager.h"
 
@@ -52,8 +53,8 @@
 
 class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFrame>,
 		public CMessageFilter, public CIdleHandler, public CSplitterImpl<MainFrame, false>, public Thread,
-		private TimerManagerListener, private UpdateManagerListener, private QueueManagerListener,
-		private LogManagerListener, private WebServerListener
+		private TimerManagerListener, private QueueManagerListener,
+		private LogManagerListener, private WebServerListener, private UpdateManagerListener
 {
 public:
 	MainFrame();
@@ -177,8 +178,9 @@ public:
 		COMMAND_ID_HANDLER(ID_FILE_QUICK_CONNECT, onQuickConnect)
 		COMMAND_ID_HANDLER(IDC_HASH_PROGRESS, onHashProgress)
 		//RSX++
+		COMMAND_ID_HANDLER(IDC_VIEW_PLUGINS_LIST, onViewPluginsList)
 		COMMAND_ID_HANDLER(IDC_RECONNECT_DISCONNECTED, onCloseWindows)
-		COMMAND_ID_HANDLER(ID_VIEW_PLUGIN_TOOLBAR, OnViewPluginToolBar) //RSX++
+		COMMAND_ID_HANDLER(ID_VIEW_PLUGIN_TOOLBAR, OnViewPluginToolBar)
 		COMMAND_ID_HANDLER(IDC_CHANGE_PRIO_REALTIME, onChangePriority)
 		COMMAND_ID_HANDLER(IDC_CHANGE_PRIO_HIGH, onChangePriority)
 		COMMAND_ID_HANDLER(IDC_CHANGE_PRIO_ABOVE, onChangePriority)
@@ -211,6 +213,7 @@ public:
 		UPDATE_ELEMENT(ID_VIEW_PLUGIN_TOOLBAR, UPDUI_MENUPOPUP)
 	END_UPDATE_UI_MAP()
 
+
 	LRESULT onSize(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled);
 	LRESULT onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 	LRESULT onHashProgress(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
@@ -242,6 +245,7 @@ public:
 	LRESULT onDisableSounds(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT onOpenWindows(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	//RSX++
+	LRESULT onViewPluginsList(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT onSwitchWindow(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT onChangePriority(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT onQuickSearchChar(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled);
@@ -415,6 +419,7 @@ private:
 		FileListQueue() : stop(true), forceClose(false) {}
 		~FileListQueue() throw() {
 			shutdown();
+			join();
 		}
 
 		int run();
@@ -445,6 +450,10 @@ private:
 	CEdit QuickSearchEdit;
 	CContainedWindow QuickSearchBoxContainer;
 	CContainedWindow QuickSearchEditContainer;
+
+	ExCImage::Ptr toolbarImg;
+	ExCImage::Ptr toolbar20Img;
+	ExCImage::Ptr toolbar20HotImg;
 	//END
 
 	bool tbarcreated, ptbarcreated;
@@ -488,10 +497,8 @@ private:
 	HWND createQuickSearchBar();
 	void updateQuickSearches(const tstring& search = Util::emptyStringT);
 	void setDefPrioMenu();
-	void onVersionCheck();
-	void onProfileVersionCheck();
-
 	//END
+
 	void updateTray(bool add = true);
 
 	LRESULT onAppShow(WORD /*wNotifyCode*/,WORD /*wParam*/, HWND, BOOL& /*bHandled*/) {
@@ -512,18 +519,17 @@ private:
 
 	// TimerManagerListener
 	void on(TimerManagerListener::Second, uint64_t aTick) throw();
-	
-	// UpdateManagerListener
-	void on(UpdateManagerListener::Complete, const string&, int) throw();
-	void on(UpdateManagerListener::Failed, const string&, int) throw();
 
 	// WebServerListener
 	void on(WebServerListener::Setup);
 	void on(WebServerListener::ShutdownPC, int);
 
 	// QueueManagerListener
-	void on(QueueManagerListener::Finished, const QueueItem* qi, const string& dir, int64_t speed) throw();
+	void on(QueueManagerListener::Finished, const QueueItem* qi, const string& dir, const Download*) throw();
 	void on(PartialList, const UserPtr&, const string& text) throw();
+
+	// UpdateManagerListener
+	void on(UpdateManagerListener::VersionUpdated, const VersionInfo::Client&, const VersionInfo::Profiles&) throw();
 
 	// UPnP connectors
 	UPnP* UPnP_TCPConnection;
@@ -534,5 +540,5 @@ private:
 
 /**
  * @file
- * $Id: MainFrm.h 355 2008-01-05 14:43:39Z bigmuscle $
+ * $Id: MainFrm.h 364 2008-01-26 14:52:30Z bigmuscle $
  */

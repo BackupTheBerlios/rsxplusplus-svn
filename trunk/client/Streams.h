@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2007 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,11 +16,14 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#if !defined(STREAMS_H)
-#define STREAMS_H
+#ifndef DCPLUSPLUS_DCPP_STREAMS_H
+#define DCPLUSPLUS_DCPP_STREAMS_H
 
 #include "SettingsManager.h"
 #include "Exception.h"
+#include "ResourceManager.h"
+
+namespace dcpp {
 
 STANDARD_EXCEPTION(FileException);
 
@@ -45,6 +48,11 @@ public:
 	 * might not need it...
 	 */
 	virtual size_t flush() throw(Exception) = 0;
+
+	/**
+	 * @return True if stream is at expected end
+	 */
+	virtual bool eof() { return false; }
 
 	size_t write(const string& str) throw(Exception) { return write(str.c_str(), str.size()); }
 private:
@@ -120,12 +128,38 @@ private:
 	int64_t maxBytes;
 };
 
+/** Limits the number of bytes that are requested to be written (not the number actually written!) */
+template<bool managed>
+class LimitedOutputStream : public OutputStream {
+public:
+	LimitedOutputStream(OutputStream* os, int64_t aMaxBytes) : s(os), maxBytes(aMaxBytes) {
+	}
+	virtual ~LimitedOutputStream() throw() { if(managed) delete s; }
+
+	virtual size_t write(const void* buf, size_t len) throw(Exception) {
+		if(maxBytes < len) {
+			throw FileException(STRING(TOO_MUCH_DATA));
+		}
+		maxBytes -= len;
+		return s->write(buf, len);
+	}
+	
+	virtual size_t flush() throw(Exception) {
+		return s->flush();
+	}
+	
+	virtual bool eof() { return maxBytes == 0; }
+private:
+	OutputStream* s;
+	int64_t maxBytes;
+};
+
 template<bool managed>
 class BufferedOutputStream : public OutputStream {
 public:
 	using OutputStream::write;
 
-	BufferedOutputStream(OutputStream* aStream, size_t aBufSize = SETTING(BUFFER_SIZE) * 1024) : s(aStream), pos(0), bufSize(aBufSize), buf(aBufSize) { }
+	BufferedOutputStream(OutputStream* aStream, size_t aBufSize = SETTING(BUFFER_SIZE) * 1024) : s(aStream), pos(0), buf(aBufSize) { }
 	~BufferedOutputStream() throw() {
 		try {
 			// We must do this in order not to lose bytes when a download
@@ -138,7 +172,7 @@ public:
 
 	size_t flush() throw(Exception) {
 		if(pos > 0)
-			s->write(buf, pos);
+			s->write(&buf[0], pos);
 		pos = 0;
 		s->flush();
 		return 0;
@@ -147,18 +181,19 @@ public:
 	size_t write(const void* wbuf, size_t len) throw(Exception) {
 		uint8_t* b = (uint8_t*)wbuf;
 		size_t l2 = len;
+		size_t bufSize = buf.size();
 		while(len > 0) {
 			if(pos == 0 && len >= bufSize) {
 				s->write(b, len);
 				break;
 			} else {
 				size_t n = min(bufSize - pos, len);
-				memcpy(buf + pos, b, n);
+				memcpy(&buf[pos], b, n);
 				b += n;
 				pos += n;
 				len -= n;
 				if(pos == bufSize) {
-					s->write(buf, bufSize);
+					s->write(&buf[0], bufSize);
 					pos = 0;
 				}
 			}
@@ -168,8 +203,7 @@ public:
 private:
 	OutputStream* s;
 	size_t pos;
-	size_t bufSize;
-	AutoArray<uint8_t> buf;
+	ByteVector buf;
 };
 
 class StringOutputStream : public OutputStream {
@@ -187,10 +221,11 @@ private:
 	string& str;
 };
 
+} // namespace dcpp
 
 #endif // !defined(STREAMS_H)
 
 /**
 * @file
-* $Id: Streams.h 327 2007-10-07 12:46:45Z bigmuscle $
+* $Id: Streams.h 386 2008-05-10 19:29:01Z BigMuscle $
 */

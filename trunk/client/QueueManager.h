@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2007 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,6 +36,8 @@
 #include "ClientManagerListener.h"
 #include "LogManager.h"
 #include "../rsx/RsxUtil.h" //RSX++
+
+namespace dcpp {
 
 STANDARD_EXCEPTION(QueueException);
 
@@ -75,11 +77,11 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 public:
 	/** Add a file to the queue. */
 	void add(const string& aTarget, int64_t aSize, const TTHValue& root, UserPtr aUser,
-		Flags::MaskType aFlags = QueueItem::FLAG_RESUME, bool addBad = true) throw(QueueException, FileException);
+		Flags::MaskType aFlags = 0, bool addBad = true) throw(QueueException, FileException);
 		/** Add a user's filelist to the queue. */
 	void addList(const UserPtr& aUser, Flags::MaskType aFlags, const string& aInitialDir = Util::emptyString) throw(QueueException, FileException);
 	/** Queue a partial file list download */
-	void addPfs(const UserPtr& aUser, const string& aDir) throw(QueueException);
+	void addPfs(const UserPtr& aUser, const string& aDir, bool onlyDownload = false) throw(QueueException);
 
 	void addTestSUR(UserPtr aUser, bool checkList = false) throw(QueueException, FileException) {
 		string nick = Util::cleanPathChars(aUser->getNick()) + ".";
@@ -98,13 +100,17 @@ public:
 		return;
 	}
 	//RSX++ 
-	void removeFilelistCheck(UserPtr aUser) {
-		try {
-			string nick = Util::cleanPathChars(aUser->getNick()) + ".";
-			string target = Util::getListPath() + nick + aUser->getCID().toBase32();
-			remove(target);
-		} catch(...) {
-			// exception
+	void addFileListCheck(UserPtr aUser) throw(QueueException, FileException) {
+		addList(aUser, QueueItem::FLAG_CHECK_FILE_LIST);
+	}
+
+	void removeFileListCheck(UserPtr aUser) throw(QueueException) {
+		Lock l(cs);
+		for(QueueItem::StringIter i = fileQueue.getQueue().begin(); i != fileQueue.getQueue().end(); ++i) {
+			if(i->second->isSource(aUser) && i->second->isSet(QueueItem::FLAG_CHECK_FILE_LIST)) {
+				remove(i->second->getTarget());
+				return;
+			}
 		}
 	}
 
@@ -125,25 +131,17 @@ public:
 		}
 	}
 
-	void removeFileListCheck(UserPtr aUser) throw(QueueException) {
-		Lock l(cs);
-		for(QueueItem::StringIter i = fileQueue.getQueue().begin(); i != fileQueue.getQueue().end(); ++i) {
-			if(i->second->isSource(aUser) && i->second->isSet(QueueItem::FLAG_CHECK_FILE_LIST)) {
-				remove(i->second->getTarget());
-				return;
+	bool isTestSURinQueue(UserPtr aUser) const {
+		try {
+			Lock l(cs);
+			string nick = RsxUtil::getTestSURString() + Util::cleanPathChars(aUser->getNick()) + ".";
+			for(QueueItem::StringIter i = fileQueue.getQueue().begin(); i != fileQueue.getQueue().end(); ++i) {
+				if(i->second->getTargetFileName().find(nick + aUser->getCID().toBase32()) != string::npos ) {
+					return true;
+				}
 			}
-		}
-	}
-
-	bool isTestSURinQueue(UserPtr aUser) throw(QueueException) {
-		Lock l(cs);
-		string nick = Util::cleanPathChars(aUser->getNick()) + ".";
-		string target = Util::getConfigPath() + "TestSURs\\" + RsxUtil::getTestSURString() + nick + aUser->getCID().toBase32();
-
-		for(QueueItem::StringIter i = fileQueue.getQueue().begin(); i != fileQueue.getQueue().end(); ++i) {
-			if(i->second->getTargetFileName().find(target) != string::npos ) {
-				return true;
-			}
+		} catch(...) {
+			// exception
 		}
 		return false;
 	}
@@ -252,9 +250,9 @@ public:
 		CriticalSection cs;
 	} mover;
 
-	typedef unordered_map<CID, string> PfsQueue;
+	typedef unordered_map<CID, pair<string, bool>> PfsQueue;
 	typedef PfsQueue::iterator PfsIter;
-	typedef vector<pair<QueueItem::SourceConstIter, QueueItem*> > PFSSourceList;
+	typedef vector<pair<QueueItem::SourceConstIter, const QueueItem*> > PFSSourceList;
 
 	/** All queue items by target */
 	class FileQueue {
@@ -296,7 +294,7 @@ private:
 	public:
 		void add(QueueItem* qi);
 		void add(QueueItem* qi, const UserPtr& aUser);
-		QueueItem* getNext(const UserPtr& aUser, QueueItem::Priority minPrio = QueueItem::LOWEST);
+		QueueItem* getNext(const UserPtr& aUser, QueueItem::Priority minPrio = QueueItem::LOWEST, int64_t wantedSize = 0, int64_t lastSpeed = 0, bool allowRemove = false);
 		QueueItem* getRunning(const UserPtr& aUser);
 		void addDownload(QueueItem* qi, Download* d);
 		void removeDownload(QueueItem* qi, const UserPtr& d);
@@ -366,16 +364,18 @@ private:
 	void on(TimerManagerListener::Minute, uint64_t aTick) throw();
 	
 	// SearchManagerListener
-	void on(SearchManagerListener::SR, SearchResult*) throw();
+	void on(SearchManagerListener::SR, const SearchResultPtr&) throw();
 
 	// ClientManagerListener
 	void on(ClientManagerListener::UserConnected, const UserPtr& aUser) throw();
 	void on(ClientManagerListener::UserDisconnected, const UserPtr& aUser) throw();
 };
 
+} // namespace dcpp
+
 #endif // !defined(QUEUE_MANAGER_H)
 
 /**
  * @file
- * $Id: QueueManager.h 356 2008-01-11 20:48:10Z bigmuscle $
+ * $Id: QueueManager.h 389 2008-06-08 10:51:15Z BigMuscle $
  */

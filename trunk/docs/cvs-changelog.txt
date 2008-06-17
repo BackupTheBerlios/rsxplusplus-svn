@@ -1,3 +1,137 @@
+** svn387
+	fixed saving usernicks in queue
+	fixed missing "Downloaded parts" status in queue
+	Windows folder won't be shared
+
+** svn386
+	some DC++ SVN merge
+	fixed ADC userlist refresh
+	enabled guided optimization (up 20% faster when released)
+
+** svn385
+	fixed opening user logs from chat
+	fixed parsing partial blocks in PSR command
+	fixed race condition in ConnectionManager
+	improved segment auto-size (DC++ SVN)
+	improved transfer speed averaging (DC++ SVN)
+	allow shared virtual folders to have the same name (DC++ SVN)
+
+** svn384
+	fixed some memory problems
+	fixed columns ordering when some columns are hidden
+
+** svn383
+	fixed Release build
+
+** svn382
+	hopefully fixed columns settings
+	fixed crashes #12115, #12130, #12141
+	fixed search results count
+	fixed loading old-styled hublists
+	some memory handling fixes (idea from DC++ SVN)
+	fixed crash when try to run user command on offline user in mainchat
+	hopefully fixed frozen running transfer when no other partial chunk available
+	something about upload speed (not final and still broken)
+
+** svn381
+	released 2.12
+
+** svn380
+	fixed "Download finished" reporting for single download items
+
+** svn379
+	changed version.xml/hublists URLs to Coral
+	added "Troj/Agent-GNA" to crash libraries
+	slow downloads disconnecting fix
+	some clean up
+
+** svn378
+	DownloadManager patch from DC++ SVN
+
+** svn377
+	reworked column order/width code a bit (it will break current settings)
+	some stuff about /me messages (DC++ SVN)
+
+** svn376
+	chat autoscroll code cleaned up a bit
+	socks5 port field accepts only numbers
+	fix for delayed upload finish
+
+** svn375
+	fixed extensions list in Queue "Rename/Move" dialog
+	hopefully fixed all problems with chat autoscroll
+	Win9x chat fix
+
+** svn374
+	workaround for QueueFrame updating on file move/rename
+	fixed possible deadlock between ConnectionManager and DownloadManager
+	PFS fix
+
+** svn373
+	updated client profiles URL
+	using dcpp namespace
+	tweaked PFS
+	display "All download slots taken" when maximum segments reached
+	removed horizontal chat/userlist layout to allow compiling with default WTL
+	updated WTL
+
+** svn372
+	removed option to disable real upload queue
+	removed bad software detection (it is unuseful now)
+	added option to enable/disable slow chunks overlapping
+	some stuff about /me message (DC++ SVN)
+	applied arne's MerkleTree crash fix
+	Identity crash fix proposed by arne
+	always scroll chat to bottom when posting own message
+
+** svn371
+	hopefully fixed autoscrolling when nick/ip/url is selected with rightclick
+	redesigned menu code - it allows copying according to userlist columns
+
+** svn370
+	scroll to bottom when cutting down the chat buffer
+	fixed ignore/unignore in chat
+	fixed losing item focus when closing favorite hub properties
+	fixed user commands in chat
+
+** svn369
+	chat menu code rewritten... now must find what doesn't work :)
+
+** svn368
+	changed the way of chat autoscrolling
+	begun work on main/PM chat menu reworking (chat menus don't work at this time)
+
+** svn367
+	removed special extension from antifrag files
+	added last TTH check to debug build
+
+** svn366
+	try to fix a crash in Identity
+	fixed converting 64bit integer to unicode string
+	fixed crash #10605
+	fixed overlapping when faster segment is disconnected (no slots etc.)
+	hopefully fixed crash #10690, #10772, #10795, #10796, #10828, #10856
+
+** svn365
+	fixed some comments
+	fixed svn version number
+
+** svn364
+	continuing work on slow segments overlapping (it needs many testing now)
+	returned usernicks to Finished downloads frame
+	[NMDC] usernicks CPU optimization
+	fixed last segment status in TransferView
+
+** svn363
+	hopefully fixed TypedTreeListView children counting
+	hopefully fixed upload timeleft
+	added multiple items info copying in filelists (THX klirik)
+	begun work on slow segments overlapping
+
+** svn362
+	fixed crashes #10562, #10585, #10559
+	experimental: use boost intrusive_ptr (DC++ SVN)
+
 ** svn361
 	released 2.11
 

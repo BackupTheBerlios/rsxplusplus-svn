@@ -17,11 +17,12 @@
  */
 
 #include "stdafx.h"
-#include "../client/DCPlusPlus.h"
-#include "Resource.h"
 
-#include "SDCPage.h"
+#include "../client/DCPlusPlus.h"
 #include "../client/SettingsManager.h"
+
+#include "Resource.h"
+#include "SDCPage.h"
 #include "WinUtil.h"
 
 PropPage::TextItem SDCPage::texts[] = {
@@ -116,11 +117,13 @@ LRESULT SDCPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
     userlistaction.AddString(CTSTRING(MATCH_QUEUE));
     userlistaction.AddString(CTSTRING(GRANT_EXTRA_SLOT));
 	userlistaction.AddString(CTSTRING(ADD_TO_FAVORITES));
+	userlistaction.AddString(CTSTRING(BROWSE_FILE_LIST));
 	transferlistaction.AddString(CTSTRING(SEND_PRIVATE_MESSAGE));
 	transferlistaction.AddString(CTSTRING(GET_FILE_LIST));
 	transferlistaction.AddString(CTSTRING(MATCH_QUEUE));
 	transferlistaction.AddString(CTSTRING(GRANT_EXTRA_SLOT));
 	transferlistaction.AddString(CTSTRING(ADD_TO_FAVORITES));
+	transferlistaction.AddString(CTSTRING(BROWSE_FILE_LIST));
 	chataction.AddString(CTSTRING(SELECT_USER_LIST));
     chataction.AddString(CTSTRING(SEND_PUBLIC_MESSAGE));
     chataction.AddString(CTSTRING(SEND_PRIVATE_MESSAGE));
@@ -161,6 +164,6 @@ void SDCPage::write()
 
 /**
  * @file
- * $Id: SDCPage.cpp 349 2007-12-28 21:30:39Z bigmuscle $
+ * $Id: SDCPage.cpp 389 2008-06-08 10:51:15Z BigMuscle $
  */
 

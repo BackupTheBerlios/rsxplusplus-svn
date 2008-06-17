@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2007 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,14 +16,16 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef DCPLUSPLUS_CLIENT_FORWARD_H_
-#define DCPLUSPLUS_CLIENT_FORWARD_H_
+#ifndef DCPLUSPLUS_DCPP_FORWARD_H_
+#define DCPLUSPLUS_DCPP_FORWARD_H_
 
 /** @file
  * This file contains forward declarations for the various DC++ classes
  */
 
 #include "Pointer.h"
+
+namespace dcpp {
 
 class AdcCommand;
 
@@ -32,8 +34,6 @@ class BufferedSocket;
 class CID;
 
 typedef std::vector<uint16_t> PartsInfo;
-typedef map<uint16_t, uint16_t> BlockMap;
-typedef BlockMap::const_iterator BlockIter;
 
 class Client;
 
@@ -46,6 +46,8 @@ typedef Download* DownloadPtr;
 typedef std::vector<DownloadPtr> DownloadList;
 
 class FavoriteHubEntry;
+typedef FavoriteHubEntry* FavoriteHubEntryPtr;
+typedef std::vector<FavoriteHubEntryPtr> FavoriteHubEntryList;
 
 class FavoriteUser;
 
@@ -57,15 +59,24 @@ typedef std::vector<FinishedItemPtr> FinishedItemList;
 
 class FinishedManager;
 
+class HubEntry;
+typedef std::vector<HubEntry> HubEntryList;
+
 class Identity;
 
 class InputStream;
 
 class OnlineUser;
+typedef OnlineUser* OnlineUserPtr;
+typedef std::vector<OnlineUserPtr> OnlineUserList;
 
 class QueueItem;
 
 class RecentHubEntry;
+
+class SearchResult;
+typedef boost::intrusive_ptr<SearchResult> SearchResultPtr;
+typedef std::vector<SearchResultPtr> SearchResultList;
 
 class ServerSocket;
 
@@ -85,7 +96,7 @@ typedef std::vector<UploadPtr> UploadList;
 class UploadQueueItem;
 
 class User;
-typedef Pointer<User> UserPtr;
+typedef boost::intrusive_ptr<User> UserPtr;
 typedef std::vector<UserPtr> UserList;
 
 class UserCommand;
@@ -93,5 +104,7 @@ class UserCommand;
 class UserConnection;
 typedef UserConnection* UserConnectionPtr;
 typedef std::vector<UserConnectionPtr> UserConnectionList;
+
+} // namespace dcpp
 
 #endif /*DCPLUSPLUS_CLIENT_FORWARD_H_*/

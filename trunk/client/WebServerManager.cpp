@@ -25,6 +25,9 @@
 #include "UploadManager.h"
 #include "StringTokenizer.h"
 #include "ResourceManager.h"
+#include "SearchResult.h"
+
+namespace dcpp {
 
 WebServerManager* Singleton<WebServerManager>::instance = NULL;
 
@@ -103,7 +106,7 @@ string WebServerManager::getLoginPage(){
 	pagehtml += "	<meta http-equiv='Content-Type' content='text/html; charset=windows-1250' />";
     pagehtml += "<meta http-equiv='pragma' content='no-cache'>";
     pagehtml += "   	<meta http-equiv='cache-control' content='no-cache, must-revalidate'>";
-	pagehtml += "	<link rel='stylesheet' href='https://rsxplusplus.sf.net/webserver/rsxpp.css' type='text/css' title='Default styl' media='screen' />";
+	pagehtml += "	<link rel='stylesheet' href='http://rsxplusplus.sf.net/webserver/rsxpp.css' type='text/css' title='Default styl' media='screen' />";
     pagehtml += "</head>";
     pagehtml += "<body>";
     pagehtml += "<div id='index_obsah'>";
@@ -145,7 +148,7 @@ string WebServerManager::getPage(const string& file, const string& IP) {
     pagehtml += "    <meta http-equiv='pragma' content='no-cache'>";
     pagehtml += "    <meta http-equiv='cache-control' content='no-cache, must-revalidate'>";
 	
-    pagehtml += "	<link rel='stylesheet' href='https://rsxplusplus.sf.net/webserver/rsxpp.css' type='text/css' title='Default styl' media='screen' />";
+    pagehtml += "	<link rel='stylesheet' href='http://rsxplusplus.sf.net/webserver/rsxpp.css' type='text/css' title='Default styl' media='screen' />";
     pagehtml += "</head>";
     pagehtml += "<body>";
 
@@ -545,7 +548,7 @@ int WebServerSocket::run(){
 
 } 
 
-void WebServerManager::onSearchResult(const SearchResult* aResult) {
+void WebServerManager::onSearchResult(const SearchResultPtr& aResult) {
 	// Check that this is really a relevant search result...
 	{
 		Lock l(cs);
@@ -566,3 +569,4 @@ void WebServerManager::onSearchResult(const SearchResult* aResult) {
 	//PostMessage(WM_SPEAKER, ADD_RESULT, (LPARAM)i);	
 }
 
+} // namespace dcpp

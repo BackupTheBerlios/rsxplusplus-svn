@@ -61,11 +61,13 @@
 //RSX++
 #include "../rsx/RsxUtil.h"
 #include "../rsx/UpdateManager.h"
+#include "../rsx/HTTPDownloadManager.h"
 #include "../client/ScriptManager.h" // Lua
 #include "../client/ClientProfileManager.h"
-#include "../rsx/PluginAPI/PluginsManager.h"
+#include "../client/PluginsManager.h"
 #include "ToolbarManager.h"
 #include "UpdateDialog.h"
+#include "PluginsListDlg.h"
 //END
 
 MainFrame* MainFrame::anyMF = NULL;
@@ -89,6 +91,10 @@ MainFrame::~MainFrame() {
 	images.Destroy();
 	largeImages.Destroy();
 	largeImagesHot.Destroy();
+
+	RL_DeleteObject(toolbarImg);
+	RL_DeleteObject(toolbar20Img);
+	RL_DeleteObject(toolbar20HotImg);
 
 	WinUtil::uninit();
 }
@@ -124,9 +130,10 @@ public:
 			try {
 				dl.loadFile(*i);
 				const size_t BUF_SIZE = STRING(MATCHED_FILES).size() + 16;
-				AutoArray<char> tmp(BUF_SIZE);
-				snprintf(tmp, BUF_SIZE, CSTRING(MATCHED_FILES), QueueManager::getInstance()->matchListing(dl));
-				LogManager::getInstance()->message(Util::toString(ClientManager::getInstance()->getNicks(u->getCID())) + ": " + string(tmp));
+				string tmp;
+				tmp.resize(BUF_SIZE);
+				tmp.resize(snprintf(&tmp[0], tmp.size(), CSTRING(MATCHED_FILES), QueueManager::getInstance()->matchListing(dl)));
+				LogManager::getInstance()->message(Util::toString(ClientManager::getInstance()->getNicks(u->getCID())) + ": " + tmp);
 			} catch(const Exception&) {
 
 			}
@@ -180,13 +187,11 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	TimerManager::getInstance()->start();
 
 	// Set window name
-	SetWindowText(_T(APPNAME) _T(" ") _T(VERSIONSTRING)
-#ifdef SVN_REVISION_STR
-		EXTRA_VER
-#endif
-		);
 
-	PluginsManager::getInstance()->startPlugins(); //RSX++
+	SetWindowText(RsxUtil::getWndTitle().c_str());
+	//RSX++
+	PluginsManager::getInstance()->startPlugins();
+	UpdateManager::getInstance()->addListener(this);
 
 	// Load images
 	// create command bar window
@@ -199,7 +204,9 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	// attach menu
 	m_CmdBar.AttachMenu(m_hMenu);
 	// load command bar images
-	images.CreateFromImage(IDB_TOOLBAR, 16, 16, CLR_DEFAULT, IMAGE_BITMAP, LR_CREATEDIBSECTION | LR_SHARED);
+	toolbarImg = RL_LoadFromResource(IDP_TOOLBAR); //RSX++
+	images.Create(16, 16, ILC_COLOR32 | ILC_MASK, 0, 16);
+	images.Add(*toolbarImg);
 	m_CmdBar.m_hImageList = images;
 
 	m_CmdBar.m_arrCommand.Add(ID_FILE_CONNECT);
@@ -312,26 +319,6 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	trayMenu.AppendMenu(MF_STRING, ID_APP_ABOUT, CTSTRING(MENU_ABOUT));
 	trayMenu.AppendMenu(MF_STRING, ID_APP_EXIT, CTSTRING(MENU_EXIT));
 
-	//RSX++
-	UpdateManager::getInstance()->addListener(this);
-	UpdateManager::getInstance()->downloadFile(UpdateManager::VERSION, VERSION_URL);
-	if(RSXBOOLSETTING(GET_UPDATE_PROFILE))
-		UpdateManager::getInstance()->downloadFile(UpdateManager::PROFILE_VERSION, RSXSETTING(PROFILE_VER_URL) + "profileVersion.xml");
-	//END
-
-	// ZoneAlarm - ref: http://www.unixwiz.net/backstealth/
-	if (BOOLSETTING(DETECT_BADSOFT)) {
-		int times_detected = SETTING(BADSOFT_DETECTIONS);
-		if (times_detected % 5 == 0) {
-			if (FindWindow(NULL, _T("ZoneAlarm")) || FindWindow(NULL, _T("ZoneAlarm Pro"))) {
-				::MessageBox(m_hWnd, CTSTRING(ZONEALARM_WARNING), _T(APPNAME) _T(" ") _T(VERSIONSTRING), MB_OK | MB_ICONINFORMATION | MB_TOPMOST);
-			}
-			if(GetModuleHandle(_T("nl_lsp.dll")) > 0)
-				::MessageBox(m_hWnd, CTSTRING(NETLIMITER_WARNING), _T(APPNAME) _T(" ") _T(VERSIONSTRING), MB_OK | MB_ICONINFORMATION | MB_TOPMOST);
-		}
-		SettingsManager::getInstance()->set(SettingsManager::BADSOFT_DETECTIONS, ++times_detected);
-	}
-	
 	if(BOOLSETTING(OPEN_PUBLIC)) PostMessage(WM_COMMAND, ID_FILE_CONNECT);
 	if(BOOLSETTING(OPEN_FAVORITE_HUBS)) PostMessage(WM_COMMAND, IDC_FAVORITES);
 	if(BOOLSETTING(OPEN_FAVORITE_USERS)) PostMessage(WM_COMMAND, IDC_FAVUSERS);
@@ -353,11 +340,14 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 
 	PostMessage(WM_SPEAKER, PARSE_COMMAND_LINE);
 
+	UpdateManager::getInstance()->runUpdate(); //RSX++
+
 	try {
 		File::ensureDirectory(SETTING(LOG_DIRECTORY));
 		//RSX++
 		File::ensureDirectory(Util::getDataPath() + "Plugins" PATH_SEPARATOR_STR);
 		File::ensureDirectory(Util::getDataPath() + "scripts" PATH_SEPARATOR_STR);
+		File::ensureDirectory(Util::getDataPath() + "EmoPacks" PATH_SEPARATOR_STR);
 		//END
 	} catch (const FileException) {	}
 
@@ -373,7 +363,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	ctrlToolbar.CheckButton(IDC_AWAY,BOOLSETTING(AWAY));
 	ctrlToolbar.CheckButton(IDC_LIMITER,BOOLSETTING(THROTTLE_ENABLE));
 	ctrlToolbar.CheckButton(IDC_DISABLE_SOUNDS, BOOLSETTING(SOUNDS_DISABLED));
-#ifndef SVN_REVISION_STR
+#ifndef SVNBUILD
 	if(SETTING(NICK).empty()) {
 		PostMessage(WM_COMMAND, ID_FILE_SETTINGS);
 	}
@@ -540,15 +530,25 @@ void MainFrame::stopUPnP() {
 
 HWND MainFrame::createToolbar() {
 	if(!tbarcreated) {
-		if(SETTING(TOOLBARIMAGE) == "")
-			largeImages.CreateFromImage(IDB_TOOLBAR20, 20, 20, CLR_DEFAULT, IMAGE_BITMAP, LR_CREATEDIBSECTION | LR_SHARED);
-		else
-			largeImages.CreateFromImage(Text::toT(SETTING(TOOLBARIMAGE)).c_str(), 20, 0, CLR_DEFAULT, IMAGE_BITMAP, LR_CREATEDIBSECTION | LR_SHARED | LR_LOADFROMFILE);
+		if(SETTING(TOOLBARIMAGE) == "") {
+			toolbar20Img = RL_LoadFromResource(IDP_TOOLBAR20);
+			largeImages.Create(20, 20, ILC_COLOR32 | ILC_MASK, 0, 20);
+			largeImages.Add(*toolbar20Img);
+		} else {
+			toolbar20Img = RL_Load(Text::toT(SETTING(TOOLBARIMAGE)).c_str());
+			largeImages.Create(20, 20, ILC_COLOR32 | ILC_MASK, 0, 0);
+			largeImages.Add(*toolbar20Img, toolbar20Img->GetPixel(0, 0));
+		}
 
-		if(SETTING(TOOLBARHOTIMAGE) == "")
-			largeImagesHot.CreateFromImage(IDB_TOOLBAR20_HOT, 20, 20, CLR_DEFAULT, IMAGE_BITMAP, LR_CREATEDIBSECTION | LR_SHARED);
-		else
-			largeImagesHot.CreateFromImage(Text::toT(SETTING(TOOLBARHOTIMAGE)).c_str(), 20, 0, CLR_DEFAULT, IMAGE_BITMAP, LR_CREATEDIBSECTION | LR_SHARED | LR_LOADFROMFILE);
+		if(SETTING(TOOLBARHOTIMAGE) == "") {
+			toolbar20HotImg = RL_LoadFromResource(IDP_TOOLBAR20_HOT);
+			largeImagesHot.Create(20, 20, ILC_COLOR32 | ILC_MASK, 0, 20);
+			largeImagesHot.Add(*toolbar20HotImg);
+		} else {
+			toolbar20HotImg = RL_Load(Text::toT(SETTING(TOOLBARHOTIMAGE)).c_str());
+			largeImagesHot.Create(20, 20, ILC_COLOR32 | ILC_MASK, 0, 0);
+			largeImagesHot.Add(*toolbar20HotImg, toolbar20HotImg->GetPixel(0, 0));
+		}
 
 		ctrlToolbar.Create(m_hWnd, NULL, NULL, ATL_SIMPLE_CMDBAR_PANE_STYLE | TBSTYLE_FLAT | TBSTYLE_TOOLTIPS | TBSTYLE_LIST, 0, ATL_IDW_TOOLBAR);
 		ctrlToolbar.SetExtendedStyle(TBSTYLE_EX_MIXEDBUTTONS);
@@ -610,8 +610,10 @@ HWND MainFrame::createPluginsToolbar() {
 		if((*i)->getIcon() > 0) {
 			HBITMAP b = (HBITMAP)::LoadImage((*i)->getHandle(), MAKEINTRESOURCE((*i)->getIcon()), IMAGE_BITMAP, 12, 12, LR_SHARED);
 			ctrlPluginToolbar.AddBitmap(1, b);
-			const string& pToolTip = (*i)->getName() + " v" + (*i)->getVersion();
-			int nStringId = ctrlPluginToolbar.AddStrings(Text::toT(pToolTip).c_str());
+			tstring pToolTip = (*i)->getName() + _T(" v") + (*i)->getVersion();
+			pToolTip += _T("\n") + (*i)->getDescription();
+			pToolTip += _T("\n") + (*i)->getAuthor();
+			int nStringId = ctrlPluginToolbar.AddStrings(pToolTip.c_str());
 			ctrlPluginToolbar.InsertButton(n, (*i)->getId(), TBSTYLE_AUTOSIZE | TBSTYLE_BUTTON, TBSTATE_ENABLED, n, nStringId, NULL);
 		}
 	}
@@ -862,184 +864,39 @@ LRESULT MainFrame::OnFileSettings(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 	}
 	return 0;
 }
-//RSX++ // UpdateManager stuff
-bool versionChecked = false;
-bool profileVerChecked = false;
-
-void MainFrame::on(UpdateManagerListener::Complete, const string& aContent, int aType) throw() {
-	if(aType == UpdateManager::VERSION) {
-		versionInfo = aContent;
-		onVersionCheck();
-		versionChecked = true;
-	} else if(aType == UpdateManager::PROFILE_VERSION) {
-		profileVerInfo = aContent;
-		onProfileVersionCheck();
-		profileVerChecked = true;
+//RSX++
+void MainFrame::on(UpdateManagerListener::VersionUpdated, const VersionInfo::Client& client, const VersionInfo::Profiles& profiles) throw() {
+	if(client.veryOldVersion >= SVN_REVISION) {
+		string msg = "Your version of RSX++ contains a serious bug that affects all users of the DC network or the security of your computer.";
+		string url = client.url.empty() ? __HOMESITE : client.url;
+		if(MessageBox(Text::toT(msg + "\r\nPlease get a new one at " + url).c_str(), _T("Old RSX++ version"), MB_YESNO | MB_ICONEXCLAMATION) == IDYES)
+			WinUtil::openLink(Text::toT(url));
+		oldshutdown = true;
+		PostMessage(WM_CLOSE);
+		return;
 	}
-	if(versionChecked && profileVerChecked)
-		UpdateManager::getInstance()->removeListener(this);
-}
 
-void MainFrame::on(UpdateManagerListener::Failed, const string& aError, int aType) throw() {
-	if(aType == UpdateManager::VERSION) {
-		LogManager::getInstance()->message("Failed on checking for updates: " + aError);
-		versionChecked = true;
-	} else if(aType == UpdateManager::PROFILE_VERSION) {
-		LogManager::getInstance()->message("Failed on checking for profile updates: " + aError);
-		profileVerChecked = true;
+	for(vector<double>::const_iterator i = client.badVersions.begin(); i != client.badVersions.end(); ++i) {
+		if(*i == SVN_REVISION) {
+			string msg = "Your version of RSX++ contains a serious bug that affects all users of the DC network or the security of your computer.";
+			string url = client.url.empty() ? __HOMESITE : client.url;
+			if(MessageBox(Text::toT(msg + "\r\nPlease get a new one at " + url).c_str(), _T("Bad RSX++ version"), MB_YESNO | MB_ICONEXCLAMATION) == IDYES)
+				WinUtil::openLink(Text::toT(url));
+			oldshutdown = true;
+			PostMessage(WM_CLOSE);
+			return;
+		}
 	}
-	if(versionChecked && profileVerChecked)
-		UpdateManager::getInstance()->removeListener(this);
-}
 
-void MainFrame::onVersionCheck() {
-	try {
-		SimpleXML xml;
-		xml.fromXML(versionInfo);
+	if(::IsWindow(GetDlgItem(IDD_UPDATE)))
+		return;
 
-		string url;
-		bool showUpdate = false;
-
-		if(xml.findChild("DCUpdate")) {
-			xml.stepIn();
-			if(xml.findChild("SVN")) {
-				if(Util::toDouble(xml.getChildData()) > SVN_REVISION) {
-					showUpdate = true;
-				}
-			}
-			xml.resetCurrentChild();
-			if(xml.findChild("URL")) {
-				url = xml.getChildData();
-			}
-			xml.resetCurrentChild();
-			if(xml.findChild("VeryOldVersion")) {
-				if(Util::toDouble(xml.getChildData()) >= SVN_REVISION) {
-					string msg = xml.getChildAttrib("Message", "Your version of RSX++ contains a serious bug that affects all users of the DC network or the security of your computer.");
-					if(url.empty())
-						url = __HOMESITE;
-					MessageBox(Text::toT(msg + "\r\nPlease get a new one at " + url).c_str(), _T("Old RSX++ version"), MB_OK | MB_ICONEXCLAMATION);
-					oldshutdown = true;
-					PostMessage(WM_CLOSE);
-					showUpdate = false;
-				}
-			}
-			xml.resetCurrentChild();
-			if(xml.findChild("BadVersion")) {
-				xml.stepIn();
-				while(xml.findChild("BadVersion")) {
-					double v = Util::toDouble(xml.getChildAttrib("SVN"));
-					if(v == SVN_REVISION) {
-						string msg = xml.getChildAttrib("Message", "Your version of RSX++ contains a serious bug that affects all users of the DC network or the security of your computer.");
-						if(url.empty())
-							url = __HOMESITE;
-						MessageBox(Text::toT(msg + "\r\nPlease get a new one at " + url).c_str(), _T("Bad RSX++ version"), MB_OK | MB_ICONEXCLAMATION);
-						oldshutdown = true;
-						PostMessage(WM_CLOSE);
-						showUpdate = false;
-					}
-				}
-				xml.stepOut();
-			}
-			xml.resetCurrentChild();
-			xml.stepOut();
-		}
-
-		if(showUpdate && !BOOLSETTING(DONT_ANNOUNCE_NEW_VERSIONS)) {
-			UpdateDialog dlg(versionInfo, profileVerInfo);
-			dlg.DoModal();
-		}
-	} catch(const Exception& e) {
-		LogManager::getInstance()->message("[UpdateCheck]Error: " + e.getError());
+	UpdateDialog dlg(client, profiles);
+	if(dlg.isAnyNewVersion(true)) {
+		dlg.DoModal();
 	}
 }
 
-void MainFrame::onProfileVersionCheck() {
-	try {
-		SimpleXML xml;
-		xml.fromXML(profileVerInfo);
-
-		string cVer, mVer, iVer;
-		bool showDlg = false;
-
-		if(xml.findChild("ProfileVersionInfo")) {
-			xml.stepIn();
-			if(RSXBOOLSETTING(SHOW_CLIENT_NEW_VER)) {
-				if(xml.findChild("ClientProfile")) {
-					xml.stepIn();
-					if(xml.findChild("Version")) {
-						cVer = xml.getChildData();
-					}
-					if((Util::toDouble(cVer) > Util::toDouble(ClientProfileManager::getInstance()->getProfileVersion()))) {
-						showDlg = true;
-					}
-					xml.stepOut();
-					xml.resetCurrentChild();
-				}
-			}
-			if(RSXBOOLSETTING(SHOW_MYINFO_NEW_VER)) {
-				if(xml.findChild("MyInfoProfile")) {
-					xml.stepIn();
-					if(xml.findChild("Version")) {
-						mVer = xml.getChildData();
-					}
-
-					if((Util::toDouble(mVer) > Util::toDouble(ClientProfileManager::getInstance()->getMyinfoProfileVersion()))) {
-						showDlg = true;
-					}
-
-					xml.stepOut();
-					xml.resetCurrentChild();
-				}
-			}
-			if(RSXBOOLSETTING(SHOW_IPWATCH_NEW_VER)) {
-				if(xml.findChild("IpWatch")) {
-					xml.stepIn();
-					if(xml.findChild("Version")) {
-						iVer = xml.getChildData();
-					}
-					if(Util::toDouble(iVer) > Util::toDouble(IpManager::getInstance()->getIpWatchVersion())) {
-						showDlg = true;
-					}
-					xml.stepOut();
-					xml.resetCurrentChild();
-				}
-			}
-			/*if(xml.findChild("Autosearch")) {
-				xml.stepIn();
-				string ver, comment;
-				if(xml.findChild("Version")) {
-					ver = xml.getChildData();
-				}
-				if(xml.findChild("Comment")) {
-					comment = xml.getChildData();
-				}
-				xml.stepOut();
-				xml.resetCurrentChild();
-			}
-			if(xml.findChild("AdlSearch")) {
-				xml.stepIn();
-				string ver, comment;
-				if(xml.findChild("Version")) {
-					ver = xml.getChildData();
-				}
-				if(xml.findChild("Comment")) {
-					comment = xml.getChildData();
-				}
-				xml.stepOut();
-				xml.resetCurrentChild();
-			}*/
-			xml.stepOut();
-		}
-		if(showDlg) {
-			UpdateDialog dlg(versionInfo, profileVerInfo);
-			dlg.DoModal();
-		}
-	} catch(const Exception& e) {
-		LogManager::getInstance()->message("[UpdateCheck]Error: " + e.getError());
-	}
-	//profileVerInfo = Util::emptyString;
-}
-//END
 LRESULT MainFrame::onWebServerSocket(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
 	WebServerManager::getInstance()->getServerSocket().incoming();
 	return 0;
@@ -1191,8 +1048,6 @@ LRESULT MainFrame::onEndSession(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 }
 
 LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled) {
-	UpdateManager::getInstance()->removeListener(this); //RSX++
-
 	if(!closing) {
 		if( oldshutdown ||(!BOOLSETTING(CONFIRM_EXIT)) || (MessageBox(CTSTRING(REALLY_EXIT), _T(APPNAME) _T(" ") _T(VERSIONSTRING), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2) == IDYES) ) {
 			//RSX++
@@ -1247,6 +1102,7 @@ LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 		DestroyIcon(pmicon.hIcon);
 		bHandled = FALSE;
 	}
+
 	return 0;
 }
 
@@ -1278,8 +1134,10 @@ int MainFrame::run() {
 		Thread::setThreadPriority(Thread::LOW);
 		lastTTHdir = Util::getFilePath(file);
 
-		AutoArray<char> TTH(192*8/(5*8)+2);
-		AutoArray<char> buf(512*1024);
+		string TTH;
+		TTH.resize(192*8/(5*8)+1);
+
+		boost::scoped_array<char> buf(new char[512 * 1024]);
 
 		try {
 			File f(Text::fromT(file), File::READ, File::OPEN);
@@ -1287,8 +1145,8 @@ int MainFrame::run() {
 
 			if(f.getSize() > 0) {
 				size_t n = 512*1024;
-				while( (n = f.read(buf, n)) > 0) {
-					tth.update(buf, n);
+				while( (n = f.read(&buf[0], n)) > 0) {
+					tth.update(&buf[0], n);
 					n = 512*1024;
 				}
 			} else {
@@ -1296,14 +1154,14 @@ int MainFrame::run() {
 			}
 			tth.finalize();
 
-			strcpy(TTH, tth.getRoot().toBase32().c_str());
+			strcpy(&TTH[0], tth.getRoot().toBase32().c_str());
 
 			CInputBox ibox(m_hWnd);
 
-			string magnetlink = "magnet:?xt=urn:tree:tiger:"+ string(TTH) +"&xl="+Util::toString(f.getSize())+"&dn="+Util::encodeURI(Text::fromT(Util::getFileName(file)));
+			string magnetlink = "magnet:?xt=urn:tree:tiger:"+ TTH +"&xl="+Util::toString(f.getSize())+"&dn="+Util::encodeURI(Text::fromT(Util::getFileName(file)));
 			f.close();
 			
-			ibox.DoModal(_T("Tiger Tree Hash"), file.c_str(), Text::toT((char*)TTH).c_str(), Text::toT(magnetlink).c_str());
+			ibox.DoModal(_T("Tiger Tree Hash"), file.c_str(), Text::toT(TTH).c_str(), Text::toT(magnetlink).c_str());
 		} catch(...) { }
 		Thread::setThreadPriority(Thread::NORMAL);
 		WinUtil::mainMenu.EnableMenuItem(ID_GET_TTH, MF_ENABLED);
@@ -1449,6 +1307,12 @@ LRESULT MainFrame::OnViewPluginToolBar(WORD /*wNotifyCode*/, WORD /*wID*/, HWND 
 	SettingsManager::getInstance()->set(SettingsManager::SHOW_PLUGIN_TOOLBAR, bVisible);
 	return 0;
 }
+
+LRESULT MainFrame::onViewPluginsList(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+	PluginsListDlg dlg;
+	dlg.DoModal();
+	return 0;
+}
 //END
 LRESULT MainFrame::OnViewStatusBar(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
@@ -1592,18 +1456,18 @@ void MainFrame::on(PartialList, const UserPtr& aUser, const string& text) throw(
 	PostMessage(WM_SPEAKER, BROWSE_LISTING, (LPARAM)new DirectoryBrowseInfo(aUser, text));
 }
 
-void MainFrame::on(QueueManagerListener::Finished, const QueueItem* qi, const string& dir, int64_t speed) throw() {
+void MainFrame::on(QueueManagerListener::Finished, const QueueItem* qi, const string& dir, const Download* download) throw() {
 	if(qi->isSet(QueueItem::FLAG_CLIENT_VIEW)) {
 		if(qi->isSet(QueueItem::FLAG_USER_LIST)) {
 			// This is a file listing, show it...
-			DirectoryListInfo* i = new DirectoryListInfo(qi->getDownloads()[0]->getUser(), Text::toT(qi->getListName()), Text::toT(dir), speed);
+			DirectoryListInfo* i = new DirectoryListInfo(qi->getDownloads()[0]->getUser(), Text::toT(qi->getListName()), Text::toT(dir), download->getAverageSpeed());
 
 			PostMessage(WM_SPEAKER, DOWNLOAD_LISTING, (LPARAM)i);
 		} else if(qi->isSet(QueueItem::FLAG_TEXT)) {
 			PostMessage(WM_SPEAKER, VIEW_FILE_AND_DELETE, (LPARAM) new tstring(Text::toT(qi->getTarget())));
 		}
 	} else if(qi->isSet(QueueItem::FLAG_USER_LIST) && qi->isSet(QueueItem::FLAG_CHECK_FILE_LIST)) {
-		DirectoryListInfo* i = new DirectoryListInfo(qi->getDownloads()[0]->getUser(), Text::toT(qi->getListName()), Text::toT(dir), speed);
+		DirectoryListInfo* i = new DirectoryListInfo(qi->getDownloads()[0]->getUser(), Text::toT(qi->getListName()), Text::toT(dir), download->getAverageSpeed());
 		
 		if(listQueue.stop) {
 			listQueue.stop = false;
@@ -1679,8 +1543,7 @@ int MainFrame::FileListQueue::run() {
 	setThreadPriority(Thread::LOW);
 
 	while(true) {
-		if(forceClose)
-			break;
+		if(forceClose) break;
 		s.wait(15000);
 		if(stop || fileLists.empty()) {
 			break;

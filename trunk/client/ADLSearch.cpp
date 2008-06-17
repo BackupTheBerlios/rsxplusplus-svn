@@ -32,6 +32,8 @@
 #include "SimpleXML.h"
 #include "RawManager.h" //RSX++
 
+namespace dcpp {
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 //	Load old searches from disk
@@ -380,7 +382,6 @@ void ADLSearchManager::matchListing(DirectoryListing& aDirList) throw() {
 	params["userCID"] = aDirList.getUser()->getCID().toBase32();
 
 	setUser(aDirList.getUser());
-	setSentRaw(false);
 
 	DestDirList destDirs;
 	PrepareDestinationDirectories(destDirs, aDirList.getRoot(), params);
@@ -404,7 +405,9 @@ void ADLSearchManager::matchRecurse(DestDirList &aDestList, DirectoryListing::Di
 	StepUpDirectory(aDestList);
 }
 
+} // namespace dcpp
+
 /**
  * @file
- * $Id: ADLSearch.cpp 357 2008-01-12 19:01:33Z bigmuscle $
+ * $Id: ADLSearch.cpp 373 2008-02-06 17:23:49Z bigmuscle $
  */

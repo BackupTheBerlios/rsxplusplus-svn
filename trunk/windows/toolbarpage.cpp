@@ -17,13 +17,14 @@
  */
 
 #include "stdafx.h"
-#include "../client/DCPlusPlus.h"
-#include "Resource.h"
 
-#include "ToolbarPage.h"
+#include "../client/DCPlusPlus.h"
 #include "../client/SettingsManager.h"
 #include "../client/StringTokenizer.h"
 #include "../client/Util.h"
+
+#include "Resource.h"
+#include "ToolbarPage.h"
 #include "WinUtil.h"
 #include "MainFrm.h"
 
@@ -68,7 +69,7 @@ LRESULT ToolbarPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 	lvi.mask = LVIF_TEXT | LVIF_IMAGE;
 	lvi.iSubItem = 0;
 
-	for(int i = -1; i<0 || ToolbarButtons[i].id != 0; i++) {
+	for(int i = -1; i < static_cast<int>(sizeof(ToolbarButtons) / sizeof(ToolbarButtons[0])); i++) {
 		makeItem(&lvi, i);
 		lvi.iItem = i+1;
 		ctrlCommands.InsertItem(&lvi);
@@ -136,7 +137,7 @@ LRESULT ToolbarPage::onHotBrowse(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWnd
 
 string name;
 void ToolbarPage::makeItem(LPLVITEM lvi, int item){
-	if((item > -1) && (item < 22)) {
+	if((item >= 0) && (item < sizeof(ToolbarButtons) / sizeof(ToolbarButtons[0]))) {
 		lvi->iImage = ToolbarButtons[item].image;
 		name = Text::toT(filter(ResourceManager::getInstance()->getString(ToolbarButtons[item].tooltip)));			
 	} else {

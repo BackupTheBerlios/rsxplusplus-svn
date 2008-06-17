@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2007 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,9 +21,10 @@
 
 #include "Client.h"
 #include "AdcCommand.h"
-#include "TimerManager.h"
-#include "User.h"
+#include "Socket.h"
 #include "../rsx/UserMap.h" //RSX++
+
+namespace dcpp {
 
 class ClientManager;
 
@@ -35,13 +36,14 @@ public:
 	void connect(const OnlineUser& user, const string& token);
 	void connect(const OnlineUser& user, string const& token, bool secure);
 	
-	void hubMessage(const string& aMessage);
-	void privateMessage(const OnlineUser& user, const string& aMessage);
+	void hubMessage(const string& aMessage, bool thirdPerson = false);
+	void privateMessage(const OnlineUser& user, const string& aMessage, bool thirdPerson = false);
 	void sendUserCmd(const string& aUserCmd) { send(aUserCmd); }
 	void search(int aSizeMode, int64_t aSize, int aFileType, const string& aString, const string& aToken);
 	void password(const string& pwd);
 	void info(bool alwaysSend);
-	
+	void refreshUserList(bool);	
+
 	size_t getUserCount() const { Lock l(cs); return users.size(); }
 
 	string escape(string const& str) const { return AdcCommand::escape(str, false); }
@@ -53,7 +55,6 @@ public:
 	}
 
 	/* these functions not implemented yet */
-	void refreshUserList(bool) { }
 private:
 	friend class ClientManager;
 	friend class CommandHandler<AdcHub>;
@@ -68,7 +69,6 @@ private:
 	typedef unordered_map<uint32_t, OnlineUser*> ADCMap;
 	typedef UserMap<true, ADCMap> SIDMap;
 	typedef SIDMap::const_iterator SIDIter;
-	SIDMap users;
 
 	void startChecking() { users.startCheck(this, getCheckClients(), getCheckFilelists()); }
 	void startCustomCheck(bool clients, bool filelists) { users.startCheck(this, clients, filelists); }
@@ -88,6 +88,7 @@ private:
 
 	bool oldPassword;
 	Socket udp;
+	SIDMap users;
 	StringMap lastInfoMap;
 	//mutable CriticalSection cs;
 
@@ -123,7 +124,7 @@ private:
 	   return NULL; 
 	}
 
-	void putUser(const uint32_t sid);
+	void putUser(const uint32_t sid, bool disconnect);
 
 	void clearUsers();
 
@@ -154,9 +155,11 @@ private:
 
 };
 
+} // namespace dcpp
+
 #endif // !defined(ADC_HUB_H)
 
 /**
  * @file
- * $Id: AdcHub.h 340 2007-12-20 12:30:13Z bigmuscle $
+ * $Id: AdcHub.h 386 2008-05-10 19:29:01Z BigMuscle $
  */

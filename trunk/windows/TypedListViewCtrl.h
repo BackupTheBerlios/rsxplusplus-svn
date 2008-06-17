@@ -26,6 +26,7 @@
 #include "../Client/SettingsManager.h"
 #include "../client/FavoriteManager.h"
 #include "ListViewArrows.h"
+#include "ExCImage.h" //RSX++
 
 class ColumnInfo {
 public:
@@ -136,7 +137,10 @@ public:
 		NMLVGETINFOTIP* pInfoTip = (NMLVGETINFOTIP*) pnmh;
 		BOOL NoColumnHeader = (BOOL)(GetWindowLong(GWL_STYLE) & LVS_NOCOLUMNHEADER);
 		tstring InfoTip(Util::emptyStringT);
-		AutoArray<TCHAR> Buffer(300);
+		tstring buffer;
+
+		size_t BUF_SIZE = 300;
+		buffer.resize(BUF_SIZE);
 		
 		LV_COLUMN lvCol;
 		LVITEM lvItem;
@@ -146,17 +150,17 @@ public:
 		{
 			if (!NoColumnHeader) {
 				lvCol.mask = LVCF_TEXT;
-				lvCol.pszText = Buffer;
-				lvCol.cchTextMax = 300;
+				lvCol.pszText = &buffer[0];
+				lvCol.cchTextMax = BUF_SIZE;
 				GetColumn(indexes[i], &lvCol);
 				InfoTip += lvCol.pszText;
 				InfoTip += _T(": ");
 			}
 			lvItem.iItem = pInfoTip->iItem;
-			GetItemText(pInfoTip->iItem, indexes[i], Buffer, 300);
-			Buffer[299] = NULL;
+			GetItemText(pInfoTip->iItem, indexes[i],  &buffer[0], BUF_SIZE);
+			//Buffer[299] = NULL;
 
-			InfoTip += Buffer;
+			InfoTip += &buffer[0];
 			InfoTip += _T("\r\n");
 		}
 
@@ -434,25 +438,42 @@ public:
 	}
 
 	void saveHeaderOrder(SettingsManager::StrSetting order, SettingsManager::StrSetting widths, 
-		SettingsManager::StrSetting visible) {
+		SettingsManager::StrSetting visible)
+	{	
 		string tmp, tmp2, tmp3;
-			saveHeaderOrder(tmp, tmp2, tmp3);
+		
+		saveHeaderOrder(tmp, tmp2, tmp3);
+		
 		SettingsManager::getInstance()->set(order, tmp);
 		SettingsManager::getInstance()->set(widths, tmp2);
 		SettingsManager::getInstance()->set(visible, tmp3);
 	}
 
 	void saveHeaderOrder(string& order, string& widths, string& visible) throw() {
+/*		int size = GetHeader().GetItemCount();
+
+		std::vector<int> ret(size);
+		if(SendMessage(LVM_GETCOLUMNORDERARRAY, static_cast<WPARAM>(ret.size()), reinterpret_cast<LPARAM>(&ret[0]))) {
+			for(size_t i = 0; i < ret.size(); ++i) {
+				order += Util::toString(ret[i]) + ",";
+			}
+		}
+
+		for(size_t i = 0; i < ret.size(); ++i) {
+			widths += Util::toString(SendMessage(LVM_GETCOLUMNWIDTH, static_cast<WPARAM>(i), 0));
+			widths += ",";
+		}*/			
+
 		TCHAR buf[512];
 		int size = GetHeader().GetItemCount();
-		for(int i = 0; i < size; ++i){
+		for(int i = 0; i < size; ++i) {
 			LVCOLUMN lvc;
 			lvc.mask = LVCF_TEXT | LVCF_ORDER | LVCF_WIDTH;
 			lvc.cchTextMax = 512;
 			lvc.pszText = buf;
 			GetColumn(i, &lvc);
 			for(ColumnIter j = columnList.begin(); j != columnList.end(); ++j){
-				if(_tcscmp(buf, (*j)->name.c_str()) == 0){
+				if(_tcscmp(buf, (*j)->name.c_str()) == 0) {
 					(*j)->pos = lvc.iOrder;
 					(*j)->width = lvc.cx;
 					break;
@@ -462,6 +483,7 @@ public:
 
 		for(ColumnIter i = columnList.begin(); i != columnList.end(); ++i){
 			ColumnInfo* ci = *i;
+			
 
 			if(ci->visible){
 				visible += "1,";
@@ -469,12 +491,9 @@ public:
 				ci->pos = size++;
 				visible += "0,";
 			}
-
-			order += Util::toString(ci->pos);
-			order += ',';
-
-			widths += Util::toString(ci->width);
-			widths += ',';
+			
+			order += Util::toString((*i)->pos) + ",";
+			widths += Util::toString((*i)->width) + ",";
 		}
 
 		order.erase(order.size()-1, 1);
@@ -499,12 +518,21 @@ public:
 		updateColumnIndexes();
 	}
 
-	void setColumnOrderArray(int iCount, LPINT piArray ) {
-		LVCOLUMN lvc;
+	void setColumnOrderArray(int iCount, int* columns) {
+		LVCOLUMN lvc = {0};
 		lvc.mask = LVCF_ORDER;
-		for(int i = 0; i < iCount; ++i) {
-			lvc.iOrder = columnList[i]->pos = piArray[i];
-			SetColumn(i, &lvc);
+
+		int j = 0;
+		for(int i = 0; i < iCount;) {
+			if(columns[i] == j) {
+				lvc.iOrder = columnList[i]->pos = columns[i];
+				SetColumn(i, &lvc);
+
+				j++;
+				i = 0;
+			} else {
+				i++;
+			}
 		}
 	}
 
@@ -599,7 +627,7 @@ class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 public:
 
 	TypedTreeListViewCtrl() { }
-	~TypedTreeListViewCtrl() { states.Destroy(); }
+	~TypedTreeListViewCtrl() { states.Destroy(); RL_DeleteObject(statesImg); /*//RSX++*/}
 
 	typedef TypedTreeListViewCtrl<T, ctrlId, key, hashFunc, equalKey> thisClass;
 	typedef TypedListViewCtrl<T, ctrlId> baseClass;
@@ -619,7 +647,11 @@ public:
 
 
 	LRESULT onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled) {
-		states.CreateFromImage(IDB_STATE, 16, 2, CLR_DEFAULT, IMAGE_BITMAP, LR_CREATEDIBSECTION | LR_SHARED);
+		//RSX++
+		statesImg = RL_LoadFromResource(IDP_STATE);
+		states.Create(16, 16, ILC_COLOR32 | ILC_MASK, 0, 2);
+		states.Add(*statesImg);
+		//END
 		SetImageList(states, LVSIL_STATE); 
 
 		bHandled = FALSE;
@@ -739,6 +771,7 @@ public:
 				parent->parent = NULL; // ensure that parent of this item is really NULL
 				oldParent->parent = parent;
 				pp->children.push_back(oldParent); // mark old parent item as a child
+				parent->hits++;
 
 				pos = insertItem(getSortPos(parent), parent, parent->imageIndex());
 			} else {
@@ -918,6 +951,7 @@ public:
 
 private:
 	CImageList states;
+	ExCImage::Ptr statesImg; //RSX++
 	bool uniqueParent;
 
 	static int CALLBACK compareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort) {
@@ -965,5 +999,5 @@ const vector<T*> TypedTreeListViewCtrl<T, ctrlId, key, hashFunc, equalKey>::empt
 
 /**
  * @file
- * $Id: TypedListViewCtrl.h 358 2008-01-17 10:48:01Z bigmuscle $
+ * $Id: TypedListViewCtrl.h 385 2008-04-26 13:05:09Z BigMuscle $
  */

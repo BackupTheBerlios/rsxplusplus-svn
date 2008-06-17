@@ -31,6 +31,8 @@
 #include "UserCommand.h"
 #include "RawManager.h" //RSX++
 
+namespace dcpp {
+
 FavoriteManager::FavoriteManager() : lastId(0), useHttp(false), running(false), c(NULL), lastServer(0), listType(TYPE_NORMAL), dontSave(false) {
 	SettingsManager::getInstance()->addListener(this);
 	ClientManager::getInstance()->addListener(this);
@@ -190,7 +192,7 @@ string FavoriteManager::getUserURL(const UserPtr& aUser) const {
 void FavoriteManager::addFavorite(const FavoriteHubEntry& aEntry) {
 	FavoriteHubEntry* f;
 
-	FavoriteHubEntry::Iter i = getFavoriteHub(aEntry.getServer());
+	FavoriteHubEntryList::const_iterator i = getFavoriteHub(aEntry.getServer());
 	if(i != favoriteHubs.end()) {
 		return;
 	}
@@ -201,7 +203,7 @@ void FavoriteManager::addFavorite(const FavoriteHubEntry& aEntry) {
 }
 
 void FavoriteManager::removeFavorite(const FavoriteHubEntry* entry) {
-	FavoriteHubEntry::List::iterator i = find(favoriteHubs.begin(), favoriteHubs.end(), entry);
+	FavoriteHubEntryList::iterator i = find(favoriteHubs.begin(), favoriteHubs.end(), entry);
 	if(i == favoriteHubs.end()) {
 		return;
 	}
@@ -212,8 +214,8 @@ void FavoriteManager::removeFavorite(const FavoriteHubEntry* entry) {
 	save();
 }
 
-bool FavoriteManager::checkFavHubExists(const FavoriteHubEntry& aEntry){
-	FavoriteHubEntry::Iter i = getFavoriteHub(aEntry.getServer());
+bool FavoriteManager::isFavoriteHub(const std::string& url) {
+	FavoriteHubEntryList::const_iterator i = getFavoriteHub(url);
 	if(i != favoriteHubs.end()) {
 		return true;
 	}
@@ -318,7 +320,8 @@ void FavoriteManager::onHttpFinished(bool fromHttp) throw() {
 
 	{
 		Lock l(cs);
-		publicListMatrix[publicListServer].clear();
+		HubEntryList& list = publicListMatrix[publicListServer];
+		list.clear();
 
 		if(x->compare(0, 5, "<?xml") == 0 || x->compare(0, 8, "\xEF\xBB\xBF<?xml") == 0) {
 			loadXmlList(*x);
@@ -338,7 +341,7 @@ void FavoriteManager::onHttpFinished(bool fromHttp) throw() {
 				const string& server = *k++;
 				const string& desc = *k++;
 				const string& usersOnline = *k++;
-				publicListMatrix[publicListServer].push_back(HubEntry(name, server, desc, usersOnline));
+				list.push_back(HubEntry(name, server, desc, usersOnline));
 			}
 		}
 	}
@@ -356,7 +359,7 @@ void FavoriteManager::onHttpFinished(bool fromHttp) throw() {
 
 class XmlListLoader : public SimpleXMLReader::CallBack {
 public:
-	XmlListLoader(HubEntry::List& lst) : publicHubs(lst) { }
+	XmlListLoader(HubEntryList& lst) : publicHubs(lst) { }
 	~XmlListLoader() { }
 	void startTag(const string& name, StringPairList& attribs, bool) {
 		if(name == "Hub") {
@@ -379,7 +382,7 @@ public:
 
 	}
 private:
-	HubEntry::List& publicHubs;
+	HubEntryList& publicHubs;
 };
 
 void FavoriteManager::loadXmlList(const string& xml) {
@@ -405,7 +408,7 @@ void FavoriteManager::save() {
 		xml.addTag("Hubs");
 		xml.stepIn();
 
-		for(FavoriteHubEntry::Iter i = favoriteHubs.begin(); i != favoriteHubs.end(); ++i) {
+		for(FavoriteHubEntryList::const_iterator i = favoriteHubs.begin(); i != favoriteHubs.end(); ++i) {
 			xml.addTag("Hub");
 			xml.addChildAttrib("Name", (*i)->getName());
 			xml.addChildAttrib("Connect", (*i)->getConnect());
@@ -784,8 +787,6 @@ void FavoriteManager::load(SimpleXML& aXml) {
 				u = ClientManager::getInstance()->getUser(nick, hubUrl);
 			} else {
 				u = ClientManager::getInstance()->getUser(CID(cid));
-				if(u->getFirstNick().empty())
-					u->setFirstNick(nick);
 			}
 			FavoriteMap::iterator i = users.insert(make_pair(u->getCID(), FavoriteUser(u, nick, hubUrl))).first;
 
@@ -842,7 +843,7 @@ void FavoriteManager::userUpdated(const OnlineUser& info) {
 }
 
 FavoriteHubEntry* FavoriteManager::getFavoriteHubEntry(const string& aServer) const {
-	for(FavoriteHubEntry::Iter i = favoriteHubs.begin(); i != favoriteHubs.end(); ++i) {
+	for(FavoriteHubEntryList::const_iterator i = favoriteHubs.begin(); i != favoriteHubs.end(); ++i) {
 		FavoriteHubEntry* hub = *i;
 		if(Util::stricmp(hub->getServer(), aServer) == 0) {
 			return hub;
@@ -908,6 +909,16 @@ StringList FavoriteManager::getHubLists() {
 	StringTokenizer<string> lists(SETTING(HUBLIST_SERVERS), ';');
 	return lists.getTokens();
 }
+
+FavoriteHubEntryList::const_iterator FavoriteManager::getFavoriteHub(const string& aServer) {
+	for(FavoriteHubEntryList::const_iterator i = favoriteHubs.begin(); i != favoriteHubs.end(); ++i) {
+		if(Util::stricmp((*i)->getServer(), aServer) == 0) {
+			return i;
+		}
+	}
+	return favoriteHubs.end();
+}
+
 
 void FavoriteManager::setHubList(int aHubList) {
 	lastServer = aHubList;
@@ -1200,7 +1211,9 @@ string FavoriteManager::getAwayMessage(const string& aServer) {
 }
 //END
 
+} // namespace dcpp
+
 /**
  * @file
- * $Id: FavoriteManager.cpp 356 2008-01-11 20:48:10Z bigmuscle $
+ * $Id: FavoriteManager.cpp 382 2008-03-09 10:40:22Z BigMuscle $
  */

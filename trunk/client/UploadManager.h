@@ -16,8 +16,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef DCPLUSPLUS_CLIENT_UPLOAD_MANAGER_H
-#define DCPLUSPLUS_CLIENT_UPLOAD_MANAGER_H
+#ifndef DCPLUSPLUS_DCPP_UPLOAD_MANAGER_H
+#define DCPLUSPLUS_DCPP_UPLOAD_MANAGER_H
 
 #include "forward.h"
 #include "UserConnectionListener.h"
@@ -29,7 +29,9 @@
 #include "MerkleTree.h"
 #include "FastAlloc.h"
 
-class UploadQueueItem : public FastAlloc<UploadQueueItem>, public PointerBase {
+namespace dcpp {
+
+class UploadQueueItem : public FastAlloc<UploadQueueItem>, public intrusive_ptr_base {
 public:
 	UploadQueueItem(UserPtr u, const string& file, int64_t p, int64_t sz, uint64_t itime) :
 		user(u), file(file), pos(p), size(sz), time(itime) { inc(); }
@@ -179,9 +181,11 @@ private:
 	bool prepareFile(UserConnection& aSource, const string& aType, const string& aFile, int64_t aResume, int64_t& aBytes, bool listRecursive = false);
 };
 
+} // namespace dcpp
+
 #endif // !defined(UPLOAD_MANAGER_H)
 
 /**
  * @file
- * $Id: UploadManager.h 344 2007-12-25 21:04:46Z bigmuscle $
+ * $Id: UploadManager.h 373 2008-02-06 17:23:49Z bigmuscle $
  */

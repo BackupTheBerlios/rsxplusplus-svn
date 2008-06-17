@@ -22,6 +22,8 @@
 #include "Exception.h"
 #include "ResourceManager.h"
 
+namespace dcpp {
+	
 STANDARD_EXCEPTION(BitStreamException);
 
 /**
@@ -61,9 +63,11 @@ private:
 	const uint8_t* is;
 };
 
+} // namespace dcpp
+
 #endif // !defined(BIT_INPUT_STREAM_H)
 
 /**
  * @file
- * $Id: BitInputStream.h 317 2007-08-04 14:52:24Z bigmuscle $
+ * $Id: BitInputStream.h 373 2008-02-06 17:23:49Z bigmuscle $
  */

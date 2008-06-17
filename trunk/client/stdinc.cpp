@@ -26,7 +26,7 @@
 #error You must use compiled STLPort else you can't use optimized node allocator.
 #endif
 
-#ifdef _VC80X
+#if _VC80X || _VC90X
 #error You can't compile RSX++ under Visual C++ Express Edition!
 #endif
 

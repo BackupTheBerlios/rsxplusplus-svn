@@ -1,6 +1,4 @@
 /* 
- * 
- *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -27,6 +25,7 @@
 
 #include "TypedListViewCtrl.h"
 #include "ImageDataObject.h"
+#include "UCHandler.h"
 
 #ifndef _RICHEDIT_VER
 # define _RICHEDIT_VER 0x0300
@@ -34,37 +33,128 @@
 
 class UserInfo;
 
-class ChatCtrl: public CRichEditCtrl {
+class ChatCtrl: public CRichEditCtrl, public CMessageMap, public UCHandler<ChatCtrl>
+{
 public:
+
+	typedef UCHandler<ChatCtrl> ucBase;
+
+	BEGIN_MSG_MAP(ChatCtrl)
+		MESSAGE_HANDLER(WM_CONTEXTMENU, onContextMenu)
+		MESSAGE_HANDLER(WM_SIZE, onSize)
+		MESSAGE_HANDLER(WM_LBUTTONDOWN, onLButtonDown)
+
+		MESSAGE_HANDLER_HWND(WM_INITMENUPOPUP, OMenu::onInitMenuPopup)
+		MESSAGE_HANDLER_HWND(WM_MEASUREITEM, OMenu::onMeasureItem)
+		MESSAGE_HANDLER_HWND(WM_DRAWITEM, OMenu::onDrawItem)
+
+		COMMAND_ID_HANDLER(IDC_COPY_ACTUAL_LINE, onCopyActualLine)
+		COMMAND_ID_HANDLER(ID_EDIT_COPY, onEditCopy)
+		COMMAND_ID_HANDLER(ID_EDIT_SELECT_ALL, onEditSelectAll)
+		COMMAND_ID_HANDLER(ID_EDIT_CLEAR_ALL, onEditClearAll)
+		COMMAND_ID_HANDLER(IDC_BAN_IP, onBanIP)
+		COMMAND_ID_HANDLER(IDC_UNBAN_IP, onUnBanIP)
+		COMMAND_ID_HANDLER(IDC_COPY_URL, onCopyURL)
+		COMMAND_ID_HANDLER(IDC_WHOIS_IP, onWhoisIP)
+
+		COMMAND_ID_HANDLER(IDC_OPEN_USER_LOG, onOpenUserLog)
+		COMMAND_ID_HANDLER(IDC_PRIVATEMESSAGE, onPrivateMessage)
+		COMMAND_ID_HANDLER(IDC_GETLIST, onGetList)
+		COMMAND_ID_HANDLER(IDC_MATCH_QUEUE, onMatchQueue)
+		COMMAND_ID_HANDLER(IDC_GRANTSLOT, onGrantSlot)
+		COMMAND_ID_HANDLER(IDC_GRANTSLOT_HOUR, onGrantSlot)
+		COMMAND_ID_HANDLER(IDC_GRANTSLOT_DAY, onGrantSlot)
+		COMMAND_ID_HANDLER(IDC_GRANTSLOT_WEEK, onGrantSlot)
+		COMMAND_ID_HANDLER(IDC_UNGRANTSLOT, onGrantSlot)
+		COMMAND_ID_HANDLER(IDC_ADD_TO_FAVORITES, onAddToFavorites)
+		COMMAND_ID_HANDLER(IDC_IGNORE, onIgnore)
+		COMMAND_ID_HANDLER(IDC_UNIGNORE, onUnignore)
+
+		COMMAND_RANGE_HANDLER(IDC_COPY, IDC_COPY + OnlineUser::COLUMN_LAST, onCopyUserInfo)
+
+		COMMAND_ID_HANDLER(IDC_REPORT, onReport)
+		COMMAND_ID_HANDLER(IDC_CHECKLIST, onCheckList)
+		COMMAND_ID_HANDLER(IDC_GET_USER_RESPONSES, onGetUserResponses)
+		CHAIN_COMMANDS(ucBase)
+
+		MESSAGE_HANDLER(WM_COMMAND, onCommand)
+	END_MSG_MAP()
+
 	ChatCtrl();
 	~ChatCtrl();
 
 	LRESULT OnRButtonDown(POINT pt);
+	LRESULT onContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
+	LRESULT onSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
+	LRESULT onLButtonDown(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
+	LRESULT onCommand(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/) { return SendMessage(GetParent(), uMsg, wParam, lParam); }
+	LRESULT onClientEnLink(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/);
 
-	bool HitNick(POINT p, tstring& sNick, int& iBegin , int& iEnd);
-	bool HitIP(POINT p, tstring& sIP, int& iBegin, int& iEnd);
-	bool HitURL();
+	LRESULT onEditCopy(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+	LRESULT onEditSelectAll(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+	LRESULT onEditClearAll(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+	LRESULT onCopyActualLine(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+	LRESULT onBanIP(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+	LRESULT onUnBanIP(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+	LRESULT onCopyURL(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+	LRESULT onWhoisIP(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 
-	tstring LineFromPos(POINT p) const;
+	LRESULT onOpenUserLog(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+	LRESULT onPrivateMessage(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+	LRESULT onGetList(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+	LRESULT onMatchQueue(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+	LRESULT onGrantSlot(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+	LRESULT onAddToFavorites(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+	LRESULT onIgnore(UINT /*uMsg*/, WPARAM /*wParam*/, HWND /*lParam*/, BOOL& /*bHandled*/);
+	LRESULT onUnignore(UINT /*uMsg*/, WPARAM /*wParam*/, HWND /*lParam*/, BOOL& /*bHandled*/);
+
+	LRESULT onCopyUserInfo(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+
+	LRESULT onReport(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+	LRESULT onGetUserResponses(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+	LRESULT onCheckList(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+
+	void setClient(Client* pClient) { client = pClient; }
+	void runUserCommand(UserCommand& uc);
 
 	void AdjustTextSize();
-	void AppendText(const Identity& i, const tstring& sMyNick, const tstring& sTime, const LPCTSTR sMsg, CHARFORMAT2& cf, bool bUseEmo = true, bool useHL = true, const tstring& aIpCc = Util::emptyStringT);
-	void AppendTextOnly(const tstring& sMyNick, const LPCTSTR sMsg, CHARFORMAT2& cf, bool bMyMess, const tstring& sAuthor, bool useHL = true);
+	void AppendText(const Identity& i, const tstring& sMyNick, const tstring& sTime, const tstring& sMsg, CHARFORMAT2& cf, bool bUseEmo = true, bool useHL = true, const tstring& aIpCc = Util::emptyStringT);
 
-	void GoToEnd();
-	bool GetAutoScroll() const { return m_boAutoScroll; }
-	void SetAutoScroll(bool boAutoScroll);
-	void SetTextStyleMyNick(CHARFORMAT2 ts) { WinUtil::m_TextStyleMyNick = ts; };
-	
-	void setClient(const Client* pClient) { client = pClient; }
+	static void setSelectedUser(const tstring& s) { sSelectedUser = s; }
+	static const tstring& getSelectedUser() { return sSelectedUser; }
+
+	void Subclass() {
+		ccw.SubclassWindow(this->CRichEditCtrl::m_hWnd);
+		// We wanna control the scrolling...
+	}
+
+	//RSX++
+	Client* getClient() const { return client; }
+	tstring getMyNick() const { return _myNick; }
+	void updateMyNick() { _myNick = Text::toT(client ? client->getCurrentNick() : SETTING(NICK)); }
+	//END
+
+private:
+	tstring _myNick;
+
+	bool HitNick(const POINT& p, tstring& sNick, int& iBegin , int& iEnd);
+	bool HitIP(const POINT& p, tstring& sIP, int& iBegin, int& iEnd);
+	bool HitURL();
+
+	tstring LineFromPos(const POINT& p) const;
+	void AppendTextOnly(const tstring& sMyNick, const TCHAR* sMsg, CHARFORMAT2& cf, bool isMyMessage, const tstring& sAuthor, bool useHL = true);
+	void scrollToEnd();
+
+    Client* client;
+
+	OMenu copyMenu;
+
+	CContainedWindow ccw;
 
 	static tstring sSelectedLine;
 	static tstring sSelectedIP;
 	static tstring sSelectedUser;
-
-private:
-    const Client* client;
-    bool m_boAutoScroll;
+	static tstring sSelectedURL;
 
 	//RSX++
 	struct hlAction{tstring match; bool actPopup; bool actFlash; bool actSound; string soundPath;};

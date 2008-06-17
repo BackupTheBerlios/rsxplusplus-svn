@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2007 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,11 +16,13 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#if !defined(MERKLE_CHECK_OUTPUT_STREAM_H)
-#define MERKLE_CHECK_OUTPUT_STREAM_H
+#ifndef DCPLUSPLUS_DCPP_MERKLE_CHECK_OUTPUT_STREAM_H
+#define DCPLUSPLUS_DCPP_MERKLE_CHECK_OUTPUT_STREAM_H
 
 #include "Streams.h"
 #include "MerkleTree.h"
+
+namespace dcpp {
 
 template<class TreeType, bool managed>
 class MerkleCheckOutputStream : public OutputStream {
@@ -115,9 +117,11 @@ private:
 	}
 };
 
+} // namespace dcpp
+
 #endif // !defined(MERKLE_CHECK_OUTPUT_STREAM_H)
 
 /**
  * @file
- * $Id: MerkleCheckOutputStream.h 372 2008-02-03 21:16:20Z bigmuscle $
+ * $Id: MerkleCheckOutputStream.h 390 2008-06-16 19:41:42Z BigMuscle $
  */

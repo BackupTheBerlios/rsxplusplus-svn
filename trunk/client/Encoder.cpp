@@ -21,6 +21,8 @@
 
 #include "Encoder.h"
 
+namespace dcpp {
+
 const int8_t Encoder::base32Table[] = {
 	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
 		-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
@@ -113,7 +115,9 @@ bool Encoder::isBase32(const char* src)
 	return true;
 }
 
+} // namespace dcpp
+
 /**
  * @file
- * $Id: Encoder.cpp 317 2007-08-04 14:52:24Z bigmuscle $
+ * $Id: Encoder.cpp 373 2008-02-06 17:23:49Z bigmuscle $
  */

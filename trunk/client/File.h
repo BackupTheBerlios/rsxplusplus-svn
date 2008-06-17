@@ -16,8 +16,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#if !defined(FILE_H)
-#define FILE_H
+#ifndef DCPLUSPLUS_DCPP_FILE_H
+#define DCPLUSPLUS_DCPP_FILE_H
 
 #include "SettingsManager.h"
 
@@ -38,6 +38,8 @@
 #else
 #include <zlib.h>
 #endif
+
+namespace dcpp {
 
 class File : public IOStream {
 public:
@@ -117,9 +119,11 @@ private:
 	File& operator=(const File&);
 };
 
+} // namespace dcpp
+
 #endif // !defined(FILE_H)
 
 /**
  * @file
- * $Id: File.h 344 2007-12-25 21:04:46Z bigmuscle $
+ * $Id: File.h 373 2008-02-06 17:23:49Z bigmuscle $
  */

@@ -16,12 +16,14 @@
 
 #include "stdafx.h"
 #include "../client/DCPlusPlus.h"
+#include "../client/SettingsManager.h"
+#include "../client/RawManager.h"
 #include "Resource.h"
 
-#include "FakeDetect.h"
 #include "../rsx/rsx-settings/rsx-SettingsManager.h"
 #include "../rsx/RsxUtil.h"
-#include "../client/RawManager.h"
+
+#include "FakeDetect.h"
 #include "WinUtil.h"
 
 PropPage::TextItem FakeDetect::texts[] = {
@@ -74,18 +76,7 @@ LRESULT FakeDetect::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 	addItem(TSTRING(CTM_SPAM_KICK),				RSXSettingsManager::CTM_SPAM_KICK,				RSXSettingsManager::SHOW_CTM_SPAM_KICK);
 	addItem(TSTRING(PM_SPAM_KICK),				RSXSettingsManager::PM_SPAM_KICK,				RSXSettingsManager::SHOW_PM_SPAM_KICK);
 
-	Action::List& lst = RawManager::getInstance()->getActionList();
-	int j = 0;
-	idAction.insert(make_pair(j, j));
-	for(Action::List::iterator i = lst.begin(); i != lst.end(); ++i) {
-		idAction.insert(make_pair(++j, i->second->getActionId()));
-	}
-
-	cRaw.Attach(GetDlgItem(IDC_RAW_DETECTOR));
-	for(ActionList::const_iterator i = idAction.begin(); i != idAction.end(); ++i) {
-		cRaw.AddString(RawManager::getInstance()->getNameActionId(i->second).c_str());
-	}
-	cRaw.SetCurSel(0);
+	cRaw.attach(GetDlgItem(IDC_RAW_DETECTOR), 0);
 
 	cShowCheat.Attach(GetDlgItem(IDC_SHOW_CHEAT));
 	cShowCheat.AddString(CTSTRING(NO));
@@ -115,7 +106,7 @@ void FakeDetect::addItem(const tstring& aName, int rawId, int cheatId) {
 
 	TStringList l;
 	l.push_back(aName);
-	l.push_back(RawManager::getInstance()->getNameActionId(RawManager::getInstance()->getValidAction(item->rawId)));
+	l.push_back(cRaw.getActionName(item->rawId));
 	l.push_back(item->displayCheat ? CTSTRING(YES) : CTSTRING(NO));
 
 	ctrlList.insert(l, -1, (LPARAM)item);
@@ -128,8 +119,8 @@ LRESULT FakeDetect::onRawChanged(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWnd
 		int item = ctrlList.GetSelectedIndex();
 		if(item >= 0) {
 			DetectorItem* di = (DetectorItem*)ctrlList.GetItemData(item);
-			di->rawId = RawManager::getInstance()->getValidAction(getIdAction(sel));
-			ctrlList.SetItemText(item, 1, RawManager::getInstance()->getNameActionId(di->rawId).c_str());
+			di->rawId = cRaw.getActionId();
+			ctrlList.SetItemText(item, 1, cRaw.getActionName(di->rawId).c_str());
 		}
 	}
 	return 0;
@@ -149,7 +140,7 @@ LRESULT FakeDetect::onItemChanged(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHan
 	int sel = ctrlList.GetSelectedIndex();
 	if(sel >= 0) {
 		DetectorItem* di = (DetectorItem*)ctrlList.GetItemData(sel);
-		cRaw.SetCurSel(getId(di->rawId));
+		cRaw.setPos(di->rawId);
 		cShowCheat.SetCurSel(di->displayCheat);
 	}
 	return 0;
@@ -190,7 +181,7 @@ LRESULT FakeDetect::onInfoTip(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/) 
 		DetectorItem* di = (DetectorItem*)ctrlList.GetItemData(item);
 
 		tstring infoTip = _T("Item: ") + di->itemName +
-			_T("\nAction: ") + RawManager::getInstance()->getNameActionId(RawManager::getInstance()->getValidAction(di->rawId)) +
+			_T("\nAction: ") + cRaw.getActionName(di->rawId) +
 			_T("\nDisipay cheat: ") + (di->displayCheat ? CTSTRING(YES) : CTSTRING(NO));
 		//@todo write and add cheat descriptions...
 		_tcscpy(lpnmtdi->pszText, infoTip.c_str());

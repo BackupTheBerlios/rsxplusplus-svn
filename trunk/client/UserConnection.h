@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2007 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,8 +16,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef DCPLUSPLUS_CLIENT_USER_CONNECTION_H
-#define DCPLUSPLUS_CLIENT_USER_CONNECTION_H
+#ifndef DCPLUSPLUS_DCPP_USER_CONNECTION_H
+#define DCPLUSPLUS_DCPP_USER_CONNECTION_H
 
 #include "forward.h"
 #include "TimerManager.h"
@@ -31,8 +31,10 @@
 #include "MerkleTree.h"
 #include "DebugManager.h"
 #include "ClientManager.h"
+#include "ScriptManager.h" //RSX++
+
+namespace dcpp {
 //RSX++
-#include "ScriptManager.h"
 class UserConnectionScriptInstance : public ScriptInstance {
 protected:
 	bool onUserConnectionMessageIn(UserConnection* aConn, const string& aLine);
@@ -40,7 +42,8 @@ protected:
 };
 //END
 class UserConnection : public Speaker<UserConnectionListener>, 
-	private BufferedSocketListener, public Flags, private CommandHandler<UserConnection>,/*RSX++*/public UserConnectionScriptInstance/*END*/
+	private BufferedSocketListener, public Flags, private CommandHandler<UserConnection>,/*RSX++*/public UserConnectionScriptInstance,/*END*/
+	private boost::noncopyable
 {
 public:
 	friend class ConnectionManager;
@@ -120,7 +123,7 @@ public:
 	void listLen(const string& aLength) { send("$ListLen " + aLength + '|'); }
 	
 	void maxedOut(int qPos = -1) {
-		bool sendPos = BOOLSETTING(ENABLE_REAL_UPLOAD_QUEUE) && !isSet(UserConnection::FLAG_STEALTH) && qPos >= 0;
+		bool sendPos = !isSet(UserConnection::FLAG_STEALTH) && qPos >= 0;
 
 		if(isSet(FLAG_NMDC)) {
 			send("$MaxedOut" + (sendPos ? (" " + Util::toString(qPos)) : Util::emptyString) + "|");
@@ -191,8 +194,12 @@ public:
 	// Ignore any other ADC commands for now
 	template<typename T> void handle(T , const AdcCommand& ) { }
 
+	int64_t getChunkSize() const { return chunkSize; }
+	void updateChunkSize(int64_t leafSize, int64_t lastChunk, uint64_t ticks);
+	
 	GETSET(string, hubUrl, HubUrl);
 	GETSET(string, token, Token);
+	GETSET(int64_t, speed, Speed);
 	GETSET(uint64_t, lastActivity, LastActivity);
 	GETSET(States, state, State);
 
@@ -209,6 +216,7 @@ public:
 	}
 
 private:
+	int64_t chunkSize;
 	BufferedSocket* socket;
 	UserPtr user;
 
@@ -221,7 +229,7 @@ private:
 
 	// We only want ConnectionManager to create this...
 	UserConnection(bool secure_) throw() : encoding(const_cast<string*>(&Text::systemCharset)), state(STATE_UNCONNECTED),
-		lastActivity(0), socket(0), download(NULL) {
+		lastActivity(0), speed(0), chunkSize(0), socket(0), download(NULL) {
 		if(secure_) {
 			setFlag(FLAG_SECURE);
 		}
@@ -231,10 +239,8 @@ private:
 		BufferedSocket::putSocket(socket);
 		dcassert(!download);
 	}
-	friend struct DeleteFunction;
 
-	UserConnection(const UserConnection&);
-	UserConnection& operator=(const UserConnection&);
+	friend struct DeleteFunction;
 
 	void setUser(const UserPtr& aUser) {
 		user = aUser;
@@ -264,9 +270,11 @@ private:
 	void on(Updated) throw();
 };
 
+} // namespace dcpp
+
 #endif // !defined(USER_CONNECTION_H)
 
 /**
  * @file
- * $Id: UserConnection.h 336 2007-11-18 13:26:41Z bigmuscle $
+ * $Id: UserConnection.h 385 2008-04-26 13:05:09Z BigMuscle $
  */

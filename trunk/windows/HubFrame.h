@@ -40,6 +40,7 @@
 
 #include "WinUtil.h"
 #include "UCHandler.h"
+#include "ExCImage.h" //RSX++
 
 #define EDIT_MESSAGE_MAP 10		// This could be any number, really...
 #define FILTER_MESSAGE_MAP 8
@@ -47,7 +48,7 @@ struct CompareItems;
 
 class HubFrame : public MDITabChildWindowImpl<HubFrame, RGB(255, 0, 0), IDR_HUB, IDR_HUB_OFF>, private ClientListener, 
 	public CSplitterImpl<HubFrame>, private FavoriteManagerListener, private TimerManagerListener,
-	public UCHandler<HubFrame>, private SettingsManagerListener
+	public UCHandler<HubFrame>, public UserInfoBaseHandler<HubFrame>, private SettingsManagerListener
 {
 public:
 	DECLARE_FRAME_WND_CLASS_EX(_T("HubFrame"), IDR_HUB, 0, COLOR_3DFACE);
@@ -55,6 +56,7 @@ public:
 	typedef CSplitterImpl<HubFrame> splitBase;
 	typedef MDITabChildWindowImpl<HubFrame, RGB(255, 0, 0), IDR_HUB, IDR_HUB_OFF> baseClass;
 	typedef UCHandler<HubFrame> ucBase;
+	typedef UserInfoBaseHandler<HubFrame> uibBase;
 	
 	BEGIN_MSG_MAP(HubFrame)
 		NOTIFY_HANDLER(IDC_USERS, LVN_GETDISPINFO, ctrlUsers.onGetDispInfo)
@@ -78,46 +80,19 @@ public:
 		MESSAGE_HANDLER(FTM_CONTEXTMENU, onTabContextMenu)
 		MESSAGE_HANDLER(WM_MOUSEMOVE, onStyleChange)
 		MESSAGE_HANDLER(WM_CAPTURECHANGED, onStyleChanged)
-		MESSAGE_HANDLER(WM_WINDOWPOSCHANGING, onSizeMove)
 		COMMAND_ID_HANDLER(ID_FILE_RECONNECT, onFileReconnect)
 		COMMAND_ID_HANDLER(IDC_REFRESH, onRefresh)
 		COMMAND_ID_HANDLER(IDC_FOLLOW, onFollow)
 		COMMAND_ID_HANDLER(IDC_SEND_MESSAGE, onSendMessage)
 		COMMAND_ID_HANDLER(IDC_ADD_AS_FAVORITE, onAddAsFavorite)
-		COMMAND_ID_HANDLER(IDC_COPY_NICK, onCopyUserInfo)
 		COMMAND_ID_HANDLER(IDC_CLOSE_WINDOW, onCloseWindow)
-		COMMAND_ID_HANDLER(ID_EDIT_COPY, onEditCopy)
-		COMMAND_ID_HANDLER(ID_EDIT_SELECT_ALL, onEditSelectAll)
-		COMMAND_ID_HANDLER(ID_EDIT_CLEAR_ALL, onEditClearAll)
-		COMMAND_ID_HANDLER(IDC_COPY_ACTUAL_LINE, onCopyActualLine)
 		COMMAND_ID_HANDLER(IDC_SELECT_USER, onSelectUser)
 		COMMAND_ID_HANDLER(IDC_PUBLIC_MESSAGE, onPublicMessage)
-		COMMAND_ID_HANDLER(IDC_COPY_EXACT_SHARE, onCopyUserInfo)
-		COMMAND_ID_HANDLER(IDC_COPY_TAG, onCopyUserInfo)
-		COMMAND_ID_HANDLER(IDC_COPY_DESCRIPTION, onCopyUserInfo)
-		COMMAND_ID_HANDLER(IDC_COPY_EMAIL_ADDRESS, onCopyUserInfo)
-		COMMAND_ID_HANDLER(IDC_AUTOSCROLL_CHAT, onAutoScrollChat)		
-		COMMAND_ID_HANDLER(IDC_BAN_IP, onBanIP)
-		COMMAND_ID_HANDLER(IDC_UNBAN_IP, onUnBanIP)
-		COMMAND_ID_HANDLER(IDC_COPY_URL, onCopyURL)
 		COMMAND_ID_HANDLER(IDC_OPEN_HUB_LOG, onOpenHubLog)
 		COMMAND_ID_HANDLER(IDC_OPEN_USER_LOG, onOpenUserLog)
-		COMMAND_ID_HANDLER(IDC_WHOIS_IP, onWhoisIP)
 		COMMAND_ID_HANDLER(IDC_EMOT, onEmoticons)
-		COMMAND_ID_HANDLER(IDC_GETLIST, onGetList)
-		COMMAND_ID_HANDLER(IDC_BROWSELIST, onBrowseList)
-		COMMAND_ID_HANDLER(IDC_CHECKLIST, onCheckList)
-		COMMAND_ID_HANDLER(IDC_GET_USER_RESPONSES, onGetUserResponses)
-		COMMAND_ID_HANDLER(IDC_MATCH_QUEUE, onMatchQueue)
-		COMMAND_ID_HANDLER(IDC_PRIVATEMESSAGE, onPrivateMessage)
-		COMMAND_ID_HANDLER(IDC_ADD_TO_FAVORITES, onAddToFavorites)
-		COMMAND_ID_HANDLER(IDC_REMOVEALL, onRemoveAll)
-		COMMAND_ID_HANDLER(IDC_REPORT, onReport)
-		COMMAND_RANGE_HANDLER(IDC_GRANTSLOT, IDC_UNGRANTSLOT, onGrantSlot)
 		COMMAND_RANGE_HANDLER(IDC_EMOMENU, IDC_EMOMENU + menuItems, onEmoPackChange)
-		COMMAND_ID_HANDLER(IDC_COPY_IP, onCopyUserInfo)
-		COMMAND_ID_HANDLER(IDC_COPY_NICK_IP, onCopyUserInfo)
-		COMMAND_ID_HANDLER(IDC_COPY_ALL, onCopyUserInfo)
+		COMMAND_RANGE_HANDLER(IDC_COPY, IDC_COPY + OnlineUser::COLUMN_LAST, onCopyUserInfo)
 		//RSX++
 		COMMAND_ID_HANDLER(IDC_CLEAN_USER_D, onCleanUser)
 		COMMAND_ID_HANDLER(IDC_SET_PROTECTED_USER, onSetProtected)
@@ -147,6 +122,7 @@ public:
 		COMMAND_ID_HANDLER(IDC_IGNORE, onIgnore)
 		COMMAND_ID_HANDLER(IDC_UNIGNORE, onUnignore)
 		CHAIN_COMMANDS(ucBase)
+		CHAIN_COMMANDS(uibBase)
 		CHAIN_MSG_MAP(baseClass)
 		CHAIN_MSG_MAP(splitBase)
 	ALT_MSG_MAP(EDIT_MESSAGE_MAP)
@@ -182,48 +158,20 @@ public:
 	LRESULT onSelChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT onCtlColor(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/);
 	LRESULT onFileReconnect(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-	LRESULT onRButtonUp(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled);
-	LRESULT onMouseMove(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled);
-	LRESULT onClientEnLink(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/);
-	LRESULT onClientRButtonDown(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
-	LRESULT onEditCopy(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-	LRESULT onEditSelectAll(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-	LRESULT onEditClearAll(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-	LRESULT onCopyActualLine(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+	LRESULT onClientEnLink(int idCtrl, LPNMHDR pnmh, BOOL& bHandled) { return ctrlClient.onClientEnLink(idCtrl, pnmh, bHandled); }
 	LRESULT onSelectUser(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+	LRESULT onPrivateMessage(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT onPublicMessage(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-	LRESULT onAutoScrollChat(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-	LRESULT onBanIP(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-	LRESULT onUnBanIP(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-	LRESULT onWhoIP(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT onBanned(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-	LRESULT onCopyURL(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT onOpenHubLog(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT onOpenUserLog(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-	LRESULT onWhoisIP(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT onStyleChange(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled);
 	LRESULT onStyleChanged(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled);
-	LRESULT onSizeMove(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled); 
 	LRESULT onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled);
 	LRESULT onEmoPackChange(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 
-	LRESULT onMatchQueue(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-	LRESULT onGetList(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-	LRESULT onBrowseList(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-	LRESULT onReport(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-	LRESULT onGetUserResponses(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-	LRESULT onCheckList(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-	LRESULT onAddToFavorites(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-	LRESULT onPrivateMessage(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-	LRESULT onRemoveAll(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-	LRESULT onGrantSlot(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-	//RSX++
-	LRESULT onCleanUser(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-	LRESULT onSetProtected(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-	LRESULT onUnsetProtected(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-	LRESULT onCustomKick(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-	LRESULT onMultihubKick(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-	//END
+	
+
 	LRESULT onEmoticons(WORD /*wNotifyCode*/, WORD /*wID*/, HWND hWndCtl, BOOL& bHandled) {
 		if (hWndCtl != ctrlEmoticons.m_hWnd) {
 			bHandled = false;
@@ -261,8 +209,15 @@ public:
 		        string sColumsOrder = Util::emptyString, string sColumsWidth = Util::emptyString, string sColumsVisible = Util::emptyString);
 	static void resortUsers();	
 	static void closeDisconnected();
-	static void reconnectDisconnected(); //RSX++
-
+	//RSX++
+	static void reconnectDisconnected();
+	static void closeHub(const tstring& aUrl) {
+		FrameIter i = frames.find(aUrl);
+		if(i != frames.end()) {
+			i->second->PostMessage(WM_CLOSE);
+		}
+	}
+	//END
 	static HubFrame* getHub(Client* aClient) {
 		for(FrameIter i = frames.begin() ; i != frames.end() ; i++) {
 			HubFrame* hubFrame = i->second;
@@ -317,19 +272,19 @@ public:
 	LRESULT onIgnore(UINT /*uMsg*/, WPARAM /*wParam*/, HWND /*lParam*/, BOOL& /*bHandled*/) {
 		int i=-1;
 		if(client->isConnected()) {
-			if(!ChatCtrl::sSelectedUser.empty()) {
-				const OnlineUser* ui = client->findUser(Text::fromT(ChatCtrl::sSelectedUser));
-				if(ui) { 
-					ignoreList.insert(ui->getUser());
-					IgnoreManager::getInstance()->storeIgnore(ui->getUser());
-				}
-			} else {
+			//if(!ChatCtrl::sSelectedUser.empty()) {
+			//	const OnlineUser* ui = client->findUser(Text::fromT(ChatCtrl::sSelectedUser));
+			//	if(ui) { 
+			//		ignoreList.insert(ui->getUser());
+			//		IgnoreManager::getInstance()->storeIgnore(ui->getUser());
+			//	}
+			//} else {
 				while( (i = ctrlUsers.GetNextItem(i, LVNI_SELECTED)) != -1) {
 					UserPtr user = ((OnlineUser*)ctrlUsers.getItemData(i))->getUser();
 					ignoreList.insert(user);
 					IgnoreManager::getInstance()->storeIgnore(user);
 				}
-			}
+			//}
 		}
 		return 0;
 	}
@@ -337,24 +292,30 @@ public:
 	LRESULT onUnignore(UINT /*uMsg*/, WPARAM /*wParam*/, HWND /*lParam*/, BOOL& /*bHandled*/) {
 		int i=-1;
 		if(client->isConnected()) {
-			if(!ChatCtrl::sSelectedUser.empty()) {
-				const OnlineUser* ui = client->findUser(Text::fromT(ChatCtrl::sSelectedUser));
-				if(ui) { 
-					ignoreList.erase(ui->getUser());
-					IgnoreManager::getInstance()->removeIgnore(ui->getUser());
-				}
-			} else {
+			//if(!ChatCtrl::sSelectedUser.empty()) {
+			//	const OnlineUser* ui = client->findUser(Text::fromT(ChatCtrl::sSelectedUser));
+			//	if(ui) { 
+			//		ignoreList.erase(ui->getUser());
+			//		IgnoreManager::getInstance()->removeIgnore(ui->getUser());
+			//	}
+			//} else {
 				while( (i = ctrlUsers.GetNextItem(i, LVNI_SELECTED)) != -1) {
 					UserPtr user = ((OnlineUser*)ctrlUsers.getItemData(i))->getUser();
 					ignoreList.erase(user);
 					IgnoreManager::getInstance()->removeIgnore(user);
 				}
-			}
+			//}
 		}
 		return 0;
 	}
 
 	TypedListViewCtrl<OnlineUser, IDC_USERS>& getUserList() { return ctrlUsers; }
+
+	typedef unordered_set<UserPtr, User::Hash> IgnoreMap;
+	static IgnoreMap ignoreList;
+
+	static ResourceManager::Strings columnNames[OnlineUser::COLUMN_LAST];
+
 private:
 	enum Tasks { UPDATE_USER_JOIN, UPDATE_USER, REMOVE_USER, ADD_CHAT_LINE,
 		ADD_STATUS_LINE, ADD_SILENT_STATUS_LINE, SET_WINDOW_TITLE, GET_PASSWORD, 
@@ -443,9 +404,6 @@ private:
 	tstring currentCommand;
 	TStringList::size_type curCommandPosition;		//can't use an iterator because StringList is a vector, and vector iterators become invalid after resizing
 
-	typedef unordered_set<UserPtr, User::Hash> IgnoreMap;
-	static IgnoreMap ignoreList;
-
 	tstring currentNeedle;		// search in chat window
 	int currentNeedlePos;		// search in chat window
 	void findText(tstring const& needle) throw();
@@ -481,7 +439,7 @@ private:
 	
 	tstring filter;
 
-	HBITMAP hEmoticonBmp;
+	ExCImage::Ptr hEmoticonBmp;
 	bool closed;
 	bool showUsers;
 
@@ -517,7 +475,7 @@ private:
 
 	int hubchatusersplit;
 
-	bool PreparePopupMenu(CWindow *pCtrl, const tstring& sNick, OMenu& pMenu);
+	bool PreparePopupMenu(CWindow *pCtrl, OMenu& pMenu);
 	string sColumsOrder;
     string sColumsWidth;
     string sColumsVisible;
@@ -548,9 +506,9 @@ private:
 	void on(Failed, const Client*, const string&) throw();
 	void on(GetPassword, const Client*) throw();
 	void on(HubUpdated, const Client*) throw();
-	void on(Message, const Client*, const OnlineUser&, const string&) throw();
-	void on(StatusMessage, const Client*, const string&) throw();
-	void on(PrivateMessage, const Client*, const OnlineUser&, const OnlineUser&, const OnlineUser&, const string&) throw();
+	void on(Message, const Client*, const OnlineUser&, const string&, bool = false) throw();
+	void on(StatusMessage, const Client*, const string&, int = ClientListener::FLAG_NORMAL) throw();
+	void on(PrivateMessage, const Client*, const OnlineUser&, const OnlineUser&, const OnlineUser&, const string&, bool = false) throw();
 	void on(NickTaken, const Client*) throw();
 	void on(SearchFlood, const Client*, const string&) throw();
 	void on(CheatMessage, const Client*, const string&) throw();	
@@ -570,5 +528,5 @@ private:
 
 /**
  * @file
- * $Id: HubFrame.h 330 2007-10-13 22:26:06Z bigmuscle $
+ * $Id: HubFrame.h 389 2008-06-08 10:51:15Z BigMuscle $
  */

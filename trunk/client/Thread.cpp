@@ -24,6 +24,8 @@
 
 #include "ResourceManager.h"
 
+namespace dcpp {
+	
 #ifndef _WIN32
 pthread_mutex_t Thread::mtx = PTHREAD_MUTEX_INITIALIZER;
 #endif
@@ -46,7 +48,9 @@ void Thread::start() throw(ThreadException) {
 }
 #endif
 
+} // namespace dcpp
+
 /**
  * @file
- * $Id: Thread.cpp 317 2007-08-04 14:52:24Z bigmuscle $
+ * $Id: Thread.cpp 373 2008-02-06 17:23:49Z bigmuscle $
  */

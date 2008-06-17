@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2007 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,6 +28,8 @@
 #include "Util.h"
 
 #include "ConnectionManagerListener.h"
+
+namespace dcpp {
 
 class SocketException;
 
@@ -106,6 +108,7 @@ public:
 	void getDownloadConnection(const UserPtr& aUser);
 	void force(const UserPtr& aUser);
 	
+	void disconnect(const UserPtr& aUser); // disconnect downloads and uploads
 	void disconnect(const UserPtr& aUser, int isDownload);
 
 	void shutdown();
@@ -194,9 +197,11 @@ private:
 
 };
 
+} // namespace dcpp
+
 #endif // !defined(CONNECTION_MANAGER_H)
 
 /**
  * @file
- * $Id: ConnectionManager.h 317 2007-08-04 14:52:24Z bigmuscle $
+ * $Id: ConnectionManager.h 385 2008-04-26 13:05:09Z BigMuscle $
  */

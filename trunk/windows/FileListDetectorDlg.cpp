@@ -45,11 +45,7 @@ LRESULT FileListDetectorDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPAR
 	ATTACH(IDC_FILELIST_PROFILE_DETECT, ctrlDetect);
 	ATTACH(IDC_FILELIST_PROFILE_CHEAT, ctrlCheatingDescription);
 
-	createList();
-	ATTACH(IDC_FILELIST_PROFILE_RAW, cRaw);
-	for(ActionList::const_iterator i = idAction.begin(); i != idAction.end(); ++i) {
-		cRaw.AddString(RawManager::getInstance()->getNameActionId(i->second).c_str());
-	}
+	cRaw.attach(GetDlgItem(IDC_FILELIST_PROFILE_RAW), 0);
 
 	ATTACH(IDC_BAD_CLIENT, ctrlBadClient);
 	updateControls();
@@ -72,7 +68,7 @@ void FileListDetectorDlg::updateControls() {
 	ctrlName.SetWindowText(Text::toT(name).c_str());
 	ctrlDetect.SetWindowText(Text::toT(detect).c_str());
 	ctrlCheatingDescription.SetWindowText(Text::toT(cheatingDescription).c_str());
-	cRaw.SetCurSel(getId(rawToSend));
+	cRaw.setPos(rawToSend);
 	ctrlBadClient.SetCheck(badClient ? BST_CHECKED : BST_UNCHECKED);
 	
 	ctrlName.SetFocus();
@@ -83,6 +79,6 @@ void FileListDetectorDlg::updateVars() {
 	GET_TEXT(IDC_FILELIST_PROFILE_NAME, name);
 	GET_TEXT(IDC_FILELIST_PROFILE_DETECT, detect);
 	GET_TEXT(IDC_FILELIST_PROFILE_CHEAT, cheatingDescription);
-	rawToSend = getIdAction(cRaw.GetCurSel());
+	rawToSend = cRaw.getActionId();
 	badClient = ctrlBadClient.GetCheck() == BST_CHECKED;
 }

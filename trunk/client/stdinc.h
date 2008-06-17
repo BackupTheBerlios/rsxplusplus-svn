@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2007 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,8 +16,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#if !defined(STDINC_H)
-#define STDINC_H
+#ifndef DCPLUSPLUS_DCPP_STDINC_H
+#define DCPLUSPLUS_DCPP_STDINC_H
 
 #include "memcpy_amd.h"
 
@@ -106,13 +106,13 @@ typedef unsigned __int64 uint64_t;
 #include <stdint.h>
 #endif
 
+//RSX++ some mods
 #ifndef _WIN64
 # undef memcpy
 # undef memset
 # undef memzero
 # define memcpy memcpy2
 # define memset memset2
-# define memzero memzero2
 #else
 # undef memzero
 # define memzero(x, y) memset(x, 0, y)
@@ -120,6 +120,11 @@ typedef unsigned __int64 uint64_t;
 #pragma warning(disable:4267)
 #pragma warning(disable:4244)
 #endif
+
+#define EXIMP __declspec(dllexport)
+#include "PluginAPI/rString.h"
+//#include "../rsxppString/rsxppString.hpp"
+//END
 
 #ifdef _MSC_VER
 #include <crtdbg.h>
@@ -148,6 +153,11 @@ typedef unsigned __int64 uint64_t;
 #include <numeric>
 #include <limits>
 
+#include <boost/format.hpp>
+#include <boost/scoped_array.hpp>
+#include <boost/shared_ptr.hpp>
+#include <boost/noncopyable.hpp>
+
 #ifdef _STLPORT_VERSION
 
 #include <unordered_map>
@@ -158,18 +168,29 @@ typedef unsigned __int64 uint64_t;
 #include <tr1/unordered_set>
 #include <tr1/unordered_map>
 
-#elif defined(_MSC_VER)  // Assume the msvc stl
-#error "afaik msvc doesn't have tr1 containers, so it'll need stlport (or maybe a recent version of boost)"
+#elif defined(_MSC_VER)			// Assume the msvc stl
+# if _MSC_VER >= 1500			// VisualC++ 2008
+#  ifdef _HAS_TR1				// OK, we've got Feature Pack installed
+#   include <unordered_set>
+#   include <unordered_map>
+#   define slist list			// But it lack slist...
+#   define NATIVE_MSVC_TR1 1	// just in case
+#  endif //_HAS_TR1
+# else
+#  error You have to instal either, STLport or Feature Pack to get Technical Report 1 support!
+# endif //_MSC_VER >= 1500
 #else
 #error "Unknown STL, please configure accordingly"
 #endif
 
+namespace dcpp {
 using namespace std;
 using namespace std::tr1;
+}
 
 #endif // !defined(STDINC_H)
 
 /**
  * @file
- * $Id: stdinc.h 355 2008-01-05 14:43:39Z bigmuscle $
+ * $Id: stdinc.h 389 2008-06-08 10:51:15Z BigMuscle $
  */

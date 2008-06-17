@@ -28,6 +28,8 @@
 #include "version.h"
 #include "CID.h"
 
+namespace dcpp {
+
 StringList SettingsManager::connectionSpeeds;
 
 const string SettingsManager::settingTags[] =
@@ -85,6 +87,7 @@ const string SettingsManager::settingTags[] =
 	"TextMyNickBackColor", "TextMyNickForeColor", "TextMyNickBold", "TextMyNickItalic", 
 	"TextFavBackColor", "TextFavForeColor", "TextFavBold", "TextFavItalic", 
 	"TextOPBackColor", "TextOPForeColor", "TextOPBold", "TextOPItalic", 
+	"TextProtectedBackColor", "TextProtectedForeColor", "TextProtectedBold", "TextProtectedItalic", //RSX++
 	"TextURLBackColor", "TextURLForeColor", "TextURLBold", "TextURLItalic", 
 	"BoldAuthorsMess", "UploadLimitNormal", "ThrottleEnable", "HubSlots", "DownloadLimitNormal", 
 	"UploadLimitTime", "DownloadLimitTime", "TimeThrottle", "TimeLimitStart", "TimeLimitEnd",
@@ -110,13 +113,13 @@ const string SettingsManager::settingTags[] =
 	"PopupAway", "PopupMinimized", "ShowShareCheckedUsers", "MaxAutoMatchSource",
     "ReservedSlotColor", "IgnoredColor", "FavoriteColor",
 	"NormalColour", "ClientCheckedColour", "FileListCheckedColour",
-	"FireballColor", "ServerColor", "PasiveColor", "OpColor", 
+	"FireballColor", "ServerColor", "PasiveColor", "OpColor", "ProtectedColor", //RSX++
 	"FileListAndClientCheckedColour", "BadClientColour", "BadFilelistColour", "DontDLAlreadyShared",
 	"ConfirmHubRemoval", "SuppressMainChat", "ProgressBackColor", "ProgressCompressColor", "ProgressSegmentColor",
-	"UseVerticalView", "OpenNewWindow", "FileSlots",  "UDPPort", "MultiChunk",
+	"OpenNewWindow", "FileSlots",  "UDPPort", "MultiChunk",
  	"UserListDoubleClick", "TransferListDoubleClick", "ChatDoubleClick", "AdcDebug",
 	"ToggleActiveWindow", /*"ProgressbaroDCStyle",*/ "SearchHistory", 
-	"BadSoftDetections", "DetectBadSoft", "AcceptedDisconnects", "AcceptedTimeouts",
+	"AcceptedDisconnects", "AcceptedTimeouts",
 	"OpenPublic", "OpenFavoriteHubs", "OpenFavoriteUsers", "OpenQueue", "OpenFinishedDownloads",
 	"OpenFinishedUploads", "OpenSearchSpy", "OpenNetworkStatistics", "OpenNotepad", "OutgoingConnections",
 	"NoIPOverride", "GroupSearchResults", "BoldFinishedDownloads", "BoldFinishedUploads", "BoldQueue", 
@@ -125,7 +128,7 @@ const string SettingsManager::settingTags[] =
 	"BoldWaitingUsers", "AutoSearchLimit", "AutoKickNoFavs", "PromptPassword", "SpyFrameIgnoreTthSearches",
  	"AllowUntrustedHubs", "AllowUntrustedClients", "TLSPort", "FastHash", "DownConnPerSec",
 	"HighestPrioSize", "HighPrioSize", "NormalPrioSize", "LowPrioSize", "LowestPrio",
-	"FilterEnter", "SortFavUsersFirst", "ShowShellMenu", "EnableRealUploadQueue", "SendBloom",
+	"FilterEnter", "SortFavUsersFirst", "ShowShellMenu", "SendBloom", "OverlapChunks",
 	//RSX++
 	"TopSpeed", "TopUpSpeed", "OdcStyleBumped",
 	"StealthyIndicateSpeeds", "ProgressBarMode",
@@ -191,7 +194,7 @@ SettingsManager::SettingsManager()
 	setDefault(IGNORE_HUB_PMS, false);
 	setDefault(IGNORE_BOT_PMS, false);
 	setDefault(BUFFER_SIZE, 64);
-	setDefault(HUBLIST_SERVERS, "http://adchublist.com/hublist.xml.bz2;http://dchublist.com/hublist.xml.bz2;http://www.hublist.org/PublicHubList.xml.bz2");
+	setDefault(HUBLIST_SERVERS, "http://adchublist.com.nyud.net/hublist.xml.bz2;http://hublist.hubtracker.com.nyud.net/hublist.xml.bz2;http://dchublist.com.nyud.net/hublist.xml.bz2");
 	setDefault(DOWNLOAD_SLOTS, 50);
     setDefault(FILE_SLOTS, 15);
 	setDefault(MAX_DOWNLOAD_SPEED, 0);
@@ -216,7 +219,7 @@ SettingsManager::SettingsManager()
 	setDefault(LOG_FORMAT_SYSTEM, "[%Y-%m-%d %H:%M] %[message]");
 	setDefault(LOG_FILE_MAIN_CHAT, "%[hubURL].log");
 	setDefault(LOG_FILE_STATUS, "%[hubURL]_status.log");
-	setDefault(LOG_FILE_PRIVATE_CHAT, "PM\\%[userNI].%[userCID].log");
+	setDefault(LOG_FILE_PRIVATE_CHAT, "PM\\%[userCID].log");
 	setDefault(LOG_FILE_UPLOAD, "Uploads.log");
 	setDefault(LOG_FILE_DOWNLOAD, "Downloads.log");
 	setDefault(LOG_FILE_SYSTEM, "system.log");
@@ -312,7 +315,6 @@ SettingsManager::SettingsManager()
 	setDefault(NUMBER_OF_SEGMENTS, 3);
 	setDefault(SEGMENTS_MANUAL, false);
 	setDefault(HUB_SLOTS, 1);
-	setDefault(TEXT_FONT, "Tahoma,-11,400,0");
 	setDefault(DEBUG_COMMANDS, false);
 	setDefault(EXTRA_SLOTS, 3);
 	setDefault(SHUTDOWN_TIMEOUT, 150);
@@ -322,7 +324,6 @@ SettingsManager::SettingsManager()
 	setDefault(MAX_UPLOAD_SPEED_LIMIT_TIME, 0);
 	setDefault(MAX_DOWNLOAD_SPEED_LIMIT_TIME, 0);
 	setDefault(TOOLBAR, "0,-1,1,2,-1,3,4,5,-1,6,7,8,9,-1,10,11,12,13,-1,14,15,16,17,-1,18,19,20,21");
-	setDefault(SEARCH_ALTERNATE_COLOUR, RGB(255,200,0));
 	setDefault(WEBSERVER, false);
 	setDefault(WEBSERVER_PORT, (int)Util::rand(80, 1024));
 	setDefault(WEBSERVER_FORMAT,"%Y-%m-%d %H:%M: %[ip] tried getting %[file]");
@@ -339,11 +340,128 @@ SettingsManager::SettingsManager()
 	setDefault(THROTTLE_ENABLE, false);
 	setDefault(EXTRA_DOWNLOAD_SLOTS, 3);
 
+	setDefault(BOLD_AUTHOR_MESS, true);
+	setDefault(KICK_MSG_RECENT_01, "");
+	setDefault(KICK_MSG_RECENT_02, "");
+	setDefault(KICK_MSG_RECENT_03, "");
+	setDefault(KICK_MSG_RECENT_04, "");
+	setDefault(KICK_MSG_RECENT_05, "");
+	setDefault(KICK_MSG_RECENT_06, "");
+	setDefault(KICK_MSG_RECENT_07, "");
+	setDefault(KICK_MSG_RECENT_08, "");
+	setDefault(KICK_MSG_RECENT_09, "");
+	setDefault(KICK_MSG_RECENT_10, "");
+	setDefault(KICK_MSG_RECENT_11, "");
+	setDefault(KICK_MSG_RECENT_12, "");
+	setDefault(KICK_MSG_RECENT_13, "");
+	setDefault(KICK_MSG_RECENT_14, "");
+	setDefault(KICK_MSG_RECENT_15, "");
+	setDefault(KICK_MSG_RECENT_16, "");
+	setDefault(KICK_MSG_RECENT_17, "");
+	setDefault(KICK_MSG_RECENT_18, "");
+	setDefault(KICK_MSG_RECENT_19, "");
+	setDefault(KICK_MSG_RECENT_20, "");
+
+	setDefault(SHOW_INFOTIPS, true);
+	setDefault(MINIMIZE_ON_STARTUP, false);
+	setDefault(FREE_SLOTS_DEFAULT, false);
+	setDefault(USE_EXTENSION_DOWNTO, true);
+	setDefault(EXPAND_QUEUE, true);
+	setDefault(TRANSFER_SPLIT_SIZE, 8000);
+
+	setDefault(PERCENT_FAKE_SHARE_TOLERATED, 20);
+	setDefault(CZCHARS_DISABLE, false);
+	setDefault(REPORT_ALTERNATES, true);	
+
+	setDefault(SOUNDS_DISABLED, false);
+	setDefault(CHECK_NEW_USERS, false);
+	setDefault(GARBAGE_COMMAND_INCOMING, false);
+	setDefault(GARBAGE_COMMAND_OUTGOING, false);
+	setDefault(UPLOADQUEUEFRAME_SHOW_TREE, true);	
+	setDefault(DONT_BEGIN_SEGMENT, true);
+	setDefault(DONT_BEGIN_SEGMENT_SPEED, 512);
+
+	setDefault(DISCONNECT_RAW, 0);
+	setDefault(TIMEOUT_RAW, 0);
+	setDefault(FAKESHARE_RAW, 0);
+	setDefault(LISTLEN_MISMATCH, 0);
+	setDefault(FILELIST_TOO_SMALL, 0);
+	setDefault(FILELIST_UNAVAILABLE, 0);
+	setDefault(DISPLAY_CHEATS_IN_MAIN_CHAT, true);	
+	setDefault(SEARCH_TIME, 10);
+	setDefault(SUPPRESS_MAIN_CHAT, false);
+	
+	// default sounds
+	setDefault(BEGINFILE, Util::emptyString);
+	setDefault(BEEPFILE, Util::emptyString);
+	setDefault(FINISHFILE, Util::emptyString);
+	setDefault(SOURCEFILE, Util::emptyString);
+	setDefault(UPLOADFILE, Util::emptyString);
+	setDefault(FAKERFILE, Util::emptyString);
+	setDefault(CHATNAMEFILE, Util::emptyString);
+	setDefault(SOUND_TTH, Util::emptyString);
+	setDefault(SOUND_EXC, Util::emptyString);
+	setDefault(SOUND_HUBCON, Util::emptyString);
+	setDefault(SOUND_HUBDISCON, Util::emptyString);
+	setDefault(SOUND_FAVUSER, Util::emptyString);
+	setDefault(SOUND_TYPING_NOTIFY, Util::emptyString);
+
+	setDefault(POPUP_HUB_CONNECTED, false);
+	setDefault(POPUP_HUB_DISCONNECTED, false);
+	setDefault(POPUP_FAVORITE_CONNECTED, true);
+	setDefault(POPUP_CHEATING_USER, true);
+	setDefault(POPUP_DOWNLOAD_START, true);
+	setDefault(POPUP_DOWNLOAD_FAILED, false);
+	setDefault(POPUP_DOWNLOAD_FINISHED, true);
+	setDefault(POPUP_UPLOAD_FINISHED, false);
+	setDefault(POPUP_PM, false);
+	setDefault(POPUP_NEW_PM, true);
+	setDefault(POPUP_TYPE, 0);
+	setDefault(POPUP_AWAY, false);
+	setDefault(POPUP_MINIMIZED, true);
+
+	setDefault(AWAY, false);
+	setDefault(SHUTDOWN_ACTION, 0);
+	setDefault(MINIMUM_SEARCH_INTERVAL, 30);
+
+
+	setDefault(MAX_AUTO_MATCH_SOURCES, 5);
+	setDefault(MULTI_CHUNK, true);
+	setDefault(USERLIST_DBLCLICK, 6);
+	setDefault(TRANSFERLIST_DBLCLICK, 0);
+	setDefault(CHAT_DBLCLICK, 0);
+	setDefault(HUBFRAME_VISIBLE, "1,1,0,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
+	setDefault(DIRECTORYLISTINGFRAME_VISIBLE, "1,1,0,1,1");	
+	setDefault(FINISHED_VISIBLE, "1,1,1,1,1,1,1,1");
+	setDefault(FINISHED_UL_VISIBLE, "1,1,1,1,1,1,1");
+	setDefault(ACCEPTED_DISCONNECTS, 5);
+	setDefault(ACCEPTED_TIMEOUTS, 10);
+	setDefault(EMOTICONS_FILE, "Kolobok");
+	setDefault(GROUP_SEARCH_RESULTS, true);
+	setDefault(TABS_ON_TOP, false);
+	setDefault(DONT_ANNOUNCE_NEW_VERSIONS, false);
+	setDefault(DOWNCONN_PER_SEC, 2);
+	setDefault(FILTER_ENTER, false);
+
+	setDefault(DROP_MULTISOURCE_ONLY, true);
+	setDefault(DISCONNECT_SPEED, 5);
+	setDefault(DISCONNECT_FILE_SPEED, 15);
+	setDefault(DISCONNECT_TIME, 40);
+	setDefault(DISCONNECT_FILESIZE, 50);
+    setDefault(REMOVE_SPEED, 2);
+	setDefault(OVERLAP_CHUNKS, true);
+
+	setDefault(MAIN_WINDOW_STATE, SW_SHOWNORMAL);
+	setDefault(MAIN_WINDOW_SIZE_X, CW_USEDEFAULT);
+	setDefault(MAIN_WINDOW_SIZE_Y, CW_USEDEFAULT);
+	setDefault(MAIN_WINDOW_POS_X, CW_USEDEFAULT);
+	setDefault(MAIN_WINDOW_POS_Y, CW_USEDEFAULT);
+
+	/* Theme settings */
+	setDefault(TEXT_FONT, "Tahoma,-11,400,0");
+
 	setDefault(BACKGROUND_COLOR, RGB(0,0,0));
 	setDefault(TEXT_COLOR, 12632256);
-	setDefault(TOP_SPEED, 100);
-	setDefault(TOP_UP_SPEED, 50);
-	setDefault(PROGRESSBAR_ODC_BUMPED, true);
 
 	setDefault(TEXT_GENERAL_BACK_COLOR, RGB(0,0,0));
 	setDefault(TEXT_GENERAL_FORE_COLOR, RGB(133,186,250));
@@ -389,161 +507,44 @@ SettingsManager::SettingsManager()
 	setDefault(TEXT_OP_FORE_COLOR, RGB(0,128,255));
 	setDefault(TEXT_OP_BOLD, true);
 	setDefault(TEXT_OP_ITALIC, false);
-
+	//RSX++
+	setDefault(TEXT_PROTECTED_BACK_COLOR, RGB(0,0,0));
+	setDefault(TEXT_PROTECTED_FORE_COLOR, RGB(0,128,255));
+	setDefault(TEXT_PROTECTED_BOLD, true);
+	setDefault(TEXT_PROTECTED_ITALIC, false);
+	//END
 	setDefault(TEXT_URL_BACK_COLOR, RGB(0,0,0));
 	setDefault(TEXT_URL_FORE_COLOR, RGB(255,255,255));
 	setDefault(TEXT_URL_BOLD, false);
 	setDefault(TEXT_URL_ITALIC, false);
 
-	setDefault(BOLD_AUTHOR_MESS, true);
-	setDefault(KICK_MSG_RECENT_01, "");
-	setDefault(KICK_MSG_RECENT_02, "");
-	setDefault(KICK_MSG_RECENT_03, "");
-	setDefault(KICK_MSG_RECENT_04, "");
-	setDefault(KICK_MSG_RECENT_05, "");
-	setDefault(KICK_MSG_RECENT_06, "");
-	setDefault(KICK_MSG_RECENT_07, "");
-	setDefault(KICK_MSG_RECENT_08, "");
-	setDefault(KICK_MSG_RECENT_09, "");
-	setDefault(KICK_MSG_RECENT_10, "");
-	setDefault(KICK_MSG_RECENT_11, "");
-	setDefault(KICK_MSG_RECENT_12, "");
-	setDefault(KICK_MSG_RECENT_13, "");
-	setDefault(KICK_MSG_RECENT_14, "");
-	setDefault(KICK_MSG_RECENT_15, "");
-	setDefault(KICK_MSG_RECENT_16, "");
-	setDefault(KICK_MSG_RECENT_17, "");
-	setDefault(KICK_MSG_RECENT_18, "");
-	setDefault(KICK_MSG_RECENT_19, "");
-	setDefault(KICK_MSG_RECENT_20, "");
-	//RSX++
-	setDefault(STEALTHY_INDICATE_SPEEDS, false);
-	setDefault(PROGRESSBAR_MODE, 2);
-	setDefault(SHOW_PLUGIN_TOOLBAR, true);
-	setDefault(LOG_RAW_CMD_FORMAT, "[%Y-%m-%d %H:%M] %[userNI] %[userI4] (%[userCS])");
-	setDefault(LOG_RAW_CMD_FILE, "RawCommands.log");
-	setDefault(LOG_RAW_CMD, true);
-	//END
-	setDefault(PROGRESS_TEXT_COLOR_DOWN, RGB(255, 255, 255));
-	setDefault(PROGRESS_TEXT_COLOR_UP, RGB(255, 255, 255));
-	setDefault(SHOW_INFOTIPS, true);
-	setDefault(MINIMIZE_ON_STARTUP, false);
-	setDefault(FREE_SLOTS_DEFAULT, false);
-	setDefault(USE_EXTENSION_DOWNTO, true);
 	setDefault(ERROR_COLOR, RGB(255, 0, 0));
-	setDefault(EXPAND_QUEUE, true);
-	setDefault(TRANSFER_SPLIT_SIZE, 8000);
+	setDefault(SEARCH_ALTERNATE_COLOUR, RGB(255,200,0));
+
 	setDefault(MENUBAR_TWO_COLORS, false);
 	setDefault(MENUBAR_LEFT_COLOR, RGB(13, 2, 106));
 	setDefault(MENUBAR_RIGHT_COLOR, RGB(194, 78, 7));
 	setDefault(MENUBAR_BUMPED, true);
 
-	setDefault(PERCENT_FAKE_SHARE_TOLERATED, 20);
-	setDefault(CZCHARS_DISABLE, false);
-	setDefault(REPORT_ALTERNATES, true);	
-
-	setDefault(SHOW_DESCRIPTION_SPEED, false);
-	setDefault(SOUNDS_DISABLED, false);
-	setDefault(CHECK_NEW_USERS, false);
-	setDefault(GARBAGE_COMMAND_INCOMING, false);
-	setDefault(GARBAGE_COMMAND_OUTGOING, false);
-	setDefault(UPLOADQUEUEFRAME_SHOW_TREE, true);	
-	setDefault(DONT_BEGIN_SEGMENT, true);
-	setDefault(DONT_BEGIN_SEGMENT_SPEED, 512);
-
-	setDefault(DETECT_BADSOFT, true);
-	setDefault(BADSOFT_DETECTIONS, 0);
-	setDefault(DISCONNECT_RAW, 0);
-	setDefault(TIMEOUT_RAW, 0);
-	setDefault(FAKESHARE_RAW, 0);
-	setDefault(LISTLEN_MISMATCH, 0);
-	setDefault(FILELIST_TOO_SMALL, 0);
-	setDefault(FILELIST_UNAVAILABLE, 0);
-	setDefault(USE_VERTICAL_VIEW, true);
-	setDefault(DISPLAY_CHEATS_IN_MAIN_CHAT, true);	
-	setDefault(SEARCH_TIME, 10);
-	setDefault(SUPPRESS_MAIN_CHAT, false);
-	
-	// default sounds
-	setDefault(BEGINFILE, Util::emptyString);
-	setDefault(BEEPFILE, Util::emptyString);
-	setDefault(FINISHFILE, Util::emptyString);
-	setDefault(SOURCEFILE, Util::emptyString);
-	setDefault(UPLOADFILE, Util::emptyString);
-	setDefault(FAKERFILE, Util::emptyString);
-	setDefault(CHATNAMEFILE, Util::emptyString);
-	setDefault(SOUND_TTH, Util::emptyString);
-	setDefault(SOUND_EXC, Util::emptyString);
-	setDefault(SOUND_HUBCON, Util::emptyString);
-	setDefault(SOUND_HUBDISCON, Util::emptyString);
-	setDefault(SOUND_FAVUSER, Util::emptyString);
-	setDefault(SOUND_TYPING_NOTIFY, Util::emptyString);
-
-	setDefault(POPUP_HUB_CONNECTED, false);
-	setDefault(POPUP_HUB_DISCONNECTED, false);
-	setDefault(POPUP_FAVORITE_CONNECTED, true);
-	setDefault(POPUP_CHEATING_USER, true);
-	setDefault(POPUP_DOWNLOAD_START, true);
-	setDefault(POPUP_DOWNLOAD_FAILED, false);
-	setDefault(POPUP_DOWNLOAD_FINISHED, true);
-	setDefault(POPUP_UPLOAD_FINISHED, false);
-	setDefault(POPUP_PM, false);
-	setDefault(POPUP_NEW_PM, true);
-	setDefault(POPUP_TYPE, 0);
-	setDefault(POPUP_AWAY, false);
-	setDefault(POPUP_MINIMIZED, true);
-
-	setDefault(AWAY, false);
-	setDefault(SHUTDOWN_ACTION, 0);
-	setDefault(MINIMUM_SEARCH_INTERVAL, 30);
-
-	setDefault(PROGRESS_3DDEPTH, 4);
-	setDefault(PROGRESS_OVERRIDE_COLORS, true);
-	setDefault(MAX_AUTO_MATCH_SOURCES, 5);
-	setDefault(MULTI_CHUNK, true);
-	setDefault(USERLIST_DBLCLICK, 0);
-	setDefault(TRANSFERLIST_DBLCLICK, 0);
-	setDefault(CHAT_DBLCLICK, 0);
 	setDefault(NORMAL_COLOUR, RGB(233,233,233));
+	setDefault(FAVORITE_COLOR, RGB(51,51,255));	
 	setDefault(RESERVED_SLOT_COLOR, RGB(255,51,255));
 	setDefault(IGNORED_COLOR, RGB(192,192,192));	
-	setDefault(FAVORITE_COLOR, RGB(51,51,255));	
 	setDefault(FIREBALL_COLOR, RGB(255,100,0));
  	setDefault(SERVER_COLOR, RGB(128,128,255));
-	setDefault(PASIVE_COLOR, RGB(255,255,255));
 	setDefault(OP_COLOR, RGB(192,192,192));
+	setDefault(PROTECTED_COLOR, RGB(192,192,192));
+	setDefault(PASIVE_COLOR, RGB(255,255,255));
 	setDefault(CLIENT_CHECKED_COLOUR, RGB(160, 160, 160));
 	setDefault(FILELIST_CHECKED_COLOUR, RGB(0, 160, 255));
 	setDefault(FULL_CHECKED_COLOUR, RGB(0, 160, 0));
 	setDefault(BAD_CLIENT_COLOUR, RGB(204,0,0));
 	setDefault(BAD_FILELIST_COLOUR, RGB(204,0,204));
-	setDefault(HUBFRAME_VISIBLE, "1,1,0,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
-	setDefault(DIRECTORYLISTINGFRAME_VISIBLE, "1,1,0,1,1");	
-	setDefault(FINISHED_VISIBLE, "1,1,1,1,1,1,1,1");
-	setDefault(FINISHED_UL_VISIBLE, "1,1,1,1,1,1,1");
-	setDefault(ACCEPTED_DISCONNECTS, 5);
-	setDefault(ACCEPTED_TIMEOUTS, 10);
-	setDefault(EMOTICONS_FILE, "Kolobok");
-	setDefault(GROUP_SEARCH_RESULTS, true);
-	setDefault(TABS_ON_TOP, false);
-	setDefault(BWSETTING_MODE, BWSETTINGS_DEFAULT);
-	setDefault(DONT_ANNOUNCE_NEW_VERSIONS, false);
-	setDefault(DOWNCONN_PER_SEC, 2);
-	setDefault(FILTER_ENTER, false);
-	setDefault(ENABLE_REAL_UPLOAD_QUEUE, true);
 
-	setDefault(DROP_MULTISOURCE_ONLY, true);
-	setDefault(DISCONNECT_SPEED, 5);
-	setDefault(DISCONNECT_FILE_SPEED, 15);
-	setDefault(DISCONNECT_TIME, 40);
-	setDefault(DISCONNECT_FILESIZE, 50);
-    setDefault(REMOVE_SPEED, 2);
-
-	setDefault(MAIN_WINDOW_STATE, SW_SHOWNORMAL);
-	setDefault(MAIN_WINDOW_SIZE_X, CW_USEDEFAULT);
-	setDefault(MAIN_WINDOW_SIZE_Y, CW_USEDEFAULT);
-	setDefault(MAIN_WINDOW_POS_X, CW_USEDEFAULT);
-	setDefault(MAIN_WINDOW_POS_Y, CW_USEDEFAULT);
+	setDefault(PROGRESS_3DDEPTH, 4);
+	setDefault(PROGRESS_OVERRIDE_COLORS, true);
+	setDefault(PROGRESS_TEXT_COLOR_DOWN, RGB(255, 255, 255));
+	setDefault(PROGRESS_TEXT_COLOR_UP, RGB(255, 255, 255));
 	setDefault(UPLOAD_BAR_COLOR, RGB(26, 234, 125));
 	setDefault(DOWNLOAD_BAR_COLOR, RGB(75, 25, 140));
 	setDefault(PROGRESS_BACK_COLOR, RGB(95, 95, 95));
@@ -552,7 +553,22 @@ SettingsManager::SettingsManager()
 	setDefault(COLOR_RUNNING, RGB(0, 150, 0));
 	setDefault(COLOR_DOWNLOADED, RGB(255, 255, 100));
 	setDefault(COLOR_DONE, RGB(222, 160, 0));
-	
+	//RSX++
+	setDefault(TOP_SPEED, 100);
+	setDefault(TOP_UP_SPEED, 50);
+	setDefault(PROGRESSBAR_ODC_BUMPED, true);
+	setDefault(BWSETTING_MODE, BWSETTINGS_DEFAULT);
+	setDefault(STEALTHY_INDICATE_SPEEDS, false);
+	setDefault(PROGRESSBAR_MODE, 2);
+
+	/* Random RSX++ Settings */
+	setDefault(SHOW_PLUGIN_TOOLBAR, true);
+	setDefault(LOG_RAW_CMD_FORMAT, "[%Y-%m-%d %H:%M] %[userNI] %[userI4] (%[userCS])");
+	setDefault(LOG_RAW_CMD_FILE, "RawCommands.log");
+	setDefault(LOG_RAW_CMD, true);
+	setDefault(SHOW_DESCRIPTION_SPEED, false);
+	//END
+
 #ifdef _WIN32
 	OSVERSIONINFO ver;
 	memzero(&ver, sizeof(OSVERSIONINFO));
@@ -754,7 +770,10 @@ const string& SettingsManager::getString(const string& sname) const {
 	return Util::emptyString;
 }
 //END
+
+} // namespace dcpp
+
 /**
  * @file
- * $Id: SettingsManager.cpp 342 2007-12-24 10:27:29Z bigmuscle $
+ * $Id: SettingsManager.cpp 379 2008-02-24 19:56:47Z bigmuscle $
  */

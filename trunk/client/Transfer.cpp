@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2007 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,6 +26,8 @@
 #include "ClientManager.h"
 #include "Upload.h"
 
+namespace dcpp {
+
 const string Transfer::names[] = {
 	"file", "file", "list", "tthl", "file"
 };
@@ -34,18 +36,36 @@ const string Transfer::USER_LIST_NAME = "files.xml";
 const string Transfer::USER_LIST_NAME_BZ = "files.xml.bz2";
 
 Transfer::Transfer(UserConnection& conn, const string& path_, const TTHValue& tth_) : segment(0, -1), type(TYPE_FILE), start(0),
-	path(path_), tth(tth_), actual(0), pos(0), userConnection(conn),
-	lastTick(GET_TICK()) { tick(); }
+	path(path_), tth(tth_), actual(0), pos(0), userConnection(conn) { }
 
 void Transfer::tick() {
 	Lock l(cs);
-	while(samples.size() >= SAMPLES) {
-		samples.pop_front();
+	
+	uint64_t t = GET_TICK();
+	
+	if(samples.size() >= 1) {
+		int64_t tdiff = samples.back().first - samples.front().first;
+		if((tdiff / 1000) > MIN_SECS) {
+			while(samples.size() >= MIN_SAMPLES) {
+				samples.pop_front();
+			}
+		}
+		
 	}
-	samples.push_back(std::make_pair(GET_TICK(), pos));
+	
+	if(samples.size() > 1) {
+		if(samples.back().second == pos) {
+			// Position hasn't changed, just update the time
+			samples.back().first = t;
+			return;
+		}
+	}
+
+	samples.push_back(std::make_pair(t, pos));
 }
 
-double Transfer::getAverageSpeed() const {
+int64_t Transfer::getAverageSpeed() const {
+
 	Lock l(cs);
 	if(samples.size() < 2) {
 		return 0;
@@ -53,12 +73,13 @@ double Transfer::getAverageSpeed() const {
 	uint64_t ticks = samples.back().first - samples.front().first;
 	int64_t bytes = samples.back().second - samples.front().second;
 
-	return ticks > 0 ? (static_cast<double>(bytes) / ticks) * 1000.0 : 0;
+	return ticks > 0 ? static_cast<int64_t>((static_cast<double>(bytes) / ticks) * 1000.0) : 0;
 }
 
-int64_t Transfer::getSecondsLeft(bool wholeFile) {
-	int64_t avg = static_cast<int64_t>(getAverageSpeed());
-	return (avg > 0) ? ((wholeFile ? ((Upload*)this)->getFileSize() : getBytesLeft()) / avg) : 0;
+int64_t Transfer::getSecondsLeft(bool wholeFile) const {
+	int64_t avg = getAverageSpeed();
+	int64_t bytesLeft =  (wholeFile ? ((Upload*)this)->getFileSize() : getSize()) - getPos();
+	return (avg > 0) ? (bytesLeft / avg) : 0;
 }
 
 void Transfer::getParams(const UserConnection& aSource, StringMap& params) const {
@@ -74,11 +95,11 @@ void Transfer::getParams(const UserConnection& aSource, StringMap& params) const
 	params["hubURL"] = Util::toString(hubs);
 	params["fileSI"] = Util::toString(getSize());
 	params["fileSIshort"] = Util::formatBytes(getSize());
-//	params["fileSIchunk"] = Util::toString(getTotal());
-//	params["fileSIchunkshort"] = Util::formatBytes(getTotal());
+	params["fileSIchunk"] = Util::toString(getPos());
+	params["fileSIchunkshort"] = Util::formatBytes(getPos());
 	params["fileSIactual"] = Util::toString(getActual());
 	params["fileSIactualshort"] = Util::formatBytes(getActual());
-	params["speed"] = Util::formatBytes(static_cast<int64_t>(getAverageSpeed())) + "/s";
+	params["speed"] = Util::formatBytes(getAverageSpeed()) + "/s";
 	params["time"] = Text::fromT(Util::formatSeconds((GET_TICK() - getStart()) / 1000));
 	params["fileTR"] = getTTH().toBase32();
 }
@@ -90,3 +111,4 @@ const UserPtr Transfer::getUser() const {
 	return getUserConnection().getUser();
 }
 
+} // namespace dcpp

@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2001-2007 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,8 +39,9 @@
 #undef ff
 #endif
 
+namespace dcpp {
+
 static const string DOWNLOAD_AREA = "Downloads";
-const string Download::ANTI_FRAG_EXT = ".antifrag";
 
 DownloadManager::DownloadManager() : mDownloadLimit(0), mBytesSpokenFor(0),
 	mCycleTime(0), mByteSlice(0), mThrottleEnable(BOOLSETTING(THROTTLE_ENABLE)) {
@@ -84,7 +85,7 @@ void DownloadManager::on(TimerManagerListener::Second, uint64_t aTick) throw() {
 				{
 					if((d->getAverageSpeed() < SETTING(DISCONNECT_SPEED) * 1024))
 					{
-						if(((aTick - d->getLastTick())/1000) > (uint32_t)SETTING(DISCONNECT_TIME) * 1000)
+						if(aTick - d->getLastTick() > (uint32_t)SETTING(DISCONNECT_TIME) * 1000)
 						{
 							if(QueueManager::getInstance()->dropSource(d))
 							{
@@ -103,7 +104,8 @@ void DownloadManager::on(TimerManagerListener::Second, uint64_t aTick) throw() {
 						if(d->getAverageSpeed() < RSXSETTING(SDL_SPEED)) {
 							if(((aTick - d->getLastTick())/1000) > (uint32_t)RSXSETTING(SDL_TIME)) {
 								dropTargets.push_back(make_pair(d->getPath(), d->getUser()));
-								ClientManager::getInstance()->setCheating(d->getUser(), "", RsxUtil::getSlowDLCheat(d->getAverageSpeed()), RSXSETTING(SDL_RAW), false, true, RSXBOOLSETTING(SHOW_SDL_RAW));						
+								string cheat = str(boost::format("Too low download speed (%1%)") % Util::formatBytes(d->getAverageSpeed()));
+								ClientManager::getInstance()->setCheating(d->getUser(), "", cheat, RSXSETTING(SDL_RAW), RSXBOOLSETTING(SHOW_SDL_RAW), false, true, false, true);						
 							}
 						} else {
 							d->setLastTick(aTick);
@@ -118,26 +120,26 @@ void DownloadManager::on(TimerManagerListener::Second, uint64_t aTick) throw() {
 	}
 
 	for(TargetList::iterator i = dropTargets.begin(); i != dropTargets.end(); ++i) {
-		QueueManager::getInstance()->removeSource(i->first, i->second, QueueItem::Source::FLAG_SLOW);
+		QueueManager::getInstance()->removeSource(i->first, i->second, QueueItem::Source::FLAG_SLOW_SOURCE);
 	}
 }
 
-void DownloadManager::checkIdle(const UserPtr& user) {
-	Lock l(cs);
+void DownloadManager::checkIdle(const UserPtr& user) {	
+	Lock l(cs);	
 	for(UserConnectionList::const_iterator i = idlers.begin(); i != idlers.end(); ++i) {
-		UserConnection* uc = *i;
-		if(uc->getUser() == user) {
+		UserConnection* uc = *i;	
+		if(uc->getUser() == user) {	
 			uc->updated();
-			return;
-		}
-	}
+			return;	
+		}	
+	}	
 }
 
 void DownloadManager::addConnection(UserConnectionPtr conn) {
 	if(!conn->isSet(UserConnection::FLAG_SUPPORTS_TTHF) || !conn->isSet(UserConnection::FLAG_SUPPORTS_ADCGET)) {
 		// Can't download from these...
 		//RSX++ // No TTHF/ADCGET support
-		ClientManager::getInstance()->setCheating(conn->getUser(), "", "No TTHF/ADCGET support", RSXSETTING(NO_TTHF), true, true, RSXBOOLSETTING(SHOW_NO_TTHF));
+		ClientManager::getInstance()->setCheating(conn->getUser(), "", "No TTHF/ADCGET support", RSXSETTING(NO_TTHF), RSXBOOLSETTING(SHOW_NO_TTHF), true, true, true, true);
 		//END
 		conn->getUser()->setFlag(User::OLD_CLIENT);
 		QueueManager::getInstance()->removeSource(conn->getUser(), QueueItem::Source::FLAG_NO_TTHF);
@@ -193,7 +195,7 @@ void DownloadManager::checkDownloads(UserConnection* aConn) {
 		return;
 	}
 
-	if(aConn->isSet(UserConnection::FLAG_NMDC) && d->isSet(Download::FLAG_TESTSUR)) {
+	if(d->isSet(Download::FLAG_TESTSUR) && aConn->isSet(UserConnection::FLAG_NMDC)) {
 		aConn->getListLen();
 	}
 
@@ -287,12 +289,16 @@ void DownloadManager::startData(UserConnection* aSource, int64_t start, int64_t 
 		d->setFlag(Download::FLAG_TTH_CHECK);
 	}
 	
+	// Check that we don't get too many bytes
+	d->setFile(new LimitedOutputStream<true>(d->getFile(), bytes));
+
 	if(z) {
 		d->setFlag(Download::FLAG_ZDOWNLOAD);
 		d->setFile(new FilteredOutputStream<UnZFilter, true>(d->getFile()));
 	}
 
 	d->setStart(GET_TICK());
+	d->tick();
 	aSource->setState(UserConnection::STATE_RUNNING);
 
 	fire(DownloadManagerListener::Starting(), d);
@@ -315,10 +321,9 @@ void DownloadManager::on(UserConnectionListener::Data, UserConnection* aSource, 
 
 	try {
 		d->addPos(d->getFile()->write(aData, aLen), aLen);
+		d->tick();
 
-		if(d->getPos() > d->getSize()) {
-			failDownload(aSource, STRING(TOO_MUCH_DATA));
-		} else if(d->getPos() == d->getSize()) {
+		if(d->getFile()->eof()) {
 			endData(aSource);
 			aSource->setLineMode(0);
 		}
@@ -364,18 +369,18 @@ void DownloadManager::endData(UserConnection* aSource) {
 			return;
 		}
 
+		aSource->setSpeed(d->getAverageSpeed());
+		aSource->updateChunkSize(d->getTigerTree().getBlockSize(), d->getSize(), GET_TICK() - d->getStart());
+		
 		dcdebug("Download finished: %s, size " I64_FMT ", downloaded " I64_FMT "\n", d->getPath().c_str(), d->getSize(), d->getPos());
 	}
 
 	removeDownload(d);
-	//fire(DownloadManagerListener::Complete(), d, d->getType() == Transfer::TYPE_TREE);
+
+	if(d->getType() == Transfer::TYPE_TREE || d->getType() == Transfer::TYPE_PARTIAL_LIST)
+		fire(DownloadManagerListener::Complete(), d, d->getType() == Transfer::TYPE_TREE);
 
 	QueueManager::getInstance()->putDownload(d, true, false);	
-	//RSX++
-	//if(d->isSet(Download::FLAG_CHECK_FILE_LIST)) {
-	//	aSource->disconnect(true);
-	//}
-	//END
 	checkDownloads(aSource);
 }
 
@@ -384,7 +389,7 @@ int64_t DownloadManager::getRunningAverage() {
 	int64_t avg = 0;
 	for(DownloadList::const_iterator i = downloads.begin(); i != downloads.end(); ++i) {
 		Download* d = *i;
-		avg += static_cast<int64_t>(d->getAverageSpeed());
+		avg += d->getAverageSpeed();
 	}
 	return avg;
 }
@@ -418,22 +423,19 @@ void DownloadManager::failDownload(UserConnection* aSource, const string& reason
 
 	if(d) {
 		removeDownload(d);
-		//fire(DownloadManagerListener::Failed(), d, reason);
+		fire(DownloadManagerListener::Failed(), d, reason);
 
 		if (d->getType() == Transfer::TYPE_FULL_LIST && reason == STRING(DISCONNECTED)) {
 			ClientManager::getInstance()->fileListDisconnected(aSource->getUser());
 		} else if( d->isSet(Download::FLAG_TESTSUR) ) {
-			fire(DownloadManagerListener::Failed(), d, "Check complete, idle");
 			if(reason == STRING(NO_SLOTS_AVAILABLE))
-				ClientManager::getInstance()->setCheating(aSource->getUser(), "MaxedOut", "No slots for TestSUR - SlotLocker", -1, true);
+				ClientManager::getInstance()->setCheating(aSource->getUser(), "MaxedOut", "No slots for TestSUR - SlotLocker", -1, true, true, false, true, false);
 			else
-				ClientManager::getInstance()->setCheating(aSource->getUser(), reason, "", -1, true);
+				ClientManager::getInstance()->setCheating(aSource->getUser(), reason, "", -1, false, true, false, true, false);
 			QueueManager::getInstance()->putDownload(d, true);
 			removeConnection(aSource);
 			return;
 		}
-
-		fire(DownloadManagerListener::Failed(), d, reason);
 
 		QueueManager::getInstance()->putDownload(d, false);
 	}
@@ -446,7 +448,6 @@ void DownloadManager::removeConnection(UserConnectionPtr aConn) {
 	aConn->removeListener(this);
 	aConn->disconnect();
 }
-
 
 void DownloadManager::removeDownload(Download* d) {
 	if(d->getFile()) {
@@ -552,7 +553,7 @@ void DownloadManager::fileNotAvailable(UserConnection* aSource) {
 	//fire(DownloadManagerListener::Failed(), d, d->getTargetFileName() + ": " + STRING(FILE_NOT_AVAILABLE));
 
 	if (d->getType() == Transfer::TYPE_FULL_LIST) {
-		ClientManager::getInstance()->setCheating(aSource->getUser(), "", "Filelist Not Available", RSXSETTING(FILELIST_NA), false, true, RSXBOOLSETTING(SHOW_FILELIST_NA), false, true);
+		ClientManager::getInstance()->setCheating(aSource->getUser(), "", "Filelist Not Available", RSXSETTING(FILELIST_NA), RSXBOOLSETTING(SHOW_FILELIST_NA), false, true, false, true);
 		QueueManager::getInstance()->putDownload(d, true);
 		removeConnection(aSource);
 		return;
@@ -560,9 +561,9 @@ void DownloadManager::fileNotAvailable(UserConnection* aSource) {
 		dcdebug("TestSUR File not available\n");
 		fire(DownloadManagerListener::Failed(), d, "Check complete, idle");
 
-		ClientManager::getInstance()->setCheating(aSource->getUser(), "File Not Available", "", -1, false);
-		
-		QueueManager::getInstance()->putDownload(d, true);
+		ClientManager::getInstance()->setCheating(aSource->getUser(), "File Not Available", "", -1, false, false, false, true, false);
+
+		QueueManager::getInstance()->putDownload(d, true, false);
 		//removeConnection(aSource);
 		checkDownloads(aSource);
 		return;
@@ -623,7 +624,9 @@ void DownloadManager::throttleSetup() {
 	mBytesSpokenFor = 0;
 }
 
+} // namespace dcpp
+
 /**
  * @file
- * $Id: DownloadManager.cpp 358 2008-01-17 10:48:01Z bigmuscle $
+ * $Id: DownloadManager.cpp 389 2008-06-08 10:51:15Z BigMuscle $
  */

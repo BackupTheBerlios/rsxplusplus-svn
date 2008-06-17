@@ -1,4 +1,6 @@
-/* 
+/*
+ * Copyright (C) 2007-2008 adrian_007, adrian-007 on o2 point pl
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -17,15 +19,39 @@
 #ifndef UPDATE_MANAGER_LISTENER_H
 #define UPDATE_MANAGER_LISTENER_H
 
+namespace dcpp {
+
+namespace VersionInfo {
+	struct Client {
+		string version;
+		string url;
+		string message;
+		int svnbuild;
+		vector<double> badVersions;
+		double veryOldVersion;
+	};
+
+	struct Profiles {
+		string profileName;
+		string profileUrl;
+		StringPair clientProfile;
+		StringPair myInfoProfile;
+		StringPair ipWatchProfile;
+	};
+}
+
 class UpdateManagerListener {
 public:
 	template<int I>	struct X { enum { TYPE = I };  };
 
-	typedef X<0> Complete;
-	typedef X<1> Failed;
+	typedef X<0> VersionUpdated;
 
-	virtual void on(Complete, const string& /*content*/, int /*file*/) throw() { };
-	virtual void on(Failed, const string& /*reason*/, int /*file*/) throw() { };
+	virtual void on(VersionUpdated, const VersionInfo::Client&, const VersionInfo::Profiles&) throw() { };
 };
-
+} // namespace dcpp
 #endif
+
+/**
+ * @file
+ * $Id$
+ */

@@ -23,16 +23,15 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
-#include "../client/RawManager.h"
-
-class ADLSearch;
+#include "../client/ADLSearch.h"
+#include "CRawCombo.h"
 
 ///////////////////////////////////////////////////////////////////////////////
 //
 //	Dialog for new/edit ADL searches
 //
 ///////////////////////////////////////////////////////////////////////////////
-class ADLSProperties : public CDialogImpl<ADLSProperties>, protected RawSelector
+class ADLSProperties : public CDialogImpl<ADLSProperties>
 {
 public:
 
@@ -70,7 +69,7 @@ private:
 
 	void setControlState();
 	void setControlOverride();
-	CComboBox cRaw;
+	CRawCombo cRaw;
 };
 
 #endif // !defined(ADLS_PROPERTIES_H)

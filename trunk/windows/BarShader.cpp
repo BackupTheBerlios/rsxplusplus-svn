@@ -403,7 +403,7 @@ OperaColors::FloodCacheItem::~FloodCacheItem() {
 		DeleteDC(hDC);
 	}
 }
-
+//RSX++
 void OperaColors::StealthyFill(CDC& dc, int x1, int y1, int x2, int y2, COLORREF c) {
 	if(x2 <= x1 || y2 <= y1 || x2 > 10000)
 		return;
@@ -421,3 +421,4 @@ void OperaColors::StealthyFill(CDC& dc, int x1, int y1, int x2, int y2, COLORREF
 		DeleteObject(::SelectObject(dc, oldPen));
 	}
 }
+//END

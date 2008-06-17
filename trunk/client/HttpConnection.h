@@ -21,6 +21,8 @@
 
 #include "BufferedSocket.h"
 
+namespace dcpp {
+
 class HttpConnection;
 
 class HttpConnectionListener {
@@ -82,9 +84,11 @@ private:
 	
 };
 
+} // namespace dcpp
+
 #endif // !defined(HTTP_CONNECTION_H)
 
 /**
  * @file
- * $Id: HttpConnection.h 317 2007-08-04 14:52:24Z bigmuscle $
+ * $Id: HttpConnection.h 373 2008-02-06 17:23:49Z bigmuscle $
  */

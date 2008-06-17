@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2007 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,8 @@
 #include "HashManager.h"
 #include "Download.h"
 #include "File.h"
+
+namespace dcpp {
 
 namespace {
 	const string TEMP_EXTENSION = ".dctmp";
@@ -68,7 +70,7 @@ const string& QueueItem::getTempTarget() {
 	if(!isSet(QueueItem::FLAG_USER_LIST) && tempTarget.empty()) {
 		if(!SETTING(TEMP_DOWNLOAD_DIRECTORY).empty() && (File::getSize(getTarget()) == -1)) {
 #ifdef _WIN32
-			::StringMap sm;
+			dcpp::StringMap sm;
 			if(target.length() >= 3 && target[1] == ':' && target[2] == '\\')
 				sm["targetdrive"] = target.substr(0, 3);
 			else
@@ -86,27 +88,27 @@ int64_t QueueItem::getAverageSpeed() const {
 	int64_t totalSpeed = 0;
 	
 	for(DownloadList::const_iterator i = downloads.begin(); i != downloads.end(); i++) {
-		totalSpeed += static_cast<int64_t>((*i)->getAverageSpeed());
+		totalSpeed += (*i)->getAverageSpeed();
 	}
 
 	return totalSpeed;
 }
 
-Segment QueueItem::getNextSegment(int64_t  blockSize, int64_t userSpeed, const PartialSource::Ptr partialSource) const {
-	if(!BOOLSETTING(MULTI_CHUNK) && isRunning()) {
+Segment QueueItem::getNextSegment(int64_t  blockSize, int64_t wantedSize, int64_t lastSpeed, const PartialSource::Ptr partialSource) const {
+	if(getSize() == -1 || blockSize == 0) {
+		return Segment(0, -1);
+	}
+	
+	if(!BOOLSETTING(MULTI_CHUNK) && !downloads.empty()) {
 		// file is already running and segmented downloads are disabled
-		return Segment(0, 0);
+		return Segment(-1, 0);
 	}
 
 	if(downloads.size() >= maxSegments ||
 		(BOOLSETTING(DONT_BEGIN_SEGMENT) && (size_t)(SETTING(DONT_BEGIN_SEGMENT_SPEED) * 1024) < getAverageSpeed()))
 	{
 		// no other segments if we have reached the speed or segment limit
-		return Segment(0, 0);
-	}
-
-	if(getSize() == -1 || blockSize == 0) {
-		return Segment(0, -1);
+		return Segment(-1, 0);
 	}
 
 	/* added for PFS */
@@ -123,32 +125,31 @@ Segment QueueItem::getNextSegment(int64_t  blockSize, int64_t userSpeed, const P
 
 	/***************************/
 
-	int64_t start = 0;
-	int64_t maxSize = std::max(blockSize, static_cast<int64_t>(1024 * 1024));
-
-	if(userSpeed > 0) {
-		// get the speed of average chunk
-		int64_t averageChunkSpeed = downloads.size() > 0 ? getAverageSpeed() / downloads.size() : 25600;
-		if(averageChunkSpeed == 0) averageChunkSpeed = 25600;
-
-		// set maxSize according to user's lastSpeed
-		double x = max(1.0, (double)userSpeed / (double)averageChunkSpeed);
-		maxSize = (int64_t)((double)maxSize * x);
-
-		// chunk is still too small for this user
-		if(maxSize / userSpeed <= 5) {
-			maxSize *= 2;
-		}
+	int64_t targetSize;
+	if(BOOLSETTING(MULTI_CHUNK)) {
+		double done = static_cast<double>(getDownloadedBytes()) / getSize();
+		
+		// We want smaller blocks at the end of the transfer, squaring gives a nice curve...
+		targetSize = static_cast<int64_t>(static_cast<double>(wantedSize) * std::max(0.25, (1. - (done * done))));
+	} else {
+		targetSize = getSize() - getDownloadedBytes();
+	}
+		
+	if(targetSize > blockSize) {
+		// Round off to nearest block size
+		targetSize = ((targetSize + (blockSize / 2)) / blockSize) * blockSize;
+	} else {
+		targetSize = blockSize;
 	}
 
-	maxSize = ((maxSize + blockSize - 1) / blockSize) * blockSize; // Make sure we're on an even block boundary
-	int64_t curSize = maxSize;
+	int64_t start = 0;
+	int64_t curSize = targetSize;
 
 	while(start < getSize()) {
 		int64_t end = std::min(getSize(), start + curSize);
 		Segment block(start, end - start);
 		bool overlaps = false;
-		for(SegmentIter i = done.begin(); !overlaps && i != done.end(); ++i) {
+		for(SegmentConstIter i = done.begin(); !overlaps && i != done.end(); ++i) {
 			if(curSize <= blockSize) {
 				int64_t dstart = i->getStart();
 				int64_t dend = i->getEnd();
@@ -161,7 +162,7 @@ Segment QueueItem::getNextSegment(int64_t  blockSize, int64_t userSpeed, const P
 			}
 		}
 		
-		for(DownloadList::const_iterator i = downloads.begin(); !overlaps && i !=downloads.end(); ++i) {
+		for(DownloadList::const_iterator i = downloads.begin(); !overlaps && i != downloads.end(); ++i) {
 			overlaps = block.overlaps((*i)->getSegment());
 		}
 		
@@ -169,8 +170,15 @@ Segment QueueItem::getNextSegment(int64_t  blockSize, int64_t userSpeed, const P
 			if(partialSource) {
 				// store all chunks we could need
 				for(vector<int64_t>::const_iterator j = posArray.begin(); j < posArray.end(); j += 2){
-					if((*j) <= start && *(j+1) >= end) {					
-						neededParts.push_back(block);
+					if( (*j <= start && start < *(j+1)) || (start <= *j && *j < end) ) {
+						int64_t b = max(start, *j);
+						int64_t e = min(end, *(j+1));
+
+						// segment must be blockSize aligned
+						dcassert(b % blockSize == 0);
+						dcassert(e % blockSize == 0 || e == getSize());
+
+						neededParts.push_back(Segment(b, e - b));
 					}
 				}
 			} else {
@@ -182,7 +190,7 @@ Segment QueueItem::getNextSegment(int64_t  blockSize, int64_t userSpeed, const P
 			curSize -= blockSize;
 		} else {
 			start = end;
-			curSize = maxSize;
+			curSize = targetSize;
 		}
 	}
 
@@ -192,7 +200,36 @@ Segment QueueItem::getNextSegment(int64_t  blockSize, int64_t userSpeed, const P
 		return neededParts[Util::rand(0, neededParts.size())];
 	}
 	
-	// TODO: replace slow running downloads with fast user
+	if(partialSource == NULL && BOOLSETTING(OVERLAP_CHUNKS) && lastSpeed > 10*1024) {
+		// overlap slow running chunk only when new speed is more than 10 kB/s
+
+		for(DownloadList::const_iterator i = downloads.begin(); i != downloads.end(); ++i) {
+			Download* d = *i;
+			
+			// current chunk mustn't be already overlapped
+			if(d->getOverlapped())
+				continue;
+
+			// current chunk must be running at least for 2 seconds
+			if(d->getStart() == 0 || GET_TIME() - d->getStart() < 2000) 
+				continue;
+
+			// current chunk mustn't be finished in next 10 seconds
+			if(d->getSecondsLeft() < 10)
+				continue;
+
+			// overlap current chunk at last block boundary
+			int64_t pos = d->getPos() - (d->getPos() % blockSize);
+			int64_t size = d->getSize() - pos;
+
+			// new user should finish this chunk more than 2x faster
+			int64_t newChunkLeft = size / lastSpeed;
+			if(2 * newChunkLeft < d->getSecondsLeft()) {
+				dcdebug("Overlapping... old user: %I64d s, new user: %I64d s\n", d->getSecondsLeft(), newChunkLeft);
+				return Segment(d->getStartPos() + pos, size, true);
+			}
+		}
+	}
 
 	return Segment(0, 0);
 }
@@ -214,6 +251,7 @@ int64_t QueueItem::getDownloadedBytes() const {
 }
 
 void QueueItem::addSegment(const Segment& segment) {
+	dcassert(segment.getOverlapped() == false);
 	done.insert(segment);
 
 	// Consilidate segments
@@ -238,7 +276,7 @@ bool QueueItem::isSource(const PartsInfo& partsInfo, int64_t blockSize)
 {
 	dcassert(partsInfo.size() % 2 == 0);
 	
-	SegmentIter i  = done.begin();
+	SegmentConstIter i  = done.begin();
 	for(PartsInfo::const_iterator j = partsInfo.begin(); j != partsInfo.end(); j+=2){
 		while(i != done.end() && (*i).getEnd() <= (*j) * blockSize)
 			i++;
@@ -251,11 +289,11 @@ bool QueueItem::isSource(const PartsInfo& partsInfo, int64_t blockSize)
 
 }
 
-void QueueItem::getPartialInfo(PartsInfo& partialInfo, int64_t blockSize) {
+void QueueItem::getPartialInfo(PartsInfo& partialInfo, int64_t blockSize) const {
 	size_t maxSize = min(done.size() * 2, (size_t)510);
 	partialInfo.reserve(maxSize);
 
-	SegmentIter i = done.begin();
+	SegmentConstIter i = done.begin();
 	for(; i != done.end() && partialInfo.size() < maxSize; i++) {
 
 		uint16_t s = (uint16_t)((*i).getStart() / blockSize);
@@ -271,20 +309,25 @@ vector<Segment> QueueItem::getChunksVisualisation(int type) const {  // type: 0 
 
 	switch(type) {
 	case 0:
+		v.reserve(downloads.size());
 		for(DownloadList::const_iterator i = downloads.begin(); i != downloads.end(); ++i) {
 			v.push_back((*i)->getSegment());
 		}
 		break;
 	case 1:
+		v.reserve(downloads.size());
 		for(DownloadList::const_iterator i = downloads.begin(); i != downloads.end(); ++i) {
 			v.push_back(Segment((*i)->getStartPos(), (*i)->getPos()));
 		}
 		break;
 	case 2:
+		v.reserve(done.size());
 		for(SegmentSet::const_iterator i = done.begin(); i != done.end(); ++i) {
 			v.push_back(*i);
 		}
 		break;
 	}
 	return v;
+}
+
 }

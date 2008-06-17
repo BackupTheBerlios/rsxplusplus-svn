@@ -26,6 +26,7 @@
 
 #include "resource.h"
 #include "OMenu.h"
+#include "ExCImage.h" //RSX++
 
 class ChatCtrl;
 
@@ -120,7 +121,7 @@ public:
 		((T*)this)->getUserList().forEachSelected(&UserInfoBase::addFav);
 		return 0;
 	}
-	LRESULT onPrivateMessage(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+	virtual LRESULT onPrivateMessage(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
 		((T*)this)->getUserList().forEachSelected(&UserInfoBase::pm);
 		return 0;
 	}
@@ -164,24 +165,25 @@ public:
 
 	void appendUserItems(CMenu& menu) {
 		UserTraits traits = ((T*)this)->getUserList().forEachSelectedT(UserTraits()); 
-		menu.AppendMenu(MF_STRING, IDC_GETLIST, CTSTRING(GET_FILE_LIST));
-		if(traits.adcOnly)
-			menu.AppendMenu(MF_STRING, IDC_BROWSELIST, CTSTRING(BROWSE_FILE_LIST));
-		menu.AppendMenu(MF_STRING, IDC_MATCH_QUEUE, CTSTRING(MATCH_QUEUE));
+
 		menu.AppendMenu(MF_STRING, IDC_PRIVATEMESSAGE, CTSTRING(SEND_PRIVATE_MESSAGE));
+		menu.AppendMenu(MF_SEPARATOR);
+		menu.AppendMenu(MF_STRING, IDC_GETLIST, CTSTRING(GET_FILE_LIST));
+		menu.AppendMenu(MF_STRING, IDC_BROWSELIST, CTSTRING(BROWSE_FILE_LIST));
+		menu.AppendMenu(MF_STRING, IDC_MATCH_QUEUE, CTSTRING(MATCH_QUEUE));
+		menu.AppendMenu(MF_SEPARATOR);
 		if(!traits.favOnly)
 			menu.AppendMenu(MF_STRING, IDC_ADD_TO_FAVORITES, CTSTRING(ADD_TO_FAVORITES));
-		menu.AppendMenu(MF_POPUP, (UINT)(HMENU)WinUtil::grantMenu, CTSTRING(GRANT_SLOTS_MENU));
 		if(!traits.nonFavOnly)
 			menu.AppendMenu(MF_STRING, IDC_CONNECT, CTSTRING(CONNECT_FAVUSER_HUB));
 		menu.AppendMenu(MF_SEPARATOR);
 		menu.AppendMenu(MF_STRING, IDC_REMOVEALL, CTSTRING(REMOVE_FROM_ALL));
+		menu.AppendMenu(MF_POPUP, (UINT)(HMENU)WinUtil::grantMenu, CTSTRING(GRANT_SLOTS_MENU));
 	}
 
 };
 
 class FlatTabCtrl;
-class UserCommand;
 
 template<class T, int title, int ID = -1>
 class StaticFrame {
@@ -259,7 +261,11 @@ public:
 	static int fileImageCount;
 	static CImageList userImages;
 	static CImageList flagImages;
-
+	//RSX++
+	static ExCImage::Ptr fileImg;
+	static ExCImage::Ptr flagsImg; 
+	static ExCImage::Ptr usersImg;
+	//END
 	struct TextItem {
 		WORD itemID;
 		ResourceManager::Strings translatedString;
@@ -298,6 +304,7 @@ public:
 	static CHARFORMAT2 m_TextStyleBold;
 	static CHARFORMAT2 m_TextStyleFavUsers;
 	static CHARFORMAT2 m_TextStyleOPs;
+	static CHARFORMAT2 m_TextStyleProtected; //RSX++
 	static CHARFORMAT2 m_TextStyleURL;
 	static CHARFORMAT2 m_ChatTextPrivate;
 	static CHARFORMAT2 m_ChatTextLog;
@@ -328,7 +335,7 @@ public:
 	 * @param status Message that should be shown in the status line.
 	 * @return True if the command was processed, false otherwise.
 	 */
-	static bool checkCommand(tstring& cmd, tstring& param, tstring& message, tstring& status);
+	static bool checkCommand(tstring& cmd, tstring& param, tstring& message, tstring& status, bool& thirdPerson);
 
 	static int getTextWidth(const tstring& str, HWND hWnd) {
 		HDC dc = ::GetDC(hWnd);
@@ -381,7 +388,8 @@ public:
 
 	// Hash related
 	static void bitziLink(const TTHValue& /*aHash*/);
-	static void copyMagnet(const TTHValue& /*aHash*/, const tstring& /*aFile*/, int64_t);
+	static void copyMagnet(const TTHValue& /*aHash*/, const string& /*aFile*/, int64_t);
+	static tstring getMagnet(const TTHValue& /*aHash*/, const string& /*aFile*/, int64_t);
 	static void searchHash(const TTHValue& /*aHash*/);
 
 	// URL related
@@ -424,7 +432,7 @@ public:
 	static bool getUCParams(HWND parent, const UserCommand& cmd, StringMap& sm) throw();
 
 	static tstring getNicks(const CID& cid) throw();
-	static tstring getNicks(const UserPtr& u) { return u->isNMDC() ? Text::toT(u->getFirstNick()) : getNicks(u->getCID()); }
+	static tstring getNicks(const UserPtr& u) { return getNicks(u->getCID()); }
 	
 	/** @return Pair of hubnames as a string and a bool representing the user's online status */
 	static pair<tstring, bool> getHubNames(const CID& cid) throw();
@@ -471,7 +479,7 @@ public:
 
 	static void ClearPreviewMenu(OMenu &previewMenu);
 	static int SetupPreviewMenu(CMenu &previewMenu, string extension);
-	static void RunPreviewCommand(unsigned int index, string target);
+	static void RunPreviewCommand(unsigned int index, const string& target);
 	static string formatTime(uint64_t rest);
 	static uint8_t getFlagImage(const char* country, bool fullname = false);
 	static string generateStats();
@@ -484,8 +492,8 @@ public:
 	static tstring toYesNo(bool value);
 	static string CPUInfo();
 	static tstring getCompileInfo();
+	static tstring getWindowText(HWND _hwnd, int ctrlID);
 	//END
-
 private:
 	static int CALLBACK browseCallbackProc(HWND hwnd, UINT uMsg, LPARAM /*lp*/, LPARAM pData);
 
@@ -495,5 +503,5 @@ private:
 
 /**
  * @file
- * $Id: WinUtil.h 352 2007-12-31 14:22:12Z bigmuscle $
+ * $Id: WinUtil.h 389 2008-06-08 10:51:15Z BigMuscle $
  */

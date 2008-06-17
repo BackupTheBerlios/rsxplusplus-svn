@@ -23,6 +23,8 @@
 #include "Exception.h"
 #include "ResourceManager.h"
 
+namespace dcpp {
+	
 BZFilter::BZFilter() {
 	memzero(&zs, sizeof(zs));
 
@@ -100,7 +102,9 @@ bool UnBZFilter::operator()(const void* in, size_t& insize, void* out, size_t& o
 	return err == BZ_OK;
 }
 
+} // namespace dcpp
+
 /**
  * @file
- * $Id: BZUtils.cpp 317 2007-08-04 14:52:24Z bigmuscle $
+ * $Id: BZUtils.cpp 373 2008-02-06 17:23:49Z bigmuscle $
  */

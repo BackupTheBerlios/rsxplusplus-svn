@@ -14,6 +14,8 @@
 #include "SimpleXML.h"
 #include "forward.h"
 
+namespace dcpp {
+
 class IgnoreManager: public Singleton<IgnoreManager>, private RSXSettingsManagerListener
 {
 public:
@@ -47,5 +49,5 @@ private:
 	// contains the ignored nicks and patterns 
 	TStringHash ignoredUsers;
 };
-
+}; // namespace dcpp
 #endif // IGNOREMANAGER_H

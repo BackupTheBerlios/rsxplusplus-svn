@@ -27,6 +27,8 @@
 #include "CriticalSection.h"
 #include "Singleton.h"
 
+namespace dcpp {
+
 class ClientProfile {
 public:
 	typedef vector<ClientProfile> List;
@@ -238,4 +240,5 @@ private:
 	CriticalSection mipcs;
 	CriticalSection fgcs;
 };
+}; // namespace dcpp
 #endif //CLIENT_PROFILE_MANAGER_H

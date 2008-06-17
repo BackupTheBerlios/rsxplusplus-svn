@@ -16,10 +16,12 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef DCPLUSPLUS_CLIENT_DOWNLOADMANAGERLISTENER_H_
-#define DCPLUSPLUS_CLIENT_DOWNLOADMANAGERLISTENER_H_
+#ifndef DCPLUSPLUS_DCPP_DOWNLOADMANAGERLISTENER_H_
+#define DCPLUSPLUS_DCPP_DOWNLOADMANAGERLISTENER_H_
 
 #include "forward.h"
+
+namespace dcpp {
 
 /**
  * Use this listener interface to get progress information for downloads.
@@ -44,7 +46,7 @@ public:
 	typedef X<2> Starting;
 	typedef X<3> Tick;
 	typedef X<4> Status;
-	typedef X<5> CheckComplete; //RSX++
+
 	/**
 	 * This is the first message sent before a download starts.
 	 * No other messages will be sent before.
@@ -71,8 +73,8 @@ public:
 	 */
 	virtual void on(Failed, const Download*, const string&) throw() { }
 	virtual void on(Status, const UserConnection*, const string&) throw() { }
-	//RSX++
-	virtual void on(CheckComplete, const UserPtr, bool) throw() { }
 };
+
+} // namespace dcpp
 
 #endif /*DOWNLOADMANAGERLISTENER_H_*/

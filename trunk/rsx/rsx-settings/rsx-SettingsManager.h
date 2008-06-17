@@ -21,6 +21,8 @@
 #include "../../client/Speaker.h"
 #include "../../client/Singleton.h"
 
+namespace dcpp {
+
 class SimpleXML;
 
 class RSXSettingsManagerListener {
@@ -52,6 +54,7 @@ public:
 		CLIPBOARD_TEXT_ONE, CLIPBOARD_TEXT_TWO, CLIPBOARD_TEXT_THREE, CLIPBOARD_TEXT_FOUR, CLIPBOARD_TEXT_FIVE, CLIPBOARD_TEXT_SIX,
 
 		HIGH_PRIO_FILES, LOW_PRIO_FILES, SKIPLIST_SHARE, SKIPLIST_DOWNLOAD, PROFILE_VER_URL,
+		BETAPASS, BETAUSER,
 		STR_LAST };
 
 	enum IntSetting { INT_FIRST = STR_LAST + 1,
@@ -198,5 +201,7 @@ private:
 #define RSXSETTING(k) (RSXSettingsManager::getInstance()->get(RSXSettingsManager::k, true))
 #define RSXBOOLSETTING(k) (RSXSettingsManager::getInstance()->getBool(RSXSettingsManager::k, true))
 #define RSXS_SET(x,y) (RSXSettingsManager::getInstance()->set(RSXSettingsManager::x, y));
+
+}; // namespace dcpp
 
 #endif // !defined(RSX_SETTINGS_MANAGER_H)

@@ -39,9 +39,12 @@
 #include "DirectoryListing.h"
 
 //RSX++
-#include "../rsx/RegExpHandler.h"
+#include "../rsx/RegexUtil.h"
 #include "MerkleTree.h"
 //END
+
+namespace dcpp {
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 //	Class that represent an ADL search
@@ -148,13 +151,16 @@ public:
 	// Negative values means do not check.
 	int64_t minFileSize;
 	int64_t maxFileSize;
+
 	enum SizeType {
 		SizeBytes     = TypeFirst,
 		SizeKiloBytes,
 		SizeMegaBytes,
 		SizeGigaBytes
 	};
+
 	SizeType typeFileSize;
+
 	SizeType StringToSizeType(const string& s) {
 		if(Util::stricmp(s.c_str(), "B") == 0) {
 			return SizeBytes;
@@ -168,6 +174,7 @@ public:
 			return SizeBytes;
 		}
 	}
+
 	string SizeTypeToString(SizeType t) {
 		switch(t) {
 		default:
@@ -177,6 +184,7 @@ public:
 		case SizeGigaBytes:	return "GB";
 		}
 	}
+	
 	tstring SizeTypeToDisplayString(SizeType t) {
 		switch(t) {
 		default:
@@ -186,6 +194,7 @@ public:
 		case SizeGigaBytes:	return CTSTRING(GB);
 		}
 	}
+
 	int64_t GetSizeBase() {
 		switch(typeFileSize) {
 		default:
@@ -264,7 +273,7 @@ private:
 	}
 	//RSX++
 	bool SearchAllRegexp(const string& s) {
-		return RegexpHandler::matchProfile(s, searchString, isCaseSensitive);
+		return RegexUtil::match(s, searchString, isCaseSensitive);
 	}
 
 	bool SearchAllTTH(const TTHValue& root) {
@@ -307,7 +316,6 @@ public:
 	// Settings
 	GETSET(UserPtr, user, User)
 	GETSET(bool, breakOnFirst, BreakOnFirst)
-	GETSET(bool, sentRaw, SentRaw);
 
 	// @remarks Used to add ADLSearch directories to an existing DirectoryListing
 	void matchListing(DirectoryListing& /*aDirList*/) throw();
@@ -356,9 +364,11 @@ private:
 	string getConfigFile() { return Util::getConfigPath() + "ADLSearch.xml"; }
 };
 
+} // namespace dcpp
+
 #endif // !defined(ADL_SEARCH_H)
 
 /**
  * @file
- * $Id: ADLSearch.h 317 2007-08-04 14:52:24Z bigmuscle $
+ * $Id: ADLSearch.h 373 2008-02-06 17:23:49Z bigmuscle $
   */

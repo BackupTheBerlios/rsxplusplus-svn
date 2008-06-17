@@ -1,8 +1,8 @@
 // @Prolog: #include "stdinc.h"
 // @Prolog: #include "DCPlusPlus.h"
 // @Prolog: #include "ResourceManager.h"
-// @Strings: string ResourceManager::strings[]
-// @Names: string ResourceManager::names[]
+// @Strings: std::string dcpp::ResourceManager::strings[]
+// @Names: std::string dcpp::ResourceManager::names[]
 
 enum Strings { // @DontAdd
 	ACCEPTED_DISCONNECTS, // "Accepted Disconnects"
@@ -35,7 +35,6 @@ enum Strings { // @DontAdd
 	ALTERNATES_SEND, // "Searching TTH alternates for: "
 	ANTI_PASSIVE_SEARCH, // "-- WARNING --\r\n-- You are in active mode, but have activated passive search. --\r\n-- Don't use passive search if you have search results without this option --\r\n-- because you don't get search result from passive clients !!! --\r\n-- Turn it off in settings => RSX++ => Always use Passive Mode for Search --\r\n"
 	ANY, // "Any"
-	ASCROLL_CHAT, // "Autoscroll chat"
 	AT_LEAST, // "At least"
 	AT_MOST, // "At most"
 	AUDIO, // "Audio"
@@ -51,7 +50,6 @@ enum Strings { // @DontAdd
 	B, // "B"
 	BALLOON_POPUPS, // "Balloon popups"
 	BITZI_LOOKUP, // "Bitzi Lookup"
-	BLOCK_FINISHED, // "Segment Block Finished, waiting..."
 	BOTH_USERS_OFFLINE, // "Both users offline"
 	BROWSE, // "Browse..."
 	BROWSE_ACCEL, // "&Browse..."
@@ -90,17 +88,10 @@ enum Strings { // @DontAdd
 	CONNECTION_TIMEOUT, // "Connection timeout"
 	CONTINUE_SEARCH, // "Continue Search"
 	COPY, // "Copy"
-	COPY_ALL, // "Copy All"
-	COPY_DESCRIPTION, // "Copy description"
-	COPY_EMAIL_ADDRESS, // "Copy email address"
-	COPY_EXACT_SHARE, // "Copy Exact Share"
 	COPY_HUB, // "Copy address to clipboard"
-	COPY_IP, // "Copy IP"
 	COPY_LINE, // "Copy actual line"
 	COPY_MAGNET_LINK, // "Copy magnet link to clipboard"
 	COPY_NICK, // "Copy nick"
-	COPY_NICK_IP, // "Copy Nick+IP"
-	COPY_TAG, // "Copy TAG"
 	COPY_URL, // "Copy URL"
 	COULD_NOT_OPEN_TARGET_FILE, // "Could not open target file: "
 	COUNT, // "Count"
@@ -147,7 +138,6 @@ enum Strings { // @DontAdd
 	EDIT_ACCEL, // "&Edit"
 	EMAIL, // "E-Mail"
 	ENABLE_MULTI_SOURCE, // "Enable multi-source"
-	ENABLE_REAL_UPLOAD_QUEUE, // "Enable real upload queue"
 	ENTER_NICK, // "Please enter a nickname in the settings dialog!"
 	ENTER_PASSWORD, // "Please enter a password"
 	ENTER_SEARCH_STRING, // "Enter search string"
@@ -381,7 +371,6 @@ enum Strings { // @DontAdd
 	MOVE_DOWN, // "Move &Down"
 	MOVE_UP, // "Move &Up"
 	MYNICK_IN_CHAT, // "My nick in mainchat"
-	NETLIMITER_WARNING, // "NetLimiter was detected in your computer. It is frequently responsible for RSX++ crash, upload disconnecting and slow download speed. Please uninstall it and use an alternate product, or built-in limiter."
 	NETWORK_STATISTICS, // "Network Statistics"
 	NEW, // "&New..."
 	NEW_DISCONNECT, // "Remove user from queue, if speed is below"
@@ -417,6 +406,8 @@ enum Strings { // @DontAdd
 	OPEN_FOLDER, // "Open folder"
 	OPEN_HUB_LOG, // "Open hub log"
 	OPEN_USER_LOG, // "Open user log"
+	OVERLAP_CHUNKS, // "Overlap slow chunks by faster user when file is going to be finished"
+	OVERLAPPED_SLOW_SEGMENT, // "Overlapped by faster user"
 	PARTS, // "Parts: "
 	PASSIVE_USER, // "Passive user"
 	PASSWORD, // "Password"
@@ -565,7 +556,6 @@ enum Strings { // @DontAdd
 	SETTINGS_AUTO_SEARCH_AUTO_MATCH, // "Automatically match queue for auto search hits"
 	SETTINGS_AUTO_SEARCH_LIMIT, // "Max sources for autosearch"
 	SETTINGS_AVIPREVIEW, // "File Preview"
-	SETTINGS_BAD_SOFTWARE, // "Enable bad software detection"
 	SETTINGS_BIND_ADDRESS, // "Bind address"
 	SETTINGS_BIND_ADDRESS_HELP, // "Network interface for all connections"
 	SETTINGS_BOLD_OPTIONS, // "Tab highlight on content change"
@@ -651,7 +641,6 @@ enum Strings { // @DontAdd
 	SETTINGS_NAME, // "Name"
 	SETTINGS_NETWORK, // "Connection settings"
 	SETTINGS_NO_AWAYMSG_TO_BOTS, // "Don't send the away message to bots"
-	SETTINGS_NOMINAL_BANDWIDTH, // "Nominal bandwidth"
 	SETTINGS_NORMAL, // "Normal"
 	SETTINGS_ODC_SHUTDOWNTIMEOUT, // "timeout"
 	SETTINGS_ONLY_HASHED, // "Note; Files appear in the share only after they've been hashed!"
@@ -731,7 +720,6 @@ enum Strings { // @DontAdd
 	SETTINGS_USE_OLD_SHARING_UI, // "Use old sharing user interface"
 	SETTINGS_USE_SYSTEM_ICONS, // "Use system icons when browsing files (slows browsing down a bit)"
 	SETTINGS_USE_TLS, // "Use TLS when remote client supports it"
-	SETTINGS_USE_VERTICAL_VIEW, // "Use vertical view by default"
 	SETTINGS_USER_COLORS, // "User List Colors"
 	SETTINGS_USER_COMMANDS, // "User Commands"
 	SETTINGS_USER_MENU, // "User Menu Items"
@@ -913,7 +901,8 @@ enum Strings { // @DontAdd
 	SETTINGS_LOG_WEBSERVER, // "Log webserver"
 	SETTINGS_RAW_CMD_LOG, // "Log Raw Commands"
 	SETTINGS_STARTUP_PRIORITY, // "Startup process priority:"
-	
+	SETTINGS_NOMINAL_BANDWIDTH, // "Nominal bandwidth"
+
 	SETTINGS_SHOW_CLIENT_NEW_VER, // "Notify on new Client Profile Version"
 	SETTINGS_SHOW_MYINFO_NEW_VER,  // "Notify on new MyINFO Profile Version"
 	SETTINGS_SHOW_IPWATCH_NEW_VER,  // "Notify on new IP Watch Version"
@@ -923,6 +912,9 @@ enum Strings { // @DontAdd
 	SETTINGS_IPW_ACTION, // "Action"
 	SETTINGS_IPW_IP, // "IP"
 	SETTINGS_IPW_RAW, // "Raw"
+
+	COLOR_PROTECTED, // "User is protected"
+	PROTECTED, // "Protected"
 
 	ACTION_EXISTS, // "This Action already exists"
 	NO_NAME_SPECIFIED, // "No name was specified"

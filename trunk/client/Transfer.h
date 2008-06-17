@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2007 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,8 +16,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef DCPLUSPLUS_CLIENT_TRANSFER_H_
-#define DCPLUSPLUS_CLIENT_TRANSFER_H_
+#ifndef DCPLUSPLUS_DCPP_TRANSFER_H_
+#define DCPLUSPLUS_DCPP_TRANSFER_H_
 
 #include "forward.h"
 #include "MerkleTree.h"
@@ -25,6 +25,8 @@
 #include "Util.h"
 #include "CriticalSection.h"
 #include "Segment.h"
+
+namespace dcpp {
 
 class Transfer {
 public:
@@ -51,7 +53,7 @@ public:
 
 	void addPos(int64_t aBytes, int64_t aActual) { pos += aBytes; actual+= aActual; }
 
-	enum { SAMPLES = 15 };
+	enum { MIN_SAMPLES = 15, MIN_SECS = 15 };
 	
 	/** Record a sample for average calculation */
 	void tick();
@@ -61,13 +63,12 @@ public:
 	int64_t getSize() const { return getSegment().getSize(); }
 	void setSize(int64_t size) { segment.setSize(size); }
 
-	double getAverageSpeed() const;
+	bool getOverlapped() const { return getSegment().getOverlapped(); }
+	void setOverlapped(bool overlap) { segment.setOverlapped(overlap); }
 
-	int64_t getSecondsLeft(bool wholeFile = false);
+	int64_t getAverageSpeed() const;
 
-	int64_t getBytesLeft() const {
-		return getSize() - getPos();
-	}
+	int64_t getSecondsLeft(bool wholeFile = false) const;
 
 	void getParams(const UserConnection& aSource, StringMap& params) const;
 
@@ -83,7 +84,6 @@ public:
 	GETSET(Segment, segment, Segment);
 	GETSET(Type, type, Type);
 	GETSET(uint64_t, start, Start);
-	GETSET(uint64_t, lastTick, LastTick);
 private:
 	
 	typedef std::pair<uint64_t, int64_t> Sample;
@@ -106,5 +106,7 @@ private:
 
 	UserConnection& userConnection;
 };
+
+} // namespace dcpp
 
 #endif /*TRANSFER_H_*/

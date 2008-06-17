@@ -17,14 +17,14 @@
  */
 
 #include "stdafx.h"
-#include "../client/DCPlusPlus.h"
-#include "Resource.h"
 
+#include "../client/DCPlusPlus.h"
+#include "../client/SettingsManager.h"
+
+#include "Resource.h"
 #include "DownloadPage.h"
 #include "WinUtil.h"
 #include "PublicHubsListDlg.h"
-
-#include "../client/SettingsManager.h"
 
 PropPage::TextItem DownloadPage::texts[] = {
 	{ IDC_SETTINGS_DIRECTORIES, ResourceManager::SETTINGS_DIRECTORIES }, 
@@ -130,5 +130,5 @@ LRESULT DownloadPage::onClickedListConfigure(WORD /*wNotifyCode*/, WORD /*wID*/,
 
 /**
  * @file
- * $Id: DownloadPage.cpp 213 2006-05-08 08:36:23Z bigmuscle $
+ * $Id: DownloadPage.cpp 373 2008-02-06 17:23:49Z bigmuscle $
  */

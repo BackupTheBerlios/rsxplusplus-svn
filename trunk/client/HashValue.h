@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2007 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,11 +16,13 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#if !defined(HASH_VALUE_H)
-#define HASH_VALUE_H
+#ifndef DCPLUSPLUS_DCPP_HASH_VALUE_H
+#define DCPLUSPLUS_DCPP_HASH_VALUE_H
 
 #include "FastAlloc.h"
 #include "Encoder.h"
+
+namespace dcpp {
 
 template<class Hasher>
 struct HashValue : FastAlloc<HashValue<Hasher> >{
@@ -40,23 +42,27 @@ struct HashValue : FastAlloc<HashValue<Hasher> >{
 	bool operator!=(const HashValue& rhs) const { return !(*this == rhs); }
 	bool operator==(const HashValue& rhs) const { return memcmp(data, rhs.data, BYTES) == 0; }
 	bool operator<(const HashValue& rhs) const { return memcmp(data, rhs.data, BYTES) < 0; }
-
+#ifdef NATIVE_MSVC_TR1
+	operator size_t() const { return *(size_t*)data; }
+#endif //NATIVE_MSVC_TR1
 	std::string toBase32() const { return Encoder::toBase32(data, BYTES); }
 	std::string& toBase32(std::string& tmp) const { return Encoder::toBase32(data, BYTES, tmp); }
 
 	uint8_t data[BYTES];
 };
 
+} // namespace dcpp
+#ifndef NATIVE_MSVC_TR1
 namespace std {
 template<typename T>
-struct hash<::HashValue<T> > {
-	size_t operator()(const ::HashValue<T>& rhs) const { return *(size_t*)rhs.data; }
+struct hash<dcpp::HashValue<T> > {
+	size_t operator()(const dcpp::HashValue<T>& rhs) const { return *(size_t*)rhs.data; }
 };
 }
-
+#endif //NATIVE_MSVC_TR1
 #endif // !defined(HASH_VALUE_H)
 
 /**
 * @file
-* $Id: HashValue.h 358 2008-01-17 10:48:01Z bigmuscle $
+* $Id: HashValue.h 373 2008-02-06 17:23:49Z bigmuscle $
 */

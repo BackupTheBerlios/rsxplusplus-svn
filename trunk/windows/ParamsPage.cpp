@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "../client/DCPlusPlus.h"
+#include "../client/SettingsManager.h"
 #include "Resource.h"
 
 #include "ParamsPage.h"
@@ -7,12 +8,6 @@
 
 #include "../rsx/rsx-settings/rsx-SettingsManager.h"
 #include "../client/ClientProfileManager.h"
-
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[] = __FILE__;
-#endif
 
 #define BUFLEN 256
 

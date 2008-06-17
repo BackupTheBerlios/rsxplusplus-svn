@@ -17,14 +17,14 @@
  */
 
 #include "stdafx.h"
+
 #include "../client/DCPlusPlus.h"
-#include "Resource.h"
-
-#include "UCPage.h"
-#include "CommandDlg.h"
-
 #include "../client/SettingsManager.h"
 #include "../client/FavoriteManager.h"
+
+#include "Resource.h"
+#include "UCPage.h"
+#include "CommandDlg.h"
 #include "WinUtil.h"
 
 PropPage::TextItem UCPage::texts[] = {
@@ -205,5 +205,5 @@ void UCPage::write() {
 
 /**
  * @file
- * $Id: UCPage.cpp 298 2007-07-06 13:59:59Z bigmuscle $
+ * $Id: UCPage.cpp 373 2008-02-06 17:23:49Z bigmuscle $
  */

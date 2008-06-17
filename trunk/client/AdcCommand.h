@@ -22,6 +22,8 @@
 #include "SettingsManager.h"
 #include "Exception.h"
 
+namespace dcpp {
+
 STANDARD_EXCEPTION(ParseException);
 
 class CID;
@@ -206,9 +208,11 @@ public:
 	}
 };
 
+} // namespace dcpp
+
 #endif // !defined(ADC_COMMAND_H)
 
 /**
 * @file
-* $Id: AdcCommand.h 340 2007-12-20 12:30:13Z bigmuscle $
+* $Id: AdcCommand.h 373 2008-02-06 17:23:49Z bigmuscle $
 */

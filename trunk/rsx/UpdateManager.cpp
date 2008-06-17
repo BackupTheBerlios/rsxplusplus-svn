@@ -19,68 +19,205 @@
 #include "../client/stdinc.h"
 #include "../client/DCPlusPlus.h"
 
-#include "UpdateManager.h"
+#include "../client/Util.h"
+#include "../client/SimpleXML.h"
+#include "../client/LogManager.h"
+#include "../client/version.h"
 
-UpdateManager::UpdateManager() : c(NULL), current(0), working(false) { 
-	c = new HttpConnection;
+#include "rsx-settings/rsx-SettingsManager.h"
+
+#include "UpdateManager.h"
+#include "HTTPDownloadManager.h"
+
+namespace dcpp {
+
+UpdateManager::UpdateManager() {
+	TimerManager::getInstance()->addListener(this);
+	// 3-6 h
+	minutes = Util::rand(180, 360);
 }
 
 UpdateManager::~UpdateManager() {
-	if(c) {
-		c->removeListeners();
-		delete c;
-		c = NULL;
-	}
-	
-	items.clear();
+	TimerManager::getInstance()->removeListener(this);
 }
 
-void UpdateManager::downloadFile(int _id, const string& aUrl) {
+void UpdateManager::runUpdate() {
+	resetInfo();
+	HTTPDownloadManager::getInstance()->addRequest(boost::bind(&UpdateManager::onVersionXml, this, _1, _2), VERSION_URL);
+}
+
+void UpdateManager::resetInfo() {
 	Lock l(cs);
-	UpdateItems::iterator i = items.find(_id);
-	if(i != items.end()) {
+
+	clientCache.version = "N/A";
+	clientCache.message = Util::emptyString;
+	clientCache.url = Util::emptyString;
+	clientCache.veryOldVersion = 0;
+	clientCache.svnbuild = 0;
+	clientCache.badVersions.clear();
+
+	profilesCache.profileName = Util::emptyString;
+	profilesCache.profileUrl = Util::emptyString;
+	profilesCache.clientProfile.first = "N/A";
+	profilesCache.clientProfile.second = Util::emptyString;
+	profilesCache.myInfoProfile.first = "N/A";
+	profilesCache.myInfoProfile.second = Util::emptyString;
+	profilesCache.ipWatchProfile.first = "N/A";
+	profilesCache.ipWatchProfile.second = Util::emptyString;
+}
+
+void UpdateManager::onVersionXml(string content, bool isFailed) {
+	Lock l(cs);
+	if(isFailed) {
+		LogManager::getInstance()->message("[UpdateCheck]Error: " + content);
+	} else {
+		try {
+			SimpleXML xml;
+			xml.fromXML(content);
+
+			if(xml.findChild("DCUpdate")) {
+				xml.stepIn();
+				if(xml.findChild("Version")) {
+					clientCache.version = xml.getChildData();
+				}
+				xml.resetCurrentChild();
+				if(xml.findChild("SVN")) {
+					clientCache.svnbuild = Util::toInt(xml.getChildData());
+				}
+				xml.resetCurrentChild();
+				if(xml.findChild("URL")) {
+					clientCache.url = xml.getChildData();
+				}
+				xml.resetCurrentChild();
+				while(xml.findChild("Message")) {
+					clientCache.message += xml.getChildData();
+				}
+				xml.resetCurrentChild();
+				if(xml.findChild("VeryOldVersion")) {
+					clientCache.veryOldVersion = Util::toDouble(xml.getChildData());
+				}
+				xml.resetCurrentChild();
+				if(xml.findChild("BadVersion")) {
+					xml.stepIn();
+					while(xml.findChild("BadVersion")) {
+						double v = Util::toDouble(xml.getChildAttrib("SVN"));
+						clientCache.badVersions.push_back(v);
+					}
+					xml.stepOut();
+				}
+				xml.resetCurrentChild();
+				xml.stepOut();
+			}
+		} catch(const Exception& e) {
+			LogManager::getInstance()->message("[UpdateCheck]Error: " + e.getError());
+		}
+	}
+	const string& profileXml = RSXSETTING(PROFILE_VER_URL) + "profileVersion.xml";
+	HTTPDownloadManager::getInstance()->addRequest(boost::bind(&UpdateManager::onProfileVersionXml, this, _1, _2), profileXml);
+}
+
+void UpdateManager::onProfileVersionXml(string content, bool isFailed) {
+	Lock l(cs);
+	if(isFailed) {
+		LogManager::getInstance()->message("[UpdateCheck]Error: " + content);
+	} else {
+		try {
+			SimpleXML xml;
+			xml.fromXML(content);
+
+			if(xml.findChild("ProfileVersionInfo")) {
+				xml.stepIn();
+				if(xml.findChild("Info")) {
+					xml.stepIn();
+					if(xml.findChild("Name")) {
+						profilesCache.profileName = xml.getChildData();
+					}
+					if(xml.findChild("URL")) {
+						profilesCache.profileUrl = xml.getChildData();
+					}
+					xml.stepOut();
+					xml.resetCurrentChild();
+				}
+				if(xml.findChild("ClientProfile")) {
+					xml.stepIn();
+					if(xml.findChild("Version")) {
+						profilesCache.clientProfile.first = xml.getChildData();
+					}
+					while(xml.findChild("Comment")) {
+						profilesCache.clientProfile.second += xml.getChildData();
+					}
+					xml.stepOut();
+					xml.resetCurrentChild();
+				}
+				if(xml.findChild("MyInfoProfile")) {
+					xml.stepIn();
+					if(xml.findChild("Version")) {
+						profilesCache.myInfoProfile.first = xml.getChildData();
+					}
+					while(xml.findChild("Comment")) {
+						profilesCache.myInfoProfile.second += xml.getChildData();
+					}
+					xml.stepOut();
+					xml.resetCurrentChild();
+				}
+				if(xml.findChild("IpWatch")) {
+					xml.stepIn();
+					if(xml.findChild("Version")) {
+						profilesCache.ipWatchProfile.first = xml.getChildData();
+					}
+					while(xml.findChild("Comment")) {
+						profilesCache.ipWatchProfile.second += xml.getChildData();
+					}
+					xml.stepOut();
+					xml.resetCurrentChild();
+				}
+				/*if(xml.findChild("Autosearch")) {
+					xml.stepIn();
+					string ver, comment;
+					if(xml.findChild("Version")) {
+						ver = xml.getChildData();
+					}
+					if(xml.findChild("Comment")) {
+						comment = xml.getChildData();
+					}
+					xml.stepOut();
+					xml.resetCurrentChild();
+				}
+				if(xml.findChild("AdlSearch")) {
+					xml.stepIn();
+					string ver, comment;
+					if(xml.findChild("Version")) {
+						ver = xml.getChildData();
+					}
+					if(xml.findChild("Comment")) {
+						comment = xml.getChildData();
+					}
+					xml.stepOut();
+					xml.resetCurrentChild();
+				}*/
+				xml.stepOut();
+			}
+		} catch(const Exception& e) {
+			LogManager::getInstance()->message("[UpdateCheck]Error: " + e.getError());
+		}
+	}
+	// call listeners
+	fire(UpdateManagerListener::VersionUpdated(), clientCache, profilesCache);
+}
+
+void UpdateManager::on(TimerManagerListener::Minute, uint64_t) throw() {
+	if(minutes < 0) {
+		Lock l(cs);
+		runUpdate();
+		minutes = Util::rand(180, 360);
 		return;
 	}
-
-	working = !items.empty();
-	items.insert(make_pair(_id, aUrl));
-
-	if(!working) {
-		startDownload();
-	}
+	minutes--;
 }
 
-void UpdateManager::startDownload() {
-	Lock l(cs);
-	current = 0;
-	downBuf = Util::emptyString;
-	working = true;
-	UpdateItems::const_iterator i = items.begin();
-	if(i != items.end() && c) {
-		current = i->first;
-		c->addListener(this);
-		c->downloadFile(i->second);
-	}
-}
+} // namespace dcpp
 
-void UpdateManager::on(HttpConnectionListener::Complete, HttpConnection* conn, const string&) throw() {
-	{
-		Lock l(cs);
-		items.erase(current);
-	}
-	conn->removeListener(this);
-	working = false;
-	fire(UpdateManagerListener::Complete(), downBuf, current);
-	startDownload();
-}
-
-void UpdateManager::on(HttpConnectionListener::Failed, HttpConnection* conn, const string& aLine) throw() {
-	{
-		Lock l(cs);
-		items.erase(current);
-	}
-	conn->removeListener(this);
-	working = false;
-	fire(UpdateManagerListener::Failed(), aLine, current);
-	startDownload();
-}
+/**
+ * @file
+ * $Id$
+ */

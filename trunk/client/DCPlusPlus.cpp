@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2001-2007 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,9 +39,11 @@
 #include "../rsx/IpManager.h"
 #include "../rsx/RsxUtil.h"
 #include "../rsx/AutoSearchManager.h"
-#include "../rsx/PluginAPI/PluginsManager.h"
+#include "../rsx/HTTPDownloadManager.h"
+#include "PluginsManager.h"
 #include "RawManager.h"
 #include "ScriptManager.h"
+#include "DetectionManager.h"
 ////////////////////////////////////////////////////////////
 #include "IgnoreManager.h"
 
@@ -52,6 +54,7 @@
 #include "WebServerManager.h"
 #include "../windows/PopupManager.h"
 #include "../windows/ToolbarManager.h"
+#include "../windows/ExCImage.h"
 
 /*
 #ifdef _STLP_DEBUG
@@ -61,6 +64,8 @@ void __stl_debug_terminate() {
 }
 #endif
 */
+
+namespace dcpp {
 
 void startup(void (*f)(void*, const tstring&), void* p) {
 	// "Dedicated to the near-memory of Nev. Let's start remembering people while they're still alive."
@@ -98,6 +103,8 @@ void startup(void (*f)(void*, const tstring&), void* p) {
 	ClientProfileManager::newInstance();	
 	PopupManager::newInstance();
 	//RSX++ //instances
+	HTTPDownloadManager::newInstance();
+	DetectionManager::newInstance();
 	ToolbarManager::newInstance();
 	IgnoreManager::newInstance();
 	ScriptManager::newInstance();
@@ -105,6 +112,7 @@ void startup(void (*f)(void*, const tstring&), void* p) {
 	AutoSearchManager::newInstance();
 	IpManager::newInstance();
 	PluginsManager::newInstance();
+	ResourceLoader::newInstance();
 	//END
 
 	SettingsManager::getInstance()->load();
@@ -122,6 +130,7 @@ void startup(void (*f)(void*, const tstring&), void* p) {
 	FavoriteManager::getInstance()->load();
 	CryptoManager::getInstance()->loadCertificates();
 	ClientProfileManager::getInstance()->load();
+	DetectionManager::getInstance()->load();
 
 	WebServerManager::newInstance();
 
@@ -163,6 +172,9 @@ void shutdown() {
 	ToolbarManager::deleteInstance();
 	IgnoreManager::deleteInstance();
 	AutoSearchManager::deleteInstance();
+	DetectionManager::deleteInstance();
+	HTTPDownloadManager::deleteInstance();
+	ResourceLoader::deleteInstance();
 	//END
 	WebServerManager::deleteInstance();
 	ClientProfileManager::deleteInstance();	
@@ -192,7 +204,9 @@ void shutdown() {
 #endif
 }
 
+} // namespace dcpp
+
 /**
  * @file
- * $Id: DCPlusPlus.cpp 317 2007-08-04 14:52:24Z bigmuscle $
+ * $Id: DCPlusPlus.cpp 385 2008-04-26 13:05:09Z BigMuscle $
  */

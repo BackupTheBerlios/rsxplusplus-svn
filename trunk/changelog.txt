@@ -1,3 +1,7 @@
+** RSX++ 1.00 ** xx/xx/2008
+ ** fixed many smaller and bigger bugs
+ ** fixed rare and often deadlocks
+
 ** RSX++ 1.00 Beta 3 ** 23/02/2008
  ** fixed major problems with some deadlocks
  ** Threaded MyINFO check temporary suspended due to instability

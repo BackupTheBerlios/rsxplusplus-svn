@@ -48,7 +48,8 @@ private:
 	int fastColour;
 	int serverColour;
 	int pasiveColour;
-	int opColour; 
+	int opColour;
+	int protectedColour; //RSX++
 	int clientCheckedColour;
 	int fileListCheckedColour;
 	int fullCheckedColour;

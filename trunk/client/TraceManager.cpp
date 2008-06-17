@@ -21,6 +21,7 @@
 
 #include "TraceManager.h"
 
+namespace dcpp {
 
 TraceManager* Singleton<TraceManager>::instance = NULL;
 
@@ -89,8 +90,9 @@ void CDECL TraceManager::trace_end(const char* format, ...) throw()
 	va_end(args);
 }
 
+} // namespace dcpp
 
 /**
  * @file
- * $Id: TraceManager.cpp 9 2004-05-04 15:48:58Z bigmuscle $
+ * $Id: TraceManager.cpp 373 2008-02-06 17:23:49Z bigmuscle $
  */

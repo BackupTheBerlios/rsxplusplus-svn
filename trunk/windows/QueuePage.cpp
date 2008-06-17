@@ -17,15 +17,15 @@
  */
 
 #include "stdafx.h"
+
 #include "../client/DCPlusPlus.h"
-#include "Resource.h"
-
-#include "QueuePage.h"
-#include "CommandDlg.h"
-
 #include "../client/SettingsManager.h"
+
 #include "../rsx/rsx-settings/rsx-SettingsManager.h" //RSX++
 
+#include "Resource.h"
+#include "QueuePage.h"
+#include "CommandDlg.h"
 #include "WinUtil.h"
 
 PropPage::TextItem QueuePage::texts[] = {
@@ -80,6 +80,7 @@ PropPage::ListItem QueuePage::optionItems[] = {
 	{ SettingsManager::DONT_DL_ALREADY_SHARED, ResourceManager::SETTINGS_DONT_DL_ALREADY_SHARED },
 	{ SettingsManager::ANTI_FRAG, ResourceManager::SETTINGS_ANTI_FRAG },
 	{ SettingsManager::AUTO_PRIORITY_DEFAULT ,ResourceManager::SETTINGS_AUTO_PRIORITY_DEFAULT },
+	{ SettingsManager::OVERLAP_CHUNKS ,ResourceManager::OVERLAP_CHUNKS },
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
 
@@ -121,5 +122,5 @@ void QueuePage::write() {
 
 /**
  * @file
- * $Id: QueuePage.cpp 316 2007-08-01 20:08:20Z bigmuscle $
+ * $Id: QueuePage.cpp 373 2008-02-06 17:23:49Z bigmuscle $
  */

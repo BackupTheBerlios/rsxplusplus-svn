@@ -21,6 +21,8 @@
 
 #include "TigerHash.h"
 
+namespace dcpp {
+
 #ifdef _WIN32
 #if defined(_M_X64)
 #define TIGER_ARCH64
@@ -757,7 +759,9 @@ uint64_t TigerHash::table[4*256] = {
 		_ULL(0xC83223F1720AEF96)   /* 1022 */,    _ULL(0xC3A0396F7363A51F)   /* 1023 */
 };
 
+} // namespace dcpp
+
 /**
  * @file
- * $Id: TigerHash.cpp 317 2007-08-04 14:52:24Z bigmuscle $
+ * $Id: TigerHash.cpp 373 2008-02-06 17:23:49Z bigmuscle $
  */

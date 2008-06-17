@@ -17,6 +17,8 @@
 #ifndef RSXUTIL_H
 #define RSXUTIL_H
 
+namespace dcpp {
+
 class RsxUtil {
 public:
 	enum ProcessPrio {
@@ -51,8 +53,7 @@ public:
 	static int				CalcContrastColor(int crBg);
 	static bool				isIpInRange(const string& aIp, const string& aRange);
 	static tstring			formatAdditionalInfo(const string& aIp, bool sIp, bool sCC);
-	static string			getSlowDLCheat(double dlSpeed);
-	static UINT				str2wmmsg(const string& str);
+	static tstring			getWndTitle();
 
 	//simple function from cplusplus.com with changes ;)
 	template<int len>
@@ -69,6 +70,8 @@ public:
 
 private:
 	static string tmpTestSur;
-	static StringList tags;
 };
+
+}; // namespace dcpp
+
 #endif //RSXUTIL_H

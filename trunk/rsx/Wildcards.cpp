@@ -14,6 +14,8 @@
 
 #include "wildcards.h"
 
+namespace dcpp {
+
 int Wildcard::wildcardfit(const char *wildcard, const char *test, bool useSet) {
   int fit = 1;
   
@@ -306,3 +308,4 @@ bool Wildcard::patternMatch(const wstring& text, const wstring& patternlist, wch
 	}
 	return bMatched;
 }
+}; // namespace dcpp

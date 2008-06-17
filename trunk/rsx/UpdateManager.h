@@ -16,48 +16,53 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef UPDATE_MANAGER_H
-#define UPDATE_MANAGER_H
+#ifndef RSXPLUSPLUS_UPDATE_MANAGER_H
+#define RSXPLUSPLUS_UPDATE_MANAGER_H
 
 #include "../client/Singleton.h"
 #include "../client/HttpConnection.h"
 #include "../client/CriticalSection.h"
+#include "../client/TimerManager.h"
 
 #include "UpdateManagerListener.h"
 
-class UpdateManager : public Singleton<UpdateManager>, public Speaker<UpdateManagerListener>, private HttpConnectionListener {
+namespace dcpp {
+
+class UpdateManager : public Singleton<UpdateManager>, public Speaker<UpdateManagerListener>, private TimerManagerListener {
 public:
-
-	enum {
-		CLIENT = 0,
-		MYINFO = 1,
-		IPWATCH = 2,
-		VERSION = 3,
-		PROFILE_VERSION = 4
-	};
-
 	UpdateManager();
 	~UpdateManager();	
 
-	void downloadFile(int _id, const string& aUrl);
-
-private:
-	friend class Singleton<UpdateManager>;
-	typedef unordered_map<int, string> UpdateItems;
-	bool working;
-
-	void startDownload();
-
-	void on(HttpConnectionListener::Complete, HttpConnection*, const string&) throw();
-	void on(HttpConnectionListener::Failed, HttpConnection*, const string& aLine) throw();
-	void on(HttpConnectionListener::Data, HttpConnection*, const uint8_t* buf, size_t len) throw() {
-		downBuf.append((char*)buf, len);
+	void getCacheInfo(VersionInfo::Client& c, VersionInfo::Profiles& p) {
+		c = clientCache;
+		p = profilesCache;
 	}
 
-	int current;
+	void runUpdate();
+	std::string getLatestVersion() const {
+		return clientCache.version;
+	}
+
+private:
+	void resetInfo();
+
+	friend class Singleton<UpdateManager>;
+
+	VersionInfo::Client clientCache;
+	VersionInfo::Profiles profilesCache;
+
+	void onVersionXml(string content, bool isFailed);
+	void onProfileVersionXml(string content, bool isFailed);
+
+	void on(TimerManagerListener::Minute, uint64_t) throw();
+	int minutes;
+
 	CriticalSection cs;
-	HttpConnection* c;
-	string downBuf;
-	UpdateItems items;
 };
+} // namespace dcpp
 #endif
+
+/**
+ * @file
+ * $Id$
+ */

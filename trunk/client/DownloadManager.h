@@ -16,8 +16,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef DCPLUSPLUS_CLIENT_DOWNLOAD_MANAGER_H
-#define DCPLUSPLUS_CLIENT_DOWNLOAD_MANAGER_H
+#ifndef DCPLUSPLUS_DCPP_DOWNLOAD_MANAGER_H
+#define DCPLUSPLUS_DCPP_DOWNLOAD_MANAGER_H
 
 #include "forward.h"
 
@@ -29,6 +29,8 @@
 #include "MerkleTree.h"
 #include "Speaker.h"
 #include "File.h"
+
+namespace dcpp {
 
 /**
  * Singleton. Use its listener interface to update the download list
@@ -107,9 +109,11 @@ private:
 	void on(TimerManagerListener::Second, uint64_t aTick) throw();
 };
 
+} // namespace dcpp
+
 #endif // !defined(DOWNLOAD_MANAGER_H)
 
 /**
  * @file
- * $Id: DownloadManager.h 350 2007-12-30 17:21:56Z bigmuscle $
+ * $Id: DownloadManager.h 378 2008-02-22 10:45:30Z bigmuscle $
  */

@@ -16,17 +16,19 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef DCPLUSPLUS_CLIENT_TASK_H
-#define DCPLUSPLUS_CLIENT_TASK_H
+#ifndef DCPLUSPLUS_DCPP_TASK_H
+#define DCPLUSPLUS_DCPP_TASK_H
 
 #include "CriticalSection.h"
+
+namespace dcpp {
 
 struct Task {
 	virtual ~Task() { };
 };
 struct StringTask : public Task {
 	StringTask(const string& str_) : str(str_) { }
-	const string str;
+	string str;
 };
 
 class TaskQueue {
@@ -59,5 +61,7 @@ private:
 	CriticalSection cs;
 	List tasks;
 };
+
+} // namespace dcpp
 
 #endif

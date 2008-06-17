@@ -17,11 +17,12 @@
  */
 
 #include "stdafx.h"
-#include "../client/DCPlusPlus.h"
-#include "Resource.h"
 
-#include "Sounds.h"
+#include "../client/DCPlusPlus.h"
 #include "../client/SettingsManager.h"
+
+#include "Resource.h"
+#include "Sounds.h"
 #include "WinUtil.h"
 
 PropPage::TextItem Sounds::texts[] = {
@@ -140,6 +141,6 @@ LRESULT Sounds::onPlay(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOO
 }
 /**
  * @file
- * $Id: Sounds.cpp 273 2007-01-02 12:40:01Z bigmuscle $
+ * $Id: Sounds.cpp 373 2008-02-06 17:23:49Z bigmuscle $
  */
 

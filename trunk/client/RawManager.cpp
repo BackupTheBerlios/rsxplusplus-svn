@@ -25,6 +25,7 @@
 
 #define RAW_FILE "Raws.xml"
 
+namespace dcpp {
 RawManager::RawManager() : lastAction(0) {
 	loadActionRaws(); 
 	TimerManager::getInstance()->addListener(this);
@@ -437,7 +438,7 @@ int RawSelector::getIdAction(int id) {
 		return 0;
 	return i->second;
 }
-
+} // namespace dcpp
 /**
  * @file
  * $Id: RawManager.cpp 42 2007-10-31 18:27:40Z adrian_007 $

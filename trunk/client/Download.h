@@ -1,5 +1,5 @@
-#ifndef DCPLUSPLUS_CLIENT_DOWNLOAD_H_
-#define DCPLUSPLUS_CLIENT_DOWNLOAD_H_
+#ifndef DCPLUSPLUS_DCPP_DOWNLOAD_H_
+#define DCPLUSPLUS_DCPP_DOWNLOAD_H_
 
 #include "forward.h"
 #include "Transfer.h"
@@ -8,24 +8,25 @@
 #include "Streams.h"
 #include "QueueItem.h"
 
+namespace dcpp {
+
 /**
  * Comes as an argument in the DownloadManagerListener functions.
  * Use it to retrieve information about the ongoing transfer.
  */
 class Download : public Transfer, public Flags {
 public:
-	static const string ANTI_FRAG_EXT;
 
 	enum {
 		FLAG_ZDOWNLOAD			= 0x01,
-		FLAG_ANTI_FRAG			= 0x02,
-		FLAG_CHUNKED			= 0x04,
-		FLAG_TTH_CHECK			= 0x08,
-		FLAG_TESTSUR			= 0x10,
-		FLAG_CHECK_FILE_LIST	= 0x20,
-		FLAG_OVERLAPPED			= 0x40,
-		FLAG_XML_BZ_LIST		= 0x80,
-		FLAG_PARTIAL			= 0x100
+		FLAG_CHUNKED			= 0x02,
+		FLAG_TTH_CHECK			= 0x04,
+		FLAG_TESTSUR			= 0x08,
+		FLAG_CHECK_FILE_LIST	= 0x10,
+		FLAG_SLOWUSER			= 0x20,
+		FLAG_XML_BZ_LIST		= 0x40,
+		FLAG_PARTIAL			= 0x80,
+		FLAG_OVERLAP			= 0x100
 	};
 
 	Download(UserConnection& conn, const string& pfsDir) throw();
@@ -43,7 +44,7 @@ public:
 	/** @internal */
 	string getDownloadTarget() const {
 		const string& tgt = (getTempTarget().empty() ? getPath() : getTempTarget());
-		return isSet(FLAG_ANTI_FRAG) ? tgt + ANTI_FRAG_EXT : tgt;
+		return tgt;
 	}
 
 	/** @internal */
@@ -68,5 +69,6 @@ private:
 	string pfs;
 };
 
+} // namespace dcpp
 
 #endif /*DOWNLOAD_H_*/

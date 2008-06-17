@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2007 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,7 +31,9 @@
 #include "CryptoManager.h"
 #include "ResourceManager.h"
 #include "LogManager.h"
-#include "../rsx/PluginAPI/PluginsManager.h"
+#include "PluginsManager.h"
+
+namespace dcpp {
 
 const string AdcHub::CLIENT_PROTOCOL("ADC/1.0");
 const string AdcHub::CLIENT_PROTOCOL_TEST("ADC/0.10");
@@ -89,7 +91,7 @@ OnlineUser* AdcHub::findUser(const CID& aCID) const {
 	return 0;
 }
 
-void AdcHub::putUser(const uint32_t aSID) {
+void AdcHub::putUser(const uint32_t aSID, bool disconnect) {
 	OnlineUser* ou = 0;
 	{
 		Lock l(cs);
@@ -103,7 +105,7 @@ void AdcHub::putUser(const uint32_t aSID) {
 	}
 
 	if(aSID != AdcCommand::HUB_SID)
-		ClientManager::getInstance()->putOffline(ou);
+		ClientManager::getInstance()->putOffline(ou, disconnect);
 
 	fire(ClientListener::UserRemoved(), this, *ou);
 	ou->dec();
@@ -177,10 +179,6 @@ void AdcHub::handle(AdcCommand::INF, AdcCommand& c) throw() {
 		u->getUser()->unsetFlag(User::BOT);
 	}
 
-	if(u->getUser()->getFirstNick().empty()) {
-		u->getUser()->setFirstNick(u->getIdentity().getNick());
-	}
-
 	if(u->getIdentity().supports(ADCS_FEATURE)) {
 		u->getUser()->setFlag(User::TLS);
 	}
@@ -238,8 +236,8 @@ void AdcHub::handle(AdcCommand::SUP, AdcCommand& c) throw() {
 	}
 	
 	if(!baseOk) {
-		fire(ClientListener::StatusMessage(), this, "Failed to negotiate base protocol"); // @todo internationalize
-		socket->disconnect(false);
+		fire(ClientListener::StatusMessage(), this, "Failed to negotiate base protocol");
+		disconnect(false);
 		return;
 	} else if(!tigrOk) {
 		oldPassword = true;
@@ -281,9 +279,9 @@ void AdcHub::handle(AdcCommand::MSG, AdcCommand& c) throw() {
 		if(!replyTo)
 			return;
 
-		fire(ClientListener::PrivateMessage(), this, *from, *to, *replyTo, c.getParam(0));
+		fire(ClientListener::PrivateMessage(), this, *from, *to, *replyTo, c.getParam(0), c.hasFlag("ME", 1));
 	} else {
-		fire(ClientListener::Message(), this, *from, c.getParam(0));
+		fire(ClientListener::Message(), this, *from, c.getParam(0), c.hasFlag("ME", 1));
 	}
 }
 
@@ -298,12 +296,29 @@ void AdcHub::handle(AdcCommand::GPA, AdcCommand& c) throw() {
 
 void AdcHub::handle(AdcCommand::QUI, AdcCommand& c) throw() {
 	uint32_t s = AdcCommand::toSID(c.getParam(0));
-	putUser(s); // @todo: use the DI flag
+
+	OnlineUser* victim = findUser(s);
+	if(!victim) {
+		return;
+	}
 
 	string tmp;
 	if(c.getParam("MS", 1, tmp)) {
-		fire(ClientListener::StatusMessage(), this, tmp);
+		OnlineUser* source = 0;
+		string tmp2;
+		if(c.getParam("ID", 1, tmp2)) {
+			source = findUser(AdcCommand::toSID(tmp2));
+		}
+	
+		if(source) {
+			tmp = victim->getIdentity().getNick() + " was kicked by " +	source->getIdentity().getNick() + ": " + tmp;
+		} else {
+			tmp = victim->getIdentity().getNick() + " was kicked: " + tmp;
+		}
+		fire(ClientListener::StatusMessage(), this, tmp, ClientListener::FLAG_IS_SPAM);
 	}
+
+	putUser(s, c.getParam("DI", 1, tmp)); 
 	
 	if(s == sid) {
 		if(c.getParam("TL", 1, tmp)) {
@@ -454,6 +469,7 @@ void AdcHub::sendUDP(const AdcCommand& cmd) throw() {
 		udp.writeTo(ip, port, command);
 	} catch(const SocketException& e) {
 		dcdebug("AdcHub::sendUDP: write failed: %s\n", e.getError().c_str());
+		udp.close();
 	}
 }
 
@@ -599,16 +615,25 @@ void AdcHub::connect(const OnlineUser& user, string const& token, bool secure) {
 	}
 }
 
-void AdcHub::hubMessage(const string& aMessage) {
+void AdcHub::hubMessage(const string& aMessage, bool thirdPerson) {
 	if(state != STATE_NORMAL)
 		return;
-	send(AdcCommand(AdcCommand::CMD_MSG, AdcCommand::TYPE_BROADCAST).addParam(aMessage));
+	AdcCommand c(AdcCommand::CMD_MSG, AdcCommand::TYPE_BROADCAST);
+	c.addParam(aMessage);
+	if(thirdPerson)
+		c.addParam("ME", "1");
+	send(c);
 }
 
-void AdcHub::privateMessage(const OnlineUser& user, const string& aMessage) {
+void AdcHub::privateMessage(const OnlineUser& user, const string& aMessage, bool thirdPerson) {
 	if(state != STATE_NORMAL)
 		return;
-	send(AdcCommand(AdcCommand::CMD_MSG, user.getIdentity().getSID(), AdcCommand::TYPE_ECHO).addParam(aMessage).addParam("PM", getMySID()));
+	AdcCommand c(AdcCommand::CMD_MSG, user.getIdentity().getSID(), AdcCommand::TYPE_ECHO);
+	c.addParam(aMessage);
+	if(thirdPerson)
+		c.addParam("ME", "1");
+	c.addParam("PM", getMySID());
+	send(c);
 }
 
 void AdcHub::search(int aSizeMode, int64_t aSize, int aFileType, const string& aString, const string& aToken) {
@@ -651,15 +676,15 @@ void AdcHub::password(const string& pwd) {
 		return;
 	if(!salt.empty()) {
 		size_t saltBytes = salt.size() * 5 / 8;
-		AutoArray<uint8_t> buf(saltBytes);
-		Encoder::fromBase32(salt.c_str(), buf, saltBytes);
+		boost::scoped_array<uint8_t> buf(new uint8_t[saltBytes]);
+		Encoder::fromBase32(salt.c_str(), &buf[0], saltBytes);
 		TigerHash th;
 		if(oldPassword) {
 			CID cid = getMyIdentity().getUser()->getCID();
 			th.update(cid.data(), CID::SIZE);
 		}
 		th.update(pwd.data(), pwd.length());
-		th.update(buf, saltBytes);
+		th.update(&buf[0], saltBytes);
 		send(AdcCommand(AdcCommand::CMD_PAS, AdcCommand::TYPE_HUB).addParam(Encoder::toBase32(th.finalize(), TigerHash::BYTES)));
 		salt.clear();
 	}
@@ -704,7 +729,7 @@ void AdcHub::info(bool /*alwaysSend*/) {
 	addParam(lastInfoMap, c, "HN", Util::toString(counts.normal));
 	addParam(lastInfoMap, c, "HR", Util::toString(counts.registered));
 	addParam(lastInfoMap, c, "HO", Util::toString(counts.op));
-	addParam(lastInfoMap, c, "VE", getStealth() ? ("++ " DCVERSIONSTRING) : ("RSX++ " VERSIONSTRING));
+	addParam(lastInfoMap, c, "VE", "RSX++ " VERSIONSTRING);
 
 	if (SETTING(THROTTLE_ENABLE) && SETTING(MAX_UPLOAD_SPEED_LIMIT) != 0) {
 		addParam(lastInfoMap, c, "US", Util::toString(SETTING(MAX_UPLOAD_SPEED_LIMIT)*1024*8));
@@ -747,6 +772,16 @@ void AdcHub::info(bool /*alwaysSend*/) {
 	if(c.getParameters().size() > 0) {
 		send(c);
 	}
+}
+
+void AdcHub::refreshUserList(bool) {
+	Lock l(cs);
+
+	OnlineUser::List v;
+	for(SIDIter i = users.begin(); i != users.end(); ++i) {
+		v.push_back(i->second);
+	}
+	fire(ClientListener::UsersUpdated(), this, v);
 }
 
 string AdcHub::checkNick(const string& aNick) {
@@ -807,7 +842,9 @@ void AdcHub::on(Second s, uint64_t aTick) throw() {
 	}
 }
 
+} // namespace dcpp
+
 /**
  * @file
- * $Id: AdcHub.cpp 358 2008-01-17 10:48:01Z bigmuscle $
+ * $Id: AdcHub.cpp 386 2008-05-10 19:29:01Z BigMuscle $
  */

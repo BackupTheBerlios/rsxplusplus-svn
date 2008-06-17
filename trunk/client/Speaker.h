@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2007 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,10 +16,12 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#if !defined(SPEAKER_H)
-#define SPEAKER_H
+#ifndef DCPLUSPLUS_DCPP_SPEAKER_H
+#define DCPLUSPLUS_DCPP_SPEAKER_H
 
 #include "CriticalSection.h"
+
+namespace dcpp {
 
 template<typename Listener>
 class Speaker {
@@ -134,9 +136,11 @@ protected:
 	CriticalSection listenerCS;
 };
 
+} // namespace dcpp
+
 #endif // !defined(SPEAKER_H)
 
 /**
  * @file
- * $Id: Speaker.h 317 2007-08-04 14:52:24Z bigmuscle $
+ * $Id: Speaker.h 382 2008-03-09 10:40:22Z BigMuscle $
  */

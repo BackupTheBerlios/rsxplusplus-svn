@@ -468,9 +468,12 @@ LRESULT PublicHubsFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, 
 
 LRESULT PublicHubsFrame::onFilterChar(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled) {
 	if(wParam == VK_RETURN) {
-		AutoArray<TCHAR> str(ctrlFilter.GetWindowTextLength()+1);
-		ctrlFilter.GetWindowText(str, ctrlFilter.GetWindowTextLength()+1);
-		filter = Text::fromT(tstring(str, ctrlFilter.GetWindowTextLength()));
+		tstring tmp;
+		tmp.resize(ctrlFilter.GetWindowTextLength());
+		ctrlFilter.GetWindowText(&tmp[0], tmp.size() + 1);
+
+		filter = Text::fromT(tmp);
+
 		updateList();
 	} else {
 		bHandled = FALSE;
@@ -647,5 +650,5 @@ void PublicHubsFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/) thro
 
 /**
  * @file
- * $Id: PublicHubsFrm.cpp 292 2007-06-13 12:15:07Z bigmuscle $
+ * $Id: PublicHubsFrm.cpp 382 2008-03-09 10:40:22Z BigMuscle $
  */

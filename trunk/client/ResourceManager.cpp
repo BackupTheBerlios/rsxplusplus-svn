@@ -25,6 +25,8 @@
 #include "File.h"
 #include "Text.h"
 
+namespace dcpp {
+	
 wstring ResourceManager::wstrings[ResourceManager::LAST];
 
 void ResourceManager::loadLanguage(const string& aFile) {
@@ -68,7 +70,9 @@ void ResourceManager::createWide() {
 	}
 }
 
+} // namespace dcpp
+
 /**
  * @file
- * $Id: ResourceManager.cpp 326 2007-09-01 16:55:01Z bigmuscle $
+ * $Id: ResourceManager.cpp 373 2008-02-06 17:23:49Z bigmuscle $
  */

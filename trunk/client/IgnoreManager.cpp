@@ -12,6 +12,8 @@
 #include "../rsx/Wildcards.h"
 #include "ClientManager.h"
 
+namespace dcpp {
+
 void IgnoreManager::load(SimpleXML& aXml) {
 	if(aXml.findChild("IgnoreList")) {
 		aXml.stepIn();
@@ -79,3 +81,4 @@ void IgnoreManager::on(RSXSettingsManagerListener::Load, SimpleXML& aXml) {
 void IgnoreManager::on(RSXSettingsManagerListener::Save, SimpleXML& aXml) {
 	save(aXml);
 }
+}; // namespace dcpp

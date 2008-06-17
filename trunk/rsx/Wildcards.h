@@ -21,6 +21,7 @@
 //       '[a-g]l*i?n' matches 'florian'
 //       '[!abc]*e' matches 'smile'
 //       '[-z] matches 'a'
+namespace dcpp {
 
 class Wildcard {
 public:
@@ -50,5 +51,5 @@ private:
   static int asterisk (const char **wildcard, const char **test);
   static int asterisk (const wchar_t **wildcard, const wchar_t **test);
 };
-
+}; // namespace dcpp
 #endif

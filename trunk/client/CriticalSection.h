@@ -21,6 +21,8 @@
 
 #include "Thread.h"
 
+namespace dcpp {
+
 class CriticalSection  
 {
 #ifdef _WIN32
@@ -116,9 +118,11 @@ private:
 typedef LockBase<CriticalSection> Lock;
 typedef LockBase<FastCriticalSection> FastLock;
 
+} // namespace dcpp
+
 #endif // !defined(CRITICAL_SECTION_H)
 
 /**
  * @file
- * $Id: CriticalSection.h 317 2007-08-04 14:52:24Z bigmuscle $
+ * $Id: CriticalSection.h 373 2008-02-06 17:23:49Z bigmuscle $
  */

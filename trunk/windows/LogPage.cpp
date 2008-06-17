@@ -17,13 +17,14 @@
  */
 
 #include "stdafx.h"
-#include "../client/DCPlusPlus.h"
-#include "Resource.h"
 
-#include "LogPage.h"
+#include "../client/DCPlusPlus.h"
 #include "../client/SettingsManager.h"
 #include "../client/LogManager.h"
 #include "../client/File.h"
+
+#include "Resource.h"
+#include "LogPage.h"
 #include "WinUtil.h"
 
 
@@ -157,5 +158,5 @@ LRESULT LogPage::onClickedBrowseDir(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
 
 /**
  * @file
- * $Id: LogPage.cpp 252 2006-09-23 19:24:39Z bigmuscle $
+ * $Id: LogPage.cpp 373 2008-02-06 17:23:49Z bigmuscle $
  */

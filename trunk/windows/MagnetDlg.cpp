@@ -105,5 +105,5 @@ LRESULT MagnetDlg::onRadioButton(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*
 
 /**
 * @file
-* $Id: MagnetDlg.cpp 357 2008-01-12 19:01:33Z bigmuscle $
+* $Id: MagnetDlg.cpp 362 2008-01-23 14:22:17Z bigmuscle $
 */

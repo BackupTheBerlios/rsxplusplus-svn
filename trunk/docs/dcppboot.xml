@@ -12,5 +12,5 @@
 
 	-->
 
-	<ConfigPath>.\Settings\</ConfigPath>
+	<ConfigPath>Settings\</ConfigPath>
 </Boot>

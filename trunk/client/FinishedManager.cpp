@@ -31,6 +31,8 @@
 #include "LogManager.h"
 #include "ResourceManager.h"
 
+namespace dcpp {
+
 FinishedManager::FinishedManager() { 
 	QueueManager::getInstance()->addListener(this);
 	UploadManager::getInstance()->addListener(this);
@@ -67,7 +69,7 @@ void FinishedManager::removeAll(bool upload /* = false */) {
 	}
 }
 
-void FinishedManager::on(QueueManagerListener::Finished, const QueueItem* qi, const string&, int64_t speed) throw()
+void FinishedManager::on(QueueManagerListener::Finished, const QueueItem* qi, const string&, const Download* d) throw()
 {
 	bool isFile = !qi->isSet(QueueItem::FLAG_USER_LIST) && !qi->isSet(QueueItem::FLAG_TESTSUR);
 
@@ -77,23 +79,25 @@ void FinishedManager::on(QueueManagerListener::Finished, const QueueItem* qi, co
 		
 	if(isFile || (qi->isSet(QueueItem::FLAG_USER_LIST) && BOOLSETTING(LOG_FILELIST_TRANSFERS))) {
 		uint64_t time = GET_TICK() - qi->getFileBegin();
-		UserPtr user = qi->getSources().size() == 1 ? qi->getSources()[0].getUser() : UserPtr();
 		
 		FinishedItemPtr item = new FinishedItem(
-			qi->getTarget(), user,
-			user ? Util::toString(ClientManager::getInstance()->getHubNames(user->getCID())) : Util::emptyString,
-			qi->getSize(), (int64_t)(((double)time / 1000) * speed), time, GET_TIME(), qi->getTTH().toBase32());
+			qi->getTarget(), d->getUser(),
+			Util::toString(ClientManager::getInstance()->getHubNames(d->getUser()->getCID())),
+			qi->getSize(), (int64_t)(((double)time / 1000) * d->getAverageSpeed()), time, GET_TIME(), qi->getTTH().toBase32());
 		{
 			Lock l(cs);
 			downloads.push_back(item);
 		}
 			
 		fire(FinishedManagerListener::AddedDl(), item);
-	
+		//RSX++
+		if(qi->isSet(QueueItem::FLAG_CHECK_FILE_LIST))
+			return;
+		//END
 		size_t BUF_SIZE = STRING(FINISHED_DOWNLOAD).size() + MAX_PATH + 128;
 		char* buf = new char[BUF_SIZE];
 		snprintf(buf, BUF_SIZE, CSTRING(FINISHED_DOWNLOAD), Util::getFileName(qi->getTarget()).c_str(), 
-			user ? Util::toString(ClientManager::getInstance()->getNicks(user->getCID())).c_str() : Util::emptyString.c_str());
+			Util::toString(ClientManager::getInstance()->getNicks(d->getUser()->getCID())).c_str());
 
 		LogManager::getInstance()->message(buf);
 		delete[] buf;
@@ -162,7 +166,9 @@ bool FinishedManager::handlePartialRequest(const TTHValue& tth, vector<uint16_t>
 	return true;
 }
 
+} // namespace dcpp
+
 /**
  * @file
- * $Id: FinishedManager.cpp 349 2007-12-28 21:30:39Z bigmuscle $
+ * $Id: FinishedManager.cpp 373 2008-02-06 17:23:49Z bigmuscle $
  */

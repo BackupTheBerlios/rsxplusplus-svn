@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2001-2007 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,6 +36,8 @@
 #include "UserConnection.h"
 #include "QueueManager.h"
 #include "FinishedManager.h"
+
+namespace dcpp {
 
 static const string UPLOAD_AREA = "Uploads";
 
@@ -78,7 +80,7 @@ bool UploadManager::prepareFile(UserConnection& aSource, const string& aType, co
 	}
 	//RSX++
 	if(aFile.find("TestSUR") != string::npos) {
-		LogManager::getInstance()->message("User: " + aSource.getUser()->getFirstNick() + " (" + aSource.getRemoteIp() + ") testing me!");
+		LogManager::getInstance()->message("User: " + aSource.getUser()->getNick() + " (" + aSource.getRemoteIp() + ") testing me!");
 	}
 	//END
 	InputStream* is = 0;
@@ -129,7 +131,7 @@ bool UploadManager::prepareFile(UserConnection& aSource, const string& aType, co
 					return false;
 				}
 
-				free = free || (fileSize <= (int64_t)(SETTING(SET_MINISLOT_SIZE) * 1024) );
+				free = free || (sz <= (int64_t)(SETTING(SET_MINISLOT_SIZE) * 1024) );
 
 				f->setPos(start);
 				is = f;
@@ -184,13 +186,11 @@ bool UploadManager::prepareFile(UserConnection& aSource, const string& aType, co
 				try {
 					File* f = new File(sourceFile, File::READ, File::OPEN | File::SHARED);
 					
-					is = f;
 					start = aStartPos;
-					int64_t sz = f->getSize();
-					size = (aBytes == -1) ? sz - start : aBytes;
-					fileSize = sz;
-
-					if((start + size) > sz) {
+					fileSize = f->getSize();
+					size = (aBytes == -1) ? fileSize - start : aBytes;
+					
+					if((start + size) > fileSize) {
 						aSource.fileNotAvail();
 						delete f;
 						return false;
@@ -198,7 +198,8 @@ bool UploadManager::prepareFile(UserConnection& aSource, const string& aType, co
 
 					f->setPos(start);
 					is = f;
-					if((start + size) < sz) {
+
+					if((start + size) < fileSize) {
 						is = new LimitedInputStream<true>(is, size);
 					}
 
@@ -265,7 +266,7 @@ ok:
 	if(!aSource.isSet(UserConnection::FLAG_HASSLOT)) {
 		bool hasReserved = (reservedSlots.find(aSource.getUser()) != reservedSlots.end());
 		bool isFavorite = FavoriteManager::getInstance()->hasSlot(aSource.getUser());
-		bool hasFreeSlot = (getFreeSlots() > 0) && (!BOOLSETTING(ENABLE_REAL_UPLOAD_QUEUE) || (waitingUsers.empty() && connectingUsers.empty()) || isConnecting(aSource.getUser()));
+		bool hasFreeSlot = (getFreeSlots() > 0) && ((waitingUsers.empty() && connectingUsers.empty()) || isConnecting(aSource.getUser()));
 			
 		if(!(hasReserved || isFavorite || getAutoSlot() || hasFreeSlot)) {
 			bool supportsFree = aSource.isSet(UserConnection::FLAG_SUPPORTS_MINISLOTS);
@@ -323,6 +324,8 @@ ok:
 
 	uploads.push_back(u);
 
+	throttleSetup();
+
 	if(!aSource.isSet(UserConnection::FLAG_HASSLOT)) {
 		if(extraSlot) {
 			if(!aSource.isSet(UserConnection::FLAG_HASEXTRASLOT)) {
@@ -347,7 +350,7 @@ int64_t UploadManager::getRunningAverage() {
 	int64_t avg = 0;
 	for(UploadList::const_iterator i = uploads.begin(); i != uploads.end(); ++i) {
 		Upload* u = *i;
-		avg += static_cast<int64_t>(u->getAverageSpeed());
+		avg += u->getAverageSpeed();
 	}
 	return avg;
 }
@@ -368,8 +371,9 @@ void UploadManager::removeUpload(Upload* aUpload, bool delay) {
 	dcassert(find(uploads.begin(), uploads.end(), aUpload) != uploads.end());
 	uploads.erase(remove(uploads.begin(), uploads.end(), aUpload), uploads.end());
 	
+	throttleSetup();
+
 	if(delay) {
-		aUpload->setStart(GET_TICK());
 		delayUploads.push_back(aUpload);
 	} else {
 		delete aUpload;
@@ -415,6 +419,7 @@ void UploadManager::on(UserConnectionListener::Send, UserConnection* aSource) th
 	dcassert(u != NULL);
 
 	u->setStart(GET_TICK());
+	u->tick();
 	aSource->setState(UserConnection::STATE_RUNNING);
 	aSource->transmitFile(u->getStream());
 	fire(UploadManagerListener::Starting(), u);
@@ -449,6 +454,7 @@ void UploadManager::on(AdcCommand::GET, UserConnection* aSource, const AdcComman
 		aSource->send(cmd);
 
 		u->setStart(GET_TICK());
+		u->tick();
 		aSource->setState(UserConnection::STATE_RUNNING);
 		aSource->transmitFile(u->getStream());
 		fire(UploadManagerListener::Starting(), u);
@@ -460,6 +466,7 @@ void UploadManager::on(UserConnectionListener::BytesSent, UserConnection* aSourc
 	Upload* u = aSource->getUpload();
 	dcassert(u != NULL);
 	u->addPos(aBytes, aActual);
+	u->tick();
 }
 
 void UploadManager::on(UserConnectionListener::Failed, UserConnection* aSource, const string& aError) throw() {
@@ -567,7 +574,7 @@ void UploadManager::removeConnection(UserConnection* aSource) {
 }
 
 void UploadManager::notifyQueuedUsers() {
-	if (!BOOLSETTING(ENABLE_REAL_UPLOAD_QUEUE) || waitingUsers.empty()) return;		//no users to notify
+	if (waitingUsers.empty()) return;		//no users to notify
 
 	int freeslots = getFreeSlots();
 	if(freeslots > 0)
@@ -672,16 +679,17 @@ void UploadManager::on(TimerManagerListener::Second, uint64_t aTick) throw() {
 		
 		throttleSetup();
 
-		if((aTick / 1000) % 10 == 0) {
-			for(UploadList::iterator i = delayUploads.begin(); i != delayUploads.end();) {
-				Upload* u = *i;
-				if((aTick - u->getStart()) > 15000) {
-					logUpload(u);
-					delete u;
-					delayUploads.erase(i);
-					i = delayUploads.begin();
-				} else
-					i++;
+		for(UploadList::iterator i = delayUploads.begin(); i != delayUploads.end();) {
+			Upload* u = *i;
+			
+			if(++u->delayTime > 10) {
+				logUpload(u);
+				delete u;
+
+				delayUploads.erase(i);
+				i = delayUploads.begin();
+			} else {
+				i++;
 			}
 		}
 
@@ -826,7 +834,9 @@ void UploadManager::abortUpload(const string& aFile, bool waiting){
 		dcdebug("abort upload timeout %s\n", aFile.c_str());
 }
 
+} // namespace dcpp
+
 /**
  * @file
- * $Id: UploadManager.cpp 355 2008-01-05 14:43:39Z bigmuscle $
+ * $Id: UploadManager.cpp 389 2008-06-08 10:51:15Z BigMuscle $
  */

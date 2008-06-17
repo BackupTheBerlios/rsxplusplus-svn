@@ -26,6 +26,8 @@
 #include "../client/HttpConnection.h"
 #include "../client/SettingsManager.h"
 
+namespace dcpp {
+
 class IPWatch {
 public:
 	typedef IPWatch* Ptr;
@@ -115,4 +117,7 @@ private:
 	void on(HttpConnectionListener::Complete, HttpConnection* conn, const string&) throw();
 	void on(HttpConnectionListener::Failed, HttpConnection* conn, const string& /*aLine*/) throw();
 };
+
+}; // namespace dcpp
+
 #endif //IP_MANAGER_H

@@ -27,11 +27,16 @@
 #include "../windows/WinUtil.h"
 #include "../rsx/IpManager.h"
 #include "../rsx/UpdateManager.h"
+#include "../rsx/HTTPDownloadManager.h"
 
 //some shortcuts
 #define set_text(idc, val) ::SetWindowText(GetDlgItem(idc), Text::toT(val).c_str())
 #define is_checked(idc) IsDlgButtonChecked(idc) == BST_CHECKED
 #define set_visible(idc, val) ::ShowWindow(GetDlgItem(idc), val)
+
+UpdateDialog::UpdateDialog() : m_hIcon(NULL), reload(false) {
+	UpdateManager::getInstance()->getCacheInfo(clientInfo, profilesInfo);
+}
 
 UpdateDialog::~UpdateDialog() {
 	if(m_hIcon) {
@@ -57,34 +62,114 @@ LRESULT UpdateDialog::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lP
 	set_text(IDCLOSE, STRING(CLOSE));
 	set_text(IDC_UPDATE_VERSION_CURRENT, VERSIONSTRING);
 
+	updateStatus(_T("Reading cached info..."));
 	UpdateManager::getInstance()->addListener(this);
-	if(xmlData.empty()) {
-		UpdateManager::getInstance()->downloadFile(UpdateManager::VERSION, VERSION_URL);
-		updateStatus(_T("Checking for RSX++ updates..."));
-	} else {
-		updateStatus(_T("Reading XML data..."));
-		versionXML();
-	}
-
-	if(profileXMLData.empty()) {
-		UpdateManager::getInstance()->downloadFile(UpdateManager::PROFILE_VERSION, RSXSETTING(PROFILE_VER_URL) + "profileVersion.xml");
-		updateStatus(_T("Checking for profile version..."));
-	} else {
-		updateStatus(_T("Reading Profile Version XML data..."));
-		profileXML();
-	}
 
 	SetWindowText(CTSTRING(UPDATE_CHECK));
 	m_hIcon = ::LoadIcon(_Module.get_m_hInst(), MAKEINTRESOURCE(IDR_UPDATE));
 	SetIcon(m_hIcon, FALSE);
 	SetIcon(m_hIcon, TRUE);
 	CenterWindow(GetParent());
+	updateInfo();
 	return 0;
 }
 
+void UpdateDialog::updateInfo() {
+	set_text(IDC_UPDATE_VERSION_LATEST, clientInfo.version);
+	set_text(IDC_UPDATE_VERSION_LATEST_PROFIL, profilesInfo.clientProfile.first);
+	set_text(IDC_UPDATE_VERSION_LATEST_PROFIL_MYINFO, profilesInfo.myInfoProfile.first);
+	set_text(IDC_UPDATE_VERSION_LATEST_IPW, profilesInfo.ipWatchProfile.first);
+
+	bool resize = false;
+	if(clientInfo.svnbuild > SVN_REVISION && !clientInfo.url.empty()) {
+		set_visible(IDC_UPDATE_DOWNLOAD, true);
+		resize = true;
+	}
+
+	if(resize) {
+		CEdit tmpEdit;
+		tmpEdit.Attach(GetDlgItem(IDC_UPDATE_HISTORY_TEXT));
+		CRect rcEdit;
+		tmpEdit.GetClientRect(rcEdit);
+		tmpEdit.MoveWindow(23, 101, rcEdit.Width(), rcEdit.Height()-25, true);
+		tmpEdit.Detach();
+	}
+	set_text(IDC_UPDATE_HISTORY_TEXT, clientInfo.message);
+
+	string cpWndText = "\r\n\r\n** Profiles Info **";
+	cpWndText += "\r\n Profile Name: " + profilesInfo.profileName;
+	cpWndText += "\r\n Profile URL: " + profilesInfo.profileUrl;
+	cpWndText += "\r\n\r\n** Client Profile Info";
+	cpWndText += "\r\n Version: " + profilesInfo.clientProfile.first;
+	cpWndText += "\r\n Comment: " + profilesInfo.clientProfile.second;
+	cpWndText += "\r\n\r\n** MyINFO Profile Info";
+	cpWndText += "\r\n Version: " + profilesInfo.myInfoProfile.first;
+	cpWndText += "\r\n Comment: " + profilesInfo.myInfoProfile.second;
+	cpWndText += "\r\n\r\n** IP Watch List Info";
+	cpWndText += "\r\n Version: " + profilesInfo.ipWatchProfile.first;
+	cpWndText += "\r\n Comment: " + profilesInfo.ipWatchProfile.second;
+	updateStatus(Text::toT(cpWndText), true);
+
+	if(isNewClientProfiles()) {
+		updateStatus(TSTRING(NEW_VERSION_PROFILE) + _T(" (Client Profiles)"));
+		setCheck(IDC_CLIENT_ACTIVE, true);
+		fixControls();
+	}
+	if(isNewMyInfoProfiles()) {
+		updateStatus(TSTRING(NEW_VERSION_PROFILE) + _T(" (MyINFO Profiles)"));
+		setCheck(IDC_MYINFO_ACTIVE, true);
+		fixControls();
+	}
+	if(isNewIpWatchProfiles()) {
+		updateStatus(TSTRING(NEW_VERSION_PROFILE) + _T(" (IP Watch List)"));
+		setCheck(IDC_ISP_ACTIVE, true);
+		fixControls();
+	}
+}
+
+bool UpdateDialog::isNewClientVersion(bool checkSetting) {
+	if(clientInfo.svnbuild > SVN_REVISION) {
+		if(checkSetting)
+			return !BOOLSETTING(DONT_ANNOUNCE_NEW_VERSIONS);
+		return true;
+	}
+	return false;
+}
+
+bool UpdateDialog::isNewClientProfiles(bool checkSetting) {
+	if((Util::toDouble(profilesInfo.clientProfile.first) > Util::toDouble(ClientProfileManager::getInstance()->getProfileVersion()))) {
+		if(checkSetting)
+			return RSXBOOLSETTING(SHOW_CLIENT_NEW_VER);
+		return true;
+	}
+	return false;
+}
+
+bool UpdateDialog::isNewMyInfoProfiles(bool checkSetting) {
+	if((Util::toDouble(profilesInfo.myInfoProfile.first) > Util::toDouble(ClientProfileManager::getInstance()->getMyinfoProfileVersion()))) {
+		if(checkSetting)
+			return RSXBOOLSETTING(SHOW_MYINFO_NEW_VER);
+		return true;
+	}
+	return false;
+}
+
+bool UpdateDialog::isNewIpWatchProfiles(bool checkSetting) {
+	if((Util::toDouble(profilesInfo.ipWatchProfile.first) > Util::toDouble(IpManager::getInstance()->getIpWatchVersion()))) {
+		if(checkSetting)
+			return RSXBOOLSETTING(SHOW_IPWATCH_NEW_VER);
+		return true;
+	}
+	return false;
+}
+
+
 LRESULT UpdateDialog::OnButton(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
 	switch(wID) {
-		case IDC_UPDATE_DOWNLOAD: if(!downloadUrl.empty()) WinUtil::openLink(Text::toT(downloadUrl).c_str()); break;
+		case IDC_UPDATE_DOWNLOAD: 
+			if(!clientInfo.url.empty())
+				WinUtil::openLink(Text::toT(clientInfo.url).c_str());
+			break;
 		case IDC_LOAD_BACKUP:  {
 			reload = true;
 			prepareFiles();
@@ -97,30 +182,35 @@ LRESULT UpdateDialog::OnButton(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/,
 				}
 			}
 			for(UpdateMap::const_iterator j = updateItems.begin(); j != updateItems.end(); ++j) {
-				try {
-					string fname = Util::getConfigPath() + RsxUtil::getUpdateFileNames((int)j->first);
-					File::renameFile(fname, fname + ".tmp");
+				string fname = Util::getConfigPath() + RsxUtil::getUpdateFileNames((int)j->first);
+				if(Util::fileExists(fname)) {
 					try {
-						File::renameFile(fname + ".old", fname);
-					} catch (...) {
-						File::renameFile(fname + ".tmp", fname);
-						continue;
+						File::renameFile(fname, fname + ".tmp");
+						try {
+							File::renameFile(fname + ".old", fname);
+						} catch (...) {
+							File::renameFile(fname + ".tmp", fname);
+							goto updateProgressLoop;
+						}
+						File::renameFile(fname + ".tmp", fname + ".old");
+					} catch(...) { 
+						goto updateProgressLoop;
 					}
-					File::renameFile(fname + ".tmp", fname + ".old");
-					cProgress.SetPos((int)j->first);
-				} catch(...) {
-					continue;
+
+					if(j->first == 0) {
+						ClientProfileManager::getInstance()->reloadClientProfiles();
+					} else if(j->first == 1) {
+						ClientProfileManager::getInstance()->reloadMyinfoProfiles();
+					} else if(j->first == 2) {
+						IpManager::getInstance()->reloadIpWatch();
+					}
 				}
+updateProgressLoop:
+				cProgress.SetPos((int)j->first);
 				updateStatus(_T("Reloading ") + Text::toT(RsxUtil::getUpdateFileNames((int)j->first)) + _T("..."));
-				if(j->first == 0) {
-					ClientProfileManager::getInstance()->reloadClientProfiles();
-				} else if(j->first == 1) {
-					ClientProfileManager::getInstance()->reloadMyinfoProfiles();
-				} else if(j->first == 2) {
-					IpManager::getInstance()->reloadIpWatch();
-				}
 			}
 			fixControls();
+			cProgress.SetPos(0);
 			break;
 		}
 		case IDC_UPDATE: {
@@ -136,7 +226,13 @@ LRESULT UpdateDialog::OnButton(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/,
 			}
 			updateStatus(_T("Downloading ") + Util::toStringW(updateItems.size()) + _T(" files..."));
 			for(UpdateMap::const_iterator j = updateItems.begin(); j != updateItems.end(); ++j) {
-				UpdateManager::getInstance()->downloadFile(j->first, j->second);
+				if(j->first == 0) {
+					HTTPDownloadManager::getInstance()->addRequest(boost::bind(&UpdateDialog::onProfileDownload, this, _1, _2), j->second);
+				} else if(j->first == 1) {
+					HTTPDownloadManager::getInstance()->addRequest(boost::bind(&UpdateDialog::onMyInfoDownload, this, _1, _2), j->second);
+				} else if(j->first == 2) {
+					HTTPDownloadManager::getInstance()->addRequest(boost::bind(&UpdateDialog::onIpWatchDownload, this, _1, _2), j->second);
+				}
 			}
 			break;
 		}
@@ -161,213 +257,56 @@ void UpdateDialog::saveFile(const string& data, const string& fileName) {
 	}
 }
 
-// Listeners
-void UpdateDialog::on(UpdateManagerListener::Complete, const string& content, int file) throw() {
-	switch(file) {
-		case UpdateManager::CLIENT:
-			saveFile(content, "Profiles.xml");
-			ClientProfileManager::getInstance()->reloadClientProfilesFromHttp();
-			updateStatus(reload ? _T("Complete reloading Client Profiles") : _T("Complete updating Client Profiles"));
-			setProgress();
-			break;
-		case UpdateManager::MYINFO:
-			saveFile(content, "MyinfoProfiles.xml");
-			ClientProfileManager::getInstance()->reloadMyinfoProfilesFromHttp();
-			updateStatus(reload ? _T("Complete reloading MyINFO Profiles") : _T("Complete updating MyINFO Profiles"));
-			setProgress();
-			break;
-		case UpdateManager::IPWATCH:
-			saveFile(content, "IPWatch.xml");
-			updateStatus(reload ? _T("Complete reloading IP Watch List") : _T("Complete updating IP Watch List"));
-			setProgress();
-			break;
-		case UpdateManager::VERSION:
-			xmlData = content;
-			if(!xmlData.empty()) {
-				versionXML();
-			}
-			break;
-		case UpdateManager::PROFILE_VERSION:
-			profileXMLData = content;
-			if(!profileXMLData.empty()) {
-				profileXML();
-			}
-		default: break;
-	}
+void UpdateDialog::on(UpdateManagerListener::VersionUpdated, const VersionInfo::Client& client, const VersionInfo::Profiles& profiles) throw() {
+	::SetWindowText(GetDlgItem(IDC_UPDATE_HISTORY_TEXT), _T(""));
+	clientInfo = client;
+	profilesInfo = profiles;
+	updateInfo();
 }
 
-void UpdateDialog::on(UpdateManagerListener::Failed, const string& reason, int file) throw() {
-	if(file != UpdateManager::VERSION && file != UpdateManager::PROFILE_VERSION)
-		setProgress();
-	updateStatus(_T("Failed on ") + Text::toT(RsxUtil::getUpdateFileNames(file) + "\r\n" + reason));
+void UpdateDialog::onProfileDownload(string content, bool isFailed) {
+	if(!isFailed) {
+		saveFile(content, "Profiles.xml");
+		ClientProfileManager::getInstance()->reloadClientProfilesFromHttp();
+		updateStatus(reload ? _T("Complete reloading Client Profiles") : _T("Complete updating Client Profiles"));
+	} else {
+		updateStatus(_T("Failed on Client Profiles update!"));
+	}
+	setProgress();
 }
 
-void UpdateDialog::profileXML() {
-	try {
-		SimpleXML xml;
-		xml.fromXML(profileXMLData);
-
-		if(xml.findChild("ProfileVersionInfo")) {
-			xml.stepIn();
-			if(xml.findChild("Info")) {
-				xml.stepIn();
-				string name, url;
-				if(xml.findChild("Name")) {
-					name = xml.getChildData();
-				}
-				if(xml.findChild("URL")) {
-					url = xml.getChildData();
-				}
-				xml.stepOut();
-				xml.resetCurrentChild();
-			}
-			if(xml.findChild("ClientProfile")) {
-				xml.stepIn();
-				string ver, comment = "\r\n** Client Profile Comment:\r\n";
-				if(xml.findChild("Version")) {
-					ver = xml.getChildData();
-					set_text(IDC_UPDATE_VERSION_LATEST_PROFIL, ver);
-				}
-				if(xml.findChild("Comment")) {
-					comment += xml.getChildData();
-					updateStatus(Text::toT(comment).c_str(), true);
-				}
-				if((Util::toDouble(ver) > Util::toDouble(ClientProfileManager::getInstance()->getProfileVersion()))) {
-					updateStatus(TSTRING(NEW_VERSION_PROFILE) + _T(" (Client Profiles)"));
-					setCheck(IDC_CLIENT_ACTIVE, true);
-					fixControls();
-				}
-				xml.stepOut();
-				xml.resetCurrentChild();
-			}
-			if(xml.findChild("MyInfoProfile")) {
-				xml.stepIn();
-				string ver, comment = "\r\n** MyINFO Profile Comment:\r\n";
-				if(xml.findChild("Version")) {
-					ver = xml.getChildData();
-					set_text(IDC_UPDATE_VERSION_LATEST_PROFIL_MYINFO, ver);
-				}
-				if(xml.findChild("Comment")) {
-					comment += xml.getChildData();
-					updateStatus(Text::toT(comment).c_str(), true);
-				}
-				if((Util::toDouble(ver) > Util::toDouble(ClientProfileManager::getInstance()->getMyinfoProfileVersion()))) {
-					updateStatus(TSTRING(NEW_VERSION_PROFILE) + _T(" (MyINFO Profiles)"));
-					setCheck(IDC_MYINFO_ACTIVE, true);
-					fixControls();
-				}
-				xml.stepOut();
-				xml.resetCurrentChild();
-			}
-			if(xml.findChild("IpWatch")) {
-				xml.stepIn();
-				string ver, comment = "\r\n** IP Watch Comment:\r\n";
-				if(xml.findChild("Version")) {
-					ver = xml.getChildData();
-					set_text(IDC_UPDATE_VERSION_LATEST_IPW, ver);
-				}
-				if(xml.findChild("Comment")) {
-					comment += xml.getChildData();
-					updateStatus(Text::toT(comment).c_str(), true);
-				}
-				if((Util::toDouble(ver) > Util::toDouble(IpManager::getInstance()->getIpWatchVersion()))) {
-					updateStatus(TSTRING(NEW_VERSION_PROFILE) + _T(" (IP Watch List)"));
-					setCheck(IDC_ISP_ACTIVE, true);
-					fixControls();
-				}
-				xml.stepOut();
-				xml.resetCurrentChild();
-			}
-			/*if(xml.findChild("Autosearch")) {
-				xml.stepIn();
-				string ver, comment;
-				if(xml.findChild("Version")) {
-					ver = xml.getChildData();
-				}
-				if(xml.findChild("Comment")) {
-					comment = xml.getChildData();
-				}
-				xml.stepOut();
-				xml.resetCurrentChild();
-			}
-			if(xml.findChild("AdlSearch")) {
-				xml.stepIn();
-				string ver, comment;
-				if(xml.findChild("Version")) {
-					ver = xml.getChildData();
-				}
-				if(xml.findChild("Comment")) {
-					comment = xml.getChildData();
-				}
-				xml.stepOut();
-				xml.resetCurrentChild();
-			}*/
-			xml.stepOut();
-		}
-	} catch(const Exception& e) {
-		updateStatus(_T("Error: Couldn't parse xml-data!\r\n") + Text::toT(e.getError()));
+void UpdateDialog::onMyInfoDownload(string content, bool isFailed) {
+	if(!isFailed) {
+		saveFile(content, "MyinfoProfiles.xml");
+		ClientProfileManager::getInstance()->reloadMyinfoProfilesFromHttp();
+		updateStatus(reload ? _T("Complete reloading MyINFO Profiles") : _T("Complete updating MyINFO Profiles"));
+	} else {
+		updateStatus(_T("Failed on MyINFO Profiles update!"));
 	}
+	setProgress();
 }
 
-void UpdateDialog::versionXML() {
-	string xHistory, xLatestVer;
-
-	try {
-		SimpleXML xml;
-		xml.fromXML(xmlData);
-		if(xml.findChild("DCUpdate")) {
-			xml.stepIn();
-			if(xml.findChild("Version")) {
-				set_text(IDC_UPDATE_VERSION_LATEST, xml.getChildData());
-			}
-
-			xml.resetCurrentChild();
-			if(xml.findChild("SVN")) {
-				xSVN = Util::toInt(xml.getChildData());
-			}
-
-			xml.resetCurrentChild();
-			bool resize = false;
-			if(xml.findChild("URL")) {
-				downloadUrl = xml.getChildData();
-				if(xSVN > SVN_REVISION && !downloadUrl.empty()) {
-					set_visible(IDC_UPDATE_DOWNLOAD, true);
-					resize = true;
-				}
-			}
-
-			if(resize) {
-				CEdit tmpEdit;
-				tmpEdit.Attach(GetDlgItem(IDC_UPDATE_HISTORY_TEXT));
-				CRect rcEdit;
-				tmpEdit.GetWindowRect(rcEdit);
-				tmpEdit.MoveWindow(23, 101, rcEdit.Width(), rcEdit.Height()-25, true);
-				tmpEdit.Detach();
-			}
-
-			xml.resetCurrentChild();
-			while(xml.findChild("Message")) {
-				xHistory += xml.getChildData();					
-			}
-			set_text(IDC_UPDATE_HISTORY_TEXT, xHistory);
-
-			xml.resetCurrentChild();
-			xml.stepOut();
-		}
-	} catch(const Exception& e) {
-		updateStatus(_T("Error: Couldn't parse xml-data!\r\n") + Text::toT(e.getError()));
+void UpdateDialog::onIpWatchDownload(string content, bool isFailed) {
+	if(!isFailed) {
+		saveFile(content, "IPWatch.xml");
+		updateStatus(reload ? _T("Complete reloading IP Watch List") : _T("Complete updating IP Watch List"));
+	} else {
+		updateStatus(_T("Failed on IP Watch update!"));
 	}
+	setProgress();
 }
 
 void UpdateDialog::updateStatus(const tstring& text, bool history/* = false*/) {
 	int wnd = history ? IDC_UPDATE_HISTORY_TEXT:IDC_STATUS;
 
 	int len = GetDlgItem(wnd).GetWindowTextLength() + 1;
-	AutoArray<TCHAR> buf(len);
-	GetDlgItemText(wnd, buf, len);
+	tstring buf;
+	buf.resize(len);
+
+	GetDlgItemText(wnd, &buf[0], len);
 
 	tstring statText;
-	statText += buf;
+	statText += &buf[0];
 	if(len > 1) //ignore first entry
 		statText += _T("\r\n");
 	statText += text.c_str();
@@ -397,24 +336,40 @@ void UpdateDialog::initClose() {
 
 void UpdateDialog::prepareFiles() {
 	updateItems.clear();
-	TCHAR buf[512];
+	tstring buf;
+	int len = 0;
+
 	if(is_checked(IDC_CLIENT_ACTIVE)) {
-		GetDlgItemText(IDC_CLIENT_ADDRESS, buf, 512);
-		updateItems.insert(make_pair((int8_t)0, (Text::fromT(buf) + "Profiles.xml")));
+		len = ::GetWindowTextLength(GetDlgItem(IDC_CLIENT_ADDRESS)) + 1;
+		buf.resize(len);
+		GetDlgItemText(IDC_CLIENT_ADDRESS, &buf[0], len);
+		if(buf.rfind(_T("/")) == tstring::npos && buf.rfind(_T("\\")) == tstring::npos)
+			buf += _T("/");
+		updateItems.insert(make_pair((int8_t)0, (Text::fromT(&buf[0]) + "Profiles.xml")));
 	}
 	if(is_checked(IDC_MYINFO_ACTIVE)) {
-		GetDlgItemText(IDC_MYINFO_ADDRESS, buf, 512);
-		updateItems.insert(make_pair((int8_t)1, (Text::fromT(buf) + "MyinfoProfiles.xml")));
+		len = ::GetWindowTextLength(GetDlgItem(IDC_CLIENT_ADDRESS)) + 1;
+		buf.resize(len);
+		GetDlgItemText(IDC_MYINFO_ADDRESS, &buf[0], len);
+		if(buf.rfind(_T("/")) == tstring::npos && buf.rfind(_T("\\")) == tstring::npos)
+			buf += _T("/");	
+		updateItems.insert(make_pair((int8_t)1, (Text::fromT(&buf[0]) + "MyinfoProfiles.xml")));
 	}
 	if(is_checked(IDC_ISP_ACTIVE)) {
-		GetDlgItemText(IDC_ISP_ADDRESS, buf, 512);
-		updateItems.insert(make_pair((int8_t)2, (Text::fromT(buf) + "IPWatch.xml")));
+		len = ::GetWindowTextLength(GetDlgItem(IDC_CLIENT_ADDRESS)) + 1;
+		buf.resize(len);
+		GetDlgItemText(IDC_ISP_ADDRESS, &buf[0], len);
+		if(buf.rfind(_T("/")) == tstring::npos && buf.rfind(_T("\\")) == tstring::npos)
+			buf += _T("/");
+		updateItems.insert(make_pair((int8_t)2, (Text::fromT(&buf[0]) + "IPWatch.xml")));
 	}
+	prog = 0;
 	cProgress.SetRange(0, updateItems.size());
 	cProgress.SetPos(0);
 }
 
 void UpdateDialog::fixControls() {
+	bool isRunning = updateItems.size() > 0;
 	BOOL clientActive = is_checked(IDC_CLIENT_ACTIVE);
 	BOOL myinfoActive = is_checked(IDC_MYINFO_ACTIVE);
 	BOOL ispActive = is_checked(IDC_ISP_ACTIVE);
@@ -424,8 +379,8 @@ void UpdateDialog::fixControls() {
 		(myinfoActive && Util::fileExists(Util::getConfigPath() + "MyinfoProfiles.xml.old")) || 
 		(ispActive && Util::fileExists(Util::getConfigPath() + "IPWatch.xml.old")));
 
-	::EnableWindow(GetDlgItem(IDC_UPDATE),		clientActive || myinfoActive || ispActive);
-	::EnableWindow(GetDlgItem(IDC_PROGRESS),	clientActive || myinfoActive || ispActive);
+	::EnableWindow(GetDlgItem(IDC_UPDATE),		(clientActive || myinfoActive || ispActive) && !isRunning);
+	::EnableWindow(GetDlgItem(IDC_PROGRESS),	(clientActive || myinfoActive || ispActive) && !isRunning);
 
 	::EnableWindow(GetDlgItem(IDC_CLIENT_ADDRESS),	clientActive);
 	::EnableWindow(GetDlgItem(IDC_MYINFO_ADDRESS),	myinfoActive);
@@ -441,6 +396,6 @@ void UpdateDialog::setProgress() {
 		setCheck(IDC_ISP_ACTIVE, false);
 		updateItems.clear();
 		prog = 0;
-		fixControls();
 	}
+	fixControls();
 }

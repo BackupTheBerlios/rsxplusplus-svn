@@ -31,23 +31,22 @@
 #include "ResourceManager.h"
 #include "FavoriteManager.h"
 //RSX++
-#include "../rsx/RegexpHandler.h"
+#include "../rsx/RegexUtil.h"
 #include "../rsx/IpManager.h"
 #include "../rsx/Wildcards.h"
+#include "DetectionManager.h"
 //END
+
+namespace dcpp {
+
 FastCriticalSection Identity::cs;
 //RSX++
-const string& User::getNick(bool first /*= true*/) const {
-	if(isSet(User::NMDC)) {
-		return getFirstNick();
+string User::getNick(bool first /*= true*/) const {
+	if(first) {
+		const StringList& nl = ClientManager::getInstance()->getNicks(getCID());
+		return nl.empty() ? Util::emptyString : nl[0];
 	} else {
-		if(first) {
-			return ClientManager::getInstance()->getNicks(getCID())[0];
-		} else {
-			//make compiler happy, prevent warning
-			const string& aNicks = Util::toString(ClientManager::getInstance()->getNicks(getCID()));
-			return aNicks;
-		}
+		return Util::toString(ClientManager::getInstance()->getNicks(getCID()));
 	}
 }
 //END
@@ -133,6 +132,7 @@ bool Identity::isSet(const char* name) const {
 	return i != info.end();
 }
 
+
 void Identity::set(const char* name, const string& val) {
 	FastLock l(cs);
 	if(val.empty())
@@ -183,20 +183,21 @@ string Identity::setCheat(const Client& c, const string& aCheatDescription, bool
 
 	StringMap ucParams;
 	getParams(ucParams, "user", true);
-	const string& cheat = Text::toUtf8(Util::formatParams(aCheatDescription, ucParams, false));
+	string cheat = Util::formatParams(aCheatDescription, ucParams, false);
 
 	string newCheat = Util::emptyString;
 	bool newOne = false;
 
-	string currentCS = get("CS");
-	StringTokenizer<string> st(currentCS, ';');
-	for(StringIter i = st.getTokens().begin(); i != st.getTokens().end(); ++i) {
-		if((*i).find(cheat) == string::npos) {
-			newCheat += (*i) + ";";
-			newOne = true;
+	/*{
+		string currentCS = get("CS");
+		StringTokenizer<string> st(currentCS, ';');
+		for(StringIter i = st.getTokens().begin(); i != st.getTokens().end(); ++i) {
+			if((*i).find(cheat) == string::npos) {
+				newCheat += (*i) + ";";
+				newOne = true;
+			}
 		}
-	}
-
+	}*/
 	newCheat += cheat + ";";
 
 	if(newOne) {
@@ -205,9 +206,12 @@ string Identity::setCheat(const Client& c, const string& aCheatDescription, bool
 		}
 	}
 
-	if(!cheat.empty())	set("CS", newCheat);
-	if(aBadClient)		set("BC", "1");
-	if(aBadFilelist)	set("BF", "1");
+	if(!cheat.empty())
+		set("CS", newCheat);
+	if(aBadClient)
+		set("BC", "1");
+	if(aBadFilelist)
+ 		set("BF", "1");
 
 	if(RSXBOOLSETTING(DISPLAY_CHEATS_IN_MAIN_CHAT) && aDisplayCheat) {
 		string report = "*** " + STRING(USER) + " " + getNick() + " - " + cheat;
@@ -216,7 +220,7 @@ string Identity::setCheat(const Client& c, const string& aCheatDescription, bool
 	return Util::emptyString;
 }
 //END
-const string Identity::getReport() const {
+string Identity::getReport() const {
 	string report = "\r\n *** User Info:";
 	report += "\r\n-]> Description:	" +				getDescription();
 	report += "\r\n-]> Email:		" +				getEmail();
@@ -250,7 +254,6 @@ const string Identity::getReport() const {
 
 	report += "\r\n\r\n *** FileList\\Share Info";
 	report += "\r\n-]> XML Generator:	" +			isEmpty(get("FG"));
-	report += "\r\n-]> Last downspd:	" +			Util::formatBytes(getUser()->getLastDownloadSpeed()) + "/s";
 	report += "\r\n-]> FileList CID:	" +			isEmpty(get("FI"));
 	report += "\r\n-]> FileList Base:	" +			isEmpty(get("FB"));
 
@@ -267,9 +270,9 @@ const string Identity::getReport() const {
 	return report;
 }
 
-const string Identity::updateClientType(OnlineUser& ou) {
+string Identity::updateClientType(OnlineUser& ou) {
 	if(getUser()->isSet(User::DCPLUSPLUS)) {
-		const float versionf = Util::toFloat(get("VE"));
+		const float versionf = Util::toFloat(getVersion());
 		if((get("LL") == "11") && (getBytesShared() > 0)) {
 			setClientType("DC++ Stealth");
 			const string& report = ou.setCheat("Fake FileList - ListLen = 11B", true, true, RSXBOOLSETTING(SHOW_LISTLEN_MISMATCH));
@@ -297,83 +300,80 @@ const string Identity::updateClientType(OnlineUser& ou) {
 	int64_t tick = GET_TICK();
 
 	StringMap params;
-	const ClientProfile::List& lst = ClientProfileManager::getInstance()->getClientProfiles(params);
+	const DetectionManager::DetectionItems& profiles = DetectionManager::getInstance()->getProfiles(params);
+	getDetectionParams(params);
 
-	for(ClientProfile::List::const_iterator i = lst.begin(); i != lst.end(); ++i) {
-		const ClientProfile& cp = *i;
-		string version, pkVersion, extraVersion, formattedTagExp, verTagExp;
+	for(DetectionManager::DetectionItems::const_iterator i = profiles.begin(); i != profiles.end(); ++i) {
+		const DetectionEntry& entry = *i;
+		if(!entry.isEnabled)
+			continue;
+		DetectionEntry::StringMapV INFList = entry.infMap;
+		bool con = false;
 
-		verTagExp = Util::formatRegExp(cp.getTag(), params);
+		DETECTION_DEBUG("\tChecking profile: " + entry.name);
 
-		formattedTagExp = verTagExp;
-		string::size_type j = formattedTagExp.find("%[version]");
-		if(j != string::npos) {
-			formattedTagExp.replace(j, 10, ".*");
+		for(DetectionEntry::StringMapV::const_iterator j = INFList.begin(); j != INFList.end(); ++j) {
+			string aPattern = Util::formatRegExp(j->second, params);
+			string aField = getDetectionField(j->first);
+			DETECTION_DEBUG("Pattern: " + aPattern + " Field: " + aField);
+			if(!RegexUtil::match(aField, aPattern)) {
+				con = true;
+				break;
+			}
 		}
+		if(con)
+			continue;
 
-		string pkExp = cp.getPk();
-		string formattedPkExp = pkExp;
-		j = pkExp.find("%[version]");
-		if(j != string::npos) {
-			formattedPkExp.replace(j, 10, ".*");
-		}
-		string extTagExp = cp.getExtendedTag();
-		string formattedExtTagExp = extTagExp;
-		j = extTagExp.find("%[version2]");
-		if(j != string::npos) {
-			formattedExtTagExp.replace(j, 11, ".*");
-		}
+		DETECTION_DEBUG("Client found: " + entry.name + " time taken: " + Util::toString(GET_TICK()-tick) + " milliseconds");
 
-		DETECTION_DEBUG("\tChecking profile: " + cp.getName());
-
-		if(!RegexpHandler::matchProfile(getTag(), formattedTagExp))									{ continue; }
-		if(!RegexpHandler::matchProfile(get("SU"), cp.getSupports()))								{ continue; }
-		if(!RegexpHandler::matchProfile(getDescription(), formattedExtTagExp))						{ continue; }
-		if(!RegexpHandler::matchProfile(get("TS"), cp.getTestSUR()))								{ continue; }
-		if(!RegexpHandler::matchProfile(get("LO"), cp.getLock()))									{ continue; }
-		if(!RegexpHandler::matchProfile(get("PK"), formattedPkExp))									{ continue; }
-		if(!RegexpHandler::matchProfile(getConnection(), cp.getConnection()))						{ continue; }
-		if(!RegexpHandler::matchProfile(getStatus(), cp.getStatus()))								{ continue; }
-		if(!RegexpHandler::matchProfile(get("UC"), cp.getUserConCom()))								{ continue; }
-
-		if(verTagExp.find("%[version]") != string::npos) { version = RegexpHandler::getVersion(verTagExp, getTag()); }
-		if(extTagExp.find("%[version2]") != string::npos) { extraVersion = RegexpHandler::getVersion(extTagExp, getDescription()); }
-		if(pkExp.find("%[version]") != string::npos) { pkVersion = RegexpHandler::getVersion(pkExp, get("PK")); }
-
-		if(!(cp.getVersion().empty()) && !RegexpHandler::matchProfile(version, cp.getVersion()))	{ continue; }
-		
-		DETECTION_DEBUG("Client found: " + cp.getName() + " time taken: " + Util::toString(GET_TICK()-tick) + " milliseconds");
-
-		cp.getUseExtraVersion() ? setClientType(cp.getName() + " " + extraVersion ) : setClientType(cp.getName() + " " + version);
-		set("CM", cp.getComment());
-		set("BC", cp.getCheatingDescription().empty() ? Util::emptyString : "1");
+		setClientType(entry.name);
+		set("CM", entry.comment);
+		set("BC", entry.cheat.empty() ? Util::emptyString : "1");
 		logDetect(true);
 
 		string report = Util::emptyString;
-		if (cp.getCheckMismatch() && version.compare(pkVersion) != 0) { 
-			setClientType(getClientType() + " Version mis-match");
-
-			report = ou.setCheat(getClientType(), true, false, RSXBOOLSETTING(SHOW_VERSION_MISMATCH));
-			ClientManager::getInstance()->sendAction(ou, RSXSETTING(VERSION_MISMATCH));
-			return report;
+		if(!entry.cheat.empty()) {
+			report = ou.setCheat(entry.cheat, true, false, ou.getClient().isActionActive(entry.rawToSend));
 		}
 
-		if(!cp.getCheatingDescription().empty()) {
-			report = ou.setCheat(cp.getCheatingDescription(), true, false, ou.getClient().isActionActive(cp.getRawToSend()));
-		}
-
-		ClientManager::getInstance()->sendAction(ou, cp.getRawToSend());
-		//return cp.getRecheck() ? shouldRecheck() : false;
+		ClientManager::getInstance()->sendAction(ou, entry.rawToSend);
 		return report;
 	}
+
 	logDetect(false);
 	setClientType("Unknown");
-	set("CS", Util::emptyString);
-	set("BC", Util::emptyString);
 	return Util::emptyString;
 }
 
-const string Identity::myInfoDetect(OnlineUser& ou) {
+string Identity::getDetectionField(const string& aName) const {
+	if(aName.length() == 2) {
+		if(aName == "TA")
+			return getTag();
+		else
+			return get(aName.c_str());
+	} else {
+		if(aName == "PKVE") {
+			return getPkVersion();
+		}
+		return Util::emptyString;
+	}
+}
+
+void Identity::getDetectionParams(StringMap& p) {
+	getParams(p, "", false);
+	p["PKVE"] = getPkVersion();
+	p["VEformat"] = getVersion();
+}
+
+string Identity::getPkVersion() const {
+	string pk = get("PK");
+	if(pk.find("DCPLUSPLUS") != string::npos && pk.find("ABCABC") != string::npos) {
+		return pk.substr(10, pk.length() - 16);
+	}
+	return Util::emptyString;
+}
+
+string Identity::myInfoDetect(OnlineUser& ou) {
 	StringMap params;
 	const MyinfoProfile::List& lst = ClientProfileManager::getInstance()->getMyinfoProfiles(params);
 	
@@ -402,17 +402,17 @@ const string Identity::myInfoDetect(OnlineUser& ou) {
 			formattedExtTagExp.replace(j, 11, ".*");
 		}
 
-		if(!RegexpHandler::matchProfile(getTag(), formattedTagExp))									{ continue; }
-		if(!RegexpHandler::matchProfile(getDescription(), formattedExtTagExp))						{ continue; }
-		if(!RegexpHandler::matchProfile(getConnection(), cq.getConnection()))						{ continue; }
-		if(!RegexpHandler::matchProfile(fixed_status, cq.getStatus()))								{ continue; }
-		if(!RegexpHandler::matchProfile(get("SS"), cq.getShared()))									{ continue; } 
-		if(!RegexpHandler::matchProfile(getNick(), cq.getNick()))									{ continue; } 
-		if(!RegexpHandler::matchProfile(getEmail(), cq.getEmail()))									{ continue; } 
+		if(!RegexUtil::match(getTag(), formattedTagExp))								{ continue; }
+		if(!RegexUtil::match(getDescription(), formattedExtTagExp))						{ continue; }
+		if(!RegexUtil::match(getConnection(), cq.getConnection()))						{ continue; }
+		if(!RegexUtil::match(fixed_status, cq.getStatus()))								{ continue; }
+		if(!RegexUtil::match(get("SS"), cq.getShared()))								{ continue; } 
+		if(!RegexUtil::match(getNick(), cq.getNick()))									{ continue; } 
+		if(!RegexUtil::match(getEmail(), cq.getEmail()))								{ continue; } 
 
-		if(verTagExp.find("%[version]") != string::npos) {	version = RegexpHandler::getVersion(verTagExp, getTag()); }
-		if(extTagExp.find("%[version2]") != string::npos) {	extraVersion = RegexpHandler::getVersion(extTagExp, getDescription()); }
-		if(!(cq.getVersion().empty()) && !RegexpHandler::matchProfile(version, cq.getVersion()))	{ continue; }
+		if(verTagExp.find("%[version]") != string::npos) {	version = RegexUtil::getVersion(verTagExp, getTag()); }
+		if(extTagExp.find("%[version2]") != string::npos) {	extraVersion = RegexUtil::getVersion(extTagExp, getDescription()); }
+		if(!(cq.getVersion().empty()) && !RegexUtil::match(version, cq.getVersion()))	{ continue; }
 
 		if(cq.getUseExtraVersion())
 			setMyInfoType((cq.getName() + " " + extraVersion)); 
@@ -445,16 +445,14 @@ bool Identity::isProtectedUser(const Client& c, bool OpBotHubCheck) const {
 		ret = true;
 	} else if(RSXSETTING(FAV_USER_IS_PROTECTED_USER) && FavoriteManager::getInstance()->isFavoriteUser(getUser())) {
 		ret = true;
-	} else {
-		if(!RegProtect.empty()) {
-			if(RSXBOOLSETTING(USE_WILDCARDS_TO_PROTECT)) {
-				if(Wildcard::patternMatch(getNick(), RegProtect, '|')) {
-					ret = true;
-				}
-			} else {
-				if(RegexpHandler::matchProfile(getNick(), RegProtect)) {
-					ret = true;
-				}
+	} else if(!RegProtect.empty()) {
+		if(RSXBOOLSETTING(USE_WILDCARDS_TO_PROTECT)) {
+			if(Wildcard::patternMatch(getNick(), RegProtect, '|')) {
+				ret = true;
+			}
+		} else {
+			if(RegexUtil::match(getNick(), RegProtect, true)) {
+				ret = true;
 			}
 		}
 	}
@@ -463,28 +461,9 @@ bool Identity::isProtectedUser(const Client& c, bool OpBotHubCheck) const {
 	}
 	return ret;
 }
-
-void OnlineUser::updateUser() { getClient().updated(*this); }
 //RSX++ //checking stuff
-bool OnlineUser::isCheckable(bool delay/* = true*/) const {
-	return (!identity.isHub() && !identity.isBot() && !identity.isOp() && !identity.isHidden()) && (!delay || (GET_TICK() - identity.getLoggedIn()) > RSXSETTING(CHECK_DELAY));
-}
-
-bool OnlineUser::shouldCheckFileList(bool onlyFilelist /*= false*/) const {
-	if(identity.isFileListQueued() || identity.isFileListChecked() || (!onlyFilelist && identity.isTestSURQueued()))
-		return false;
-	return ((GET_TIME() - Util::toInt64(identity.getTestSURChecked()) > 10) || onlyFilelist);
-}
-
-bool OnlineUser::getChecked(bool filelist/* = false*/) {
-	if(isProtectedUser()) {
-		if((RSXSETTING(UNCHECK_CLIENT_PROTECTED_USER) && !filelist) || (RSXSETTING(UNCHECK_LIST_PROTECTED_USER) && filelist)) {
-			identity.setClientType("[Protected]");
-			setTestSURComplete();
-			setFileListComplete();
-			return true;
-		}
-	} else if(!identity.isTcpActive() && !getClient().isActive()) {
+bool OnlineUser::getChecked(bool filelist/* = false*/, bool checkComplete/* = true*/) {
+	if(!identity.isTcpActive() && !getClient().isActive()) {
 		identity.setClientType("[Passive]");
 		setTestSURComplete();
 		setFileListComplete();
@@ -493,8 +472,17 @@ bool OnlineUser::getChecked(bool filelist/* = false*/) {
 		setTestSURComplete();
 		setFileListComplete();
 		return true;
+	} else if(isProtectedUser()) {
+		if((RSXSETTING(UNCHECK_CLIENT_PROTECTED_USER) && !filelist) || (RSXSETTING(UNCHECK_LIST_PROTECTED_USER) && filelist)) {
+			identity.setClientType("[Protected]");
+			setTestSURComplete();
+			setFileListComplete();
+			return true;
+		}
 	}
-	return filelist ? identity.isFileListChecked() : identity.isClientChecked();
+	if(checkComplete) //prevent double checking (shouldCheckClient/Filelist)
+		return filelist ? identity.isFileListChecked() : identity.isClientChecked();
+	return false;
 }
 //RSX++ //$MyINFO Flood
 bool Identity::isMyInfoSpamming() {
@@ -516,7 +504,7 @@ bool Identity::isMyInfoSpamming() {
 	return false;
 }
 //RSX++ //$ConnectToMe Flood
-bool Identity::isCtmSpamming() {
+bool Identity::isCtmSpamming() const {
 	uint64_t now = GET_TICK();
 	uint64_t i = now - lastCte;
 	if(i < RSXSETTING(CTM_TIME)) {
@@ -532,7 +520,7 @@ bool Identity::isCtmSpamming() {
 	return false;
 }
 //RSX++ //PM flood
-bool Identity::isPmSpamming() {
+bool Identity::isPmSpamming() const {
 	uint64_t now = GET_TICK();
 	uint64_t i = now - lastPm;
 	if(i < RSXSETTING(PM_TIME)) {
@@ -596,7 +584,7 @@ void Identity::checkIP(OnlineUser& ou) {
 						ClientManager::getInstance()->sendAction(ou, (*j)->getAction());
 						if(!report.empty())
 							ou.getClient().cheatMessage(report);
-						ou.updateUser();
+						ou.getClient().updated(ou);
 						break;
 					}
 					case 2: {
@@ -613,7 +601,7 @@ void Identity::checkIP(OnlineUser& ou) {
 	}
 }
 //RSX++ //Filelist Detector
-const string Identity::checkFilelistGenerator(OnlineUser& ou) {
+string Identity::checkFilelistGenerator(OnlineUser& ou) {
 	{
 		PME reg("^<StrgDC\\+\\+ V:1.00 RC([89]){1}");
 		if((get("FG") == "DC++ 0.403")) {
@@ -621,7 +609,7 @@ const string Identity::checkFilelistGenerator(OnlineUser& ou) {
 				string report = ou.setCheat("rmDC++ in StrongDC++ %[userVE] emulation mode" , true, false, RSXBOOLSETTING(SHOW_RMDC_RAW));
 				setClientType("rmDC++");
 				logDetect(true);
-				ou.updateUser();
+				ou.getClient().updated(ou);
 				ClientManager::getInstance()->sendAction(ou, RSXSETTING(RMDC_RAW));
 				return report;
 			}
@@ -633,7 +621,7 @@ const string Identity::checkFilelistGenerator(OnlineUser& ou) {
 			if(get("FI").empty() || get("FB").empty()) {
 				string report = ou.setCheat("DC++ emulation", true, false, RSXBOOLSETTING(SHOW_DCPP_EMULATION_RAW));
 				logDetect(true);
-				ou.updateUser();
+				ou.getClient().updated(ou);
 				ClientManager::getInstance()->sendAction(ou, RSXSETTING(DCPP_EMULATION_RAW));
 				return report;
 			}
@@ -641,7 +629,7 @@ const string Identity::checkFilelistGenerator(OnlineUser& ou) {
 			if(!get("FI").empty() || !get("FB").empty()) {
 				string report = ou.setCheat("DC++ emulation", true, false, RSXBOOLSETTING(SHOW_DCPP_EMULATION_RAW));
 				logDetect(true);
-				ou.updateUser();
+				ou.getClient().updated(ou);
 				ClientManager::getInstance()->sendAction(ou, RSXSETTING(DCPP_EMULATION_RAW));
 				return report;
 			}
@@ -654,7 +642,7 @@ const string Identity::checkFilelistGenerator(OnlineUser& ou) {
 			if(!get("VE").empty() && (get("VE") != getFilelistGeneratorVer())) {
 				string report = ou.setCheat("Filelist Version mis-match", false, true, RSXBOOLSETTING(SHOW_FILELIST_VERSION_MISMATCH));
 				logDetect(true);
-				ou.updateUser();
+				ou.getClient().updated(ou);
 				ClientManager::getInstance()->sendAction(ou, RSXSETTING(FILELIST_VERSION_MISMATCH));
 				return report;
 			}
@@ -664,7 +652,7 @@ const string Identity::checkFilelistGenerator(OnlineUser& ou) {
 	const FileListDetectorProfile::List& lst = ClientProfileManager::getInstance()->getFileListDetectors();
 	for(FileListDetectorProfile::List::const_iterator i = lst.begin(); i != lst.end(); ++i) {
 		const FileListDetectorProfile& fd = *i;	
-		if(!RegexpHandler::matchProfile(get("FG"), fd.getDetect())) { continue; }
+		if(!RegexUtil::match(get("FG"), fd.getDetect())) { continue; }
 
 		string report = Util::emptyString;
 		if(fd.getBadClient()) {
@@ -702,7 +690,7 @@ string Identity::getFilelistGeneratorVer() const {
 	}
 }
 
-const string Identity::checkrmDC(OnlineUser& ou) {
+string Identity::checkrmDC(OnlineUser& ou) {
 	string report = Util::emptyString;
 	PME reg("^0.40([0123]){1}$");
 	if(reg.match(getVersion())) {
@@ -770,7 +758,7 @@ void Identity::cleanUser() {
 	set("R1", Util::emptyString); //recheck
 }
 
-const string Identity::checkSlotsCount(OnlineUser& ou, int realSlots) {
+string Identity::checkSlotsCount(OnlineUser& ou, int realSlots) {
 	set("SC", Util::toString(realSlots));
 	string report = Util::emptyString;
 	if(Util::toInt(get("SL")) > realSlots) { //more slots showed than real opened? cheater ;]
@@ -779,15 +767,14 @@ const string Identity::checkSlotsCount(OnlineUser& ou, int realSlots) {
 	}
 	return report;
 }
-//iUser methods
-void OnlineUser::sendPM(const char* aMsg) {
-	ClientManager::getInstance()->privateMessage(identity.getUser(), string(aMsg));
+// iOnlineUser functions
+void OnlineUser::p_sendPM(const rString& aMsg) {
+	ClientManager::getInstance()->privateMessage(identity.getUser(), aMsg.c_str(), false);
 }
 
-iClient* OnlineUser::getUserClient() { 
+iClient* OnlineUser::p_getUserClient() { 
 	return &getClient(); 
 }
-
 //END
 int OnlineUser::compareItems(const OnlineUser* a, const OnlineUser* b, uint8_t col)  {
 	if(col == COLUMN_NICK) {
@@ -813,7 +800,6 @@ int OnlineUser::compareItems(const OnlineUser* a, const OnlineUser* b, uint8_t c
 		case COLUMN_EXACT_SHARED: return compare(a->identity.getBytesShared(), b->identity.getBytesShared());
 		case COLUMN_SLOTS: return compare(Util::toInt(a->identity.get("SL")), Util::toInt(b->identity.get("SL")));
 		case COLUMN_HUBS: return compare(Util::toInt(a->identity.get("AH")), Util::toInt(b->identity.get("AH")));
-		case COLUMN_UPLOAD_SPEED: return compare(a->identity.getUser()->getLastDownloadSpeed(), b->identity.getUser()->getLastDownloadSpeed());
 	}
 	return lstrcmpi(a->getText(col).c_str(), b->getText(col).c_str());
 }
@@ -826,7 +812,25 @@ const tstring OnlineUser::getText(uint8_t col) const {
 		case COLUMN_DESCRIPTION: return Text::toT(identity.getDescription());
 		case COLUMN_TAG: return Text::toT(identity.getTag());
 		case COLUMN_CONNECTION: return Text::toT(identity.getConnection());
+		case COLUMN_IP: {
+			string ip = identity.getIp();
+			string country = ip.empty() ? Util::emptyString : Util::getIpCountry(ip);
+			if (!country.empty())
+				ip = country + " (" + ip + ")";
+			return Text::toT(ip);
+		}
 		case COLUMN_EMAIL: return Text::toT(identity.getEmail());
+		case COLUMN_VERSION: return Text::toT(identity.getVersion());
+		case COLUMN_MODE: return identity.isTcpActive() ? _T("A") : _T("P");
+		case COLUMN_HUBS: {
+			const tstring hn = Text::toT(identity.get("HN"));
+			const tstring hr = Text::toT(identity.get("HR"));
+			const tstring ho = Text::toT(identity.get("HO"));
+			const tstring cn = Util::toStringW(Util::toInt(identity.get("HN")) + Util::toInt(identity.get("HR")) + Util::toInt(identity.get("HO")));
+			const_cast<Identity&>(identity).set("AH", Text::fromT(cn));
+			return (hn.empty() || hr.empty() || ho.empty()) ? Util::emptyStringT : (cn + _T("(") + hn + _T("/") + hr + _T("/") + ho + _T(")"));
+		}
+		case COLUMN_SLOTS: return Text::toT(identity.get("SL"));
 		case COLUMN_CLIENTS : {
 			if(identity.isBot() || identity.isHub())
 				return _T("BOT");
@@ -844,32 +848,6 @@ const tstring OnlineUser::getText(uint8_t col) const {
 				return Text::toT(identity.getMyInfoType());
 		}
 		case COLUMN_CHEATING_DESCRIPTION: return Text::toT(identity.get("CS"));
-		case COLUMN_VERSION: return Text::toT(identity.getVersion());
-		case COLUMN_MODE: return identity.isTcpActive() ? _T("A") : _T("P");
-		case COLUMN_HUBS: {
-			const tstring hn = Text::toT(identity.get("HN"));
-			const tstring hr = Text::toT(identity.get("HR"));
-			const tstring ho = Text::toT(identity.get("HO"));
-			const tstring cn = Util::toStringW(Util::toInt(identity.get("HN")) + Util::toInt(identity.get("HR")) + Util::toInt(identity.get("HO")));
-			const_cast<Identity&>(identity).set("AH", Text::fromT(cn));
-			return (hn.empty() || hr.empty() || ho.empty()) ? Util::emptyStringT : (cn + _T("(") + hn + _T("/") + hr + _T("/") + ho + _T(")"));
-		}
-		case COLUMN_SLOTS: return Text::toT(identity.get("SL"));
-		case COLUMN_UPLOAD_SPEED: {
-			if(identity.getUser()->getLastDownloadSpeed() > 0)
-				return Util::toStringW(identity.getUser()->getLastDownloadSpeed()) + _T(" kB/s");
-			else if(identity.getUser()->isSet(User::FIREBALL))
-				return _T(">= 100 kB/s");
-			else
-				return _T("N/A");
-		}
-		case COLUMN_IP: {
-			string ip = identity.getIp();
-			string country = ip.empty() ? Util::emptyString : Util::getIpCountry(ip);
-			if (!country.empty())
-				ip = country + " (" + ip + ")";
-			return Text::toT(ip);
-		}
 		case COLUMN_HOST: return Text::toT(identity.get("HT"));
 		case COLUMN_ISP: return Text::toT(identity.getISP());
 		case COLUMN_PK: return Text::toT(identity.get("PK"));
@@ -905,7 +883,9 @@ bool OnlineUser::update(int sortCol, const tstring& oldText) {
 	return needsSort;
 }
 
+} // namespace dcpp
+
 /**
  * @file
- * $Id: User.cpp 347 2007-12-27 20:58:14Z bigmuscle $
+ * $Id: User.cpp 379 2008-02-24 19:56:47Z bigmuscle $
  */

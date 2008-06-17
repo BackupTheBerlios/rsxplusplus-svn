@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2001-2007 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,14 +33,17 @@
 #include "version.h"
 #include "Thread.h"
 #include "LogManager.h"
-#include "../rsx/PluginAPI/PluginsManager.h"
+#include "PluginsManager.h"
 //END
+
+namespace dcpp {
+
 Client::Counts Client::counts;
 
 Client::Client(const string& hubURL, char separator_, bool secure_) : 
 	myIdentity(ClientManager::getInstance()->getMe(), 0),
 	reconnDelay(120), lastActivity(GET_TICK()), registered(false), autoReconnect(false),
-	encoding(const_cast<string*>(&Text::systemCharset)), state(STATE_DISCONNECTED), socket(0),
+	encoding(const_cast<string*>(&Text::systemCharset)), state(STATE_DISCONNECTED), sock(0),
 	hubUrl(hubURL), port(0), separator(separator_),
 	secure(secure_), countType(COUNT_UNCOUNTED), availableBytes(0)
 	, usersLimit(0) //RSX++
@@ -53,8 +56,8 @@ Client::Client(const string& hubURL, char separator_, bool secure_) :
 }
 
 Client::~Client() throw() {
-	dcassert(!socket);
-
+	dcassert(!sock);
+	
 	// In case we were deleted before we Failed
 	FavoriteManager::getInstance()->removeUserCommand(getHubUrl());
 	TimerManager::getInstance()->removeListener(this);
@@ -71,9 +74,9 @@ void Client::reconnect() {
 }
 
 void Client::shutdown() {
-	if(socket) {
-		BufferedSocket::putSocket(socket);
-		socket = 0;
+	if(sock) {
+		BufferedSocket::putSocket(sock);
+		sock = 0;
 	}
 }
 
@@ -141,11 +144,9 @@ void Client::reloadSettings(bool updateNick) {
 		setUsersLimit(0);
 		//END
 	}
-	#ifdef SVN_REVISION_STR
-	currentDescription += "<SVN " SVN_REVISION_STR ">";
+	#ifdef SVNBUILD
+	currentDescription += "<SVN " BOOST_STRINGIZE(SVN_REVISION) ">";
 	#endif
-	if(getStealth())
-		currentDescription += "<RSX++ " VERSIONSTRING ">";
 }
 
 bool Client::isActive() const {
@@ -153,8 +154,8 @@ bool Client::isActive() const {
 }
 
 void Client::connect() {
-	if(socket)
-		BufferedSocket::putSocket(socket);
+	if(sock)
+		BufferedSocket::putSocket(sock);
 
 	availableBytes = 0;
 
@@ -165,39 +166,49 @@ void Client::connect() {
 	setMyIdentity(Identity(ClientManager::getInstance()->getMe(), 0));
 	setHubIdentity(Identity());
 
+	state = STATE_CONNECTING;
+
 	try {
-		socket = BufferedSocket::getSocket(separator);
-		socket->addListener(this);
-		socket->connect(address, port, secure, BOOLSETTING(ALLOW_UNTRUSTED_HUBS), true);
+		sock = BufferedSocket::getSocket(separator);
+		sock->addListener(this);
+		sock->connect(address, port, secure, BOOLSETTING(ALLOW_UNTRUSTED_HUBS), true);
 	} catch(const Exception& e) {
-		if(socket) {
-			BufferedSocket::putSocket(socket);
-			socket = 0;
+		if(sock) {
+			BufferedSocket::putSocket(sock);
+			sock = 0;
 		}
 		fire(ClientListener::Failed(), this, e.getError());
 	}
 	updateActivity();
-	state = STATE_CONNECTING;
+}
+
+void Client::send(const char* aMessage, size_t aLen) {
+	dcassert(sock);
+	if(!sock)
+		return;
+	updateActivity();
+	sock->write(aMessage, aLen);
+	COMMAND_DEBUG(aMessage, DebugManager::HUB_OUT, getIpPort());
 }
 
 void Client::on(Connected) throw() {
 	updateActivity(); 
-	ip = socket->getIp(); 
+	ip = sock->getIp();
+	localIp = sock->getLocalIp();
 	fire(ClientListener::Connected(), this);
 	state = STATE_PROTOCOL;
 }
 
 void Client::on(Failed, const string& aLine) throw() {
-	updateActivity(); 
 	state = STATE_DISCONNECTED;
 	FavoriteManager::getInstance()->removeUserCommand(getHubUrl());
-	socket->removeListener(this);
+	sock->removeListener(this);
 	fire(ClientListener::Failed(), this, aLine);
 }
 
 void Client::disconnect(bool graceLess) {
-	if(socket) 
-		socket->disconnect(graceLess);
+	if(sock) 
+		sock->disconnect(graceLess);
 }
 
 void Client::updateCounts(bool aRemove) {
@@ -240,13 +251,11 @@ string Client::getLocalIp() const {
 		return Socket::resolve(SETTING(EXTERNAL_IP));
 	}
 
-	string lip;
-	if(socket)
-		lip = socket->getLocalIp();
-
-	if(lip.empty())
+	if(localIp.empty()) {
 		return Util::getLocalIp();
-	return lip;
+	}
+
+	return localIp;
 }
 
 void Client::on(Line, const string& aLine) throw() {
@@ -263,22 +272,22 @@ void Client::on(Second, uint64_t aTick) throw() {
 //RSX++ // Lua
 bool ClientScriptInstance::onHubFrameEnter(Client* aClient, const string& aLine) {
 	bool r1 = false;
-	//{
+	{
 		Lock l(ScriptInstance::cs);
 		MakeCall("dcpp", "OnCommandEnter", 1, aClient, aLine);
 		r1 = GetLuaBool();
-	//}
+	}
 	bool r2 = PluginsManager::getInstance()->onOutgoingMessage(aClient, aLine);
 	return r1 || r2;
 }
 
 bool ClientScriptInstance::onClientMessage(Client* aClient, const string& prot, const string& aLine) {
 	bool r1 = false;
-	//{
+	{
 		Lock l(ScriptInstance::cs);
 		MakeCall(prot, "DataArrival", 1, aClient, aLine);
 		r1 = GetLuaBool();
-	//}
+	}
 	bool r2 = PluginsManager::getInstance()->onIncommingMessage(aClient, aLine);
 	return r1 || r2;
 }
@@ -364,7 +373,7 @@ void Client::sendActionCommand(const OnlineUser& ou, int actionId) {
 					if(i->getActif() && !(i->getRaw().empty())) {
 						if(FavoriteManager::getInstance()->getActifRaw(hub, actionId, i->getRawId())) {
 							StringMap params;
-							const ::UserCommand uc = ::UserCommand(0, 0, 0, 0, "", i->getRaw(), "");
+							const UserCommand uc = UserCommand(0, 0, 0, 0, "", i->getRaw(), "");
 							ou.getIdentity().getParams(params, "user", true);
 							getHubIdentity().getParams(params, "hub", false);
 							getMyIdentity().getParams(params, "my", true);
@@ -398,9 +407,9 @@ bool Client::isActionActive(const int aAction) const {
 	return hub ? FavoriteManager::getInstance()->getActifAction(hub, aAction) : true;
 }
 
-//END
+} // namespace dcpp
 
 /**
  * @file
- * $Id: Client.cpp 355 2008-01-05 14:43:39Z bigmuscle $
+ * $Id: Client.cpp 382 2008-03-09 10:40:22Z BigMuscle $
  */

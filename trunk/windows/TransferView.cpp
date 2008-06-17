@@ -35,29 +35,44 @@
 #include "BarShader.h"
 
 int TransferView::columnIndexes[] = { COLUMN_USER, COLUMN_HUB, COLUMN_STATUS, COLUMN_TIMELEFT, COLUMN_SPEED, COLUMN_FILE, COLUMN_SIZE, COLUMN_PATH, COLUMN_IP, COLUMN_RATIO };
-int TransferView::columnSizes[] = { 150, 100, 250, 75, 75, 175, 100, 200, 50, 75 };
+int TransferView::columnSizes[] = { 150, 150, 250, 75, 75, 175, 100, 200, 150, 50 };
 
 static ResourceManager::Strings columnNames[] = { ResourceManager::USER, ResourceManager::HUB_SEGMENTS, ResourceManager::STATUS,
 ResourceManager::TIME_LEFT, ResourceManager::SPEED, ResourceManager::FILENAME, ResourceManager::SIZE, ResourceManager::PATH,
 ResourceManager::IP_BARE, ResourceManager::RATIO};
 
 TransferView::~TransferView() {
-	OperaColors::ClearCache();
+	arrows.Destroy();
 	//RSX++
 	arrows.Destroy();
+	RL_DeleteObject(arrowImg);
+
 	speedImages.Destroy();
+	RL_DeleteObject(speedImg);
+
 	speedImagesBW.Destroy();
+	RL_DeleteObject(speedBWImg);
+
 	DestroyIcon(user);
 	//END
+	OperaColors::ClearCache();
 }
 
 LRESULT TransferView::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
-
-	arrows.CreateFromImage(IDB_ARROWS, 16, 3, CLR_DEFAULT, IMAGE_BITMAP, LR_CREATEDIBSECTION | LR_SHARED);
 	//RSX++
+	arrowImg = RL_LoadFromResource(IDP_ARROWS);
+	arrows.Create(16, 16, ILC_COLOR32 | ILC_MASK, 0, 3);
+	arrows.Add(*arrowImg);
+
+	speedImg = RL_LoadFromResource(IDP_TSPEEDS);
+	speedImages.Create(16, 16, ILC_COLOR32 | ILC_MASK, 0, 5);
+	speedImages.Add(*speedImg);
+
+	speedBWImg = RL_LoadFromResource(IDP_TSPEEDSBW);
+	speedImagesBW.Create(16, 16, ILC_COLOR32 | ILC_MASK, 0, 5);
+	speedImagesBW.Add(*speedBWImg);
+
 	user = (HICON)LoadImage((HINSTANCE)::GetWindowLong(::GetParent(m_hWnd), GWL_HINSTANCE), MAKEINTRESOURCE(IDR_TUSER), IMAGE_ICON, 16, 16, LR_DEFAULTSIZE);
-	speedImages.CreateFromImage(IDB_TSPEEDS, 16, 5, CLR_DEFAULT, IMAGE_BITMAP, LR_CREATEDIBSECTION | LR_SHARED);
-	speedImagesBW.CreateFromImage(IDB_TSPEEDSBW, 16, 5, CLR_DEFAULT, IMAGE_BITMAP, LR_CREATEDIBSECTION | LR_SHARED);
 	//END
 	ctrlTransfers.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | 
 		WS_HSCROLL | WS_VSCROLL | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_SHAREIMAGELISTS, WS_EX_CLIENTEDGE, IDC_TRANSFERS);
@@ -165,6 +180,10 @@ LRESULT TransferView::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
 				case 4:
 		          transferMenu.SetMenuDefaultItem(IDC_ADD_TO_FAVORITES);
 		          break;
+				case 5:
+		          transferMenu.SetMenuDefaultItem(IDC_BROWSELIST);
+		          break;
+			  
 			}
 		} else {
 			transferMenu.InsertSeparatorFirst(TSTRING(SETTINGS_SEGMENT));
@@ -401,30 +420,9 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 
 					HLSCOLOR hls = RGB2HLS(clr);
 					if(indicateSpeeds) {
-						// Draw icon
-						// 007 - probably better way do not exist... :>
-						/*int8_t dlType = 0;
-						{
-							const QueueItem::StringMap& queue = QueueManager::getInstance()->lockQueue();
-							const string& filePath = Text::fromT(ii->target);
-							QueueItem::StringIter qi = queue.find(&filePath);
-							if(qi != queue.end()) {
-								if(qi->second->isSet(QueueItem::FLAG_CHECK_FILE_LIST)) {
-									dlType = 2;
-								} else if(qi->second->isSet(QueueItem::FLAG_USER_LIST)) {
-									dlType = 4;
-								}
-							}
-							QueueManager::getInstance()->unlockQueue();
-						}
-						if(dlType > 0) {
-							if(dlType == 2) {
-								//@todo add icon for filelist check... I.nfraR.ed have sth do deal with it... :)
-							} else if(dlType == 4) {
-								DrawIconEx(dc, rc.left + 4, rc.top + 1, user, 16, 16, NULL, NULL, DI_NORMAL | DI_COMPAT);
-							}*/
+						const string& path = Text::fromT(ii->target);
 						// Draw icon - Nasty way to do the filelist icon, but couldn't get other ways to work well, TODO: do separating filelists from other transfers the proper way...
-						if(ii->getText(COLUMN_PATH).find(Text::toT(Util::getListPath())) != string::npos || ii->getText(COLUMN_PATH).find(Text::toT(Util::getConfigPath())) != string::npos) {
+						if(!path.empty() && (path.find(Util::getListPath()) != string::npos || path.find(Util::getConfigPath()) != string::npos)) {
 							DrawIconEx(dc, rc.left + 4, rc.top + 1, user, 16, 16, NULL, NULL, DI_NORMAL | DI_COMPAT);
 						} else if(ii->status == ItemInfo::STATUS_RUNNING) {
 							RECT rc2 = rc;
@@ -614,9 +612,14 @@ LRESULT TransferView::onDoubleClickTransfers(int /*idCtrl*/, LPNMHDR pnmh, BOOL&
 					break;
 				case 2:
 					i->matchQueue();
+				case 3:
+					i->grant();
 					break;
 				case 4:
 					i->addFav();
+					break;
+				case 5:
+					i->browseList();
 					break;
 			}
 		}
@@ -940,9 +943,9 @@ void TransferView::on(DownloadManagerListener::Tick, const DownloadList& dl) {
 		ui->setStatus(ItemInfo::STATUS_RUNNING);
 		ui->setActual(d->getActual());
 		ui->setPos(d->getPos());
-//			ui->setSize(d->getSize());
+		ui->setSize(d->getSize());
 		ui->setTimeLeft(d->getSecondsLeft());
-		ui->setSpeed(static_cast<int64_t>(d->getAverageSpeed()));
+		ui->setSpeed(d->getAverageSpeed());
 
 		tstring pos = Util::formatBytesW(d->getPos());
 		double percent = (double)d->getPos()*100.0/(double)d->getSize();
@@ -969,9 +972,6 @@ void TransferView::on(DownloadManagerListener::Tick, const DownloadList& dl) {
 		if(d->isSet(Download::FLAG_CHUNKED)) {
 			statusString += _T("[C]");
 		}
-		if(d->isSet(Download::FLAG_OVERLAPPED)) {
-			statusString += _T("[O]");
-		}
 		if(!statusString.empty()) {
 			statusString += _T(" ");
 		}
@@ -988,7 +988,16 @@ void TransferView::on(DownloadManagerListener::Failed, const Download* aDownload
 	UpdateInfo* ui = new UpdateInfo(aDownload->getUser(), true, true);
 	ui->setStatus(ItemInfo::STATUS_WAITING);
 	ui->setPos(0);
-	ui->setStatusString(Text::toT(aReason));
+
+	tstring tmpReason = Text::toT(aReason);
+	if(aDownload->isSet(Download::FLAG_SLOWUSER)) {
+		tmpReason += _T(": ") + TSTRING(SLOW_USER);
+	} else if(aDownload->getOverlapped() && !aDownload->isSet(Download::FLAG_OVERLAP)) {
+		tmpReason += _T(": ") + TSTRING(OVERLAPPED_SLOW_SEGMENT);
+	}
+
+	ui->setStatusString(tmpReason);
+	
 	ui->setSize(aDownload->getSize());
 	ui->setTarget(Text::toT(aDownload->getPath()));
 
@@ -1052,7 +1061,7 @@ void TransferView::on(UploadManagerListener::Tick, const UploadList& ul) {
 		ui->setActual(u->getStartPos() + u->getActual());
 		ui->setPos(u->getStartPos() + u->getPos());
 		ui->setTimeLeft(u->getSecondsLeft(true)); // we are interested when whole file is finished and not only one chunk
-		ui->setSpeed(static_cast<int64_t>(u->getAverageSpeed()));
+		ui->setSpeed(u->getAverageSpeed());
 
 		tstring pos = Util::formatBytesW(ui->pos);
 		double percent = (double)ui->pos*100.0/(double)(u->getType() == Transfer::TYPE_TREE ? u->getSize() : u->getFileSize());
@@ -1137,7 +1146,7 @@ void TransferView::CollapseAll() {
 		if(m->download && m->parent) {
 			ctrlTransfers.deleteItem(m); 
 		}
-		if(m->download && !m->parent) {
+		if(m->download && !m->parent && !m->collapsed) {
 			m->collapsed = true;
 			ctrlTransfers.SetItemState(ctrlTransfers.findItem(m), INDEXTOSTATEIMAGEMASK(1), LVIS_STATEIMAGEMASK);
 		 }
@@ -1229,7 +1238,7 @@ void TransferView::on(QueueManagerListener::StatusUpdated, const QueueItem* qi) 
 			if(d->getStart() > 0) {
 				segs++;
 
-				totalSpeed += static_cast<int64_t>(d->getAverageSpeed());
+				totalSpeed += d->getAverageSpeed();
 				ratio += d->getPos() > 0 ? (double)d->getActual() / (double)d->getPos() : 1.00;
 			}
 		}
@@ -1259,11 +1268,11 @@ void TransferView::on(QueueManagerListener::StatusUpdated, const QueueItem* qi) 
 			} else {
 				uint64_t time = GET_TICK() - qi->getFileBegin();
 				if(time > 1000) {
-					AutoArray<TCHAR> buf(TSTRING(DOWNLOADED_BYTES).size() + 64);
-						_stprintf(buf, CTSTRING(DOWNLOADED_BYTES), Util::formatBytesW(ui->pos).c_str(), 
-						(double)ui->pos*100.0/(double)ui->size, Util::formatSeconds(time/1000).c_str());
+					tstring pos = Util::formatBytesW(ui->pos);
+					double percent = (double)ui->pos*100.0/(double)ui->size;
+					tstring elapsed = Util::formatSeconds(time/1000);
 
-					ui->setStatusString(tstring(buf));
+					ui->setStatusString(Text::tformat(TSTRING(DOWNLOADED_BYTES), pos.c_str(), percent, elapsed.c_str()));
 				}
 			}
 		}
@@ -1278,14 +1287,26 @@ void TransferView::on(QueueManagerListener::StatusUpdated, const QueueItem* qi) 
 	speak(UPDATE_PARENT, ui);
 }
 
-void TransferView::on(QueueManagerListener::Finished, const QueueItem* qi, const string&, int64_t) throw() {
-	UpdateInfo* ui = new UpdateInfo(const_cast<QueueItem*>(qi), true, true);
+void TransferView::on(QueueManagerListener::Finished, const QueueItem* qi, const string&, const Download* download) throw() {
+	// update download item
+	UpdateInfo* ui = new UpdateInfo(download->getUser(), true);
+	const bool isCheck = download->isSet(Download::FLAG_CHECK_FILE_LIST) || download->isSet(Download::FLAG_TESTSUR);
+
+	ui->setStatus(ItemInfo::STATUS_WAITING);	
+	ui->setPos(0);
+	ui->setStatusString( TSTRING(DOWNLOAD_FINISHED_IDLE));
+
+	speak(UPDATE_ITEM, ui);
+
+	// update file item
+	ui = new UpdateInfo(const_cast<QueueItem*>(qi), true, true);
+	ui->user = download->getUser();
 
 	ui->setTarget(Text::toT(qi->getTarget()));
 	ui->setPos(0);
 	ui->setActual(0);
 	ui->setTimeLeft(0);
-	ui->setStatusString(TSTRING(DOWNLOAD_FINISHED_IDLE));
+	ui->setStatusString(isCheck ? _T("Check complete, idle") : TSTRING(DOWNLOAD_FINISHED_IDLE));
 	ui->setStatus(ItemInfo::STATUS_WAITING);
 	ui->setRunning(0);
 	
@@ -1308,20 +1329,8 @@ void TransferView::on(QueueManagerListener::Removed, const QueueItem* qi) throw(
 
 	speak(UPDATE_PARENT, ui);
 }
-//RSX++
-void TransferView::on(DownloadManagerListener::CheckComplete, const UserPtr aUser, bool updateStatus) {
-	UpdateInfo* ui = new UpdateInfo(aUser, true);
-	if(updateStatus) {
-		ui->setStatusString(_T("Check complete, idle"));
-		ui->setStatus(ItemInfo::STATUS_WAITING);
-		speak(UPDATE_ITEM, ui);
-	} else {
-		speak(REMOVE_ITEM, ui);
-	}
-}
-//END
 
 /**
  * @file
- * $Id: TransferView.cpp 355 2008-01-05 14:43:39Z bigmuscle $
+ * $Id: TransferView.cpp 389 2008-06-08 10:51:15Z BigMuscle $
  */

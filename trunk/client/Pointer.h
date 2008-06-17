@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2007 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,12 +16,15 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#if !defined(DCPLUSPLUS_CLIENT_POINTER_H)
-#define DCPLUSPLUS_CLIENT_POINTER_H
+#ifndef DCPLUSPLUS_DCPP_POINTER_H
+#define DCPLUSPLUS_DCPP_POINTER_H
 
+#include <boost/intrusive_ptr.hpp>
 #include "Thread.h"
 
-class PointerBase
+namespace dcpp {
+
+class intrusive_ptr_base
 {
 public:
 	void inc() throw() {
@@ -33,7 +36,6 @@ public:
 		dcassert(ref>0);
 		
 		if ( (Thread::safeDec(ref)) == 0 ) {
-			//dcdebug("Smart Object at 0x%08x deleted\n", this);
 			delete this;
 		}
 	}
@@ -42,9 +44,9 @@ public:
 	}
 	
 protected:
-	PointerBase() throw() : ref(0) { }
+	intrusive_ptr_base() throw() : ref(0) { }
 	
-	virtual ~PointerBase() throw() {
+	virtual ~intrusive_ptr_base() throw() {
 		dcassert(!ref);
 	}
 
@@ -52,115 +54,19 @@ private:
 	volatile long ref;
 };
 
-/**
- * Note; don't forget to make the destructor virtual if deriving from this class
- */
-template <class T>
-class Pointer
-{
-public:
-	Pointer ( PointerBase *aBase = 0) throw() : base(aBase) {	
-		if ( base ) {
-			base->inc();
-		}
-	}
-	
-	Pointer( const Pointer &rhs ) throw() : base(rhs.base) {	   
-		if ( base ) {
-			base->inc();
-		}
-	}
-	
-	Pointer &operator =( const Pointer &rhs ) throw() {
-		if ( rhs.base ) {
-			rhs.base->inc();
-		}
-		
-		if ( base ) {
-			base->dec();
-		}
-		
-		base = rhs.base;
-		return *this;
-	}
-
-	Pointer &operator =( T* rhs ) throw() {
-		if (rhs) {
-			rhs->inc();
-			if ( base ) {
-				base->dec();
-			}
-			base = rhs;
-		}
-		
-		
-		return *this;
-	}
-	
-	~Pointer() throw() { 
-		if ( base ) {
-			base->dec();
-		}
-	}
-	
-	T*			operator->()		  { return		asT();	}
-	T&			operator* ()		  { return	   *asT();	}
-	const T*	operator->()  const   { return		asT();	}
-	const T&	operator* ()  const   { return	   *asT();	}
-	
-	operator		  bool()  const   { return base != NULL; }
-	
-	bool operator==(T* rhs) const { return (T*)base == rhs; }
-	bool operator==(const Pointer& rhs) const { return base == rhs.base; }
-	bool operator!=(T* rhs) const { return (T*)base != rhs; }
-	bool operator!=(const Pointer& rhs) const { return base != rhs.base; }
-	bool operator<(T* rhs) const { return (T*)base < rhs; }
-	bool operator<(const Pointer& rhs) const { return base < rhs.base; }
-	bool operator>(T* rhs) const { return (T*)base > rhs; }
-	bool operator>(const Pointer& rhs) const { return base > rhs.base; }
-	
-
-	static void swap ( Pointer &lhs, Pointer &rhs ) {
-		PointerBase *temp = lhs.base;
-		lhs.base = rhs.base;
-		rhs.base = temp;
-	}
-	
-	void release() {
-		if ( base ) {
-			base->dec();
-			base = 0;
-		}
-	}
-private:
-	PointerBase* base;
-	
-	T* asT () {	
-		dcassert(base);
-		return (T*)base;	
-	}
-
-	const T* asT()	const {	
-		dcassert(base);
-		return (T*)base;	
-	}
-};
-
-template <class T>
-bool operator==(T* lhs, const Pointer<T>& rhs) { return rhs == lhs; }
-template <class T>
-bool operator<(T* lhs, const Pointer<T>& rhs) { return rhs > lhs; }
-template <class T>
-bool operator>(T* lhs, const Pointer<T>& rhs) { return rhs < lhs; }
+inline void intrusive_ptr_add_ref(intrusive_ptr_base* p) { p->inc(); }
+inline void intrusive_ptr_release(intrusive_ptr_base* p) { p->dec(); }
 
 struct DeleteFunction {
 	template<typename T>
 	void operator()(const T& p) const { delete p; }
 };
 
+} // namespace dcpp
+
 #endif // !defined(POINTER_H)
 
 /**
  * @file
- * $Id: Pointer.h 317 2007-08-04 14:52:24Z bigmuscle $
+ * $Id: Pointer.h 382 2008-03-09 10:40:22Z BigMuscle $
  */

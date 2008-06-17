@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2007 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,20 +16,24 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#if !defined(CLIENT_H)
-#define CLIENT_H
+#ifndef DCPLUSPLUS_DCPP_CLIENT_H
+#define DCPLUSPLUS_DCPP_CLIENT_H
+
+#include "forward.h"
 
 #include "User.h"
-#include "BufferedSocket.h"
-#include "SettingsManager.h"
+#include "Speaker.h"
+#include "BufferedSocketListener.h"
 #include "TimerManager.h"
 #include "ClientListener.h"
 #include "DebugManager.h"
 //RSX++
 #include "ScriptManager.h" // Lua
 #include "../rsx/rsx-settings/rsx-SettingsManager.h"
-#include "../rsx/PluginAPI/ClientInterface.h"
-
+#include "PluginAPI/ClientInterface.h"
+//END
+namespace dcpp {
+//RSX++
 struct ClientScriptInstance : public ScriptInstance {
 	bool onHubFrameEnter(Client* aClient, const string& aLine);
 	bool onClientMessage(Client* aClient, const string& prot, const string& aLine);
@@ -39,16 +43,15 @@ struct ClientScriptInstance : public ScriptInstance {
 class Client : public Speaker<ClientListener>, public iClient, public BufferedSocketListener, protected TimerManagerListener, 
 	/*RSX++*/ public ClientScriptInstance/*END*/ {
 public:
-	typedef Client* Ptr;
-	typedef slist<Ptr> List;
+	typedef slist<Client*> List;
 	typedef List::const_iterator Iter;
 
 	virtual void connect();
 	virtual void disconnect(bool graceless);
 
 	virtual void connect(const OnlineUser& user, const string& token) = 0;
-	virtual void hubMessage(const string& aMessage) = 0;
-	virtual void privateMessage(const OnlineUser& user, const string& aMessage) = 0;
+	virtual void hubMessage(const string& aMessage, bool thirdPerson = false) = 0;
+	virtual void privateMessage(const OnlineUser& user, const string& aMessage, bool thirdPerson = false) = 0;
 	virtual void sendUserCmd(const string& aUserCmd) = 0;
 	virtual void search(int aSizeMode, int64_t aSize, int aFileType, const string& aString, const string& aToken) = 0;
 	virtual void password(const string& pwd) = 0;
@@ -62,13 +65,13 @@ public:
 
 	virtual string escape(string const& str) const { return str; }
 
-	bool isConnected() const { return socket && socket->isConnected(); }
+	bool isConnected() const { return state != STATE_DISCONNECTED; }
 	bool isOp() const { return getMyIdentity().isOp(); }
 
 	virtual void refreshUserList(bool) = 0;
 	virtual void getUserList(OnlineUser::List& list) const = 0;
 	virtual OnlineUser* findUser(const string& aNick) const = 0;
-
+	
 	uint16_t getPort() const { return port; }
 	const string& getAddress() const { return address; }
 
@@ -89,36 +92,18 @@ public:
 	void putDetectors() { stopMyINFOCheck(); stopChecking(); setCheckedAtConnect(false); }
 	bool isActionActive(const int aAction) const;
 
-	/** Client Interface **/
-	// send message to hub
-	void iHubMessage(const char* aMsg) {
-		hubMessage(string(aMsg));
-	}
-	// add text to hub frame
-	void iAddHubLine(const char* aMsg, int mType = 0) {
-		addHubLine(string(aMsg), mType);
-	}
-	// get field value from hub identity
-	const char* iGetField(const char* name) const { 
-		return getHubIdentity().get(name).c_str(); 
-	}
-	// get field value from my identity
-	const char* iGetMyField(const char* name) const { 
-		return getMyIdentity().get(name).c_str();
-	}
-	// get hub address
-	const char* iGetHubUrl() const { 
-		return hubUrl.c_str(); 
-	}
-	// send user/raw command
-	void iSendUserCmd(const char* aUserCmd) { 
-		sendUserCmd(string(aUserCmd)); 
-	}
-	// get pointer to user interface (search by nick)
-	iUser* getUserByNick(const char* aNick) { 
-		OnlineUser* ou = findUser(string(aNick));
-		return ou;
-	}
+	/** iClient functions **/
+	void __fastcall p_hubMessage(const rString& aMsg) { hubMessage(aMsg.c_str()); }
+	void __fastcall p_addHubLine(const rString& aMsg, int mType = 0) { addHubLine(aMsg.c_str(), mType); }
+	rString __fastcall p_getField(const char* name) { return getHubIdentity().get(name).c_str(); }
+	void __fastcall p_setField(const char* name, const rString& value) { getHubIdentity().set(name, value.c_str()); }
+	rString __fastcall p_getMyField(const char* name) { return getMyIdentity().get(name).c_str(); }
+	void __fastcall p_setMyField(const char* name, const rString& value) { getMyIdentity().set(name, value.c_str()); }
+	rString __fastcall p_getHubUrl() { return hubUrl.c_str(); }
+	void __fastcall p_sendUserCmd(const rString& aUserCmd) { sendUserCmd(aUserCmd.c_str());  }
+	iOnlineUser* __fastcall p_getUserByNick(const rString& aNick) { OnlineUser* ou = findUser(aNick.c_str()); return ou; }
+	void __fastcall p_lock() { cs.enter(); }
+	void __fastcall p_unlock() { cs.leave(); }
 	//END
 
 	static int getTotalCounts() {
@@ -142,19 +127,14 @@ public:
 	bool isActive() const;
 
 	void send(const string& aMessage) { send(aMessage.c_str(), aMessage.length()); }
-	void send(const char* aMessage, size_t aLen) {
-		if(!socket)
-			return;
-		updateActivity();
-		socket->write(aMessage, aLen);
-		COMMAND_DEBUG(aMessage, DebugManager::HUB_OUT, getIpPort());
-	}
+	void send(const char* aMessage, size_t aLen);
 
 	string getMyNick() const { return getMyIdentity().getNick(); }
 	string getHubName() const { return getHubIdentity().getNick().empty() ? getHubUrl() : getHubIdentity().getNick(); }
 	string getHubDescription() const { return getHubIdentity().getDescription(); }
 
 	Identity& getHubIdentity() { return hubIdentity; }
+	Identity& getMyIdentity() { return myIdentity; }
 
 	const string& getHubUrl() const { return hubUrl; }
 
@@ -212,7 +192,7 @@ protected:
 		STATE_DISCONNECTED,	///< Nothing in particular
 	} state;
 
-	BufferedSocket* socket;
+	BufferedSocket* sock;
 
 	static Counts counts;
 	Counts lastCounts;
@@ -255,14 +235,17 @@ private:
 	string hubUrl;
 	string address;
 	string ip;
+	string localIp;
 	uint16_t port;
 	char separator;
 	bool secure;
 };
 
+} // namespace dcpp
+
 #endif // !defined(CLIENT_H)
 
 /**
  * @file
- * $Id: Client.h 317 2007-08-04 14:52:24Z bigmuscle $
+ * $Id: Client.h 382 2008-03-09 10:40:22Z BigMuscle $
  */

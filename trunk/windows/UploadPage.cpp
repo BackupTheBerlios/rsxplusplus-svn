@@ -17,18 +17,18 @@
  */
 
 #include "stdafx.h"
+
 #include "../client/DCPlusPlus.h"
-#include "Resource.h"
-
-#include "UploadPage.h"
-#include "WinUtil.h"
-#include "HashProgressDlg.h"
-#include "LineDlg.h"
-
 #include "../client/Util.h"
 #include "../client/ShareManager.h"
 #include "../client/SettingsManager.h"
 #include "../client/version.h"
+
+#include "Resource.h"
+#include "UploadPage.h"
+#include "WinUtil.h"
+#include "HashProgressDlg.h"
+#include "LineDlg.h"
 
 PropPage::TextItem UploadPage::texts[] = {
 	{ IDC_SETTINGS_SHARED_DIRECTORIES, ResourceManager::SETTINGS_SHARED_DIRECTORIES },
@@ -333,5 +333,5 @@ void UploadPage::addDirectory(const tstring& aPath){
 
 /**
  * @file
- * $Id: UploadPage.cpp 297 2007-07-03 15:00:44Z bigmuscle $
+ * $Id: UploadPage.cpp 389 2008-06-08 10:51:15Z BigMuscle $
  */

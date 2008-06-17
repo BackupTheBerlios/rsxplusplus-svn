@@ -27,6 +27,7 @@
 #include "../client/Client.h"
 #include "ADLSearchFrame.h"
 #include "AdlsProperties.h"
+#include "../client/RawManager.h"
 
 int ADLSearchFrame::columnIndexes[] = { 
 	COLUMN_ACTIVE_SEARCH_STRING,

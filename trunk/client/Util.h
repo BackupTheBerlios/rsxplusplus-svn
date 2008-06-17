@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2007 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,6 +28,8 @@
 
 #include "Text.h"
 
+namespace dcpp {
+
 template<typename T, bool flag> struct ReferenceSelector {
 	typedef T ResultType;
 };
@@ -51,8 +53,8 @@ template<typename T> struct TypeTraits {
 
 #define GETSET(type, name, name2) \
 private: type name; \
-public: inline TypeTraits<type>::ParameterType get##name2() const { return name; } \
-	inline void set##name2(TypeTraits<type>::ParameterType a##name2) { name = a##name2; }
+public: TypeTraits<type>::ParameterType get##name2() const { return name; } \
+	void set##name2(TypeTraits<type>::ParameterType a##name2) { name = a##name2; }
 
 #define LIT(x) x, (sizeof(x)-1)
 
@@ -78,18 +80,15 @@ private:
 	const T2& a;
 };
 
-template<class T>
-struct PointerHash {
-#ifdef _MSC_VER
-	static const size_t bucket_size = 4; 
-	static const size_t min_buckets = 8; 
-#endif 
-	size_t operator()(const T* a) const { return ((size_t)a)/sizeof(T); }
-	bool operator()(const T* a, const T* b) { return a < b; }
-};
-template<>
-struct PointerHash<void> {
-	size_t operator()(const void* a) const { return ((size_t)a)>>2; }
+/** Evaluates op(pair<T1, T2>.second, compareTo) */
+template<class T1, class T2, class T3, class op = equal_to<T2> >
+class CompareSecondFirst {
+public:
+	CompareSecondFirst(const T2& compareTo) : a(compareTo) { }
+	bool operator()(const pair<T1, pair<T2, T3>>& p) { return op()(p.second.first, a); }
+private:
+	CompareSecondFirst& operator=(const CompareSecondFirst&);
+	const T2& a;
 };
 
 /** 
@@ -98,22 +97,6 @@ struct PointerHash<void> {
  */
 template<typename T1>
 inline int compare(const T1& v1, const T1& v2) { return (v1 < v2) ? -1 : ((v1 == v2) ? 0 : 1); }
-
-template<typename T>
-class AutoArray {
-	typedef T* TPtr;
-public:
-	explicit AutoArray(TPtr t) : p(t) { }
-	explicit AutoArray(size_t size) : p(new T[size]) { }
-	~AutoArray() { delete[] p; }
-	operator TPtr() { return p; }
-	AutoArray& operator=(TPtr t) { delete[] p; p = t; return *this; }
-private:
-	AutoArray(const AutoArray&);
-	AutoArray& operator=(const AutoArray&);
-
-	TPtr p;
-};
 
 class Util  
 {
@@ -242,7 +225,7 @@ public:
 	}
 	
 	static string formatBytes(const string& aString) { return formatBytes(toInt64(aString)); }
-	static string formatMessage(const string& nick, const string& message);
+	static string formatMessage(const string& nick, const string& message, bool thirdPerson);
 
 	static string getShortTimeString();
 
@@ -561,9 +544,11 @@ struct noCaseStringEq {
 	}
 };
 
+} // namespace dcpp
+
 #endif // !defined(UTIL_H)
 
 /**
  * @file
- * $Id: Util.h 341 2007-12-22 20:50:58Z bigmuscle $
+ * $Id: Util.h 389 2008-06-08 10:51:15Z BigMuscle $
  */

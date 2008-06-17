@@ -26,6 +26,7 @@
 #include "CriticalSection.h"
 #include "File.h"
 
+namespace dcpp {
 
 class TraceManager : public Singleton<TraceManager>
 {
@@ -57,9 +58,11 @@ private:
 #define TraceStart TraceManager::getInstance()->trace_start
 #define TraceEnd TraceManager::getInstance()->trace_end
 
+} // namespace dcpp
+
 #endif // !defined(AFX_TraceManager_H__73C7E0F5_5C7D_4A2A_827B_53267D0EF4C5__INCLUDED_)
 
 /**
  * @file
- * $Id: TraceManager.h 318 2007-08-04 21:12:31Z bigmuscle $
+ * $Id: TraceManager.h 373 2008-02-06 17:23:49Z bigmuscle $
  */

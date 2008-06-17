@@ -26,6 +26,8 @@
 #include "Speaker.h"
 #include "CriticalSection.h"
 
+namespace dcpp {
+
 class WebServerListener{
 public:
 	template<int I>	struct X { enum { TYPE = I };  };
@@ -58,11 +60,11 @@ public:
 		}
 	}
 	// SearchManagerListener
-	void on(SearchManagerListener::SR, SearchResult* sr) throw() {
+	void on(SearchManagerListener::SR, const SearchResultPtr& sr) throw() {
 		onSearchResult(sr);
 	}
 		
-	void onSearchResult(const SearchResult* aResult) throw();
+	void onSearchResult(const SearchResultPtr& aResult) throw();
 	
 	void Start();
 	void Restart(){		
@@ -198,3 +200,5 @@ private:
 	SOCKET sock;
 	HANDLE thread;
 };
+
+} // namespace dcpp

@@ -16,11 +16,13 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef DCPLUSPLUS_CLIENT_USER_COMMAND_H
-#define DCPLUSPLUS_CLIENT_USER_COMMAND_H
+#ifndef DCPLUSPLUS_DCPP_USER_COMMAND_H
+#define DCPLUSPLUS_DCPP_USER_COMMAND_H
 
 #include "Util.h"
 #include "Flags.h"
+
+namespace dcpp {
 
 class UserCommand : public Flags {
 public:
@@ -71,9 +73,11 @@ public:
 	GETSET(string, hub, Hub);
 };
 
-#endif // !defined(USER_COMMAND_H)
+} // namespace dcpp
+
+#endif // !defined(DCPLUSPLUS_DCPP_USER_COMMAND_H)
 
 /**
  * @file
- * $Id: UserCommand.h 338 2007-12-06 20:44:27Z bigmuscle $
+ * $Id: UserCommand.h 373 2008-02-06 17:23:49Z bigmuscle $
  */

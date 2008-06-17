@@ -45,7 +45,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)\openssl\include&quot;;&quot;$(SolutionDir)\lua\src&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)regex\pcre&quot;"
+				PreprocessorDefinitions="BUILDING_DCPP"
 				StringPooling="true"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
@@ -215,7 +216,8 @@
 				FavorSizeOrSpeed="2"
 				OmitFramePointers="false"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)boost&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)regex\pcre&quot;"
+				PreprocessorDefinitions="BUILDING_DCPP"
 				StringPooling="true"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
@@ -251,7 +253,7 @@
 			<Tool
 				Name="VCLibrarianTool"
 				OutputFile="$(OutDir)/$(ProjectName).lib"
-				AdditionalLibraryDirectories="&quot;$(SolutionDir)stlport\lib&quot;"
+				AdditionalLibraryDirectories=""
 				SuppressStartupBanner="true"
 			/>
 			<Tool
@@ -272,6 +274,186 @@
 		</Configuration>
 		<Configuration
 			Name="Release|x64"
+			OutputDirectory="$(SolutionDir)$(PlatformName)\$(ConfigurationName)"
+			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
+			ConfigurationType="4"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="false"
+			CharacterSet="1"
+			WholeProgramOptimization="1"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+				TargetEnvironment="3"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="3"
+				InlineFunctionExpansion="1"
+				EnableIntrinsicFunctions="true"
+				FavorSizeOrSpeed="2"
+				OmitFramePointers="false"
+				EnableFiberSafeOptimizations="true"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)boost&quot;"
+				StringPooling="true"
+				MinimalRebuild="true"
+				ExceptionHandling="1"
+				RuntimeLibrary="0"
+				BufferSecurityCheck="false"
+				EnableFunctionLevelLinking="true"
+				FloatingPointModel="2"
+				DefaultCharIsUnsigned="true"
+				TreatWChar_tAsBuiltInType="true"
+				ForceConformanceInForLoopScope="true"
+				RuntimeTypeInfo="false"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderThrough="stdinc.h"
+				PrecompiledHeaderFile="$(IntDir)/client.pch"
+				AssemblerOutput="0"
+				WarningLevel="4"
+				SuppressStartupBanner="true"
+				Detect64BitPortabilityProblems="false"
+				DebugInformationFormat="3"
+				CallingConvention="1"
+				DisableSpecificWarnings="4996"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				Culture="1033"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="$(OutDir)/$(ProjectName).lib"
+				SuppressStartupBanner="true"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
+		</Configuration>
+		<Configuration
+			Name="SvnRelease|Win32"
+			OutputDirectory="$(SolutionDir)vc7\$(ConfigurationName)\$(ProjectName)"
+			IntermediateDirectory="$(SolutionDir)vc7\$(ConfigurationName)\$(ProjectName)"
+			ConfigurationType="4"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="false"
+			CharacterSet="1"
+			WholeProgramOptimization="1"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+				CommandLine="versiontemplate.py"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="3"
+				InlineFunctionExpansion="1"
+				EnableIntrinsicFunctions="true"
+				FavorSizeOrSpeed="2"
+				OmitFramePointers="false"
+				EnableFiberSafeOptimizations="true"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)intl\include&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)regex\pcre&quot;"
+				PreprocessorDefinitions="SVNBUILD;BUILDING_DCPP"
+				StringPooling="true"
+				MinimalRebuild="true"
+				ExceptionHandling="1"
+				RuntimeLibrary="0"
+				BufferSecurityCheck="false"
+				EnableFunctionLevelLinking="true"
+				FloatingPointModel="2"
+				DefaultCharIsUnsigned="true"
+				TreatWChar_tAsBuiltInType="true"
+				ForceConformanceInForLoopScope="true"
+				RuntimeTypeInfo="false"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderThrough="stdinc.h"
+				PrecompiledHeaderFile="$(IntDir)/client.pch"
+				AssemblerOutput="0"
+				WarningLevel="4"
+				SuppressStartupBanner="true"
+				Detect64BitPortabilityProblems="false"
+				DebugInformationFormat="3"
+				CallingConvention="1"
+				DisableSpecificWarnings="4996"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				Culture="1033"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="$(OutDir)/$(ProjectName).lib"
+				AdditionalLibraryDirectories=""
+				SuppressStartupBanner="true"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
+		</Configuration>
+		<Configuration
+			Name="SvnRelease|x64"
 			OutputDirectory="$(SolutionDir)$(PlatformName)\$(ConfigurationName)"
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="4"
@@ -414,6 +596,22 @@
 						PrecompiledHeaderThrough="../client/stdinc.h"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="SvnRelease|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						PrecompiledHeaderThrough="../client/stdinc.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="SvnRelease|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						PrecompiledHeaderThrough="../client/stdinc.h"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\client\BufferedSocket.cpp"
@@ -449,6 +647,10 @@
 			</File>
 			<File
 				RelativePath=".\client\DebugManager.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\client\DetectionManager.cpp"
 				>
 			</File>
 			<File
@@ -492,6 +694,62 @@
 				>
 			</File>
 			<File
+				RelativePath=".\rsx\HTTPDownloadItem.cpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						PrecompiledHeaderThrough="../client/stdinc.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						PrecompiledHeaderThrough="../client/stdinc.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="SvnRelease|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						PrecompiledHeaderThrough="../client/stdinc.h"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\rsx\HTTPDownloadManager.cpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						PrecompiledHeaderThrough="../client/stdinc.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						PrecompiledHeaderThrough="../client/stdinc.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="SvnRelease|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						PrecompiledHeaderThrough="../client/stdinc.h"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath=".\client\IgnoreManager.cpp"
 				>
 			</File>
@@ -530,6 +788,22 @@
 						PrecompiledHeaderThrough="../client/stdinc.h"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="SvnRelease|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						PrecompiledHeaderThrough="../client/stdinc.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="SvnRelease|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						PrecompiledHeaderThrough="../client/stdinc.h"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\client\memcpy_amd.cpp"
@@ -540,8 +814,28 @@
 				>
 			</File>
 			<File
+				RelativePath=".\client\PluginsManager.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\client\pme.cpp"
 				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="2"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="SvnRelease|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="2"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\client\QueueItem.cpp"
@@ -598,6 +892,22 @@
 						PrecompiledHeaderThrough="../client/stdinc.h"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="SvnRelease|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						PrecompiledHeaderThrough="../client/stdinc.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="SvnRelease|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						PrecompiledHeaderThrough="../client/stdinc.h"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\client\ScriptManager.cpp"
@@ -608,15 +918,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\client\SearchResult.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\client\ServerSocket.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\client\SettingsManager.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\client\SharedFileStream.cpp"
 				>
 			</File>
 			<File
@@ -668,6 +978,22 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="SvnRelease|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="SvnRelease|x64"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -738,6 +1064,22 @@
 						PrecompiledHeaderThrough="../client/stdinc.h"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="SvnRelease|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						PrecompiledHeaderThrough="../client/stdinc.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="SvnRelease|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						PrecompiledHeaderThrough="../client/stdinc.h"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\client\Upload.cpp"
@@ -798,6 +1140,22 @@
 						PrecompiledHeaderThrough="../client/stdinc.h"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="SvnRelease|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						PrecompiledHeaderThrough="../client/stdinc.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="SvnRelease|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						PrecompiledHeaderThrough="../client/stdinc.h"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\client\ZUtils.cpp"
@@ -818,6 +1176,10 @@
 			</File>
 			<File
 				RelativePath=".\client\ADLSearch.h"
+				>
+			</File>
+			<File
+				RelativePath=".\client\PluginAPI\APIFunctions.h"
 				>
 			</File>
 			<File
@@ -861,6 +1223,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\client\PluginAPI\ClientInterface.h"
+				>
+			</File>
+			<File
 				RelativePath=".\client\ClientListener.h"
 				>
 			</File>
@@ -898,6 +1264,14 @@
 			</File>
 			<File
 				RelativePath=".\client\DebugManager.h"
+				>
+			</File>
+			<File
+				RelativePath=".\client\DetectionEntry.h"
+				>
+			</File>
+			<File
+				RelativePath=".\client\DetectionManager.h"
 				>
 			</File>
 			<File
@@ -981,6 +1355,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\rsx\HTTPDownloadItem.h"
+				>
+			</File>
+			<File
+				RelativePath=".\rsx\HTTPDownloadManager.h"
+				>
+			</File>
+			<File
 				RelativePath=".\client\IgnoreManager.h"
 				>
 			</File>
@@ -990,6 +1372,10 @@
 			</File>
 			<File
 				RelativePath=".\client\LogManager.h"
+				>
+			</File>
+			<File
+				RelativePath=".\client\lua_WindowsLib.h"
 				>
 			</File>
 			<File
@@ -1006,6 +1392,22 @@
 			</File>
 			<File
 				RelativePath=".\client\NmdcHub.h"
+				>
+			</File>
+			<File
+				RelativePath=".\client\PluginAPI\PluginAPI.h"
+				>
+			</File>
+			<File
+				RelativePath=".\client\PluginInfo.h"
+				>
+			</File>
+			<File
+				RelativePath=".\client\PluginAPI\PluginInformation.h"
+				>
+			</File>
+			<File
+				RelativePath=".\client\PluginsManager.h"
 				>
 			</File>
 			<File
@@ -1033,7 +1435,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\rsx\RegexpHandler.h"
+				RelativePath=".\rsx\RegexUtil.h"
 				>
 			</File>
 			<File
@@ -1061,6 +1463,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\client\SearchResult.h"
+				>
+			</File>
+			<File
 				RelativePath=".\client\Semaphore.h"
 				>
 			</File>
@@ -1070,10 +1476,6 @@
 			</File>
 			<File
 				RelativePath=".\client\SettingsManager.h"
-				>
-			</File>
-			<File
-				RelativePath=".\client\SharedFileStream.h"
 				>
 			</File>
 			<File
@@ -1147,6 +1549,26 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|x64"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Building StringDefs.cpp and Example.xml from StringDefs.h..."
+						CommandLine=".\vc7\$(ConfigurationName)\MakeDefs\MakeDefs.exe .\client\StringDefs.h .\client\StringDefs.cpp .\EN_Example.xml&#x0D;&#x0A;"
+						Outputs=".\client\StringDefs.cpp"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="SvnRelease|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Building StringDefs.cpp and Example.xml from StringDefs.h..."
+						CommandLine="makedefs.py&#x0D;&#x0A;"
+						Outputs=".\client\StringDefs.cpp"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="SvnRelease|x64"
 					>
 					<Tool
 						Name="VCCustomBuildTool"
@@ -1233,6 +1655,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\client\PluginAPI\UserInterface.h"
+				>
+			</File>
+			<File
 				RelativePath=".\rsx\UserMap.h"
 				>
 			</File>
@@ -1255,6 +1681,16 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Checking SVN revision..."
+						CommandLine="versiontemplate.py&#x0D;&#x0A;"
+						Outputs=".\client\version.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="SvnRelease|Win32"
 					>
 					<Tool
 						Name="VCCustomBuildTool"

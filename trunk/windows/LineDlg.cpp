@@ -21,8 +21,6 @@
 #include "../client/SettingsManager.h"
 #include "Resource.h"
 #include "LineDlg.h"
-#include "atlstr.h"
-
 
 tstring KickDlg::m_sLastMsg = _T("");
 
@@ -71,12 +69,14 @@ LRESULT KickDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 LRESULT KickDlg::OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	if(wID == IDOK) {
-		int iLen = ctrlLine.GetWindowTextLength();
-		CAtlString sText( ' ', iLen+1 );
-		GetDlgItemText(IDC_LINE, sText.GetBuffer(), iLen+1);
-		sText.ReleaseBuffer();
-		m_sLastMsg = sText;
-		line = sText;
+		{
+			tstring sText;
+			int iLen = ctrlLine.GetWindowTextLength() + 1;
+			sText.resize(iLen);
+			GetDlgItemText(IDC_LINE, &sText[0], iLen+1);
+			m_sLastMsg = sText;
+			line = sText;
+		}
 		int i, j;
 
 		for ( i = 0; i < 20; i++ ) {

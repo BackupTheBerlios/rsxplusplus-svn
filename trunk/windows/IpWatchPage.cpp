@@ -16,13 +16,14 @@
 
 #include "stdafx.h"
 #include "../client/DCPlusPlus.h"
+#include "../client/SettingsManager.h"
 #include "Resource.h"
-
-#include "IpWatchPage.h"
-#include "IPWatchDlg.h"
 
 #include "../rsx/RsxUtil.h"
 #include "../rsx/rsx-settings/rsx-SettingsManager.h"
+
+#include "IpWatchPage.h"
+#include "IPWatchDlg.h"
 
 PropPage::TextItem IpWatchPage::texts[] = {
 	{ IDC_ADD_WATCH, ResourceManager::ADD },

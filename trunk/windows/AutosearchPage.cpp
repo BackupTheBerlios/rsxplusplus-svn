@@ -15,13 +15,17 @@
  */
 
 #include "stdafx.h"
-#include "../client/DCPlusPlus.h"
 #include "Resource.h"
+
+#include "../client/DCPlusPlus.h"
+#include "../client/SettingsManager.h"
+#include "../client/RawManager.h"
+
+#include "../rsx/rsx-settings/rsx-SettingsManager.h"
+#include "../rsx/RsxUtil.h"
 
 #include "AutosearchPage.h"
 #include "AutosearchDlg.h"
-#include "../rsx/rsx-settings/rsx-SettingsManager.h"
-#include "../rsx/RsxUtil.h"
 
 #define BUFLEN 256
 

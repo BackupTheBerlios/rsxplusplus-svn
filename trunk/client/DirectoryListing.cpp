@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2001-2007 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,11 +31,13 @@
 #include "CryptoManager.h"
 #include "ResourceManager.h"
 #include "User.h"
-#include "../rsx/RegexpHandler.h" //RSX++
+#include "../rsx/RegexUtil.h" //RSX++
 
 #ifdef ff
 #undef ff
 #endif
+
+namespace dcpp {
 
 UserPtr DirectoryListing::getUserFromFilename(const string& fileName) {
 	// General file list name format: [username].[CID].[xml|xml.bz2|DcLst]
@@ -80,26 +82,26 @@ void DirectoryListing::loadFile(const string& name) throw(Exception) {
 	string ext = Util::getFileExt(name);
 
 	if(Util::stricmp(ext, ".bz2") == 0) {
-		::File ff(name, ::File::READ, ::File::OPEN);
+		dcpp::File ff(name, dcpp::File::READ, dcpp::File::OPEN);
 		FilteredInputStream<UnBZFilter, false> f(&ff);
 		const size_t BUF_SIZE = 64*1024;
-		AutoArray<char> buf(BUF_SIZE);
+		boost::scoped_array<char> buf(new char[BUF_SIZE]);
 		size_t len;
 		for(;;) {
 			size_t n = BUF_SIZE;
-			len = f.read(buf, n);
-			txt.append(buf, len);
+			len = f.read(&buf[0], n);
+			txt.append(&buf[0], len);
 			if(len < BUF_SIZE)
 				break;
 		}
 	} else if(Util::stricmp(ext, ".xml") == 0) {
-		int64_t sz = ::File::getSize(name);
+		int64_t sz = dcpp::File::getSize(name);
 		if(sz == -1 || sz >= static_cast<int64_t>(txt.max_size()))
 			throw FileException(STRING(FILE_NOT_AVAILABLE));
 			
 		txt.resize((size_t) sz);
 		size_t n = txt.length();
-		::File(name, ::File::READ, ::File::OPEN).read(&txt[0], n);
+		dcpp::File(name, dcpp::File::READ, dcpp::File::OPEN).read(&txt[0], n);
 	}
 	
 	loadXML(txt, false);
@@ -289,7 +291,7 @@ void DirectoryListing::download(const string& aDir, const string& aTarget, bool 
 }
 
 void DirectoryListing::download(File* aFile, const string& aTarget, bool view, bool highPrio, QueueItem::Priority prio) {
-	Flags::MaskType flags = (Flags::MaskType)(view ? (QueueItem::FLAG_TEXT | QueueItem::FLAG_CLIENT_VIEW) : QueueItem::FLAG_RESUME);
+	Flags::MaskType flags = (Flags::MaskType)(view ? (QueueItem::FLAG_TEXT | QueueItem::FLAG_CLIENT_VIEW) : 0);
 
 	QueueManager::getInstance()->add(aTarget, aFile->getSize(), aFile->getTTH(), getUser(), flags);
 
@@ -302,7 +304,7 @@ DirectoryListing::Directory* DirectoryListing::find(const string& aName, Directo
 	dcassert(end != string::npos);
 	string name = aName.substr(0, end);
 
-	Directory::Iter i = ::find(current->directories.begin(), current->directories.end(), name);
+	Directory::Iter i = std::find(current->directories.begin(), current->directories.end(), name);
 	if(i != current->directories.end()) {
 		if(end == (aName.size() - 1))
 			return *i;
@@ -352,7 +354,7 @@ void DirectoryListing::Directory::getHashList(DirectoryListing::Directory::TTHSe
 int64_t DirectoryListing::Directory::getTotalSize(bool adl) {
 	//RSX++
 	if(parent != NULL && parent->parent == NULL) {
-		if(RegexpHandler::matchProfile(getName(), "([A-Z])")) {
+		if(RegexUtil::match(getName(), "([A-Z])")) {
 			parent->rmDCdetected = true;
 		}
 	}
@@ -418,7 +420,10 @@ DirectoryListing::Directory::List DirectoryListing::getForbiddenDirs() {
 	return forbiddenDirList;
 }
 //END
+
+} // namespace dcpp
+
 /**
  * @file
- * $Id: DirectoryListing.cpp 334 2007-11-04 13:04:34Z bigmuscle $
+ * $Id: DirectoryListing.cpp 385 2008-04-26 13:05:09Z BigMuscle $
  */

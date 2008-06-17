@@ -21,8 +21,7 @@
 #include "Singleton.h"
 #include "TimerManager.h"
 
-#define COMMAND_DEBUG(a,b,c) DebugManager::getInstance()->SendCommandMessage(a,b,c);
-#define DETECTION_DEBUG(m) DebugManager::getInstance()->SendDetectionMessage(m);
+namespace dcpp {
 
 class DebugManagerListener {
 public:
@@ -52,4 +51,9 @@ private:
 	DebugManager() { };
 	~DebugManager() { };
 };
+#define COMMAND_DEBUG(a,b,c) DebugManager::getInstance()->SendCommandMessage(a,b,c);
+#define DETECTION_DEBUG(m) DebugManager::getInstance()->SendDetectionMessage(m);
+
+} // namespace dcpp
+
 #endif

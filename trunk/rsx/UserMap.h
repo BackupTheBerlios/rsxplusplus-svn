@@ -24,8 +24,10 @@
 #include "../client/Thread.h"
 #include "../client/FastAlloc.h"
 
+namespace dcpp {
+
 template<bool isADC, typename BaseMap>
-class UserMap : public BaseMap {
+class UserMap : public BaseMap, private boost::noncopyable {
 public:
 	UserMap() : clientEngine(NULL) { };
 	~UserMap() {
@@ -34,37 +36,41 @@ public:
 		QueueManager::getInstance()->removeOfflineChecks();
 	};
 
-	void startMyINFOCheck(Client* /*c*/) { 
-		/*if(!myInfoEngine.isRunning()) {
+	void startMyINFOCheck(Client* c) { 
+		if(!myInfoEngine.isRunning()) {
 			myInfoEngine.startCheck(c);
-		}*/
+		}
 	}
 
 	void startCheck(Client* c, bool cc, bool cf, bool cOnConnect = false) {
-		if(clientEngine == NULL) {
-			clientEngine = new ThreadedCheck(this, c);
-			clientEngine->setCheckClients(cc);
-			clientEngine->setCheckFilelists(cf);
-			if(cOnConnect) {
-				clientEngine->setCheckOnConnect(true);
-			} else {
-				clientEngine->setKeepChecking(true);
+		try {
+			if(clientEngine == NULL) {
+				clientEngine = new ThreadedCheck(this, c);
+				clientEngine->setCheckClients(cc);
+				clientEngine->setCheckFilelists(cf);
+				if(cOnConnect) {
+					clientEngine->setCheckOnConnect(true);
+				} else {
+					clientEngine->setKeepChecking(true);
+				}
+				clientEngine->startCheck();
 			}
-			clientEngine->startCheck();
-		}
+		} catch(...) { }
 	}
 
 	void stopMyINFOCheck() {
-		/*if(myInfoEngine.isRunning()) {
+		if(myInfoEngine.isRunning()) {
 			myInfoEngine.cancel();
-		}*/
+		}
 	}
 
 	void stopCheck() {
-		if(clientEngine != NULL) {
-			delete clientEngine;
-			clientEngine = NULL;
-		}
+		try {
+			if(clientEngine != NULL) {
+				delete clientEngine;
+				clientEngine = NULL;
+			}
+		} catch(...) { }
 	}
 
 	bool isDetectorRunning() { 
@@ -74,7 +80,7 @@ public:
 private:
 
 	//myinfo check engine
-	/*class ThreadedMyINFOCheck : public Thread, public FastAlloc<ThreadedMyINFOCheck> {
+	class ThreadedMyINFOCheck : public Thread, public FastAlloc<ThreadedMyINFOCheck> {
 	public:
 		ThreadedMyINFOCheck() : client(NULL), inThread(false) { };
 		~ThreadedMyINFOCheck() { cancel(); }
@@ -84,21 +90,17 @@ private:
 			join();
 		}
 
-		bool isRunning() { return inThread; }
+		bool isRunning() const { return inThread; }
 
 		void startCheck(Client* _c) {
-			client = _c;
-			if(!client) {
-				return;
-			}
-			if(!inThread) {
+			if(_c && !inThread) {
+				client = _c;
 				start();
 			}
 		}
 
 	private:
 		int run() {
-			dcassert(client != NULL);
 			inThread = true;
 			setThreadPriority(Thread::HIGH);
 			if(client && client->isConnected() && !client->getCheckedAtConnect()) {
@@ -110,9 +112,12 @@ private:
 				}
 				for(OnlineUser::List::const_iterator i = ul.begin(); i != ul.end(); ++i) {
 					OnlineUser* ou = *i;
-					if(ou->isCheckable(false)) {
-						if(ou->getIdentity().myInfoDetect(*ou))
+					if(ou->isCheckable()) {
+						string report = ou->getIdentity().myInfoDetect(*ou);
+						if(!report.empty()) {
+							ou->getClient().cheatMessage(report);
 							ou->getClient().updated(*ou);
+						}
 					}
 					ou->dec();
 					sleep(1);
@@ -123,7 +128,7 @@ private:
 		}
 		bool inThread;
 		Client* client;
-	}myInfoEngine;*/
+	}myInfoEngine;
 
 	//clients check engine
 	class ThreadedCheck : public Thread, public FastAlloc<ThreadedCheck> {
@@ -132,15 +137,15 @@ private:
 			keepChecking(false), canCheckFilelist(false), inThread(false), checkOnConnect(false) { };
 		~ThreadedCheck() {
 			keepChecking = inThread = false;
-			join();
 			client = NULL;
+			join();
 		}
 
-		bool isChecking() { 
+		inline bool isChecking() { 
 			return inThread && keepChecking; 
 		}
 
-		void startCheck() {
+		inline void startCheck() {
 			if(!client || !users) {
 				return;
 			}
@@ -150,11 +155,72 @@ private:
 		}
 
 	private:
-		int run() throw() {
+		inline bool preformUserCheck(OnlineUser* ou, const uint8_t clientItems, const uint8_t filelistItems) {
+			if(!ou->isCheckable((uint16_t)RSXSETTING(CHECK_DELAY)))
+				return false;
+			if(isADC) {
+				if((ou->getUser()->isSet(User::NO_ADC_1_0_PROTOCOL) || ou->getUser()->isSet(User::NO_ADC_0_10_PROTOCOL)) && ou->shouldCheckClient()) {
+					//nasty...
+					ou->setTestSURComplete();
+					ou->setFileListComplete();
+					string report = ou->setCheat("No ADC 1.0/0.10 support", true, false, false);
+					client->updated(*ou);
+					client->cheatMessage(report);
+					sleep(5);
+					return false;
+				}
+			}
+			Identity& i = ou->getIdentity();
+			if(getCheckClients() && clientItems < RSXSETTING(MAX_TESTSURS)) {
+				if(ou->shouldCheckClient()) {
+					if(!ou->getChecked(false, false)) {
+						try {
+							QueueManager::getInstance()->addTestSUR(ou->getUser(), false);
+							i.setTestSURQueued("1");
+							return true;
+						} catch(const QueueException& eq) {
+							dcdebug("ThreadedCheck::QueueException: Exception adding client check %s\n", eq.getError().c_str());
+							return false;
+						} catch(const FileException& ef) {
+							dcdebug("ThreadedCheck::FileException: Exception adding client check %s\n", ef.getError().c_str());
+							return false;
+						}
+					}
+				} else if(i.isClientQueued()) {
+					if(!QueueManager::getInstance()->isTestSURinQueue(ou->getUser())) {
+						i.setTestSURQueued(Util::emptyString);
+						// process
+						return false;
+					}
+				}
+			}
+			if(getCheckFilelists() && filelistItems < RSXSETTING(MAX_FILELISTS)) {
+				if(canCheckFilelist) {
+					if(ou->shouldCheckFileList()) {
+						if(!ou->getChecked(true, false)) {
+							try {
+								QueueManager::getInstance()->addFileListCheck(ou->getUser());
+								i.setFileListQueued("1");
+								return true;
+							} catch(const QueueException& eq) {
+								dcdebug("ThreadedCheck::QueueException: Exception adding filelist %s\n", eq.getError().c_str());
+								return false;
+							} catch(const FileException& ef) {
+								dcdebug("ThreadedCheck::FileException: Exception adding filelist %s\n", ef.getError().c_str());
+								return false;
+							}
+						}
+					}
+				}
+			}
+			return false;
+		}
+
+		int run() {
 			inThread = true;
 			setThreadPriority(Thread::LOW);
 			if(checkOnConnect && !keepChecking) { 
-				sleep(RSXSETTING(CHECK_DELAY));
+				Thread::sleep(RSXSETTING(CHECK_DELAY));
 				keepChecking = true;
 				checkOnConnect = false;
 				client->setCheckOnConnect(false);
@@ -167,9 +233,9 @@ private:
 			canCheckFilelist = !checkClients || !RSXBOOLSETTING(CHECK_ALL_CLIENTS_BEFORE_FILELISTS);
 			bool iterBreak = false;
 			const uint64_t	sleepTime =	static_cast<uint64_t>(RSXSETTING(SLEEP_TIME));
-			OnlineUser* ou = NULL;
 
 			while(keepChecking) {
+				dcassert(client != NULL);
 				if(client->isConnected()) {
 					uint8_t t = 0;
 					uint8_t f = 0;
@@ -185,91 +251,25 @@ private:
 						QueueManager::getInstance()->unlockQueue();
 					}
 
-					if(t < RSXSETTING(MAX_TESTSURS)) {
-						dcassert(client != NULL);
-						iterBreak = false;
+					{
 						Lock l(client->cs);
-
+						iterBreak = false;
 						for(BaseMap::const_iterator i = users->begin(); i != users->end(); i++) {
+							if(!inThread) {
+								break;
+							}
 							i->second->inc();
-							ou = i->second;
-							if(!ou || !inThread) { 
-								i->second->dec();							
-								break; 
+							iterBreak = preformUserCheck(i->second, t, f);
+							i->second->dec();
+							if(iterBreak) {
+								break;
 							}
-//							iterBreak = false;
-
-							if(ou->isCheckable()) {
-								if(isADC) {
-									if((ou->getUser()->isSet(User::NO_ADC_1_0_PROTOCOL) || ou->getUser()->isSet(User::NO_ADC_0_10_PROTOCOL)) && ou->shouldTestSUR()) {
-										//nasty...
-										ou->setTestSURComplete();
-										ou->setFileListComplete();
-										string report = ou->setCheat("No ADC 1.0/0.10 support", true, false, false);
-										ou->updateUser();
-										client->cheatMessage(report);
-										ou->dec();
-										//prevent spam but don't break, it'd be a time loss
-										sleep(5);
-										continue;
-									}
-								}
-
-								if(getCheckClients()) {
-									if(ou->shouldTestSUR()) {
-										if(!ou->getChecked()) {
-											iterBreak = true;
-											try {
-												//dcdebug("ThreadedCheck: Adding TestSUR to queue %s\n", ou->getIdentity().getNick().c_str());
-												QueueManager::getInstance()->addTestSUR(ou->getUser(), false);
-												ou->getIdentity().setTestSURQueued("1");
-											} catch(...) {
-												//dcdebug("ThreadedCheck: Exception adding testsur %s\n", ou->getIdentity().getNick().c_str());
-											}
-											ou->dec();
-											break;
-										}
-										//@todo find a reason of clearing TQ field while checks isnt't done
-									} else if(ou->getIdentity().isTestSURQueued() && ou->getIdentity().isClientChecked()) {
-										try {
-											if(!QueueManager::getInstance()->isTestSURinQueue(ou->getUser())) {
-												iterBreak = true;
-												ou->getIdentity().setTestSURQueued(Util::emptyString);
-											}
-										} catch(...) {
-											//dcdebug("ThreadedCheck: Exception removing testsur %s\n", ou->getIdentity().getNick().c_str());
-										}
-										ou->dec();
-										break;
-									}
-								}
-								if(getCheckFilelists()) {
-									if(canCheckFilelist && f < RSXSETTING(MAX_FILELISTS)) {
-										if(ou->shouldCheckFileList(!getCheckClients())) {
-											if(!ou->getChecked(true)) {
-												try {
-													//dcdebug("Adding FileList check to queue %s\n", ou->getIdentity().getNick());
-													QueueManager::getInstance()->addList(ou->getUser(), QueueItem::FLAG_CHECK_FILE_LIST);
-													ou->getIdentity().setFileListQueued("1");
-												} catch(...) {
-													//dcdebug("ThreadedCheck: Exception adding filelist %s\n", ou->getIdentity().getNick().c_str());
-												}
-												ou->dec();
-												break;
-											}
-										}
-									}
-								}
-							}
-							ou->dec();
 						}
 					}
 					if(!canCheckFilelist) {
 						canCheckFilelist = !iterBreak;
 					}
 					sleep(sleepTime);
-				} else {
-					sleep(1000);
 				}
 			}
 			inThread = false;
@@ -286,4 +286,6 @@ private:
 		UserMap* users;
 	}*clientEngine;
 };
+
+} // namespace dcpp
 #endif

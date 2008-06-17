@@ -24,6 +24,7 @@
 #include "Util.h"
 #include "Client.h"
 
+namespace dcpp {
 class Action {
 public:
 	typedef Action* Ptr;
@@ -173,6 +174,7 @@ protected:
 	int getId(int actionId);
 	int getIdAction(int id);
 };
+} // namespace dcpp
 #endif //RAW_MANAGER_H
 
 /**

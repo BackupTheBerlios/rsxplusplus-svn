@@ -21,7 +21,11 @@
 
 #include "Exception.h"
 
+namespace dcpp {
+
+} // namespace dcpp
+
 /**
  * @file
- * $Id: Exception.cpp 202 2006-02-11 12:46:13Z bigmuscle $
+ * $Id: Exception.cpp 373 2008-02-06 17:23:49Z bigmuscle $
  */

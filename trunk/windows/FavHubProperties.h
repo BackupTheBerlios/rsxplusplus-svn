@@ -27,9 +27,8 @@
 //RSX++
 #include "FavTabPages.h"
 #include "DlgTabCtrl.h"
+#include "ExCImage.h"
 //END
-
-class FavoriteHubEntry;
 
 class FavHubProperties : public CDialogImpl<FavHubProperties> {
 public:
@@ -61,6 +60,7 @@ public:
 protected:
 	FavoriteHubEntry *entry;
 	//RSX++
+	ExCImage::Ptr icons;
 	CDialogTabCtrl ctrlTabs;
 	CFavTabRaw ctrlRaws;
 	CFavTabOp ctrlOpTab;
@@ -75,5 +75,5 @@ private:
 
 /**
  * @file
- * $Id: FavHubProperties.h 308 2007-07-13 18:57:02Z bigmuscle $
+ * $Id: FavHubProperties.h 373 2008-02-06 17:23:49Z bigmuscle $
  */

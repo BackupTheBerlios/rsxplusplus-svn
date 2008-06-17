@@ -25,6 +25,8 @@
 #define FAKES_FILE "Fakes.xml"
 #define ISP_FILE "ISPs.xml"
 
+namespace dcpp {
+
 void ClientProfileManager::saveClientProfiles() {
 	try {
 		SimpleXML xml;
@@ -594,4 +596,5 @@ void ClientProfileManager::updateFileListDetector(const FileListDetectorProfile&
 		}
 	}
 }
+}; // namespace dcpp
 //END

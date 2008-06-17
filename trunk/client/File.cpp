@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2007 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +20,8 @@
 #include "DCPlusPlus.h"
 
 #include "File.h"
+
+namespace dcpp {
 
 #ifdef _WIN32
 File::File(const string& aFileName, int access, int mode) throw(FileException) {
@@ -225,7 +227,7 @@ File::File(const string& aFileName, int access, int mode) throw(FileException) {
 
 	h = open(filename.c_str(), m, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
 	if(h == -1)
-		throw FileException("Could not open file");
+		throw FileException(Util::translateError(errno));
 }
 
 uint32_t File::getLastModified() const throw() {
@@ -272,20 +274,31 @@ void File::movePos(int64_t pos) throw() {
 }
 
 size_t File::read(void* buf, size_t& len) throw(FileException) {
-	ssize_t x = ::read(h, buf, len);
-	if(x == -1)
-		throw FileException("Read error");
-	len = x;
-	return (size_t)x;
+	ssize_t result = ::read(h, buf, len);
+	if (result == -1) {
+		throw FileException(Util::translateError(errno));
+	}
+	len = result;
+	return (size_t)result;
 }
 
 size_t File::write(const void* buf, size_t len) throw(FileException) {
-	ssize_t x = ::write(h, buf, len);
-	if(x == -1)
-		throw FileException("Write error");
-	if(x < (ssize_t)len)
-		throw FileException("Disk full(?)");
-	return x;
+	ssize_t result;
+	char* pointer = (char*)buf;
+	ssize_t left = len;
+
+	while (left > 0) {
+		result = ::write(h, pointer, left);
+		if (result == -1) {
+			if (errno != EINTR) {
+				throw FileException(Util::translateError(errno));
+			}
+		} else {
+			pointer += result;
+			left -= result;
+		}
+	}
+	return len;
 }
 
 // some ftruncate implementations can't extend files like SetEndOfFile,
@@ -339,22 +352,22 @@ size_t File::flush() throw(FileException) {
 void File::renameFile(const string& source, const string& target) throw(FileException) {
 	int ret = ::rename(Text::fromUtf8(source).c_str(), Text::fromUtf8(target).c_str());
 	if(ret != 0 && errno == EXDEV) {
-		copyFile(source.c_str(), target.c_str());
-		deleteFile(source.c_str());
+		copyFile(source, target);
+		deleteFile(source);
 	} else if(ret != 0)
-		throw FileException(source.c_str() + Util::translateError(errno));
+		throw FileException(source + Util::translateError(errno));
 }
 
 // This doesn't assume all bytes are written in one write call, it is a bit safer
 void File::copyFile(const string& source, const string& target) throw(FileException) {
 	const size_t BUF_SIZE = 64 * 1024;
-	AutoArray<char> buffer(BUF_SIZE);
+	boost::scoped_array<char> buffer(new char[BUF_SIZE]);
 	size_t count = BUF_SIZE;
 	File src(source, File::READ, 0);
 	File dst(target, File::WRITE, File::CREATE | File::TRUNCATE);
 
-	while(src.read((char*)buffer, count) > 0) {
-		char* p = (char*)buffer;
+	while(src.read(&buffer[0], count) > 0) {
+		char* p = &buffer[0];
 		while(count > 0) {
 			size_t ret = dst.write(p, count);
 			p += ret;
@@ -417,7 +430,8 @@ StringList File::findFiles(const string& path, const string& pattern) {
 	hFind = ::FindFirstFile(Text::toT(path + pattern).c_str(), &data);
 	if(hFind != INVALID_HANDLE_VALUE) {
 		do {
-			ret.push_back(path + Text::fromT(data.cFileName));
+			const char* extra = (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ? "\\" : ""; 
+			ret.push_back(path + Text::fromT(data.cFileName) + extra);
 		} while(::FindNextFile(hFind, &data));
 
 		::FindClose(hFind);
@@ -427,7 +441,8 @@ StringList File::findFiles(const string& path, const string& pattern) {
 	if (dir) {
 		while (struct dirent* ent = readdir(dir)) {
 			if (fnmatch(pattern.c_str(), ent->d_name, 0) == 0) {
-				ret.push_back(path + Text::toUtf8(ent->d_name));
+				const char* extra = (ent->d_type & DT_DIR) ? "/" : ""; 
+				ret.push_back(path + Text::toUtf8(ent->d_name) + extra);
 			}
 		}
 		closedir(dir);
@@ -436,3 +451,5 @@ StringList File::findFiles(const string& path, const string& pattern) {
 
 	return ret;
 }
+
+} // namespace dcpp

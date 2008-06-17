@@ -22,6 +22,8 @@
 #include "Socket.h"
 #include "Speaker.h"
 
+namespace dcpp {
+
 class ServerSocketListener {
 public:
 	virtual ~ServerSocketListener() { }
@@ -55,9 +57,11 @@ private:
 	Socket socket;
 };
 
+} // namespace dcpp
+
 #endif // !defined(SERVER_SOCKET_H)
 
 /**
  * @file
- * $Id: ServerSocket.h 317 2007-08-04 14:52:24Z bigmuscle $
+ * $Id: ServerSocket.h 373 2008-02-06 17:23:49Z bigmuscle $
  */

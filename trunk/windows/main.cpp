@@ -32,14 +32,17 @@
 #include "../client/DCPlusPlus.h"
 #include "SingleInstance.h"
 #include "WinUtil.h"
+#include "../client/version.h"
 
 #include "../client/MerkleTree.h"
+#include "../client/Text.h"
 
 #include "Resource.h"
 #include "ExtendedTrace.h"
 
 #include "MainFrm.h"
 #include "PopupManager.h"
+#include "ExCImage.h"
 
 #include <delayimp.h>
 CAppModule _Module;
@@ -138,7 +141,7 @@ LONG __stdcall DCUnhandledExceptionFilter( LPEXCEPTION_POINTERS e )
 		exceptionCode, VERSIONSTRING, getExceptionName(exceptionCode).c_str());
 
 	f.write(buf, strlen(buf));
-#if defined(SVN_REVISION_STR)
+#ifdef SVNBUILD
 	sprintf(buf, "SVN: %s\r\n", SVN_REVISION_STR);	
 	f.write(buf, strlen(buf));
 #endif	
@@ -284,8 +287,9 @@ LRESULT CALLBACK splashCallback(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 		::SetBkMode(dc, TRANSPARENT);
 		
 		// Draw the icon
-		HBITMAP hi;
-		hi = (HBITMAP)LoadImage(_Module.get_m_hInst(), MAKEINTRESOURCE(IDB_RSX_SPLASH), IMAGE_BITMAP, 480, 150, LR_SHARED);
+		ExCImage hi;
+		hi.LoadFromResource(IDP_RSX_SPLASH, _T("PNG"), _Module.get_m_hInst());
+
 		HDC comp=CreateCompatibleDC(dc);
 		SelectObject(comp,hi);	
 
@@ -422,8 +426,8 @@ static int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 	} else {
 		wndMain.ShowWindow(((nCmdShow == SW_SHOWDEFAULT) || (nCmdShow == SW_SHOWNORMAL)) ? SETTING(MAIN_WINDOW_STATE) : nCmdShow);
 	}
-
 	int nRet = theLoop.Run();
+	
 	_Module.RemoveMessageLoop();
 
 	shutdown();

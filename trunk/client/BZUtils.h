@@ -25,6 +25,8 @@
 #include <bzlib.h>
 #endif
 
+namespace dcpp {
+
 class BZFilter {
 public:
 	BZFilter();
@@ -59,9 +61,11 @@ private:
 	bz_stream zs;
 };
 
+} // namespace dcpp
+
 #endif // !defined(BZ_UTILS_H)
 
 /**
  * @file
- * $Id: BZUtils.h 317 2007-08-04 14:52:24Z bigmuscle $
+ * $Id: BZUtils.h 373 2008-02-06 17:23:49Z bigmuscle $
  */

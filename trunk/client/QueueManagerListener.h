@@ -16,10 +16,12 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef DCPLUSPLUS_CLIENT_QUEUE_MANAGER_LISTENER_H
-#define DCPLUSPLUS_CLIENT_QUEUE_MANAGER_LISTENER_H
+#ifndef DCPLUSPLUS_DCPP_QUEUE_MANAGER_LISTENER_H
+#define DCPLUSPLUS_DCPP_QUEUE_MANAGER_LISTENER_H
 
 #include "forward.h"
+
+namespace dcpp {
 
 class QueueManagerListener {
 public:
@@ -35,7 +37,7 @@ public:
 	typedef X<6> PartialList;
 
 	virtual void on(Added, const QueueItem*) throw() { }
-	virtual void on(Finished, const QueueItem*, const string&, int64_t) throw() { }
+	virtual void on(Finished, const QueueItem*, const string&, const Download*) throw() { }
 	virtual void on(Removed, const QueueItem*) throw() { }
 	virtual void on(Moved, const QueueItem*, const string&) throw() { }
 	virtual void on(SourcesUpdated, const QueueItem*) throw() { }
@@ -43,9 +45,11 @@ public:
 	virtual void on(PartialList, const UserPtr&, const string&) throw() { }
 };
 
+} // namespace dcpp
+
 #endif // !defined(QUEUE_MANAGER_LISTENER_H)
 
 /**
  * @file
- * $Id: QueueManagerListener.h 298 2007-07-06 13:59:59Z bigmuscle $
+ * $Id: QueueManagerListener.h 373 2008-02-06 17:23:49Z bigmuscle $
  */

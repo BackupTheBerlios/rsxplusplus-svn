@@ -27,7 +27,6 @@
 #include "PropPage.h"
 #include "ExListViewCtrl.h"
 #include "WinUtil.h"
-#include "../client/FavoriteManager.h"
 
 class FavoriteDirsPage : public CPropertyPage<IDD_FAVORITE_DIRSPAGE>, public PropPage
 {
@@ -96,5 +95,5 @@ protected:
 
 /**
  * @file
- * $Id: FavoriteDirsPage.h 216 2006-06-15 20:14:15Z bigmuscle $
+ * $Id: FavoriteDirsPage.h 308 2007-07-13 18:57:02Z bigmuscle $
  */

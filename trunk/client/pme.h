@@ -23,9 +23,10 @@
 #ifndef PME_H
 #define PME_H
 
-#include "../regex/src/pcre.h"
+#include "../regex/pcre/config.h"
+#include "../regex/pcre/pcre.h"
 
-
+namespace dcpp {
 
 /// PME wraps the PCRE C API into a more perl-like syntax
 /**
@@ -169,5 +170,6 @@ protected:
 
 };
 
+} // namespace pme
 
 #endif // PME_H

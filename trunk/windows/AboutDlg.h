@@ -23,13 +23,12 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
-#include "../client/HttpConnection.h"
-#include "../client/SimpleXML.h"
+#include "../rsx/UpdateManager.h"
 #include <atlctrlx.h>
 
 static const TCHAR thanks[] = _T("I.nfraR.ed, Kulmegil, Crise, newborn & Aqualung\r\nKeep it coming!");
 
-class AboutDlg : public CDialogImpl<AboutDlg>, private HttpConnectionListener, private TimerManagerListener
+class AboutDlg : public CDialogImpl<AboutDlg>, private TimerManagerListener
 {
 public:
 	enum { IDD = IDD_ABOUTBOX };
@@ -40,20 +39,18 @@ public:
 
 	BEGIN_MSG_MAP(AboutDlg)
 		MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
-		MESSAGE_HANDLER(WM_VERSIONDATA, onVersionData)
 		COMMAND_ID_HANDLER(IDOK, OnCloseCmd)
 		COMMAND_ID_HANDLER(IDCANCEL, OnCloseCmd)
 		COMMAND_ID_HANDLER(IDC_ABOUT_LINK, onLink)
 	END_MSG_MAP()
 
 	LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
-		SetDlgItemText(IDC_VERSION, _T("RSX++ v") _T(VERSIONSTRING) _T(" (c) Copyright 2007-2008 adrian_007\nBased on: StrongDC++ 2.11 (c) Copyright 2001-2008 Big Muscle\n"));
+		SetDlgItemText(IDC_VERSION, _T("RSX++ v") _T(VERSIONSTRING) _T(" (c) Copyright 2007-2008 adrian_007\nBased on: StrongDC++ 2.13 (c) Copyright 2001-2008 Big Muscle\n"));
 		CEdit ctrlThanks(GetDlgItem(IDC_THANKS));
 		ctrlThanks.FmtLines(TRUE);
 		ctrlThanks.AppendText(thanks, TRUE);
 		ctrlThanks.Detach();
 		SetDlgItemText(IDC_TTH, WinUtil::tth.c_str());
-		SetDlgItemText(IDC_LATEST, CTSTRING(DOWNLOADING));
 		SetDlgItemText(IDC_TOTALS, (_T("Upload: ") + Util::formatBytesW(SETTING(TOTAL_UPLOAD)) + _T(", Download: ") + 
 			Util::formatBytesW(SETTING(TOTAL_DOWNLOAD))).c_str());
 
@@ -73,20 +70,12 @@ public:
 		SetDlgItemText(IDC_UPTIME, buf);
 
 		TimerManager::getInstance()->addListener(this);
+		SetDlgItemText(IDC_LATEST, Text::toT(UpdateManager::getInstance()->getLatestVersion()).c_str());
 		//END
 		CenterWindow(GetParent());
-		c.addListener(this);
-		c.downloadFile(VERSION_URL);
 		return TRUE;
 	}
 
-	LRESULT onVersionData(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
-		tstring* x = (tstring*) wParam;
-		SetDlgItemText(IDC_LATEST, x->c_str());
-		delete x;
-		return 0;
-	}
-		
 	LRESULT OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
 		TimerManager::getInstance()->removeListener(this);
 		EndDialog(wID);
@@ -99,48 +88,19 @@ public:
 	}
 
 private:
-	HttpConnection c;
 	CHyperLink url;
-
 	AboutDlg(const AboutDlg&) { dcassert(0); }
-	
-	void on(HttpConnectionListener::Data, HttpConnection* /*conn*/, const uint8_t* buf, size_t len) throw() {
-		downBuf.append((char*)buf, len);
-	}
-
-	void on(HttpConnectionListener::Complete, HttpConnection* conn, const string&) throw() {
-		if(!downBuf.empty()) {
-			SimpleXML xml;
-			xml.fromXML(downBuf);
-			if(xml.findChild("DCUpdate")) {
-				xml.stepIn();
-				if(xml.findChild("Version")) {
-					tstring* x = new tstring(Text::toT(xml.getChildData()));
-					PostMessage(WM_VERSIONDATA, (WPARAM) x);
-				}
-			}
-		}
-		conn->removeListener(this);
-	}
-
-	void on(HttpConnectionListener::Failed, HttpConnection* conn, const string& aLine) throw() {
-		tstring* x = new tstring(Text::toT(aLine));
-		PostMessage(WM_VERSIONDATA, (WPARAM) x);
-		conn->removeListener(this);
-	}
 
 	void on(TimerManagerListener::Second /*type*/, uint64_t /*aTick*/) throw() {
 		TCHAR buf[128];
 		snwprintf(buf, sizeof(buf), _T("Uptime: %s"), Text::toT(WinUtil::formatTime(Util::getUptime())).c_str());
 		SetDlgItemText(IDC_UPTIME, buf);
 	}
-
-	string downBuf;
 };
 
 #endif // !defined(ABOUT_DLG_H)
 
 /**
  * @file
- * $Id: AboutDlg.h 317 2007-08-04 14:52:24Z bigmuscle $
+ * $Id: AboutDlg.h 385 2008-04-26 13:05:09Z BigMuscle $
  */

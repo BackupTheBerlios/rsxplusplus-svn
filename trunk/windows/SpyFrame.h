@@ -114,5 +114,5 @@ private:
 
 /**
  * @file
- * $Id: SpyFrame.h 358 2008-01-17 10:48:01Z bigmuscle $
+ * $Id: SpyFrame.h 389 2008-06-08 10:51:15Z BigMuscle $
  */

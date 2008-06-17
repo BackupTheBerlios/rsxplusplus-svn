@@ -17,18 +17,10 @@
 #ifndef FILTERPAGE_H
 #define FILTERPAGE_H
 
-#if _MSC_VER > 1000
-#pragma once
-#endif // _MSC_VER > 1000
+#include "../client/FavoriteManager.h"
 
 #include "PropPage.h"
 #include "ExListViewCtrl.h"
-#include "../client/Client.h"
-#include <atlcrack.h>
-#include "WinUtil.h"
-
-class Filters;
-class HighLight;
 
 class FilterPage : public CPropertyPage<IDD_FILTER_PAGE>, public PropPage {
 public:

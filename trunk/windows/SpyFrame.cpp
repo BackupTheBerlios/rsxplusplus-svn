@@ -193,9 +193,9 @@ LRESULT SpyFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOO
 		CMenu mnu;
 		mnu.CreatePopupMenu();
 		mnu.AppendMenu(MF_STRING, IDC_SEARCH, CTSTRING(SEARCH));
-		AutoArray<TCHAR> buf(256);
-		ctrlSearches.GetItemText(i, COLUMN_STRING, buf, 256);
-		searchString = buf;
+
+		searchString.resize(256);
+		ctrlSearches.GetItemText(i, COLUMN_STRING, &searchString[0], searchString.size());
 
 		mnu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, pt.x, pt.y, m_hWnd);
 		
@@ -255,5 +255,5 @@ void SpyFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/) throw() {
 
 /**
  * @file
- * $Id: SpyFrame.cpp 358 2008-01-17 10:48:01Z bigmuscle $
+ * $Id: SpyFrame.cpp 382 2008-03-09 10:40:22Z BigMuscle $
  */

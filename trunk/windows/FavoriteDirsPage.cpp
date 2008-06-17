@@ -17,16 +17,17 @@
  */
 
 #include "stdafx.h"
-#include "../client/DCPlusPlus.h"
-#include "Resource.h"
 
+#include "../client/DCPlusPlus.h"
+#include "../client/Util.h"
+#include "../client/SettingsManager.h"
+#include "../client/FavoriteManager.h"
+
+#include "Resource.h"
 #include "FavoriteDirsPage.h"
 #include "WinUtil.h"
 #include "LineDlg.h"
 #include "DirExDlg.h" //RSX++
-
-#include "../client/Util.h"
-#include "../client/SettingsManager.h"
 
 PropPage::TextItem FavoriteDirsPage::texts[] = {
 	{ IDC_SETTINGS_FAVORITE_DIRECTORIES, ResourceManager::SETTINGS_FAVORITE_DIRS },
@@ -84,15 +85,17 @@ void FavoriteDirsPage::write()
 
 LRESULT FavoriteDirsPage::onDropFiles(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/){
 	HDROP drop = (HDROP)wParam;
-	AutoArray<TCHAR> buf(MAX_PATH);
+	tstring buf;
+	buf.resize(MAX_PATH);
+
 	UINT nrFiles;
 	
 	nrFiles = DragQueryFile(drop, (UINT)-1, NULL, 0);
 	
 	for(UINT i = 0; i < nrFiles; ++i){
-		if(DragQueryFile(drop, i, buf, MAX_PATH)){
-			if(PathIsDirectory(buf))
-				addDirectory(tstring(buf));
+		if(DragQueryFile(drop, i, &buf[0], MAX_PATH)){
+			if(PathIsDirectory(&buf[0]))
+				addDirectory(buf);
 		}
 	}
 

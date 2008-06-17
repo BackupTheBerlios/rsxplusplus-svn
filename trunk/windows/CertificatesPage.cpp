@@ -17,16 +17,15 @@
  */
 
 #include "stdafx.h"
+
 #include "../client/DCPlusPlus.h"
-#include "Resource.h"
-
-#include "CertificatesPage.h"
-#include "CommandDlg.h"
-
 #include "../client/SettingsManager.h"
 #include "../client/FavoriteManager.h"
 #include "../client/CryptoManager.h"
 
+#include "Resource.h"
+#include "CertificatesPage.h"
+#include "CommandDlg.h"
 #include "WinUtil.h"
 
 PropPage::TextItem CertificatesPage::texts[] = {
@@ -101,5 +100,5 @@ LRESULT CertificatesPage::onGenerateCerts(WORD /*wNotifyCode*/, WORD /*wID*/, HW
 
 /**
  * @file
- * $Id: CertificatesPage.cpp 219 2006-07-08 23:19:56Z bigmuscle $
+ * $Id: CertificatesPage.cpp 373 2008-02-06 17:23:49Z bigmuscle $
  */

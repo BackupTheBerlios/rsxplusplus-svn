@@ -25,7 +25,7 @@
 #include "../client/FavoriteManager.h"
 #include "WinUtil.h"
 
-#include "../rsx/RegexpHandler.h"
+#include "../rsx/RegexUtil.h"
 
 // Initialize dialog
 LRESULT ADLSProperties::OnInitDialog(UINT, WPARAM, LPARAM, BOOL&)
@@ -48,12 +48,7 @@ LRESULT ADLSProperties::OnInitDialog(UINT, WPARAM, LPARAM, BOOL&)
 	spin.SetRange32(0, 1024*1024);
 	spin.Detach();
 
-	createList();
-	cRaw.Attach(GetDlgItem(IDC_ADLSEARCH_RAW_ACTION));
-	for(ActionList::const_iterator i = idAction.begin(); i != idAction.end(); ++i) {
-		cRaw.AddString(RawManager::getInstance()->getNameActionId(i->second).c_str());
-	}
-	cRaw.SetCurSel(getId(search->adlsRaw));
+	cRaw.attach(GetDlgItem(IDC_ADLSEARCH_RAW_ACTION), search->adlsRaw);
 
 	// Initialize combo boxes
 	::SendMessage(GetDlgItem(IDC_SOURCE_TYPE), CB_ADDSTRING, 0, 
@@ -143,7 +138,7 @@ LRESULT ADLSProperties::OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCt
 				default :	search->destDir = STRING(FORBIDDEN_FILES);
 			}
 		}
-		search->adlsRaw =		getIdAction(cRaw.GetCurSel());
+		search->adlsRaw =		cRaw.getActionId();
 
 		GetDlgItemText(IDC_ADLS_POINTS, buf, 32);
 		search->adlsPoints =	(_tcslen(buf) == 0 ? -1 : Util::toInt(Text::fromT(buf)));
@@ -217,7 +212,7 @@ LRESULT ADLSProperties::onMatch(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndC
 	exp = buf;
 	GetDlgItemText(IDC_REGEXP_TESTER_TEXT, buf, 256);
 	text = buf;
-	MessageBox(Text::toT(RegexpHandler::matchExp(Text::fromT(exp), Text::fromT(text), (::SendMessage(GetDlgItem(IDC_IS_CASE_SENSITIVE), BM_GETCHECK, 0, 0L) != 0))).c_str(), CTSTRING(REGEX_TESTER), MB_OK);
+	MessageBox(Text::toT(RegexUtil::matchExp(Text::fromT(exp), Text::fromT(text), (::SendMessage(GetDlgItem(IDC_IS_CASE_SENSITIVE), BM_GETCHECK, 0, 0L) != 0))).c_str(), CTSTRING(REGEX_TESTER), MB_OK);
 
 	return 0;
 }

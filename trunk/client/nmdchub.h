@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2001-2007 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,13 +16,13 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#if !defined(NMDC_HUB_H)
-#define NMDC_HUB_H
+#ifndef DCPLUSPLUS_DCPP_NMDC_HUB_H
+#define DCPLUSPLUS_DCPP_NMDC_HUB_H
 
 #include "TimerManager.h"
 #include "SettingsManager.h"
 
-#include "User.h"
+#include "forward.h"
 #include "CriticalSection.h"
 #include "Text.h"
 #include "Client.h"
@@ -31,6 +31,8 @@
 #include "StringTokenizer.h"
 #include "ZUtils.h"
 #include "../rsx/UserMap.h" //RSX++
+
+namespace dcpp {
 
 class ClientManager;
 
@@ -44,8 +46,8 @@ public:
 
 	void connect(const OnlineUser& aUser, const string&);
 
-	void hubMessage(const string& aMessage);
-	void privateMessage(const OnlineUser& aUser, const string& aMessage);
+	void hubMessage(const string& aMessage, bool /*thirdPerson*/ = false);
+	void privateMessage(const OnlineUser& aUser, const string& aMessage, bool /*thirdPerson*/ = false);
 	void sendUserCmd(const string& aUserCmd) throw() { send(fromUtf8(aUserCmd)); }
 	void search(int aSizeType, int64_t aSize, int aFileType, const string& aString, const string& aToken);
 	void password(const string& aPass) { send("$MyPass " + fromUtf8(aPass) + "|"); }
@@ -72,20 +74,21 @@ public:
 			list.push_back(i->second);
 		}
 	}
-
+	
 private:
 	friend class ClientManager;
 	enum SupportFlags {
 		SUPPORTS_USERCOMMAND = 0x01,
 		SUPPORTS_NOGETINFO = 0x02,
 		SUPPORTS_USERIP2 = 0x04
-	};
+	};	
 
 	//mutable CriticalSection cs;
 
-	typedef unordered_map<string*, OnlineUser*, noCaseStringHash, noCaseStringEq> NMDCMap;
+	typedef unordered_map<string, OnlineUser*, noCaseStringHash, noCaseStringEq> NMDCMap;
 	typedef UserMap<false, NMDCMap> NickMap;
 	typedef NickMap::const_iterator NickIter;
+
 	NickMap users;
 
 	void startChecking() { users.startCheck(this, getCheckClients(), getCheckFilelists()); }
@@ -146,9 +149,11 @@ private:
 
 };
 
+} // namespace dcpp
+
 #endif // !defined(NMDC_HUB_H)
 
 /**
  * @file
- * $Id: nmdchub.h 355 2008-01-05 14:43:39Z bigmuscle $
+ * $Id: nmdchub.h 386 2008-05-10 19:29:01Z BigMuscle $
  */

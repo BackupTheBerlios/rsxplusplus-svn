@@ -39,6 +39,7 @@
 #include "WinUtil.h"
 #include "resource.h"
 #include "SearchFrm.h"
+#include "ExCImage.h" //RSX++
 
 class TransferView : public CWindowImpl<TransferView>, private DownloadManagerListener, 
 	private UploadManagerListener, private ConnectionManagerListener, private QueueManagerListener,
@@ -271,14 +272,13 @@ private:
 		bool operator==(const ItemInfo& ii) const { return download == ii.download && user == ii.user; }
 
 		UpdateInfo(const UserPtr& aUser, bool isDownload, bool isTransferFailed = false) : updateMask(0), user(aUser), queueItem(NULL), download(isDownload), transferFailed(isTransferFailed), flagImage(0) { }
-		UpdateInfo(QueueItem* qi, bool isDownload, bool isTransferFailed = false) : updateMask(0), queueItem(qi), download(isDownload), transferFailed(isTransferFailed), flagImage(0) { qi->inc(); }
+		UpdateInfo(QueueItem* qi, bool isDownload, bool isTransferFailed = false) : updateMask(0), queueItem(qi), user(NULL), download(isDownload), transferFailed(isTransferFailed), flagImage(0) { qi->inc(); }
 
 		~UpdateInfo() { if(queueItem) queueItem->dec(); }
 
 		uint32_t updateMask;
 
 		UserPtr user;
-		QueueItem* queueItem;
 
 		bool download;
 		bool transferFailed;
@@ -303,6 +303,9 @@ private:
 		tstring target;
 		void setIP(const tstring& aIP, uint8_t aFlagImage) { IP = aIP; flagImage = aFlagImage, updateMask |= MASK_IP; }
 		tstring IP;
+
+	private:
+		QueueItem* queueItem;
 	};
 
 	void speak(uint8_t type, UpdateInfo* ui) { tasks.add(type, ui); PostMessage(WM_SPEAKER); }
@@ -315,6 +318,9 @@ private:
 	//RSX++
 	CImageList speedImages;
 	CImageList speedImagesBW;
+	ExCImage::Ptr arrowImg;
+	ExCImage::Ptr speedImg;
+	ExCImage::Ptr speedBWImg;
 	HICON user;
 	//END
 
@@ -333,9 +339,6 @@ private:
 	void on(DownloadManagerListener::Starting, const Download* aDownload) throw();
 	void on(DownloadManagerListener::Tick, const DownloadList& aDownload) throw();
 	void on(DownloadManagerListener::Status, const UserConnection*, const string&) throw();
-	//RSX++
-	void on(DownloadManagerListener::CheckComplete, const UserPtr aUser, bool updateStatus) throw();
-	//END
 
 	void on(UploadManagerListener::Starting, const Upload* aUpload) throw();
 	void on(UploadManagerListener::Tick, const UploadList& aUpload) throw();
@@ -343,9 +346,10 @@ private:
 
 	void on(QueueManagerListener::StatusUpdated, const QueueItem*) throw();
 	void on(QueueManagerListener::Removed, const QueueItem*) throw();
-	void on(QueueManagerListener::Finished, const QueueItem*, const string&, int64_t) throw();
+	void on(QueueManagerListener::Finished, const QueueItem*, const string&, const Download*) throw();
 
 	void on(SettingsManagerListener::Save, SimpleXML& /*xml*/) throw();
+
 	void onTransferComplete(const Transfer* aTransfer, bool isUpload, const string& aFileName, bool isTree);
 
 	void CollapseAll();
@@ -359,5 +363,5 @@ private:
 
 /**
  * @file
- * $Id: TransferView.h 358 2008-01-17 10:48:01Z bigmuscle $
+ * $Id: TransferView.h 386 2008-05-10 19:29:01Z BigMuscle $
  */

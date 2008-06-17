@@ -19,6 +19,8 @@
 #if !defined(TIGER_HASH_H)
 #define TIGER_HASH_H
 
+namespace dcpp {
+
 class TigerHash {
 public:
 	/** Hash size in bytes */
@@ -54,9 +56,11 @@ private:
 	void tigerCompress(const uint64_t* data, uint64_t state[3]);
 };
 
+} // namespace dcpp
+
 #endif // !defined(TIGER_HASH_H)
 
 /**
  * @file
- * $Id: TigerHash.h 358 2008-01-17 10:48:01Z bigmuscle $
+ * $Id: TigerHash.h 373 2008-02-06 17:23:49Z bigmuscle $
  */

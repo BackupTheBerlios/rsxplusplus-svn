@@ -37,7 +37,11 @@ LRESULT UsersFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 	ctrlUsers.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | 
 		WS_HSCROLL | WS_VSCROLL | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_SHAREIMAGELISTS, WS_EX_CLIENTEDGE, IDC_USERS);
 	ctrlUsers.SetExtendedListViewStyle(LVS_EX_LABELTIP | LVS_EX_HEADERDRAGDROP | LVS_EX_CHECKBOXES | LVS_EX_FULLROWSELECT | LVS_EX_INFOTIP);
-	images.CreateFromImage(IDB_FAVSTATES, 16, 3, CLR_DEFAULT, IMAGE_BITMAP, LR_CREATEDIBSECTION | LR_SHARED);
+	//RSX++
+	imagesImg = ResourceLoader::getInstance()->LoadFromResource(IDP_FAVSTATES, _T("PNG"));
+	images.Create(16, 16, ILC_COLOR32 | ILC_MASK, 0, 3);
+	images.Add(*imagesImg);
+	//END
 	ctrlUsers.SetImageList(images, LVSIL_SMALL);
 
 	ctrlUsers.SetBkColor(WinUtil::bgColor);

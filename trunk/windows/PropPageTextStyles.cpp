@@ -1,15 +1,17 @@
 
 #include "stdafx.h"
+
 #include "../client/DCPlusPlus.h"
-#include "Resource.h"
+#include "../client/SettingsManager.h"
 #include "../client/SimpleXML.h"
 
+#include "../rsx/RsxUtil.h"
+
+#include "Resource.h"
 #include "PropPageTextStyles.h"
-#include "../client/SettingsManager.h"
 #include "WinUtil.h"
 #include "OperaColorsPage.h"
 #include "PropertiesDlg.h"
-#include "../rsx/RsxUtil.h"
 
 PropPage::TextItem PropPageTextStyles::texts[] = {
 	{ IDC_AVAILABLE_STYLES, ResourceManager::SETCZDC_STYLES },
@@ -112,6 +114,11 @@ LRESULT PropPageTextStyles::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARA
 	SettingsManager::TEXT_OP_BACK_COLOR, SettingsManager::TEXT_OP_FORE_COLOR, 
 	SettingsManager::TEXT_OP_BOLD, SettingsManager::TEXT_OP_ITALIC );
 
+	TextStyles[ TS_PROTECTED ].Init( 
+	this, settings, "Protected", "Protected User",
+	SettingsManager::TEXT_PROTECTED_BACK_COLOR, SettingsManager::TEXT_PROTECTED_FORE_COLOR, 
+	SettingsManager::TEXT_PROTECTED_BOLD, SettingsManager::TEXT_PROTECTED_ITALIC );
+
 	for ( int i = 0; i < TS_LAST; i++ ) {
 		TextStyles[ i ].LoadSettings();
 		_tcscpy(TextStyles[i].szFaceName, m_Font.lfFaceName );
@@ -134,7 +141,7 @@ LRESULT PropPageTextStyles::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARA
 
 	//RSX++
 	ctrlStyles.Attach(GetDlgItem(IDC_SELECT_STYLES));
-	ctrlStyles.AddString(_T("Actual"));
+	ctrlStyles.AddString(_T("Current"));
 	ctrlStyles.AddString(CTSTRING(SETCZDC_DEFAULT_STYLE));
 	ctrlStyles.AddString(CTSTRING(SETCZDC_BLACK_WHITE));
 	WIN32_FIND_DATA data;
@@ -234,7 +241,8 @@ void PropPageTextStyles::RefreshPreview() {
 
 	CHARFORMAT2 old = WinUtil::m_TextStyleMyNick;
 	CHARFORMAT2 old2 = WinUtil::m_TextStyleTimestamp;
-	m_Preview.SetTextStyleMyNick( TextStyles[ TS_MYNICK ] );
+	
+	WinUtil::m_TextStyleMyNick = TextStyles[ TS_MYNICK ];
 	WinUtil::m_TextStyleTimestamp = TextStyles[ TS_TIMESTAMP ];
 	m_Preview.SetWindowText(_T(""));
 
@@ -244,7 +252,8 @@ void PropPageTextStyles::RefreshPreview() {
 		m_Preview.AppendText(id, _T("My nick"), _T("[12:34] "), Text::toT(TextStyles[i].m_sPreviewText).c_str(), TextStyles[i], false);
 	}
 	m_Preview.InvalidateRect( NULL );
-	m_Preview.SetTextStyleMyNick(old);
+
+	WinUtil::m_TextStyleMyNick = old;
 	WinUtil::m_TextStyleTimestamp = old2;
 }
 
@@ -423,6 +432,12 @@ LRESULT PropPageTextStyles::onImport(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*
 			importData("TextOPForeColor", TEXT_OP_FORE_COLOR);
 			importData("TextOPBold", TEXT_OP_BOLD);
 			importData("TextOPItalic", TEXT_OP_ITALIC);
+			//RSX++
+			importData("TextProtectedBackColor", TEXT_PROTECTED_BACK_COLOR);
+			importData("TextProtectedForeColor", TEXT_PROTECTED_FORE_COLOR);
+			importData("TextProtectedBold", TEXT_PROTECTED_BOLD);
+			importData("TextProtectedItalic", TEXT_PROTECTED_ITALIC);
+			//END
 			importData("SearchAlternateColour", SEARCH_ALTERNATE_COLOUR);
 			importData("ProgressBackColor", PROGRESS_BACK_COLOR);
 			importData("ProgressCompressColor", PROGRESS_COMPRESS_COLOR);
@@ -531,6 +546,12 @@ LRESULT PropPageTextStyles::onExport(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*
 	exportData("TextOPForeColor", TEXT_OP_FORE_COLOR);
 	exportData("TextOPBold", TEXT_OP_BOLD);
 	exportData("TextOPItalic", TEXT_OP_ITALIC);
+	//RSX++
+	exportData("TextProtectedBackColor", TEXT_PROTECTED_BACK_COLOR);
+	exportData("TextProtectedForeColor", TEXT_PROTECTED_FORE_COLOR);
+	exportData("TextProtectedBold", TEXT_PROTECTED_BOLD);
+	exportData("TextProtectedItalic", TEXT_PROTECTED_ITALIC);
+	//END
 	exportData("SearchAlternateColour", SEARCH_ALTERNATE_COLOUR);
 	exportData("ProgressBackColor", PROGRESS_BACK_COLOR);
 	exportData("ProgressCompressColor", PROGRESS_COMPRESS_COLOR);
@@ -673,6 +694,10 @@ LRESULT PropPageTextStyles::onSelectStylesChange(WORD /*wNotifyCode*/, WORD /*wI
 			TextStyles[ TS_OP ].crBackColor = SETTING(TEXT_OP_BACK_COLOR);
 			TextStyles[ TS_OP ].crTextColor = SETTING(TEXT_OP_FORE_COLOR);
 			TextStyles[ TS_OP ].dwEffects = (BOOLSETTING(TEXT_OP_BOLD) ? CFE_BOLD : 0) | (BOOLSETTING(TEXT_OP_ITALIC) ? CFE_ITALIC : 0);
+
+			TextStyles[ TS_PROTECTED ].crBackColor = SETTING(TEXT_PROTECTED_BACK_COLOR);
+			TextStyles[ TS_PROTECTED ].crTextColor = SETTING(TEXT_PROTECTED_FORE_COLOR);
+			TextStyles[ TS_PROTECTED ].dwEffects = (BOOLSETTING(TEXT_PROTECTED_BOLD) ? CFE_BOLD : 0) | (BOOLSETTING(TEXT_PROTECTED_ITALIC) ? CFE_ITALIC : 0);
 		} else if (sel == 1) {
 			bg = 0;
 			fg = 12632256;
@@ -716,6 +741,10 @@ LRESULT PropPageTextStyles::onSelectStylesChange(WORD /*wNotifyCode*/, WORD /*wI
 			TextStyles[ TS_OP ].crBackColor = RGB(0,0,0);
 			TextStyles[ TS_OP ].crTextColor = RGB(0,128,255);
 			TextStyles[ TS_OP ].dwEffects = 0;
+
+			TextStyles[ TS_PROTECTED ].crBackColor = RGB(0,0,0);
+			TextStyles[ TS_PROTECTED ].crTextColor = RGB(0,128,255);
+			TextStyles[ TS_PROTECTED ].dwEffects = 0;
 		} else if (sel == 2) {
 			bg = RGB(255,255,255);
 			fg = RGB(0,0,0);
@@ -758,6 +787,10 @@ LRESULT PropPageTextStyles::onSelectStylesChange(WORD /*wNotifyCode*/, WORD /*wI
 			TextStyles[ TS_OP ].crBackColor = RGB(255,255,255);
 			TextStyles[ TS_OP ].crTextColor = RGB(0,0,0);
 			TextStyles[ TS_OP ].dwEffects = 0;
+
+			TextStyles[ TS_PROTECTED ].crBackColor = RGB(255,255,255);
+			TextStyles[ TS_PROTECTED ].crTextColor = RGB(0,0,0);
+			TextStyles[ TS_PROTECTED ].dwEffects = 0;
 		} else if (sel > 2) {
 			TCHAR tmp[1024];
 			GetDlgItemText(IDC_SELECT_STYLES, tmp, 1024);
@@ -889,6 +922,14 @@ LRESULT PropPageTextStyles::onSelectStylesChange(WORD /*wNotifyCode*/, WORD /*wI
 					if(xml.findChild("TextOPItalic")) { TextStyles[ TS_OP ].dwEffects = (tmp ? CFE_BOLD : 0) | (Util::toInt(xml.getChildData()) ? CFE_ITALIC : 0);}
 					xml.resetCurrentChild();
 
+					if(xml.findChild("TextProtectedBackColor")) { TextStyles[ TS_PROTECTED ].crBackColor = Util::toInt(xml.getChildData());}
+					xml.resetCurrentChild();
+					if(xml.findChild("TextProtectedForeColor")) { TextStyles[ TS_PROTECTED ].crTextColor = Util::toInt(xml.getChildData());}
+					xml.resetCurrentChild();
+					if(xml.findChild("TextProtectedBold")) { tmp = RsxUtil::toBool(xml.getChildData());}
+					xml.resetCurrentChild();
+					if(xml.findChild("TextProtectedItalic")) { TextStyles[ TS_PROTECTED ].dwEffects = (tmp ? CFE_BOLD : 0) | (Util::toInt(xml.getChildData()) ? CFE_ITALIC : 0);}
+					xml.resetCurrentChild();
 					//if(xml.findChild("SearchAlternateColour")) { SettingsManager::getInstance()->set(SettingsManager::SEARCH_ALTERNATE_COLOUR,xml.getChildData());}
 					xml.resetCurrentChild();
 				}

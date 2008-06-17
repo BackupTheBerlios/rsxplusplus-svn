@@ -25,7 +25,6 @@
 
 #include "../client/FavoriteManager.h"
 #include "../client/ResourceManager.h"
-#include "../client/StringTokenizer.h"
 
 LRESULT FavHubProperties::OnInitDialog(UINT, WPARAM, LPARAM, BOOL&)
 {
@@ -69,7 +68,7 @@ LRESULT FavHubProperties::OnInitDialog(UINT, WPARAM, LPARAM, BOOL&)
 	ctrlTabs.AddTab(_T("Actions and Raws"), ctrlRaws,  1, true);
 	ctrlTabs.AddTab(_T("Detector"), ctrlOpTab, 2, true);
 
-	images.CreateFromImage(IDB_FAVTABS, 16, 0, CLR_DEFAULT, IMAGE_BITMAP, LR_CREATEDIBSECTION | LR_SHARED);
+	RL_CreateImageList(icons, images, IDP_FAVTABS, 16);
 	ctrlTabs.SetImageList(images);
 	ctrlTabs.SetCurSel(0);
 
@@ -122,6 +121,7 @@ LRESULT FavHubProperties::OnInitDialog(UINT, WPARAM, LPARAM, BOOL&)
 LRESULT FavHubProperties::OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	images.Destroy();
+	RL_DeleteObject(icons); //RSX++
 	if(wID == IDOK)
 	{
 		TCHAR buf[512];
@@ -213,5 +213,5 @@ LRESULT FavHubProperties::OnTextChanged(WORD /*wNotifyCode*/, WORD wID, HWND hWn
 
 /**
  * @file
- * $Id: FavHubProperties.cpp 234 2006-08-06 17:51:36Z bigmuscle $
+ * $Id: FavHubProperties.cpp 317 2007-08-04 14:52:24Z bigmuscle $
  */

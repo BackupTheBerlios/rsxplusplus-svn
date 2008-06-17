@@ -25,6 +25,8 @@
 #include "../client/Singleton.h"
 #include "../client/Util.h"
 
+namespace dcpp {
+
 class Autosearch {
 public:
 	typedef Autosearch* Ptr;
@@ -90,9 +92,9 @@ private:
 	void removeRegExpFromSearches();
 	void getAllowedHubs();
 
-	void on(SearchManagerListener::SR, SearchResult* sr) throw();
+	void on(SearchManagerListener::SR, const SearchResultPtr& sr) throw();
 	void on(TimerManagerListener::Minute, uint64_t aTick) throw();
-	void addResultToQueue(SearchResult* sres, Autosearch* a);
+	void addResultToQueue(const SearchResultPtr& sres, Autosearch* a);
 
 	bool endOfList;
 	int curPos;
@@ -100,4 +102,5 @@ private:
 	string curSearch;
 	set<UserPtr> users;
 };
+}; // namespace dcpp
 #endif

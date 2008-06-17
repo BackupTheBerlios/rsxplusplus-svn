@@ -127,20 +127,19 @@ LRESULT DirectoryListingFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 	ctrlTree.SetBkColor(WinUtil::bgColor);
 	ctrlTree.SetTextColor(WinUtil::textColor);
 	
-	WinUtil::splitTokens(columnIndexes, SETTING(DIRECTORLISTINGFRAME_ORDER), COLUMN_LAST);
-	WinUtil::splitTokens(columnSizes, SETTING(DIRECTORLISTINGFRAME_WIDTHS), COLUMN_LAST);
+	WinUtil::splitTokens(columnIndexes, SETTING(DIRECTORYLISTINGFRAME_ORDER), COLUMN_LAST);
+	WinUtil::splitTokens(columnSizes, SETTING(DIRECTORYLISTINGFRAME_WIDTHS), COLUMN_LAST);
 	for(uint8_t j = 0; j < COLUMN_LAST; j++) 
 	{
 		int fmt = ((j == COLUMN_SIZE) || (j == COLUMN_EXACTSIZE) || (j == COLUMN_TYPE)) ? LVCFMT_RIGHT : LVCFMT_LEFT;
 		ctrlList.InsertColumn(j, CTSTRING_I(columnNames[j]), fmt, columnSizes[j], j);
 	}
 	ctrlList.setColumnOrderArray(COLUMN_LAST, columnIndexes);
-
-	ctrlList.setSortColumn(COLUMN_FILENAME);	
 	ctrlList.setVisible(SETTING(DIRECTORYLISTINGFRAME_VISIBLE));
 
 	ctrlTree.SetImageList(WinUtil::fileImages, TVSIL_NORMAL);
 	ctrlList.SetImageList(WinUtil::fileImages, LVSIL_SMALL);
+	ctrlList.setSortColumn(COLUMN_FILENAME);
 
 	ctrlFind.Create(ctrlStatus.m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 		BS_PUSHBUTTON, 0, IDC_FIND);
@@ -558,9 +557,12 @@ LRESULT DirectoryListingFrame::onPM(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
 
 LRESULT DirectoryListingFrame::onMatchQueue(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
 	int x = QueueManager::getInstance()->matchListing(*dl);
-	AutoArray<TCHAR> buf(STRING(MATCHED_FILES).length() + 32);
-	_stprintf(buf, CTSTRING(MATCHED_FILES), x);
-	ctrlStatus.SetText(STATUS_TEXT, buf);
+
+	tstring buf;
+	buf.resize(STRING(MATCHED_FILES).length() + 32);
+	_stprintf(&buf[0], CTSTRING(MATCHED_FILES), x);
+	ctrlStatus.SetText(STATUS_TEXT, &buf[0]);
+
 	return 0;
 }
 
@@ -713,7 +715,6 @@ LRESULT DirectoryListingFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARA
 			prepareMenu(fileMenu, UserCommand::CONTEXT_FILELIST, ClientManager::getInstance()->getHubs(dl->getUser()->getCID()));
 			fileMenu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, pt.x, pt.y, m_hWnd);
 		} else {
-			fileMenu.EnableMenuItem((UINT)(HMENU)copyMenu, MF_BYCOMMAND | MFS_DISABLED);
 			fileMenu.EnableMenuItem(IDC_SEARCH_ALTERNATES, MF_BYCOMMAND | MFS_DISABLED);
 			//Append Favorite download dirs
 			StringPairList spl = FavoriteManager::getInstance()->getFavoriteDirs();
@@ -1166,11 +1167,16 @@ void DirectoryListingFrame::closeAll(){
 }
 
 LRESULT DirectoryListingFrame::onCopy(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
-	tstring sCopy;
-	if(ctrlList.GetSelectedCount() == 1) {
-		const ItemInfo* ii = ctrlList.getSelectedItem();
+	tstring sdata;
+	int i = -1;
+
+	while( (i = ctrlList.GetNextItem(i, LVNI_SELECTED)) != -1) {
+		const ItemInfo* ii = (ItemInfo*)ctrlList.getItemData(i);
+		tstring sCopy;
+		
 		if(ii->type != ItemInfo::FILE)
-			return 0;
+			continue;
+
 		switch (wID) {
 			case IDC_COPY_NICK:
 				sCopy = WinUtil::getNicks(dl->getUser());
@@ -1182,21 +1188,27 @@ LRESULT DirectoryListingFrame::onCopy(WORD /*wNotifyCode*/, WORD wID, HWND /*hWn
 				sCopy = Util::formatBytesW(ii->file->getSize());
 				break;
 			case IDC_COPY_LINK:
-				if(ii->type == ItemInfo::FILE) {
-					WinUtil::copyMagnet(ii->file->getTTH(), Text::toT(ii->file->getName()), ii->file->getSize());
-				}
+				sCopy = WinUtil::getMagnet(ii->file->getTTH(), ii->file->getName(), ii->file->getSize());
 				break;
 			case IDC_COPY_TTH:
-				if(ii->type == ItemInfo::FILE)
-					sCopy = Text::toT(ii->file->getTTH().toBase32());
+				sCopy = Text::toT(ii->file->getTTH().toBase32());
 				break;
 			default:
 				dcdebug("DIRECTORYLISTINGFRAME DON'T GO HERE\n");
 				return 0;
 		}
-		if (!sCopy.empty())
-			WinUtil::setClipboard(sCopy);
+
+		if (!sCopy.empty()) {
+			if (sdata.empty())
+				sdata = sCopy;
+			else
+				sdata = sdata + _T("\r\n") + sCopy;
+		}
 	}
+
+	if (!sdata.empty())
+		WinUtil::setClipboard(sdata);
+
 	return S_OK;
 }
 
@@ -1213,7 +1225,10 @@ LRESULT DirectoryListingFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM 
 		ctrlList.SetRedraw(FALSE);
 		clearList();
 		frames.erase(m_hWnd);
-		WinUtil::saveHeaderOrder(ctrlList, SettingsManager::DIRECTORLISTINGFRAME_ORDER, SettingsManager::DIRECTORLISTINGFRAME_WIDTHS, COLUMN_LAST, columnIndexes, columnSizes);
+
+		ctrlList.saveHeaderOrder(SettingsManager::DIRECTORYLISTINGFRAME_ORDER, SettingsManager::DIRECTORYLISTINGFRAME_WIDTHS,
+			SettingsManager::DIRECTORYLISTINGFRAME_VISIBLE);
+
 		closed = true;
 		PostMessage(WM_CLOSE);
 		return 0;
@@ -1285,5 +1300,5 @@ LRESULT DirectoryListingFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM /*
 
 /**
  * @file
- * $Id: DirectoryListingFrm.cpp 355 2008-01-05 14:43:39Z bigmuscle $
+ * $Id: DirectoryListingFrm.cpp 382 2008-03-09 10:40:22Z BigMuscle $
  */

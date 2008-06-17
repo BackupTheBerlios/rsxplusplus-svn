@@ -50,7 +50,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)\openssl\include&quot;;&quot;$(SolutionDir)\lua\src&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;"
 				StringPooling="true"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
@@ -84,11 +84,11 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/FIXED:NO /SAFESEH:NO"
-				AdditionalDependencies="libeay32.lib ssleay32.lib unicows.lib SHFolder.lib ws2_32.lib winmm.lib powrprof.lib msimg32.lib"
+				AdditionalDependencies="libeay32.lib ssleay32.lib SHFolder.lib unicows.lib ws2_32.lib powrprof.lib  msimg32.lib"
 				OutputFile="$(SolutionDir)compiled/$(ProjectName).exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;$(SolutionDir)openssl/lib&quot;"
+				AdditionalLibraryDirectories="&quot;$(SolutionDir)openssl/lib&quot;;&quot;$(SolutionDir)stlport\lib&quot;"
 				GenerateManifest="false"
 				IgnoreAllDefaultLibraries="false"
 				IgnoreDefaultLibraryNames="libcmt.lib kernel32.lib advapi32.lib user32.lib gdi32.lib shell32.lib comdlg32.lib version.lib mpr.lib rasapi32.lib winmm.lib winspool.lib vfw32.lib secur32.lib oleacc.lib oledlg.lib sensapi.lib"
@@ -270,7 +270,7 @@
 				FavorSizeOrSpeed="2"
 				OmitFramePointers="false"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)\openssl\include&quot;;&quot;$(SolutionDir)\lua\src&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;"
 				StringPooling="true"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
@@ -312,7 +312,7 @@
 				Version=""
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;$(SolutionDir)stlport\lib&quot;;&quot;$(SolutionDir)openssl/lib&quot;"
+				AdditionalLibraryDirectories="&quot;$(SolutionDir)openssl/lib&quot;;&quot;$(SolutionDir)stlport\lib&quot;"
 				AdditionalManifestDependencies="type=&apos;win32&apos; name=&apos;Microsoft.Windows.Common-Controls&apos; version=&apos;6.0.0.0&apos; processorArchitecture=&apos;*&apos; publicKeyToken=&apos;6595b64144ccf1df&apos; language=&apos;*&apos;"
 				IgnoreAllDefaultLibraries="false"
 				IgnoreDefaultLibraryNames="kernel32.lib advapi32.lib user32.lib gdi32.lib shell32.lib comdlg32.lib version.lib mpr.lib rasapi32.lib winmm.lib winspool.lib vfw32.lib secur32.lib oleacc.lib oledlg.lib sensapi.lib"
@@ -481,6 +481,259 @@
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
+		<Configuration
+			Name="SvnRelease|Win32"
+			OutputDirectory="$(SolutionDir)vc7\$(ConfigurationName)\$(ProjectName)"
+			IntermediateDirectory="$(SolutionDir)vc7\$(ConfigurationName)\$(ProjectName)"
+			ConfigurationType="1"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
+			UseOfMFC="0"
+			UseOfATL="0"
+			ATLMinimizesCRunTimeLibraryUsage="false"
+			CharacterSet="1"
+			WholeProgramOptimization="1"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+				Description="Checking directory for output..."
+				CommandLine="chdir.bat"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+				MkTypLibCompatible="true"
+				SuppressStartupBanner="true"
+				TargetEnvironment="1"
+				TypeLibraryName="$(SolutionDir)compiled/$(ProjectName).tlb"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="3"
+				InlineFunctionExpansion="1"
+				EnableIntrinsicFunctions="true"
+				FavorSizeOrSpeed="2"
+				OmitFramePointers="false"
+				EnableFiberSafeOptimizations="true"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;"
+				PreprocessorDefinitions="SVNBUILD;BUILDING_WIN32"
+				StringPooling="true"
+				MinimalRebuild="true"
+				ExceptionHandling="1"
+				RuntimeLibrary="0"
+				BufferSecurityCheck="false"
+				EnableFunctionLevelLinking="true"
+				FloatingPointModel="2"
+				DefaultCharIsUnsigned="true"
+				TreatWChar_tAsBuiltInType="true"
+				ForceConformanceInForLoopScope="true"
+				RuntimeTypeInfo="false"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderThrough="stdafx.h"
+				AssemblerOutput="0"
+				WarningLevel="4"
+				Detect64BitPortabilityProblems="false"
+				DebugInformationFormat="3"
+				CallingConvention="1"
+				CompileAs="0"
+				DisableSpecificWarnings="4996"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				Culture="1033"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+				Description="Deleting old pdb file..."
+				CommandLine="cmd.exe /c del &quot;$(SolutionDir)compiled\$(ProjectName).pdb&quot;"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalOptions="/FIXED:NO /SAFESEH:NO"
+				AdditionalDependencies="libeay32.lib ssleay32.lib SHFolder.lib unicows.lib ws2_32.lib powrprof.lib  msimg32.lib"
+				OutputFile="$(SolutionDir)compiled/$(ProjectName).exe"
+				Version=""
+				LinkIncremental="1"
+				SuppressStartupBanner="true"
+				AdditionalLibraryDirectories="&quot;$(SolutionDir)openssl/lib&quot;;&quot;$(SolutionDir)stlport\lib&quot;"
+				AdditionalManifestDependencies="type=&apos;win32&apos; name=&apos;Microsoft.Windows.Common-Controls&apos; version=&apos;6.0.0.0&apos; processorArchitecture=&apos;*&apos; publicKeyToken=&apos;6595b64144ccf1df&apos; language=&apos;*&apos;"
+				IgnoreAllDefaultLibraries="false"
+				IgnoreDefaultLibraryNames="kernel32.lib advapi32.lib user32.lib gdi32.lib shell32.lib comdlg32.lib version.lib mpr.lib rasapi32.lib winmm.lib winspool.lib vfw32.lib secur32.lib oleacc.lib oledlg.lib sensapi.lib"
+				DelayLoadDLLs="dbghelp.dll;oleaut32.dll;powrprof.dll"
+				GenerateDebugInformation="true"
+				ProgramDatabaseFile="$(SolutionDir)compiled/$(ProjectName).pdb"
+				MapFileName=""
+				SubSystem="2"
+				StackReserveSize="131072"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				OptimizeForWindows98="1"
+				SetChecksum="true"
+				ImportLibrary="$(SolutionDir)compiled/$(ProjectName).lib"
+				TargetMachine="1"
+				FixedBaseAddress="0"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCWebDeploymentTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
+		</Configuration>
+		<Configuration
+			Name="SvnRelease|x64"
+			OutputDirectory="$(SolutionDir)$(PlatformName)\$(ConfigurationName)"
+			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
+			ConfigurationType="1"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
+			UseOfMFC="0"
+			UseOfATL="0"
+			ATLMinimizesCRunTimeLibraryUsage="false"
+			CharacterSet="1"
+			WholeProgramOptimization="1"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+				Description="Checking directory for output..."
+				CommandLine="chdir.bat"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+				MkTypLibCompatible="true"
+				SuppressStartupBanner="true"
+				TargetEnvironment="3"
+				TypeLibraryName="$(SolutionDir)compiled/$(ProjectName).tlb"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="3"
+				InlineFunctionExpansion="1"
+				EnableIntrinsicFunctions="true"
+				FavorSizeOrSpeed="2"
+				OmitFramePointers="false"
+				EnableFiberSafeOptimizations="true"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)\openssl\include&quot;;&quot;$(SolutionDir)\lua\src&quot;"
+				StringPooling="true"
+				MinimalRebuild="true"
+				ExceptionHandling="1"
+				RuntimeLibrary="0"
+				BufferSecurityCheck="false"
+				EnableFunctionLevelLinking="true"
+				FloatingPointModel="2"
+				DefaultCharIsUnsigned="true"
+				TreatWChar_tAsBuiltInType="true"
+				ForceConformanceInForLoopScope="true"
+				RuntimeTypeInfo="false"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderThrough="stdafx.h"
+				AssemblerOutput="0"
+				WarningLevel="4"
+				Detect64BitPortabilityProblems="false"
+				DebugInformationFormat="3"
+				CallingConvention="1"
+				CompileAs="0"
+				DisableSpecificWarnings="4996"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				Culture="1033"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+				Description="Deleting old pdb file..."
+				CommandLine="cmd.exe /c del &quot;$(SolutionDir)compiled\$(ProjectName).pdb&quot;"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalOptions="/FIXED:NO /SAFESEH:NO"
+				AdditionalDependencies="libeay32.lib ssleay32.lib SHFolder.lib ws2_32.lib powrprof.lib  msimg32.lib"
+				OutputFile="$(SolutionDir)compiled/$(ProjectName).exe"
+				Version=""
+				LinkIncremental="1"
+				SuppressStartupBanner="true"
+				AdditionalLibraryDirectories="&quot;$(SolutionDir)openssl/lib&quot;"
+				AdditionalManifestDependencies="type=&apos;win32&apos; name=&apos;Microsoft.Windows.Common-Controls&apos; version=&apos;6.0.0.0&apos; processorArchitecture=&apos;*&apos; publicKeyToken=&apos;6595b64144ccf1df&apos; language=&apos;*&apos;"
+				IgnoreAllDefaultLibraries="false"
+				IgnoreDefaultLibraryNames="kernel32.lib advapi32.lib user32.lib gdi32.lib shell32.lib comdlg32.lib version.lib mpr.lib rasapi32.lib winmm.lib winspool.lib vfw32.lib secur32.lib oleacc.lib oledlg.lib sensapi.lib"
+				DelayLoadDLLs="dbghelp.dll;oleaut32.dll;powrprof.dll"
+				GenerateDebugInformation="true"
+				ProgramDatabaseFile="$(SolutionDir)compiled/$(ProjectName).pdb"
+				MapFileName=""
+				SubSystem="2"
+				StackReserveSize="131072"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				OptimizeForWindows98="1"
+				SetChecksum="true"
+				ImportLibrary="$(SolutionDir)compiled/$(ProjectName).lib"
+				TargetMachine="17"
+				FixedBaseAddress="0"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCWebDeploymentTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
+		</Configuration>
 	</Configurations>
 	<References>
 	</References>
@@ -495,6 +748,10 @@
 			</File>
 			<File
 				RelativePath=".\res\arrows.bmp"
+				>
+			</File>
+			<File
+				RelativePath=".\res\arrows.png"
 				>
 			</File>
 			<File
@@ -526,7 +783,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\res\emoticon.png"
+				>
+			</File>
+			<File
 				RelativePath=".\res\fav.bmp"
+				>
+			</File>
+			<File
+				RelativePath=".\res\fav.png"
 				>
 			</File>
 			<File
@@ -554,7 +819,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\res\flags.png"
+				>
+			</File>
+			<File
 				RelativePath=".\res\folders.bmp"
+				>
+			</File>
+			<File
+				RelativePath=".\res\folders.png"
 				>
 			</File>
 			<File
@@ -586,11 +859,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\res\o_settings_dlg.png"
+				>
+			</File>
+			<File
 				RelativePath=".\res\pg2.ico"
 				>
 			</File>
 			<File
 				RelativePath=".\res\PM.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\res\png1.bin"
 				>
 			</File>
 			<File
@@ -610,8 +891,32 @@
 				>
 			</File>
 			<File
+				RelativePath=".\res\rsx_splash.png"
+				>
+			</File>
+			<File
 				RelativePath=".\res\rsx_splash_beta.bmp"
 				>
+			</File>
+			<File
+				RelativePath=".\res\RSXPlusPlus.Manifest"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|x64"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\RSXPlusPlus.rc"
@@ -623,6 +928,10 @@
 			</File>
 			<File
 				RelativePath=".\res\search_icons.bmp"
+				>
+			</File>
+			<File
+				RelativePath=".\res\search_icons.png"
 				>
 			</File>
 			<File
@@ -646,7 +955,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\res\speeds.png"
+				>
+			</File>
+			<File
 				RelativePath=".\res\state.bmp"
+				>
+			</File>
+			<File
+				RelativePath=".\res\state.png"
 				>
 			</File>
 			<File
@@ -666,7 +983,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\res\toolbar.png"
+				>
+			</File>
+			<File
 				RelativePath=".\res\toolbar20-highlight.bmp"
+				>
+			</File>
+			<File
+				RelativePath=".\res\toolbar20-highlight.png"
 				>
 			</File>
 			<File
@@ -674,7 +999,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\res\toolbar20.png"
+				>
+			</File>
+			<File
 				RelativePath=".\res\TranferSpeeds.bmp"
+				>
+			</File>
+			<File
+				RelativePath=".\res\TranferSpeeds.png"
 				>
 			</File>
 			<File
@@ -695,6 +1028,10 @@
 			</File>
 			<File
 				RelativePath=".\res\TransferSpeedsBW.bmp"
+				>
+			</File>
+			<File
+				RelativePath=".\res\TransferSpeedsBW.png"
 				>
 			</File>
 			<File
@@ -723,6 +1060,10 @@
 			</File>
 			<File
 				RelativePath=".\res\users.bmp"
+				>
+			</File>
+			<File
+				RelativePath=".\res\users.png"
 				>
 			</File>
 		</Filter>
@@ -788,6 +1129,18 @@
 			</File>
 			<File
 				RelativePath=".\windows\CommandDlg.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\windows\CRawCombo.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\windows\DetectionListItem.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\windows\DetectionListPage.cpp"
 				>
 			</File>
 			<File
@@ -939,76 +1292,12 @@
 				>
 			</File>
 			<File
-				RelativePath=".\rsx\PluginAPI\PluginAPI.cpp"
+				RelativePath=".\windows\PluginAPI.cpp"
 				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PrecompiledHeaderThrough="../../windows/stdafx.h"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|x64"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PrecompiledHeaderThrough="../../windows/stdafx.h"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PrecompiledHeaderThrough="../../windows/stdafx.h"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|x64"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PrecompiledHeaderThrough="../../windows/stdafx.h"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\rsx\PluginAPI\PluginsManager.cpp"
+				RelativePath=".\windows\PluginsListDlg.cpp"
 				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PrecompiledHeaderThrough="../../windows/stdafx.h"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|x64"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PrecompiledHeaderThrough="../../windows/stdafx.h"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PrecompiledHeaderThrough="../../windows/stdafx.h"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|x64"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PrecompiledHeaderThrough="../../windows/stdafx.h"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\windows\PopupManager.cpp"
@@ -1123,6 +1412,22 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="SvnRelease|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="SvnRelease|x64"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -1272,6 +1577,22 @@
 				>
 			</File>
 			<File
+				RelativePath=".\windows\CRawCombo.h"
+				>
+			</File>
+			<File
+				RelativePath=".\windows\CustomEditCtrl.h"
+				>
+			</File>
+			<File
+				RelativePath=".\windows\DetectionListItem.h"
+				>
+			</File>
+			<File
+				RelativePath=".\windows\DetectionListPage.h"
+				>
+			</File>
+			<File
 				RelativePath=".\windows\DimEdit.h"
 				>
 			</File>
@@ -1289,6 +1610,10 @@
 			</File>
 			<File
 				RelativePath=".\windows\EmoticonsDlg.h"
+				>
+			</File>
+			<File
+				RelativePath=".\windows\ExCImage.h"
 				>
 			</File>
 			<File
@@ -1452,11 +1777,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\rsx\PluginAPI\PluginAPI.h"
-				>
-			</File>
-			<File
-				RelativePath=".\rsx\PluginAPI\PluginInterface.h"
+				RelativePath=".\windows\PluginsListDlg.h"
 				>
 			</File>
 			<File
@@ -1564,11 +1885,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\stdafx.h"
+				>
+			</File>
+			<File
 				RelativePath=".\windows\stdafx.h"
 				>
 			</File>
 			<File
-				RelativePath=".\stdafx.h"
+				RelativePath=".\windows\StringPairDlg.h"
 				>
 			</File>
 			<File
@@ -1654,24 +1979,8 @@
 			</File>
 		</Filter>
 		<File
-			RelativePath=".\res\RSXPlusPlus.Manifest"
+			RelativePath=".\res\favtabs.png"
 			>
-			<FileConfiguration
-				Name="Debug|Win32"
-				ExcludedFromBuild="true"
-				>
-				<Tool
-					Name="VCCustomBuildTool"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Debug|x64"
-				ExcludedFromBuild="true"
-				>
-				<Tool
-					Name="VCCustomBuildTool"
-				/>
-			</FileConfiguration>
 		</File>
 	</Files>
 	<Globals>

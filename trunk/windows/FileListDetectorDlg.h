@@ -20,9 +20,9 @@
 #include "../client/Util.h"
 #include "../client/ClientProfileManager.h"
 
-#include "../client/RawManager.h"
+#include "CRawCombo.h"
 
-class FileListDetectorDlg : public CDialogImpl<FileListDetectorDlg>, protected RawSelector {
+class FileListDetectorDlg : public CDialogImpl<FileListDetectorDlg> {
 public:
 	string name;
 	string detect;
@@ -73,7 +73,7 @@ public:
 	}
 private:
 	CEdit ctrlName, ctrlDetect, ctrlCheatingDescription;
-	CComboBox cRaw;
+	CRawCombo cRaw;
 	CButton ctrlBadClient;
 
 	enum { BUF_LEN = 1024 };

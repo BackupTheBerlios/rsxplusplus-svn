@@ -27,8 +27,11 @@
 #include "../client/pme.h"
 #include "../client/Pointer.h"
 #include "../client/Thread.h"
+#include "../client/SearchResult.h"
 
 #define AUTOSEARCH_FILE "Autosearch.xml"
+
+namespace dcpp {
 
 AutoSearchManager::AutoSearchManager() : version("1.00") {
 	TimerManager::getInstance()->addListener(this);
@@ -134,7 +137,7 @@ void AutoSearchManager::on(TimerManagerListener::Minute, uint64_t /*aTick*/) thr
 	}
 }
 
-void AutoSearchManager::on(SearchManagerListener::SR, SearchResult* sr) throw() {
+void AutoSearchManager::on(SearchManagerListener::SR, const SearchResultPtr& sr) throw() {
 	if(RSXBOOLSETTING(AUTOSEARCH_ENABLED)) {
 		if(!as.empty() && !allowedHubs.empty()) {
 			UserPtr user = static_cast<UserPtr>(sr->getUser());
@@ -169,7 +172,7 @@ public:
 	Semaphore s;
 	bool stop;
 
-	typedef std::slist<SearchResult*> Results;
+	typedef std::slist<SearchResultPtr> Results;
 	Results results;
 	Autosearch* as;
 
@@ -179,7 +182,7 @@ private:
 			if(stop || results.empty())
 				break;
 			{
-				SearchResult* sr = NULL;
+				SearchResultPtr sr = NULL;
 				Lock l(cs);
 				sr = results.front();
 				results.pop_front();
@@ -223,7 +226,7 @@ private:
 						}
 					}
 					//cleanup
-					sr->decRef();
+					sr->dec();
 				}
 			}
 			sleep(1000);
@@ -232,7 +235,7 @@ private:
 		return 0;
 	}
 
-	void processAction(const SearchResult* s) {
+	void processAction(const SearchResultPtr& s) {
 		if(as->getAction() == 0) {
 			ClientManager::getInstance()->kickFromAutosearch(s->getUser(), as->getRaw(), as->getCheat(), s->getFile(), Util::toString(s->getSize()), s->getTTH().toBase32(), as->getDisplayCheat());
 		} else if(as->getAction() == 1) {
@@ -244,7 +247,7 @@ private:
 		}
 	}
 
-	void addToQueue(const SearchResult* s, bool pausePrio) {
+	void addToQueue(const SearchResultPtr& s, bool pausePrio) {
 		const string& fullpath = SETTING(DOWNLOAD_DIRECTORY) + s->getFileName();
 		if(!ShareManager::getInstance()->isTTHShared(s->getTTH())) {
 			try {
@@ -276,8 +279,8 @@ private:
 	}
 }tasks;
 
-void AutoSearchManager::addResultToQueue(SearchResult* sres, Autosearch* a) {
-	sres->incRef();
+void AutoSearchManager::addResultToQueue(const SearchResultPtr& sres, Autosearch* a) {
+	sres->inc();
 	{
 		Lock l(tasks.cs);
 		tasks.results.push_front(sres);
@@ -378,3 +381,5 @@ void AutoSearchManager::AutosearchLoad() {
 		dcdebug("AutoSearchManager::AutosearchLoad: %s\n", e.getError().c_str());
 	}	
 }
+
+}; // namespace dcpp

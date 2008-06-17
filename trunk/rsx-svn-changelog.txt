@@ -1,3 +1,51 @@
+** SVN 77
+ ** let say trunk import... lots of things i've changed since last commit, so i don't remember what was changed :P
+
+** SVN 70-76
+ ** random fixes, improvements, changes and branch updates...
+
+** SVN 69
+ ** a lot of fixes
+ ** new update manager, now version info is cached and updated constantly (once for 3-6h - random number)
+ ** boost::function and boost::bind used instead of speaker in some places
+ ** new HTTP download manager (switch with previous UpdateManager)
+ ** sdc merge
+ ** pcre updated to 7.7 (additionally i've patched code to fit vc++ call conventions)
+ ** new DetectionManager almost all implemented
+ ** stlport & wtl are now in project directory (no need to use them globally in vc++)
+
+** SVN 68
+ ** ...
+
+** SVN 67
+ ** sdc merge
+ ** betacheck support
+ ** some cosmetic changes here and there
+
+** SVN 66 (Crise)
+ ** cleaned up DetectionManager constructor/destructor
+ ** changed params handling (less code in DetectionManager, while same functionality when combined with the new ParamsPage code)
+ ** ClientsPage and ParamsPage updated
+ ** TODO: DetectionEntryDlg
+
+** SVN 65
+ ** initial support for new detection engine
+ ** some more twearks
+ ** disabled emulation on adc hubs
+
+** SVN 64
+ ** added profile info
+ ** added flags to DetectionEntry (dunno if it work @ save/load)
+ ** added option to enable/disable item
+ ** some twearks
+
+** SVN 63
+ ** added params support
+ ** Crise's suggestions
+
+** SVN 62
+ ** initial import of new detection engine
+
 ** SVN 61
  ** new PluginAPI revision - now fully type-safe, stlport independient
  ** separated directories for stlport and wtl

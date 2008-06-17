@@ -23,9 +23,7 @@
 
 #include "../client/RawManager.h"
 
-class FileListDetectorProfile;
-
-class FileListDetectorPage : public CPropertyPage<IDD_FILELIST_DETECTOR_PAGE>, public PropPage, protected RawSelector {
+class FileListDetectorPage : public CPropertyPage<IDD_FILELIST_DETECTOR_PAGE>, public PropPage {
 public:
 	FileListDetectorPage(SettingsManager *s) : PropPage(s) {
 		title = _tcsdup((TSTRING(SETTINGS_RSX) + _T('\\') + TSTRING(SETTINGS_FAKEDETECT) + _T('\\') + TSTRING(SETTINGS_FILELIST_DETECTOR)).c_str());
@@ -39,14 +37,13 @@ public:
 
 	BEGIN_MSG_MAP_EX(FileListDetectorPage)
 		MESSAGE_HANDLER(WM_INITDIALOG, onInitDialog)
+		MESSAGE_HANDLER(WM_CONTEXTMENU, onContextMenu)
 		COMMAND_ID_HANDLER(IDC_ADD, onAdd)
 		COMMAND_ID_HANDLER(IDC_REMOVE, onRemove)
 		COMMAND_ID_HANDLER(IDC_CHANGE, onChange)
-		MESSAGE_HANDLER(WM_CONTEXTMENU, onContextMenu)
 		COMMAND_ID_HANDLER(IDC_USE_SDL_KICK, onEnable)
 		NOTIFY_HANDLER(IDC_FILELIST_DETECTOR_LIST, NM_CUSTOMDRAW, onCustomDraw)
 		NOTIFY_HANDLER(IDC_FILELIST_DETECTOR_LIST, NM_DBLCLK, onDblClick)
-		COMMAND_HANDLER(IDC_FILELIST_PAGE_LIST_TYPE, CBN_SELCHANGE, onSelChange)
 	END_MSG_MAP()
 
 	LRESULT onInitDialog(UINT, WPARAM, LPARAM, BOOL&);
@@ -73,11 +70,7 @@ protected:
 	static TextItem texts[];
 	TCHAR* title;
 
-	CComboBox cRaw;
-	CComboBox cListType;
-
 	void addEntry(const FileListDetectorProfile& fd, int pos);
-	void addEntryP(int p, int a, bool d, int pos);
 	void fixControls();
 };
 

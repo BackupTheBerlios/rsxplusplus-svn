@@ -54,8 +54,9 @@ LRESULT AutosearchPageDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 	ctrlCheatingDescription.SetWindowText(comment.c_str());
 
 	ATTACH(IDC_AS_FILETYPE, ctrlFileType);
-	ftImage.CreateFromImage(IDB_SEARCH_TYPES, 16, 0, CLR_DEFAULT, IMAGE_BITMAP, LR_CREATEDIBSECTION | LR_SHARED);
-    ctrlFileType.SetImageList(ftImage);	
+
+	RL_CreateImageList(icons, ftImage, IDP_SEARCH_TYPES, 16);
+	ctrlFileType.SetImageList(ftImage);
 
 	int q = 0;
 	for(size_t i = 0; i < 10; i++) {
@@ -81,12 +82,7 @@ LRESULT AutosearchPageDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 	}
 	ctrlFileType.SetCurSel(fileType);
 
-	createList();
-	ATTACH(IDC_AS_RAW, cRaw);
-	for(ActionList::const_iterator i = idAction.begin(); i != idAction.end(); ++i) {
-		cRaw.AddString(RawManager::getInstance()->getNameActionId(i->second).c_str());
-	}
-	cRaw.SetCurSel(getId(rawToSend));
+	cRaw.attach(GetDlgItem(IDC_AS_RAW), rawToSend);
 
 	ATTACH(IDC_AS_DISPLAY, cDisplay);
 	cDisplay.SetCheck(display ?	BST_CHECKED : BST_UNCHECKED);
@@ -104,6 +100,7 @@ LRESULT AutosearchPageDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 }
 
 LRESULT AutosearchPageDlg::OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+	RL_DeleteObject(icons);
 	if(wID == IDOK) {
 		TCHAR buf[512];
 		if (ctrlSearch.GetWindowTextLength() == 0) {
@@ -114,7 +111,7 @@ LRESULT AutosearchPageDlg::OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWn
 		search = buf;
 		fileType = ctrlFileType.GetCurSel();
 		action = cAction.GetCurSel();
-		rawToSend = getIdAction(cRaw.GetCurSel());
+		rawToSend = cRaw.getActionId();
 		display = cDisplay.GetCheck() == BST_CHECKED;
 		GetDlgItemText(IDC_AS_CHEAT, buf, 512);
 		comment = buf;

@@ -17,7 +17,10 @@
  */
 
 #include "stdafx.h"
+
 #include "../client/DCPlusPlus.h"
+#include "../client/SettingsManager.h"
+
 #include "Resource.h"
 
 #include "PropertiesDlg.h"
@@ -45,7 +48,8 @@
 #include "WindowsPage.h"
 #include "QueuePage.h"
 #include "CertificatesPage.h"
-#include "RawPage.h" //adrian edit
+//RSX++
+#include "RawPage.h"
 #include "MyinfoPage.h"
 #include "RSX-Page.h"
 #include "RSX-Advanced.h"
@@ -54,6 +58,8 @@
 #include "IpWatchPage.h"
 #include "FileListDetectorPage.h"
 #include "AutosearchPage.h"
+#include "DetectionListPage.h"
+//END
 
 bool PropertiesDlg::needUpdate = false;
 PropertiesDlg::PropertiesDlg(HWND parent, SettingsManager *s) : TreePropertySheet(CTSTRING(SETTINGS), 0, parent) {
@@ -83,7 +89,8 @@ PropertiesDlg::PropertiesDlg(HWND parent, SettingsManager *s) : TreePropertyShee
 	pages[n++] = new RSXPage(s);
 	pages[n++] = new FilterPage(s);
 	pages[n++] = new FakeDetect(s);
-	pages[n++] = new ClientsPage(s);
+	//pages[n++] = new ClientsPage(s);
+	pages[n++] = new DetectionListPage(s);
 	pages[n++] = new ParamsPage(s);
 	pages[n++] = new MyinfoPage(s);
 	pages[n++] = new FileListDetectorPage(s);

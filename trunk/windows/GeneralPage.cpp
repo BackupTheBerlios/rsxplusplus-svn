@@ -17,12 +17,13 @@
  */
 
 #include "stdafx.h"
-#include "../client/DCPlusPlus.h"
-#include "Resource.h"
 
-#include "GeneralPage.h"
+#include "../client/DCPlusPlus.h"
 #include "../client/SettingsManager.h"
 #include "../client/Socket.h"
+
+#include "Resource.h"
+#include "GeneralPage.h"
 #include "WinUtil.h"
 
 PropPage::TextItem GeneralPage::texts[] = {
@@ -64,15 +65,17 @@ void GeneralPage::write()
 	if (bw != SETTING(BWSETTING_MODE))
 		settings->set(SettingsManager::BWSETTING_MODE, bw);
 
-	AutoArray<TCHAR> buf(1024);
+	tstring buf;
+	buf.resize(1024);
+
 	switch(bw) {
 		case SettingsManager::BWSETTINGS_DEFAULT: 
-			GetDlgItemText(IDC_CONNECTION, buf, 1024);
-			settings->set(SettingsManager::UPLOAD_SPEED, Text::fromT(tstring(buf)));
+			GetDlgItemText(IDC_CONNECTION, &buf[0], 1024);
+			settings->set(SettingsManager::UPLOAD_SPEED, Text::fromT(buf));
 			break;
 		case SettingsManager::BWSETTINGS_ADVANCED:
-			ctrlConnectionType.GetLBText(ctrlConnectionType.GetCurSel(), buf);
-			settings->set(SettingsManager::UPLOAD_SPEED, Text::fromT(tstring(buf)));
+			ctrlConnectionType.GetLBText(ctrlConnectionType.GetCurSel(), &buf[0]);
+			settings->set(SettingsManager::UPLOAD_SPEED, Text::fromT(buf));
 			break;
 	}
 	//end
@@ -89,7 +92,8 @@ LRESULT GeneralPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 	PropPage::read((HWND)(*this), items);
 	//rsx++
 	ctrlConnectionType.Attach(GetDlgItem(IDC_CONNECTIONTYPE));
-	ConnTypes.CreateFromImage(IDB_USERS, 16, 0, CLR_DEFAULT, IMAGE_BITMAP, LR_CREATEDIBSECTION | LR_SHARED);
+	//ConnTypes.CreateFromImage(IDB_USERS, 16, 0, CLR_DEFAULT, IMAGE_BITMAP, LR_CREATEDIBSECTION | LR_SHARED);
+	RL_CreateImageList(icons, ConnTypes, IDP_USERS, 16);
     ctrlConnectionType.SetImageList(ConnTypes);	
 
 	ctrlDownloadSpeed.Attach(GetDlgItem(IDC_DOWN_COMBO));
@@ -214,5 +218,5 @@ LRESULT GeneralPage::onClickedRadioButton(WORD /*wNotifyCode*/, WORD /*wID*/, HW
 //end
 /**
  * @file
- * $Id: GeneralPage.cpp 306 2007-07-10 19:46:55Z bigmuscle $
+ * $Id: GeneralPage.cpp 373 2008-02-06 17:23:49Z bigmuscle $
  */

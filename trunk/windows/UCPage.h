@@ -27,8 +27,6 @@
 #include "PropPage.h"
 #include "ExListViewCtrl.h"
 
-class UserCommand;
-
 class UCPage : public CPropertyPage<IDD_UCPAGE>, public PropPage
 {
 public:
@@ -84,5 +82,5 @@ protected:
 
 /**
  * @file
- * $Id: UCPage.h 308 2007-07-13 18:57:02Z bigmuscle $
+ * $Id: UCPage.h 373 2008-02-06 17:23:49Z bigmuscle $
  */

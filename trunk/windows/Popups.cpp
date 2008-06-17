@@ -17,11 +17,12 @@
  */
 
 #include "stdafx.h"
-#include "../client/DCPlusPlus.h"
-#include "Resource.h"
 
-#include "Popups.h"
+#include "../client/DCPlusPlus.h"
 #include "../client/SettingsManager.h"
+
+#include "Resource.h"
+#include "Popups.h"
 #include "WinUtil.h"
 #include "MainFrm.h"
 
@@ -83,6 +84,6 @@ LRESULT Popups::onPreview(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, 
 }
 /**
  * @file
- * $Id: Popups.cpp 274 2007-01-17 18:03:56Z bigmuscle $
+ * $Id: Popups.cpp 373 2008-02-06 17:23:49Z bigmuscle $
  */
 

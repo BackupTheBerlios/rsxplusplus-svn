@@ -23,9 +23,9 @@
 
 #include "PropPage.h"
 #include "ExListViewCtrl.h"
-#include "../client/RawManager.h"
+#include "CRawCombo.h"
 
-class FakeDetect : public CPropertyPage<IDD_FAKEDETECT>, public PropPage, protected RawSelector {
+class FakeDetect : public CPropertyPage<IDD_FAKEDETECT>, public PropPage {
 public:
 	FakeDetect(SettingsManager *s) : PropPage(s) {
 		title = _tcsdup((TSTRING(SETTINGS_RSX) + _T('\\') + TSTRING(SETTINGS_FAKEDETECT)).c_str());
@@ -90,7 +90,7 @@ private:
 	static Item items[];
 
 	ExListViewCtrl ctrlList;
-	CComboBox cRaw;
+	CRawCombo cRaw;
 	CComboBox cShowCheat;
 
 	TCHAR* title;

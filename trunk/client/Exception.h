@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2007 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,10 +16,12 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#if !defined(EXCEPTION_H)
-#define EXCEPTION_H
+#ifndef DCPLUSPLUS_DCPP_EXCEPTION_H
+#define DCPLUSPLUS_DCPP_EXCEPTION_H
 
-class Exception  
+namespace dcpp {
+
+class Exception : public std::exception
 {
 public:
 	Exception() { }
@@ -49,9 +51,11 @@ public:\
 }
 #endif
 
+} // namespace dcpp
+
 #endif // !defined(EXCEPTION_H)
 
 /**
  * @file
- * $Id: Exception.h 317 2007-08-04 14:52:24Z bigmuscle $
+ * $Id: Exception.h 389 2008-06-08 10:51:15Z BigMuscle $
  */

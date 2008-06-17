@@ -35,79 +35,10 @@
 #include "ClientManager.h"
 #include "ResourceManager.h"
 
+namespace dcpp {
+
 class SearchManager;
 class SocketException;
-
-class SearchResult : public FastAlloc<SearchResult> {
-public:	
-
-	enum Types {
-		TYPE_FILE,
-		TYPE_DIRECTORY
-	};
-
-	typedef SearchResult* Ptr;
-	typedef vector<Ptr> List;
-	typedef List::const_iterator Iter;
-	
-	SearchResult(Types aType, int64_t aSize, const string& name, const TTHValue& aTTH);
-
-	SearchResult(const UserPtr& aUser, Types aType, uint8_t aSlots, uint8_t aFreeSlots, 
-		int64_t aSize, const string& aFile, const string& aHubName, 
-		const string& ip, TTHValue aTTH, const string& aToken) :
-	file(aFile), hubName(aHubName), user(aUser),
-	size(aSize), type(aType), slots(aSlots), freeSlots(aFreeSlots), IP(ip),
-	tth(aTTH), token(aToken), ref(1) { }
-
-	string getFileName() const;
-	string toSR(const Client& client) const;
-	AdcCommand toRES(char type) const;
-
-	const UserPtr& getUser() const { return user; }
-	string getSlotString() const { return Util::toString(getFreeSlots()) + '/' + Util::toString(getSlots()); }
-
-	const string& getFile() const { return file; }
-	const string& getHubName() const { return hubName; }
-	int64_t getSize() const { return size; }
-	Types getType() const { return type; }
-	uint8_t getSlots() const { return slots; }
-	uint8_t getFreeSlots() const { return freeSlots; }
-	const TTHValue& getTTH() const { return tth; }
-	
-	const string& getIP() const { return IP; }
-	const string& getToken() const { return token; }
-
-	void incRef() { Thread::safeInc(ref); }
-	void decRef() { 
-		if(Thread::safeDec(ref) == 0) 
-			delete this; 
-	}
-
-private:
-	friend class SearchManager;
-
-	SearchResult();
-	~SearchResult() { }
-
-	SearchResult(const SearchResult& rhs);
-
-	TTHValue tth;
-	
-	string file;
-	string hubName;
-	string IP;
-	string token;
-	
-	int64_t size;
-	
-	UserPtr user;
-	Types type;
-
-	uint8_t slots;
-	uint8_t freeSlots;
-	
-	volatile long ref;
-};
 
 class SearchQueueItem {
 public:
@@ -241,9 +172,11 @@ private:
 	void on(TimerManagerListener::Second, uint64_t aTick) throw();
 };
 
+} // namespace dcpp
+
 #endif // !defined(SEARCH_MANAGER_H)
 
 /**
  * @file
- * $Id: SearchManager.h 358 2008-01-17 10:48:01Z bigmuscle $
+ * $Id: SearchManager.h 386 2008-05-10 19:29:01Z BigMuscle $
  */

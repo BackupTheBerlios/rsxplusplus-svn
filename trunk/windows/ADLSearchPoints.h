@@ -16,9 +16,10 @@
 
 #ifndef ADLS_POINT_VALUE_H
 #define ADLS_POINT_VALUE_H
-#include "../client/RawManager.h"
 
-class PointValue : public CDialogImpl<PointValue>, protected RawSelector {
+#include "CRawCombo.h"
+
+class PointValue : public CDialogImpl<PointValue> {
 public:
 	enum { IDD = IDD_ADD_ADLSP_RANGE };
 
@@ -43,14 +44,8 @@ public:
 	LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
 		ctrlValue.Attach(GetDlgItem(IDC_VALUE));
 		ctrlValue.SetWindowText(Util::toStringW(value).c_str());
-		ctrlAction.Attach(GetDlgItem(IDC_ACTION));
 		ctrlDisplay.Attach(GetDlgItem(IDC_DISPLAY_CHEAT));
-
-		createList();
-		for(ActionList::const_iterator i = idAction.begin(); i != idAction.end(); ++i) {
-			ctrlAction.AddString(RawManager::getInstance()->getNameActionId(i->second).c_str());
-		}
-		ctrlAction.SetCurSel(getId(actionId));
+		ctrlAction.attach(GetDlgItem(IDC_ACTION), actionId);
 		ctrlDisplay.SetCheck(display ? BST_CHECKED : BST_UNCHECKED);
 		ctrlValue.SetFocus();
 
@@ -60,28 +55,33 @@ public:
 
 	LRESULT OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
 		if(wID == IDOK) {
-			if(value != 0) //we were editing item
-				RawManager::getInstance()->remADLPoints(value);
-
-			value = GetDlgItemInt(IDC_VALUE);
 			if(ctrlValue.GetWindowTextLength() == 0) {
 				MessageBox(_T("Value must not be empty"));
 				return 0;
 			}
-			actionId = getIdAction(ctrlAction.GetCurSel());
-			display = ctrlDisplay.GetCheck() == BST_CHECKED;
-			if(!RawManager::getInstance()->addADLPoints(value, actionId, display)) {
-				::MessageBox(NULL, _T("This value already exist"), _T("RSX++"), 0);
+			//if(value != 0) //we were editing item
+			RawManager::getInstance()->remADLPoints(value);
+
+			int newValue = GetDlgItemInt(IDC_VALUE);
+			if(newValue < 0) {
+				MessageBox(_T("Value must be greater than 0"));
 				return 0;
 			}
+			//if(value != newValue && RawManager::getInstance()->isAdlItemExist(newValue)) {
+			//	MessageBox(_T("This value already exist!"));
+			//	return 0;
+			//}
+			actionId = ctrlAction.getActionId();
+			display = ctrlDisplay.GetCheck() == BST_CHECKED;
+			value = newValue;
+			RawManager::getInstance()->addADLPoints(newValue, actionId, display);
 		}
-		idAction.clear();
 		EndDialog(wID);
 		return 0;
 	}
 private:
 	CEdit ctrlValue;
-	CComboBox ctrlAction;
+	CRawCombo ctrlAction;
 	CButton ctrlDisplay;
 };
 #endif

@@ -16,8 +16,10 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef DCPLUSPLUS_CLIENT_BUFFEREDSOCKETLISTENER_H_
-#define DCPLUSPLUS_CLIENT_BUFFEREDSOCKETLISTENER_H_
+#ifndef DCPLUSPLUS_DCPP_BUFFEREDSOCKETLISTENER_H_
+#define DCPLUSPLUS_DCPP_BUFFEREDSOCKETLISTENER_H_
+
+namespace dcpp {
 
 class BufferedSocketListener {
 public:
@@ -44,5 +46,7 @@ public:
 	virtual void on(Failed, const string&) throw() { }
 	virtual void on(Updated) throw() { }
 };
+
+} // namespace dcpp
 
 #endif /*BUFFEREDSOCKETLISTENER_H_*/

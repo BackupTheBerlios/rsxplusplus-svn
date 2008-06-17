@@ -16,6 +16,7 @@
 
 #include "stdafx.h"
 #include "../client/DCPlusPlus.h"
+#include "../client/SettingsManager.h"
 #include "Resource.h"
 
 #include "RawPage.h"
@@ -23,7 +24,6 @@
 #include "RawDlg.h"
 
 #include "../client/Util.h"
-#include "../client/SettingsManager.h"
 #include "../client/version.h"
 #include "../rsx/RsxUtil.h"
 

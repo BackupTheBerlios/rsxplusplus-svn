@@ -21,8 +21,6 @@
 #include "ExListViewCtrl.h"
 #include "../client/RawManager.h"
 
-class Action;
-
 class RawPage : public CPropertyPage<IDD_RAW_PAGE>, public PropPage {
 public:
 	RawPage(SettingsManager *s) : PropPage(s), nosave(true), gotFocusOnAction(false), gotFocusOnRaw(false) { 

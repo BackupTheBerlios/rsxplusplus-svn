@@ -27,6 +27,8 @@
 #include "RsxUtil.h"
 #include "rsx-settings/rsx-SettingsManager.h"
 
+namespace dcpp {
+
 IpManager::IpManager() : c(NULL), ipWatchVersion("1.00") { 
 	c = new HttpConnection; 
 }
@@ -156,3 +158,4 @@ void IpManager::on(HttpConnectionListener::Failed, HttpConnection* conn, const s
 		SettingsManager::getInstance()->set(SettingsManager::EXTERNAL_IP, Util::getLocalIp());
 	}
 }
+}; // namespace dcpp

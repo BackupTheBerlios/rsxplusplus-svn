@@ -16,8 +16,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#if !defined(DC_PLUS_PLUS_H)
-#define DC_PLUS_PLUS_H
+#ifndef DCPP_DCPLUSPLUS_H
+#define DCPP_DCPLUSPLUS_H
 
 #ifdef _WIN32
 # define snprintf _snprintf
@@ -74,6 +74,8 @@ _CrtDbgBreak(); } } while(false)
 #undef max
 #endif
 
+namespace dcpp {
+
 typedef vector<string> StringList;
 typedef StringList::iterator StringIter;
 typedef StringList::const_iterator StringIterC;
@@ -97,6 +99,19 @@ typedef vector<WStringPair> WStringPairList;
 typedef WStringPairList::iterator WStringPairIter;
 
 typedef vector<uint8_t> ByteVector;
+
+template<typename T>
+boost::basic_format<T> dcpp_fmt(const T* t) {
+	boost::basic_format<T> fmt;
+	fmt.exceptions(boost::io::no_error_bits);
+	fmt.parse(t);
+	return fmt;
+}
+
+template<typename T>
+boost::basic_format<T> dcpp_fmt(const std::basic_string<T>& t) {
+	return dcpp_fmt(t.c_str());
+}
 
 #if defined(_MSC_VER) || defined(__MINGW32__)
 #define _LL(x) x##ll
@@ -163,9 +178,11 @@ typedef StringMapIter TStringMapIter;
 extern void startup(void (*f)(void*, const tstring&), void* p);
 extern void shutdown();
 
+} // namespace dcpp
+
 #endif // !defined(DC_PLUS_PLUS_H)
 
 /**
  * @file
- * $Id: DCPlusPlus.h 340 2007-12-20 12:30:13Z bigmuscle $
+ * $Id: DCPlusPlus.h 373 2008-02-06 17:23:49Z bigmuscle $
  */

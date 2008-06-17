@@ -17,13 +17,14 @@
  */
 
 #include "stdafx.h"
+
 #include "../client/DCPlusPlus.h"
-#include "Resource.h"
-
-#include "PropPage.h"
-
 #include "../client/SettingsManager.h"
+
 #include "../rsx/rsx-settings/rsx-SettingsManager.h" //RSX++
+
+#include "Resource.h"
+#include "PropPage.h"
 #include "WinUtil.h"
 
 #define SETTING_STR_MAXLEN 1024
@@ -58,25 +59,6 @@ void PropPage::read(HWND page, Item const* items, ListItem* listItems /* = NULL 
 				::SetDlgItemText(page, i->itemID,
 				Text::toT(settings->get((SettingsManager::StrSetting)i->setting, useDef)).c_str());
 			break;
-//RSX++ //settings
-		case T_STR_RSX:
-#if DIM_EDIT_EXPERIMENT
-			tempCtrl = new CDimEdit;
-			if (tempCtrl) {
-				tempCtrl->SubclassWindow(GetDlgItem(page, i->itemID));
-				tempCtrl->SetDimText(settings->get((RSXSettingsManager::StrSetting)i->setting, true));
-				tempCtrl->SetDimColor(RGB(192, 192, 192));
-				ctrlMap[i->itemID] = tempCtrl;
-			}
-#endif
-				if (GetDlgItem(page, i->itemID) == NULL) {
-					// Control not exist ? Why ??
-					throw;
-				}
-				::SetDlgItemText(page, i->itemID,
-				Text::toT(rsxs->get((RSXSettingsManager::StrSetting)i->setting, useDef)).c_str());
-			break;
-//--
 		case T_INT:
 
 				if (GetDlgItem(page, i->itemID) == NULL) {
@@ -86,17 +68,6 @@ void PropPage::read(HWND page, Item const* items, ListItem* listItems /* = NULL 
 				::SetDlgItemInt(page, i->itemID,
 					settings->get((SettingsManager::IntSetting)i->setting, useDef), FALSE);
 			break;
-//--
-		case T_INT_RSX:
-
-				if (GetDlgItem(page, i->itemID) == NULL) {
-					// Control not exist ? Why ??
-					throw;
-				}
-				::SetDlgItemInt(page, i->itemID,
-					rsxs->get((RSXSettingsManager::IntSetting)i->setting, useDef), FALSE);
-			break;
-//--
 		case T_INT64:
 			if(!SettingsManager::getInstance()->isDefault(i->setting)) {
 				tstring s = Util::toStringW(settings->get((SettingsManager::Int64Setting)i->setting, useDef));
@@ -112,8 +83,32 @@ void PropPage::read(HWND page, Item const* items, ListItem* listItems /* = NULL 
 				::CheckDlgButton(page, i->itemID, BST_CHECKED);
 			else
 				::CheckDlgButton(page, i->itemID, BST_UNCHECKED);
-		//}
-//--
+			break;
+		//RSX++
+		case T_STR_RSX:
+			#if DIM_EDIT_EXPERIMENT
+			tempCtrl = new CDimEdit;
+			if (tempCtrl) {
+				tempCtrl->SubclassWindow(GetDlgItem(page, i->itemID));
+				tempCtrl->SetDimText(settings->get((RSXSettingsManager::StrSetting)i->setting, true));
+				tempCtrl->SetDimColor(RGB(192, 192, 192));
+				ctrlMap[i->itemID] = tempCtrl;
+			}
+			#endif
+				if (GetDlgItem(page, i->itemID) == NULL) {
+					// Control not exist ? Why ??
+					throw;
+				}
+				::SetDlgItemText(page, i->itemID,
+				Text::toT(rsxs->get((RSXSettingsManager::StrSetting)i->setting, useDef)).c_str());
+			break;
+		case T_INT_RSX:
+				if (GetDlgItem(page, i->itemID) == NULL) {
+					// Control not exist ? Why ??
+					throw;
+				}
+				::SetDlgItemInt(page, i->itemID,
+					rsxs->get((RSXSettingsManager::IntSetting)i->setting, useDef), FALSE);
 			break;
 		case T_BOOL_RSX:
 			if (GetDlgItem(page, i->itemID) == NULL) {
@@ -124,6 +119,8 @@ void PropPage::read(HWND page, Item const* items, ListItem* listItems /* = NULL 
 				::CheckDlgButton(page, i->itemID, BST_CHECKED);
 			else
 				::CheckDlgButton(page, i->itemID, BST_UNCHECKED);
+			break;
+		//END
 		}
 	}
 
@@ -160,7 +157,8 @@ void PropPage::write(HWND page, Item const* items, ListItem* listItems /* = NULL
 	RSXSettingsManager* rsxs = RSXSettingsManager::getInstance(); //RSX++
 	dcassert(page != NULL);
 
-	AutoArray<TCHAR> buf(SETTING_STR_MAXLEN);
+	tstring buf;
+
 	for(Item const* i = items; i->type != T_END; i++)
 	{
 		switch(i->type)
@@ -171,8 +169,9 @@ void PropPage::write(HWND page, Item const* items, ListItem* listItems /* = NULL
 					// Control not exist ? Why ??
 					throw;
 				}
-				::GetDlgItemText(page, i->itemID, buf, SETTING_STR_MAXLEN);
-				settings->set((SettingsManager::StrSetting)i->setting, Text::fromT(tstring(buf)));
+				buf.resize(SETTING_STR_MAXLEN);
+				buf.resize(::GetDlgItemText(page, i->itemID, &buf[0], SETTING_STR_MAXLEN));
+				settings->set((SettingsManager::StrSetting)i->setting, Text::fromT(buf));
 #if DIM_EDIT_EXPERIMENT
 				if (ctrlMap[i->itemID]) {
 					ctrlMap[i->itemID]->UnsubclassWindow();
@@ -182,53 +181,22 @@ void PropPage::write(HWND page, Item const* items, ListItem* listItems /* = NULL
 #endif
 				break;
 			}
-//--
-		case T_STR_RSX:
-			{
-				if (GetDlgItem(page, i->itemID) == NULL) {
-					// Control not exist ? Why ??
-					throw;
-				}
-				::GetDlgItemText(page, i->itemID, buf, SETTING_STR_MAXLEN);
-				rsxs->set((RSXSettingsManager::StrSetting)i->setting, Text::fromT(tstring(buf)));
-#if DIM_EDIT_EXPERIMENT
-				if (ctrlMap[i->itemID]) {
-					ctrlMap[i->itemID]->UnsubclassWindow();
-					delete ctrlMap[i->itemID];
-					ctrlMap.erase(i->itemID);
-				}
-#endif
-				break;
-			}
-//--
 		case T_INT:
 			{
 				if (GetDlgItem(page, i->itemID) == NULL) {
 					// Control not exist ? Why ??
 					throw;
 				}
-
-				::GetDlgItemText(page, i->itemID, buf, SETTING_STR_MAXLEN);
-				settings->set((SettingsManager::IntSetting)i->setting, Util::toInt(Text::fromT(tstring(buf))));
+				buf.resize(SETTING_STR_MAXLEN);
+				buf.resize(::GetDlgItemText(page, i->itemID, &buf[0], SETTING_STR_MAXLEN));
+				settings->set((SettingsManager::IntSetting)i->setting, Util::toInt(Text::fromT(buf)));
 				break;
 			}
-//--
-		case T_INT_RSX:
-			{
-				if (GetDlgItem(page, i->itemID) == NULL) {
-					// Control not exist ? Why ??
-					throw;
-				}
-
-				::GetDlgItemText(page, i->itemID, buf, SETTING_STR_MAXLEN);
-				rsxs->set((RSXSettingsManager::IntSetting)i->setting, Util::toInt(Text::fromT(tstring(buf))));
-				break;
-			}
-//--
 		case T_INT64:
 			{
-				::GetDlgItemText(page, i->itemID, buf, SETTING_STR_MAXLEN);
-				settings->set((SettingsManager::Int64Setting)i->setting, Text::fromT(tstring(buf)));
+				buf.resize(SETTING_STR_MAXLEN);
+				buf.resize(::GetDlgItemText(page, i->itemID, &buf[0], SETTING_STR_MAXLEN));
+				settings->set((SettingsManager::Int64Setting)i->setting, Text::fromT(buf));
 				break;
 			}
 		case T_BOOL:
@@ -243,6 +211,37 @@ void PropPage::write(HWND page, Item const* items, ListItem* listItems /* = NULL
 					settings->set((SettingsManager::IntSetting)i->setting, false);
 				break;
 			}
+		//RSX++
+		case T_STR_RSX:
+			{
+				if (GetDlgItem(page, i->itemID) == NULL) {
+					// Control not exist ? Why ??
+					throw;
+				}
+				buf.resize(SETTING_STR_MAXLEN);
+				buf.resize(::GetDlgItemText(page, i->itemID, &buf[0], SETTING_STR_MAXLEN));
+				rsxs->set((RSXSettingsManager::StrSetting)i->setting, Text::fromT(tstring(buf)));
+				#if DIM_EDIT_EXPERIMENT
+				if (ctrlMap[i->itemID]) {
+					ctrlMap[i->itemID]->UnsubclassWindow();
+					delete ctrlMap[i->itemID];
+					ctrlMap.erase(i->itemID);
+				}
+				#endif
+				break;
+			}
+		case T_INT_RSX:
+			{
+				if (GetDlgItem(page, i->itemID) == NULL) {
+					// Control not exist ? Why ??
+					throw;
+				}
+
+				buf.resize(SETTING_STR_MAXLEN);
+				buf.resize(::GetDlgItemText(page, i->itemID, &buf[0], SETTING_STR_MAXLEN));
+				rsxs->set((RSXSettingsManager::IntSetting)i->setting, Util::toInt(Text::fromT(tstring(buf))));
+				break;
+			}
 		case T_BOOL_RSX:
 			{
 				if (GetDlgItem(page, i->itemID) == NULL) {
@@ -253,6 +252,8 @@ void PropPage::write(HWND page, Item const* items, ListItem* listItems /* = NULL
 					rsxs->set((RSXSettingsManager::IntSetting)i->setting, true);
 				else
 					rsxs->set((RSXSettingsManager::IntSetting)i->setting, false);
+				break;
+		//END
 			}
 		}
 	}
@@ -286,5 +287,5 @@ void PropPage::translate(HWND page, TextItem* textItems)
 
 /**
  * @file
- * $Id: PropPage.cpp 238 2006-08-21 18:21:40Z bigmuscle $
+ * $Id: PropPage.cpp 384 2008-03-14 13:54:26Z BigMuscle $
  */

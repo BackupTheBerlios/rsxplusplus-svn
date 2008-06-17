@@ -16,6 +16,7 @@
 
 #include "stdafx.h"
 #include "../client/DCPlusPlus.h"
+#include "../client/SettingsManager.h"
 #include "Resource.h"
 
 #include "FilterPage.h"
@@ -23,14 +24,7 @@
 #include "HLPageDlg.h"
 
 #include "../rsx/rsx-settings/rsx-SettingsManager.h"
-#include "../client/FavoriteManager.h"
 #include "WinUtil.h"
-
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[] = __FILE__;
-#endif
 
 PropPage::TextItem FilterPage::texts[] = {
 	{ IDC_ADD_FILTER, ResourceManager::ADD },

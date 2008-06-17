@@ -46,7 +46,7 @@
 //RSX++
 #include "../client/ScriptManager.h"
 #include "../rsx/RsxUtil.h"
-#include "../rsx/PluginAPI/PluginsManager.h"
+#include "../client/PluginsManager.h"
 #include "KickDlg.h"
 //END
 #include "HubFrame.h"
@@ -68,6 +68,11 @@ OMenu WinUtil::grantMenu;
 CImageList WinUtil::fileImages;
 CImageList WinUtil::userImages;
 CImageList WinUtil::flagImages;
+//RSX++
+ExCImage::Ptr WinUtil::fileImg;
+ExCImage::Ptr WinUtil::flagsImg; 
+ExCImage::Ptr WinUtil::usersImg;
+//END
 int WinUtil::dirIconIndex = 0;
 int WinUtil::dirMaskedIndex = 0;
 TStringList WinUtil::lastDirs;
@@ -89,6 +94,7 @@ CHARFORMAT2 WinUtil::m_ChatTextSystem;
 CHARFORMAT2 WinUtil::m_TextStyleBold;
 CHARFORMAT2 WinUtil::m_TextStyleFavUsers;
 CHARFORMAT2 WinUtil::m_TextStyleOPs;
+CHARFORMAT2 WinUtil::m_TextStyleProtected; //RSX++
 CHARFORMAT2 WinUtil::m_TextStyleURL;
 CHARFORMAT2 WinUtil::m_ChatTextPrivate;
 CHARFORMAT2 WinUtil::m_ChatTextLog;
@@ -382,12 +388,24 @@ static LRESULT CALLBACK KeyboardProc(int code, WPARAM wParam, LPARAM lParam) {
 	return CallNextHookEx(WinUtil::hook, code, wParam, lParam);
 }
 
-void WinUtil::reLoadImages(){
-	userImages.Destroy();
+void WinUtil::reLoadImages() {
+/*	userImages.Destroy();
 	if(SETTING(USERLIST_IMAGE).empty())
 		userImages.CreateFromImage(IDB_USERS, 16, 16, CLR_DEFAULT, IMAGE_BITMAP, LR_CREATEDIBSECTION | LR_SHARED);
 	else
 		userImages.CreateFromImage(Text::toT(SETTING(USERLIST_IMAGE)).c_str(), 16, 0, CLR_DEFAULT, IMAGE_BITMAP, LR_CREATEDIBSECTION | LR_SHARED | LR_LOADFROMFILE);
+*/
+	userImages.Destroy();
+	RL_DeleteObject(usersImg);
+
+	userImages.Create(16, 16, ILC_COLOR32 | ILC_MASK, 16, 16);
+	if(SETTING(USERLIST_IMAGE) == "") {
+		usersImg = RL_LoadFromResource(IDP_USERS);
+		userImages.Add(*usersImg);
+	} else {
+		usersImg = RL_Load(Text::toT(SETTING(USERLIST_IMAGE)).c_str());
+		userImages.Add(*usersImg, usersImg->GetPixel(0, 0));
+	}
 }
 
 void WinUtil::init(HWND hWnd) {
@@ -433,6 +451,7 @@ void WinUtil::init(HWND hWnd) {
 	view.AppendMenu(MF_STRING, IDC_CDMDEBUG_WINDOW, CTSTRING(MENU_CDMDEBUG_MESSAGES));
 	view.AppendMenu(MF_STRING, IDC_NOTEPAD, CTSTRING(MENU_NOTEPAD));
 	view.AppendMenu(MF_STRING, IDC_HASH_PROGRESS, CTSTRING(MENU_HASH_PROGRESS));
+	view.AppendMenu(MF_STRING, IDC_VIEW_PLUGINS_LIST, _T("Plugins List"));
 	view.AppendMenu(MF_SEPARATOR);
 	view.AppendMenu(MF_STRING, ID_VIEW_TOOLBAR, CTSTRING(MENU_TOOLBAR));
 	view.AppendMenu(MF_STRING, ID_VIEW_STATUS_BAR, CTSTRING(MENU_STATUS_BAR));
@@ -500,22 +519,38 @@ void WinUtil::init(HWND hWnd) {
 		fileImages.AddIcon(ic);
 		::DestroyIcon(fi.hIcon);
 	} else {
-		fileImages.CreateFromImage(IDB_FOLDERS, 16, 3, CLR_DEFAULT, IMAGE_BITMAP, LR_CREATEDIBSECTION | LR_SHARED);
+		//RSX++
+		fileImg = RL_LoadFromResource(IDP_FOLDERS);
+		fileImages.Create(16, 16, ILC_COLOR32 | ILC_MASK, 0, 3);
+		fileImages.Add(*fileImg);
+		//END
 	}
 #endif
 
-	fileImages.CreateFromImage(IDB_FOLDERS, 16, 3, CLR_DEFAULT, IMAGE_BITMAP, LR_CREATEDIBSECTION | LR_SHARED);
+	//RSX++
+	fileImg = RL_LoadFromResource(IDP_FOLDERS);
+	fileImages.Create(16, 16, ILC_COLOR32 | ILC_MASK, 0, 3);
+	fileImages.Add(*fileImg);
+	//END
 	dirIconIndex = fileImageCount++;
 	dirMaskedIndex = fileImageCount++;
 
 	fileImageCount++;
 
-	flagImages.CreateFromImage(IDB_FLAGS, 25, 8, CLR_DEFAULT, IMAGE_BITMAP, LR_CREATEDIBSECTION | LR_SHARED);
+	//RSX++
+	flagsImg = RL_LoadFromResource(IDP_FLAGS);
+	flagImages.Create(25, 15, ILC_COLOR32 | ILC_MASK, 0, 8);
+	flagImages.Add(*flagsImg);
 
-	if(SETTING(USERLIST_IMAGE) == "")
-		userImages.CreateFromImage(IDB_USERS, 16, 9, CLR_DEFAULT, IMAGE_BITMAP, LR_CREATEDIBSECTION | LR_SHARED);
-	else
-		userImages.CreateFromImage(Text::toT(SETTING(USERLIST_IMAGE)).c_str(), 16, 0, CLR_DEFAULT, IMAGE_BITMAP, LR_CREATEDIBSECTION | LR_SHARED | LR_LOADFROMFILE); 
+	userImages.Create(16, 16, ILC_COLOR32 | ILC_MASK, 0, 9);
+	if(SETTING(USERLIST_IMAGE) == "") {
+		usersImg = RL_LoadFromResource(IDP_USERS);
+		userImages.Add(*usersImg);
+	} else {
+		usersImg = RL_Load(Text::toT(SETTING(USERLIST_IMAGE)).c_str());
+		userImages.Add(*usersImg, usersImg->GetPixel(0, 0));
+	}
+	//END
 	
 	LOGFONT lf, lf2;
 	::GetObject((HFONT)GetStockObject(DEFAULT_GUI_FONT), sizeof(lf), &lf);
@@ -659,7 +694,15 @@ void WinUtil::initColors() {
 		m_TextStyleOPs.dwEffects |= CFE_BOLD;
 	if(SETTING(TEXT_OP_ITALIC))
 		m_TextStyleOPs.dwEffects |= CFE_ITALIC;
-
+	//RSX++
+	m_TextStyleProtected = cf;
+	m_TextStyleProtected.crBackColor = SETTING(TEXT_PROTECTED_BACK_COLOR);
+	m_TextStyleProtected.crTextColor = SETTING(TEXT_PROTECTED_FORE_COLOR);
+	if(SETTING(TEXT_PROTECTED_BOLD))
+		m_TextStyleProtected.dwEffects |= CFE_BOLD;
+	if(SETTING(TEXT_PROTECTED_ITALIC))
+		m_TextStyleProtected.dwEffects |= CFE_ITALIC;
+	//END
 	m_TextStyleURL = cf;
 	m_TextStyleURL.dwMask = CFM_COLOR | CFM_BOLD | CFM_ITALIC | CFM_BACKCOLOR | CFM_LINK | CFM_UNDERLINE;
 	m_TextStyleURL.crBackColor = SETTING(TEXT_URL_BACK_COLOR);
@@ -679,7 +722,11 @@ void WinUtil::uninit() {
 	::DeleteObject(boldFont);
 	::DeleteObject(smallBoldFont);
 	::DeleteObject(bgBrush);
-
+	//RSX++
+	RL_DeleteObject(fileImg);
+	RL_DeleteObject(flagsImg);
+	RL_DeleteObject(usersImg);
+	//END
 	mainMenu.DestroyMenu();
 	grantMenu.DestroyMenu();
 
@@ -901,7 +948,7 @@ bool WinUtil::getUCParams(HWND parent, const UserCommand& uc, StringMap& sm) thr
 	return true;
 }
 
-#ifdef SVN_REVISION_STR
+#ifdef SVNBUILD
 #define LINE2 _T("-- <RSX++ ") _T(VERSIONSTRING) _T(" SVN:") _T(SVN_REVISION_STR) _T(">")
 #else
 #define LINE2 _T("-- <RSX++ ") _T(VERSIONSTRING) _T(" / ") _T(DCVERSIONSTRING) _T(">")
@@ -986,7 +1033,7 @@ _T("----------------------------------------------------------------------------
 _T("\tFor more help please head to RSX++ Forums (Help -> Forums)\n")
 _T("------------------------------------------------------------------------------------------------------------------------------------------------------------\n\n");
 
-bool WinUtil::checkCommand(tstring& cmd, tstring& param, tstring& message, tstring& status) {
+bool WinUtil::checkCommand(tstring& cmd, tstring& param, tstring& message, tstring& status, bool& thirdPerson) {
 	string::size_type i = cmd.find(' ');
 	if(i != string::npos) {
 		param = cmd.substr(i+1);
@@ -1005,6 +1052,9 @@ bool WinUtil::checkCommand(tstring& cmd, tstring& param, tstring& message, tstri
 		} else {
 			return false;
 		}
+	} else if(Util::stricmp(cmd.c_str(), _T("me")) == 0) {
+		message = param;
+		thirdPerson = true;
 	} else if(Util::stricmp(cmd.c_str(), _T("refresh"))==0) {
 		try {
 			ShareManager::getInstance()->setDirty();
@@ -1052,14 +1102,14 @@ bool WinUtil::checkCommand(tstring& cmd, tstring& param, tstring& message, tstri
 		}
 	//RSX++
 	} else if(Util::stricmp(cmd.c_str(), _T("pinfo")) == 0) {
-		PluginsManager::Plugins& p = PluginsManager::getInstance()->getPlugins();
-		string pinfo = "Active Plugins Info\nLoaded plugins: " + Util::toString(p.size());
+		const PluginsManager::Plugins& p = PluginsManager::getInstance()->getPlugins();
+		tstring pinfo = _T("Active Plugins Info\nLoaded plugins: ") + Util::toStringW(p.size());
 		for(PluginsManager::Plugins::const_iterator i = p.begin(); i != p.end(); ++i) {
-			pinfo += "\n-- Plugin Name: " + (*i)->getName();
-			pinfo += "\n-- Plugin Version: " + (*i)->getVersion();
-			pinfo += "\n";
+			pinfo += _T("\n-- Plugin Name: ") + (*i)->getName();
+			pinfo += _T("\n-- Plugin Version: ") + (*i)->getVersion();
+			pinfo += _T("\n");
 		}
-		status = Text::toT(pinfo);
+		status = pinfo;
 	} else if(Util::stricmp(cmd.c_str(), _T("lua")) == 0) {
 		ScriptManager::getInstance()->EvaluateChunk(Text::fromT(param));
 	} else if(Util::stricmp(cmd.c_str(), _T("luafile")) == 0) {
@@ -1080,10 +1130,14 @@ void WinUtil::bitziLink(const TTHValue& aHash) {
 	openLink(_T("http://bitzi.com/lookup/tree:tiger:") + Text::toT(aHash.toBase32()));
 }
 
-void WinUtil::copyMagnet(const TTHValue& aHash, const tstring& aFile, int64_t aSize) {
+tstring WinUtil::getMagnet(const TTHValue& aHash, const string& aFile, int64_t aSize) {
+	return _T("magnet:?xt=urn:tree:tiger:") + Text::toT(aHash.toBase32()) + _T("&xl=") + Util::toStringW(aSize) + _T("&dn=") + Text::toT(Util::encodeURI(aFile));
+}
+
+void WinUtil::copyMagnet(const TTHValue& aHash, const string& aFile, int64_t aSize) {
 	if(!aFile.empty()) {
-		setClipboard(Text::toT("magnet:?xt=urn:tree:tiger:" + aHash.toBase32() + "&xl=" + Util::toString(aSize) + "&dn=" + Util::encodeURI(Text::fromT(aFile))));
-	}
+		setClipboard(getMagnet(aHash, aFile, aSize));
+ 	}
 }
 
  void WinUtil::searchHash(const TTHValue& aHash) {
@@ -1320,9 +1374,9 @@ void WinUtil::openLink(const tstring& url) {
 
 				STARTUPINFO si = { sizeof(si), 0 };
 				PROCESS_INFORMATION pi = { 0 };
-				AutoArray<TCHAR> buf(cmdLine.length() + 1);
-				_tcscpy(buf, cmdLine.c_str());
-				if(::CreateProcess(cmd.c_str(), buf, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) {
+				boost::scoped_array<TCHAR> buf(new TCHAR[cmdLine.length() + 1]);
+				_tcscpy(&buf[0], cmdLine.c_str());
+				if(::CreateProcess(cmd.c_str(), &buf[0], NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) {
 					::CloseHandle(pi.hThread);
 					::CloseHandle(pi.hProcess);
 					return;
@@ -1451,9 +1505,8 @@ int WinUtil::textUnderCursor(POINT p, CEdit& ctrl, tstring& x) {
 		return 0;
 	}
 
-	AutoArray<TCHAR> buf(len);
-	ctrl.GetLine(line, buf, len);
-	x = tstring(buf, len-1);
+	x.resize(len);
+	ctrl.GetLine(line, &x[0], len);
 
 	string::size_type start = x.find_last_of(_T(" <\t\r\n"), c);
 	if(start == string::npos)
@@ -1663,7 +1716,7 @@ int WinUtil::SetupPreviewMenu(CMenu &previewMenu, string extension){
 	return PreviewAppsSize;
 }
 
-void WinUtil::RunPreviewCommand(unsigned int index, string target) {
+void WinUtil::RunPreviewCommand(unsigned int index, const string& target) {
 	PreviewApplication::List lst = FavoriteManager::getInstance()->getPreviewApps();
 
 	if(index <= lst.size()) {
@@ -1671,15 +1724,6 @@ void WinUtil::RunPreviewCommand(unsigned int index, string target) {
 		string arguments = lst[index]->getArguments();
 		StringMap ucParams;				
 	
-		if(!Util::fileExists(target)) {
-			// file not exists, using antifrag???
-			target += Download::ANTI_FRAG_EXT;
-			if(!Util::fileExists(target)) {
-				// neither antifrag exists, quit
-				return;
-			}
-		}
-
 		ucParams["file"] = "\"" + target + "\"";
 		ucParams["dir"] = "\"" + Util::getFilePath(target) + "\"";
 
@@ -1809,7 +1853,7 @@ string WinUtil::generateStats() {
 		int64_t kernelTime = kernelTimeFT.dwLowDateTime | (((int64_t)kernelTimeFT.dwHighDateTime) << 32);
 		int64_t userTime = userTimeFT.dwLowDateTime | (((int64_t)userTimeFT.dwHighDateTime) << 32);  
 		snprintf(buf, sizeof(buf), "-=[ %s %s  [Core: %s] ]=-\r\n-=[ Uptime: %s][ Cpu time: %s ]=-\r\n-=[ Memory usage (peak): %s (%s) ]=-\r\n-=[ Virtual memory usage (peak): %s (%s) ]=-\r\n-=[ Downloaded: %s ][ Uploaded: %s ]=-\r\n-=[ Total download: %s ][ Total upload: %s ]=-\r\n-=[ System: %s ]=-\r\n-=[ System Uptime: %s]=-\r\n-=[ CPU Name: %s ]=-\r\n-=[ CPU Clock: %i MHz ]=-\r\n-=[ Total clients detected (Successful/Failed):  %s/%s ]=-\r\n-=[ Total raw commands sent: %s ]=-", 
-#ifdef SVN_REVISION_STR
+#ifdef SVNBUILD
 			APPNAME, VERSIONSTRING " SVN: " SVN_REVISION_STR, DCVERSIONSTRING,
 #else
 			APPNAME, VERSIONSTRING, DCVERSIONSTRING,
@@ -1824,7 +1868,6 @@ string WinUtil::generateStats() {
 			Util::toString(RSXSETTING(TOTAL_DETECTS)).c_str(), Util::toString(RSXSETTING(TOTAL_FAILED_DETECTS)).c_str(),
 			Util::toString(RSXSETTING(TOTAL_RAW_COMMANDS_SENT)).c_str());
 		return buf;
-
 	} else {
 		return "Not supported by OS";
 	}
@@ -1942,8 +1985,17 @@ string WinUtil::CPUInfo() {
 tstring WinUtil::getCompileInfo() {
 	return Text::toT("Compiled: " __DATE__);
 }
+
+tstring WinUtil::getWindowText(HWND _hwnd, int ctrlID) {
+	int len = ::GetWindowTextLength(::GetDlgItem(_hwnd, ctrlID)) + 1;
+	tstring buf;
+	buf.resize(len);
+	::GetWindowText(::GetDlgItem(_hwnd, ctrlID), &buf[0], len);
+	return &buf[0];
+}
+
 //END
 /**
  * @file
- * $Id: WinUtil.cpp 359 2008-01-17 17:53:50Z bigmuscle $
+ * $Id: WinUtil.cpp 382 2008-03-09 10:40:22Z BigMuscle $
  */

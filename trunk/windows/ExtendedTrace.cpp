@@ -28,7 +28,7 @@
 #include "ExtendedTrace.h"
 
 #define BUFFERSIZE		0x200
-#define LIBCOUNT		41
+#define LIBCOUNT		44
 
 TCHAR* crashLibs[LIBCOUNT][2] = {
 	{ L"Vlsp", L"V-One Smartpass" },
@@ -71,7 +71,10 @@ TCHAR* crashLibs[LIBCOUNT][2] = {
 	{ L"haspnt32", L"AdWare.Win32.BHO.cw" },
 	{ L"TCompLsp", L"Traffic Compressor" },
 	{ L"MSCTF", L"Microsoft Text Service Module" },
-	{ L"radhslib", L"Naomi web filter" }
+	{ L"radhslib", L"Naomi web filter" },
+	{ L"msftp", L"Troj/Agent-GNA" },
+	{ L"ftp34", L"Troj/Agent-GZF" },
+	{ L"imonlsp", L"Internet Monitor Layered Service provider" }
 };
 
 static void checkBuggyLibrary(PCSTR library) {
@@ -79,10 +82,13 @@ static void checkBuggyLibrary(PCSTR library) {
 		string lib = Text::fromT(crashLibs[i][0]); tstring app = crashLibs[i][1];
 		if(Util::stricmp(library, lib) == 0) {
 			size_t BUF_SIZE = TSTRING(LIB_CRASH).size() + app.size() + 16;
-			AutoArray<TCHAR> buf(BUF_SIZE);
-			snwprintf(buf, BUF_SIZE - 1, CTSTRING(LIB_CRASH), app.c_str());
+			
+			tstring buf;
+			buf.resize(BUF_SIZE);
+
+			snwprintf(&buf[0], buf.size(), CTSTRING(LIB_CRASH), app.c_str());
 		
-			MessageBox(0, buf, _T("Unhandled exception"), MB_OK);
+			MessageBox(0, &buf[0], _T("Unhandled exception"), MB_OK);
 			exit(1);
 		}
 	}
@@ -399,5 +405,5 @@ void StackTrace( HANDLE hThread, LPCTSTR lpszMessage, File& f, DWORD eip, DWORD 
 
 /**
 * @file
-* $Id: ExtendedTrace.cpp 355 2008-01-05 14:43:39Z bigmuscle $
+* $Id: ExtendedTrace.cpp 389 2008-06-08 10:51:15Z BigMuscle $
 */

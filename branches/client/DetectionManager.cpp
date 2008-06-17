@@ -19,9 +19,7 @@
 #include "stdinc.h"
 #include "DCPlusPlus.h"
 
-#include "SimpleXML.h"
 #include "File.h"
-
 #include "DetectionManager.h"
 
 namespace dcpp {
@@ -69,6 +67,10 @@ void DetectionManager::load() {
 							item.isEnabled = (Util::toInt(xml.getChildData()) > 0);
 							xml.resetCurrentChild();
 						}
+						if(xml.findChild("CheckMismatch")) {
+							item.checkMismatch = (Util::toInt(xml.getChildData()) > 0);
+							xml.resetCurrentChild();
+						}
 
 						if(xml.findChild("InfFields")) {
 							xml.stepIn();
@@ -92,13 +94,15 @@ void DetectionManager::load() {
 					xml.stepOut();
 				}
 				xml.stepOut();
+			} else {
+				importProfiles(xml);
 			}
 			xml.resetCurrentChild();
 			if(xml.findChild("Params")) {
 				xml.stepIn();
 				while(xml.findChild("Param")) {
 					const string& name = xml.getChildAttrib("Name");
-					const string& pattern = xml.getChildAttrib("Pattern");
+					const string& pattern = xml.getChildAttrib("Pattern", xml.getChildAttrib("RegExp"));
 					if(!name.empty() && !pattern.empty())
 						params.insert(make_pair(name, pattern));
 				}
@@ -161,6 +165,100 @@ const DetectionManager::DetectionItems& DetectionManager::reloadFromHttp(bool /*
 	return det;
 }
 
+void DetectionManager::importProfiles(SimpleXML& xml) {
+	try {
+		xml.resetCurrentChild();
+		if(xml.findChild("ClientProfilesV2")) {
+			xml.stepIn();
+
+			while(xml.findChild("ClientProfile")) {
+				xml.stepIn();
+				string::size_type i;
+				DetectionEntry item;
+
+				item.Id = ++lastId;
+				if(xml.findChild("Name")) {
+					item.name = xml.getChildData();
+					xml.resetCurrentChild();
+				} if(xml.findChild("Version") && !xml.getChildData().empty()) {
+					item.infMap.push_back(make_pair("VE", xml.getChildData()));
+					xml.resetCurrentChild();
+				} if(xml.findChild("Tag") && !xml.getChildData().empty()) {
+					string tagExp = xml.getChildData();
+					i = xml.getChildData().find("%[version]");
+					if(i != string::npos) {
+						tagExp.replace(i, 10, "%[VE]");
+					}
+
+					item.infMap.push_back(make_pair("TA", tagExp));
+					xml.resetCurrentChild();
+				} if(xml.findChild("ExtendedTag") && !xml.getChildData().empty()) {
+					string extTagExp = xml.getChildData();
+					i = xml.getChildData().find("%[version2]");
+					if(i != string::npos) {
+						extTagExp.replace(i, 11, "%[VE]");
+					}
+
+					item.infMap.push_back(make_pair("DE", extTagExp));
+					xml.resetCurrentChild();
+				} if(xml.findChild("Lock") && !xml.getChildData().empty()) {
+					item.infMap.push_back(make_pair("LO", xml.getChildData()));
+					xml.resetCurrentChild();
+				} if(xml.findChild("Pk") && !xml.getChildData().empty()) {
+					string pkExp = xml.getChildData();
+					i = xml.getChildData().find("%[version]");
+					if(i != string::npos) {
+						pkExp.replace(i, 10, "%[PKVE]");
+					}
+
+					item.infMap.push_back(make_pair("PK", pkExp));
+					xml.resetCurrentChild();
+				} if(xml.findChild("Supports") && !xml.getChildData().empty()) {
+					item.infMap.push_back(make_pair("SU", xml.getChildData()));
+					xml.resetCurrentChild();
+				} if(xml.findChild("TestSUR") && !xml.getChildData().empty()) {
+					item.infMap.push_back(make_pair("TS", xml.getChildData()));
+					xml.resetCurrentChild();
+				} if(xml.findChild("UserConCom") && !xml.getChildData().empty()) {
+					item.infMap.push_back(make_pair("UC", xml.getChildData()));
+					xml.resetCurrentChild();
+				} if(xml.findChild("Status") && !xml.getChildData().empty()) {
+					item.infMap.push_back(make_pair("ST", xml.getChildData()));
+					xml.resetCurrentChild();
+				} if(xml.findChild("CheatingDescription")) {
+					if(!xml.getChildData().empty()) {
+						item.clientFlag = DetectionEntry::RED;
+					}
+
+					item.cheat = xml.getChildData();
+					xml.resetCurrentChild();
+				} if(xml.findChild("RawToSend")) {
+					item.rawToSend = Util::toUInt32(xml.getChildData());
+					xml.resetCurrentChild();
+				} if(xml.findChild("CheckMismatch")) {
+					item.checkMismatch = (Util::toInt(xml.getChildData()) > 0);
+					xml.resetCurrentChild();
+				} if(xml.findChild("Connection") && !xml.getChildData().empty()) {
+					item.infMap.push_back(make_pair("CO", xml.getChildData()));
+					xml.resetCurrentChild();
+				} if(xml.findChild("Comment")) {
+					item.comment = xml.getChildData();
+					xml.resetCurrentChild();
+				}  xml.stepOut();
+
+				try {
+					addDetectionItem(item);
+				} catch(const Exception&) {
+					//...
+				}
+			}
+			xml.stepOut();
+		}
+	} catch(const Exception& e) {
+		dcdebug("DetectionManager::importProfiles: %s\n", e.getError().c_str());
+	}
+}
+
 void DetectionManager::save() {
 	try {
 		SimpleXML xml;
@@ -185,6 +283,7 @@ void DetectionManager::save() {
 					xml.addTag("RawToSend", Util::toString(i->rawToSend));
 					xml.addTag("ClientFlag", Util::toString(i->clientFlag));
 					xml.addTag("IsEnabled", i->isEnabled);
+					xml.addTag("CheckMismatch", i->checkMismatch);
 
 					xml.addTag("InfFields");
 					xml.stepIn();

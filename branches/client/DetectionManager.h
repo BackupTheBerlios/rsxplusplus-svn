@@ -22,6 +22,7 @@
 #include "Singleton.h"
 #include "CriticalSection.h"
 #include "DetectionEntry.h"
+#include "SimpleXML.h"
 
 namespace dcpp {
 
@@ -73,6 +74,7 @@ private:
 	uint32_t lastId;
 
 	void validateItem(const DetectionEntry& e, bool checkIds) throw(Exception);
+	void importProfiles(SimpleXML& xml);
 
 	friend class Singleton<DetectionManager>;
 	CriticalSection cs;

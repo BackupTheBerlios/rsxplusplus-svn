@@ -31,7 +31,7 @@ public:
 		RED
 	};
 
-	DetectionEntry() : Id(0), name(""), cheat(""), comment(""), rawToSend(0), clientFlag(1), isEnabled(true) { };
+	DetectionEntry() : Id(0), name(""), cheat(""), comment(""), rawToSend(0), clientFlag(1), checkMismatch(false), isEnabled(true) { };
 	~DetectionEntry() { };
 
 	uint32_t Id;
@@ -42,6 +42,7 @@ public:
 	string comment;
 	uint32_t rawToSend;
 	uint32_t clientFlag;
+	bool checkMismatch;
 	bool isEnabled;
 
 };

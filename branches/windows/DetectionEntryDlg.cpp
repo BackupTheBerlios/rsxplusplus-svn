@@ -185,6 +185,7 @@ void DetectionEntryDlg::updateVars() {
 		if(newId != origId) curEntry.Id = newId;
 	}
 
+	curEntry.checkMismatch = IsDlgButtonChecked(IDC_CHECK_MISMATCH) == BST_CHECKED;
 	curEntry.isEnabled = IsDlgButtonChecked(IDC_ENABLE) == BST_CHECKED;
 	curEntry.rawToSend = getIdAction(ctrlRaw.GetCurSel());
 	curEntry.clientFlag = ctrlLevel.GetCurSel() + 1;
@@ -211,6 +212,7 @@ void DetectionEntryDlg::updateControls() {
 		SetDlgItemText(IDC_DETECT_ID, Util::toStringW(curEntry.Id).c_str());
 	}
 
+	CheckDlgButton(IDC_CHECK_MISMATCH, curEntry.checkMismatch ? BST_CHECKED : BST_UNCHECKED);
 	CheckDlgButton(IDC_ENABLE, curEntry.isEnabled ? BST_CHECKED : BST_UNCHECKED);
 	ctrlRaw.SetCurSel(getId(curEntry.rawToSend));
 	ctrlLevel.SetCurSel(curEntry.clientFlag - 1);

@@ -15,7 +15,7 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-#define BUFLEN 256
+#define BUFLEN 1024
 
 PropPage::TextItem ParamsPage::texts[] = {
 	{ IDC_ADD, ResourceManager::ADD },
@@ -79,7 +79,7 @@ LRESULT ParamsPage::onAdd(WORD , WORD , HWND , BOOL& ) {
 			lst.push_back(Text::toT(dlg.regexp));
 			ctrlParams.insert(lst);
 		} else {
-			MessageBox(_T("Param with same name already exists!"), _T(APPNAME) _T(" ") _T(VERSIONSTRING), MB_OK);
+			MessageBox(CTSTRING(PARAM_EXISTS), _T(APPNAME) _T(" ") _T(VERSIONSTRING), MB_OK);
 		}
 	}
 	return 0;
@@ -101,7 +101,7 @@ LRESULT ParamsPage::onChange(WORD , WORD , HWND , BOOL& ) {
 				ctrlParams.SetItemText(sel, 0, Text::toT(dlg.name).c_str());
 				ctrlParams.SetItemText(sel, 1, Text::toT(dlg.regexp).c_str());
 			} else {
-				MessageBox(_T("Param with same name already exists!"), _T(APPNAME) _T(" ") _T(VERSIONSTRING), MB_OK);
+				MessageBox(CTSTRING(PARAM_EXISTS), _T(APPNAME) _T(" ") _T(VERSIONSTRING), MB_OK);
 			}
 		}
 	}

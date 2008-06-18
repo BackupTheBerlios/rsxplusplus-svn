@@ -45,32 +45,14 @@ LRESULT ClientsPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 }
 
 LRESULT ClientsPage::onAddClient(WORD , WORD , HWND , BOOL& ) {
-	/*ClientProfileDlg dlg;
-	dlg.currentProfileId = -1;
-	dlg.itemCount = ctrlProfiles.GetItemCount();
+	DetectionEntry de;
+	DetectionEntryDlg dlg(de);
 
 	if(dlg.DoModal() == IDOK) {
-		addEntry(ClientProfileManager::getInstance()->addClientProfile(Text::fromT(dlg.name), 
-			Text::fromT(dlg.version), 
-			Text::fromT(dlg.tag), 
-			Text::fromT(dlg.extendedTag), 
-			Text::fromT(dlg.lock), 
-			Text::fromT(dlg.pk), 
-			Text::fromT(dlg.supports), 
-			Text::fromT(dlg.testSUR), 
-			Text::fromT(dlg.userConCom), 
-			Text::fromT(dlg.status),
-			Text::fromT(dlg.cheatingDescription),
-			dlg.rawToSend, 
-			dlg.useExtraVersion,
-			dlg.checkMismatch,
-			Text::fromT(dlg.connection),
-			Text::fromT(dlg.comment),
-			false, //recheck
-			0, //key
-			dlg.id
-		), ctrlProfiles.GetItemCount());
-	}*/
+		addEntry(de, ctrlProfiles.GetItemCount());
+		SetDlgItemText(IDC_PROFILE_COUNT, Text::toT(STRING(PROFILE_COUNT) + ": " + Util::toString(ctrlProfiles.GetItemCount())).c_str());
+	}
+
 	return 0;
 }
 
@@ -102,45 +84,23 @@ LRESULT ClientsPage::onKeyDown(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled) {
 LRESULT ClientsPage::onChangeClient(WORD , WORD , HWND , BOOL& ) {
 	if(ctrlProfiles.GetSelectedCount() == 1) {
 		int sel = ctrlProfiles.GetSelectedIndex();
+		DetectionEntry de;
 
-		/*ClientProfileDlg dlg;
-		dlg.currentProfileId = ctrlProfiles.GetItemData(sel);
-		dlg.itemCount = ctrlProfiles.GetItemCount();
+		if(DetectionManager::getInstance()->getDetectionItem(ctrlProfiles.GetItemData(sel), de)) {
+			DetectionEntryDlg dlg(de);
+			dlg.DoModal();
 
-		if(dlg.DoModal() == IDOK) {
-			ctrlProfiles.SetItemText(dlg.currentProfileId, 0, dlg.name.c_str());
-			ctrlProfiles.SetItemText(dlg.currentProfileId, 1, dlg.version.c_str());
-			dlg.currentProfile.setProfileId(dlg.id);
-			dlg.currentProfile.setName(Text::fromT(dlg.name));
-			dlg.currentProfile.setVersion(Text::fromT(dlg.version));
-			dlg.currentProfile.setTag(Text::fromT(dlg.tag));
-			dlg.currentProfile.setExtendedTag(Text::fromT(dlg.extendedTag));
-			dlg.currentProfile.setLock(Text::fromT(dlg.lock));
-			dlg.currentProfile.setPk(Text::fromT(dlg.pk));
-			dlg.currentProfile.setSupports(Text::fromT(dlg.supports));
-			dlg.currentProfile.setTestSUR(Text::fromT(dlg.testSUR));
-			dlg.currentProfile.setUserConCom(Text::fromT(dlg.userConCom));
-			dlg.currentProfile.setStatus(Text::fromT(dlg.status));
-			dlg.currentProfile.setCheatingDescription(Text::fromT(dlg.cheatingDescription));
-			dlg.currentProfile.setRawToSend(dlg.rawToSend);
-			dlg.currentProfile.setUseExtraVersion(dlg.useExtraVersion);
-			dlg.currentProfile.setCheckMismatch(dlg.checkMismatch);
-			dlg.currentProfile.setConnection(Text::fromT(dlg.connection));
-			dlg.currentProfile.setComment(Text::fromT(dlg.comment));
-//			dlg.currentProfile.setRecheck(dlg.recheck);
-//			dlg.currentProfile.setKeyType(dlg.key);
-			ClientProfileManager::getInstance()->updateClientProfile(dlg.currentProfile);
-		}*/
-		ctrlProfiles.SetRedraw(FALSE);
-		ctrlProfiles.DeleteAllItems();
-		const DetectionManager::DetectionItems& lst = DetectionManager::getInstance()->getProfiles();
-		for(DetectionManager::DetectionItems::const_iterator i = lst.begin(); i != lst.end(); ++i) {
-			const DetectionEntry& de = *i;
-			addEntry(de, ctrlProfiles.GetItemCount());
+			ctrlProfiles.SetRedraw(FALSE);
+			ctrlProfiles.DeleteAllItems();
+			const DetectionManager::DetectionItems& lst = DetectionManager::getInstance()->getProfiles();
+			for(DetectionManager::DetectionItems::const_iterator i = lst.begin(); i != lst.end(); ++i) {
+				addEntry(*i, ctrlProfiles.GetItemCount());
+			}
+			ctrlProfiles.SelectItem(sel);
+			ctrlProfiles.SetRedraw(TRUE);
 		}
-		ctrlProfiles.SelectItem(sel);
-		ctrlProfiles.SetRedraw(TRUE);
 	}
+
 	return 0;
 }
 

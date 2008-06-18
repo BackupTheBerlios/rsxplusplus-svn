@@ -30,7 +30,7 @@
 
 #include "ExListViewCtrl.h"
 
-class DetectionEntryDlg : public CDialogImpl<DetectionEntryDlg>, protected RawSelector
+class DetectionEntryDlg : public CDialogImpl<DetectionEntryDlg>
 {
 public:
 	DetectionEntry& curEntry;
@@ -80,7 +80,8 @@ public:
 
 private:
 	CEdit ctrlName, ctrlComment, ctrlCheat;
-	CComboBox ctrlRaw, ctrlLevel;
+	CRawCombo ctrlRaw;
+	CComboBox ctrlLevel;
 	ExListViewCtrl ctrlParams;
 	bool idChanged;
 	uint32_t origId;

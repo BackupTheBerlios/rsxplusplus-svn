@@ -26,7 +26,9 @@
 
 #undef GET_TEXT
 #define GET_TEXT(id, var) \
-	GetDlgItemText(id, buf, 1024); \
+	len = ::GetWindowTextLength(GetDlgItem(id)) + 1; \
+	buf.resize(len); \
+	GetDlgItemText(id, &buf[0], len); \
 	var = Text::fromT(buf);
 
 #undef ATTACH
@@ -43,19 +45,15 @@ LRESULT DetectionEntryDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 	ATTACH(IDC_COMMENT, ctrlComment);
 	ATTACH(IDC_CHEAT, ctrlCheat);
 	ATTACH(IDC_PARAMS, ctrlParams);
-	ATTACH(IDC_RAW, ctrlRaw);
 	ATTACH(IDC_LEVEL, ctrlLevel);
+
+	ctrlRaw.attach(GetDlgItem(IDC_RAW), curEntry.rawToSend);
 
 	CRect rc;
 	ctrlParams.GetClientRect(rc);
 	ctrlParams.InsertColumn(0, CTSTRING(SETTINGS_NAME), LVCFMT_LEFT, rc.Width() / 10, 0);
 	ctrlParams.InsertColumn(1, CTSTRING(REGEXP), LVCFMT_LEFT, ((rc.Width() / 10) * 9) - 17, 1);
 	ctrlParams.SetExtendedListViewStyle(LVS_EX_FULLROWSELECT);
-
-	createList();
-	for(Iter i = idAction.begin(); i != idAction.end(); ++i) {
-		ctrlRaw.AddString(RawManager::getInstance()->getNameActionId(i->second).c_str());
-	}
 
 	ctrlLevel.AddString(_T("Green"));
 	ctrlLevel.AddString(_T("Yellow"));
@@ -93,11 +91,12 @@ LRESULT DetectionEntryDlg::onItemchangedDirectories(int /*idCtrl*/, LPNMHDR pnmh
 LRESULT DetectionEntryDlg::onChange(WORD , WORD , HWND , BOOL& ) {
 	if(ctrlParams.GetSelectedCount() == 1) {
 		int sel = ctrlParams.GetSelectedIndex();
-		TCHAR buf[1024];
+		tstring buf;
 		ParamDlg dlg;
-		ctrlParams.GetItemText(sel, 0, buf, 1024);
+		buf.resize(1024);
+		ctrlParams.GetItemText(sel, 0, &buf[0], 1024);
 		dlg.name = Text::fromT(buf);
-		ctrlParams.GetItemText(sel, 1, buf, 1024);
+		ctrlParams.GetItemText(sel, 1, &buf[0], 1024);
 		dlg.regexp = Text::fromT(buf);
 
 		if(dlg.DoModal() == IDOK) {
@@ -162,7 +161,9 @@ LRESULT DetectionEntryDlg::OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWn
 }
 
 void DetectionEntryDlg::updateVars() {
-	TCHAR buf[1024];
+	tstring buf;
+	int len;
+
 	GET_TEXT(IDC_NAME, curEntry.name);
 	GET_TEXT(IDC_COMMENT, curEntry.comment);
 	GET_TEXT(IDC_CHEAT, curEntry.cheat);
@@ -170,24 +171,26 @@ void DetectionEntryDlg::updateVars() {
 	// params...
 	int it = ctrlParams.GetItemCount();
 	string name, regexp;
+	buf.resize(1024);
 	curEntry.infMap.clear();
 	for(int i = 0; i < it; ++i) {
-		ctrlParams.GetItemText(i, 0, buf, 1024);
+		ctrlParams.GetItemText(i, 0, &buf[0], 1024);
 		name = Text::fromT(buf);
-		ctrlParams.GetItemText(i, 1, buf, 1024);
+		ctrlParams.GetItemText(i, 1, &buf[0], 1024);
 		regexp = Text::fromT(buf);
 		curEntry.infMap.push_back(make_pair(name, regexp));
 	}
 
 	if(idChanged) {
-		GetDlgItemText(IDC_DETECT_ID, buf, 1024);
+		buf.resize(256);
+		GetDlgItemText(IDC_DETECT_ID, &buf[0], 256);
 		uint32_t newId = Util::toUInt32(Text::fromT(buf).c_str());
 		if(newId != origId) curEntry.Id = newId;
 	}
 
 	curEntry.checkMismatch = IsDlgButtonChecked(IDC_CHECK_MISMATCH) == BST_CHECKED;
 	curEntry.isEnabled = IsDlgButtonChecked(IDC_ENABLE) == BST_CHECKED;
-	curEntry.rawToSend = getIdAction(ctrlRaw.GetCurSel());
+	curEntry.rawToSend = ctrlRaw.getActionId();
 	curEntry.clientFlag = ctrlLevel.GetCurSel() + 1;
 }
 
@@ -214,6 +217,6 @@ void DetectionEntryDlg::updateControls() {
 
 	CheckDlgButton(IDC_CHECK_MISMATCH, curEntry.checkMismatch ? BST_CHECKED : BST_UNCHECKED);
 	CheckDlgButton(IDC_ENABLE, curEntry.isEnabled ? BST_CHECKED : BST_UNCHECKED);
-	ctrlRaw.SetCurSel(getId(curEntry.rawToSend));
+	ctrlRaw.setPos(curEntry.rawToSend);
 	ctrlLevel.SetCurSel(curEntry.clientFlag - 1);
 }

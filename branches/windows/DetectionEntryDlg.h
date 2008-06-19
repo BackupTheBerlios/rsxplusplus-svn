@@ -46,6 +46,7 @@ public:
 		COMMAND_ID_HANDLER(IDC_ID_EDIT, onIdEdit)
 		COMMAND_ID_HANDLER(IDC_NEXT, onNext)
 		COMMAND_ID_HANDLER(IDC_BACK, onNext)
+		COMMAND_ID_HANDLER(IDC_MATCH, onMatch)
 		COMMAND_ID_HANDLER(IDOK, OnCloseCmd)
 		COMMAND_ID_HANDLER(IDCANCEL, OnCloseCmd)
 		NOTIFY_HANDLER(IDC_PARAMS, LVN_ITEMCHANGED, onItemchangedDirectories)
@@ -56,6 +57,7 @@ public:
 	~DetectionEntryDlg() {
 		ctrlName.Detach(); ctrlComment.Detach(); ctrlLevel.Detach();
 		ctrlCheat.Detach(); ctrlRaw.Detach(); ctrlParams.Detach();
+		ctrlExpTest.Detach();
 	}
 
 	LRESULT onFocus(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
@@ -75,11 +77,12 @@ public:
 	LRESULT onChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT onRemove(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT onNext(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+	LRESULT onMatch(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT onItemchangedDirectories(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/);
 	LRESULT OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 
 private:
-	CEdit ctrlName, ctrlComment, ctrlCheat;
+	CEdit ctrlName, ctrlComment, ctrlCheat, ctrlExpTest;
 	CRawCombo ctrlRaw;
 	CComboBox ctrlLevel;
 	ExListViewCtrl ctrlParams;

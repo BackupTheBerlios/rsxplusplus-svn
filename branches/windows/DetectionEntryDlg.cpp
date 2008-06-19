@@ -18,17 +18,18 @@
 
 #include "stdafx.h"
 #include "../client/DCPlusPlus.h"
-#include "Resource.h"
-#include "WinUtil.h"
+#include "../client/pme.h"
 
 #include "DetectionEntryDlg.h"
+#include "Resource.h"
+#include "WinUtil.h"
 #include "ParamDlg.h"
 
 #undef GET_TEXT
-#define GET_TEXT(id, var) \
-	len = ::GetWindowTextLength(GetDlgItem(id)) + 1; \
+#define GET_TEXT(ctrl, var) \
+	len = ctrl.GetWindowTextLength() + 1; \
 	buf.resize(len); \
-	GetDlgItemText(id, &buf[0], len); \
+	ctrl.GetWindowText(&buf[0], len); \
 	var = Text::fromT(buf);
 
 #undef ATTACH
@@ -46,6 +47,7 @@ LRESULT DetectionEntryDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 	ATTACH(IDC_CHEAT, ctrlCheat);
 	ATTACH(IDC_PARAMS, ctrlParams);
 	ATTACH(IDC_LEVEL, ctrlLevel);
+	ATTACH(IDC_REGEX_TESTER, ctrlExpTest);
 
 	ctrlRaw.attach(GetDlgItem(IDC_RAW), curEntry.rawToSend);
 
@@ -75,7 +77,7 @@ LRESULT DetectionEntryDlg::onAdd(WORD , WORD , HWND , BOOL& ) {
 			lst.push_back(Text::toT(dlg.regexp));
 			ctrlParams.insert(lst);
 		} else {
-			::MessageBox((HWND)*this, CTSTRING(PARAM_EXISTS), _T(APPNAME) _T(" ") _T(VERSIONSTRING), MB_OK);
+			::MessageBox(m_hWnd, CTSTRING(PARAM_EXISTS), _T(APPNAME) _T(" ") _T(VERSIONSTRING), MB_OK);
 		}
 	}
 	return 0;
@@ -83,20 +85,20 @@ LRESULT DetectionEntryDlg::onAdd(WORD , WORD , HWND , BOOL& ) {
 
 LRESULT DetectionEntryDlg::onItemchangedDirectories(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/) {
 	NM_LISTVIEW* lv = (NM_LISTVIEW*) pnmh;
-	::EnableWindow(GetDlgItem(IDC_CHANGE), (lv->uNewState & LVIS_FOCUSED));
-	::EnableWindow(GetDlgItem(IDC_REMOVE), (lv->uNewState & LVIS_FOCUSED));
+	::EnableWindow(GetDlgItem(IDC_CHANGE), ctrlParams.GetItemState(lv->iItem, LVIS_SELECTED));
+	::EnableWindow(GetDlgItem(IDC_REMOVE), ctrlParams.GetItemState(lv->iItem, LVIS_SELECTED));
+	::EnableWindow(GetDlgItem(IDC_MATCH), ctrlParams.GetItemState(lv->iItem, LVIS_SELECTED) && ctrlParams.GetSelectedCount() == 1);
 	return 0;
 }
 
 LRESULT DetectionEntryDlg::onChange(WORD , WORD , HWND , BOOL& ) {
 	if(ctrlParams.GetSelectedCount() == 1) {
 		int sel = ctrlParams.GetSelectedIndex();
-		tstring buf;
+		TCHAR buf[1024];
 		ParamDlg dlg;
-		buf.resize(1024);
-		ctrlParams.GetItemText(sel, 0, &buf[0], 1024);
+		ctrlParams.GetItemText(sel, 0, buf, 1024);
 		dlg.name = Text::fromT(buf);
-		ctrlParams.GetItemText(sel, 1, &buf[0], 1024);
+		ctrlParams.GetItemText(sel, 1, buf, 1024);
 		dlg.regexp = Text::fromT(buf);
 
 		if(dlg.DoModal() == IDOK) {
@@ -105,7 +107,7 @@ LRESULT DetectionEntryDlg::onChange(WORD , WORD , HWND , BOOL& ) {
 				ctrlParams.SetItemText(sel, 0, Text::toT(dlg.name).c_str());
 				ctrlParams.SetItemText(sel, 1, Text::toT(dlg.regexp).c_str());
 			} else {
-				::MessageBox((HWND)*this, CTSTRING(PARAM_EXISTS), _T(APPNAME) _T(" ") _T(VERSIONSTRING), MB_OK);
+				::MessageBox(m_hWnd, CTSTRING(PARAM_EXISTS), _T(APPNAME) _T(" ") _T(VERSIONSTRING), MB_OK);
 			}
 		}
 	}
@@ -124,7 +126,7 @@ LRESULT DetectionEntryDlg::onNext(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl
 	try {
 		DetectionManager::getInstance()->updateDetectionItem(origId, curEntry);
 	} catch(const Exception& e) {
-		::MessageBox((HWND)*this, Text::toT(e.getError()).c_str(), _T(APPNAME) _T(" ") _T(VERSIONSTRING), MB_ICONSTOP | MB_OK);
+		::MessageBox(m_hWnd, Text::toT(e.getError()).c_str(), _T(APPNAME) _T(" ") _T(VERSIONSTRING), MB_ICONSTOP | MB_OK);
 		return 0;
 	}
 
@@ -141,6 +143,47 @@ LRESULT DetectionEntryDlg::onNext(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl
 	return 0;
 }
 
+LRESULT DetectionEntryDlg::onMatch(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+	if(ctrlParams.GetSelectedCount() == 1) {
+		TCHAR buf[1024]; // Note: TCHAR required!
+		string::size_type i, j, k;
+
+		ctrlExpTest.GetWindowText(buf, 1024);
+		string test = Text::fromT(buf);
+		ctrlParams.GetItemText(ctrlParams.GetSelectedIndex(), 1, buf, 1024);
+		string formattedExp = Text::fromT(buf);
+
+		// Clean up from params
+		const StringMap& params = DetectionManager::getInstance()->getParams();
+
+		i = 0;
+		while((j = formattedExp.find("%[", i)) != string::npos) {
+			if((formattedExp.size() < j + 2) || ((k = formattedExp.find(']', j + 2)) == string::npos)) {
+				break;
+			}
+
+			string name = formattedExp.substr(j + 2, k - j - 2);
+			StringMap::const_iterator smi = params.find(name);
+			if(smi != params.end()) {
+				formattedExp.replace(j, k-j + 1, smi->second);
+				i = j + smi->second.size();
+			} else {
+				formattedExp.replace(j, k-j + 1, ".*");
+				i = j + 2;
+			}
+		}
+
+		PME reg(formattedExp);
+		if(reg.IsValid()) {
+			::MessageBox(m_hWnd, ((reg.match(test) > 0) ? CTSTRING(REGEXP_MATCH) : CTSTRING(REGEXP_MISMATCH)), CTSTRING(REGEXP_TESTER), MB_ICONINFORMATION | MB_OK);
+		} else {
+			::MessageBox(m_hWnd, CTSTRING(INVALID_REGEXP), CTSTRING(REGEXP_TESTER), MB_ICONINFORMATION | MB_OK);
+		}
+	}
+
+	return 0;
+}
+
 LRESULT DetectionEntryDlg::OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
 	if(wID == IDOK) { 
 		updateVars();
@@ -151,7 +194,7 @@ LRESULT DetectionEntryDlg::OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWn
 				DetectionManager::getInstance()->updateDetectionItem(origId, curEntry);
 			}
 		} catch(const Exception& e) {
-			::MessageBox((HWND)*this, Text::toT(e.getError()).c_str(), _T(APPNAME) _T(" ") _T(VERSIONSTRING), MB_ICONSTOP | MB_OK);
+			::MessageBox(m_hWnd, Text::toT(e.getError()).c_str(), _T(APPNAME) _T(" ") _T(VERSIONSTRING), MB_ICONSTOP | MB_OK);
 			return 0;
 		}
 	}
@@ -164,26 +207,27 @@ void DetectionEntryDlg::updateVars() {
 	tstring buf;
 	int len;
 
-	GET_TEXT(IDC_NAME, curEntry.name);
-	GET_TEXT(IDC_COMMENT, curEntry.comment);
-	GET_TEXT(IDC_CHEAT, curEntry.cheat);
+	GET_TEXT(ctrlName, curEntry.name);
+	GET_TEXT(ctrlComment, curEntry.comment);
+	GET_TEXT(ctrlCheat, curEntry.cheat);
 
 	// params...
 	int it = ctrlParams.GetItemCount();
 	string name, regexp;
-	buf.resize(1024);
+	TCHAR pbuf[1024];
 	curEntry.infMap.clear();
 	for(int i = 0; i < it; ++i) {
-		ctrlParams.GetItemText(i, 0, &buf[0], 1024);
-		name = Text::fromT(buf);
-		ctrlParams.GetItemText(i, 1, &buf[0], 1024);
-		regexp = Text::fromT(buf);
+		ctrlParams.GetItemText(i, 0, pbuf, 1024);
+		name = Text::fromT(pbuf);
+		ctrlParams.GetItemText(i, 1, pbuf, 1024);
+		regexp = Text::fromT(pbuf);
 		curEntry.infMap.push_back(make_pair(name, regexp));
 	}
 
 	if(idChanged) {
-		buf.resize(256);
-		GetDlgItemText(IDC_DETECT_ID, &buf[0], 256);
+		len = ::GetWindowTextLength(GetDlgItem(IDC_DETECT_ID)) + 1;
+		buf.resize(len);
+		GetDlgItemText(IDC_DETECT_ID, &buf[0], len);
 		uint32_t newId = Util::toUInt32(Text::fromT(buf).c_str());
 		if(newId != origId) curEntry.Id = newId;
 	}

@@ -30,7 +30,7 @@
 #include "UploadManager.h"
 #include "StringTokenizer.h"
 #include "ZUtils.h"
-#include "../rsx/UserMap.h" //RSX++
+#include "../rsx/HubUsersMap.h" //RSX++
 
 namespace dcpp {
 
@@ -86,7 +86,7 @@ private:
 	//mutable CriticalSection cs;
 
 	typedef unordered_map<string, OnlineUser*, noCaseStringHash, noCaseStringEq> NMDCMap;
-	typedef UserMap<false, NMDCMap> NickMap;
+	typedef HubUsersMap<false, NMDCMap> NickMap;
 	typedef NickMap::const_iterator NickIter;
 
 	NickMap users;

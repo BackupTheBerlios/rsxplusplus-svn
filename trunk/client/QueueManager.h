@@ -16,8 +16,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#if !defined(QUEUE_MANAGER_H)
-#define QUEUE_MANAGER_H
+#ifndef DCPLUSPLUS_DCPP_QUEUE_MANAGER_H
+#define DCPLUSPLUS_DCPP_QUEUE_MANAGER_H
 
 #include "TimerManager.h"
 #include "ClientManager.h"
@@ -84,14 +84,16 @@ public:
 	void addPfs(const UserPtr& aUser, const string& aDir, bool onlyDownload = false) throw(QueueException);
 
 	void addTestSUR(UserPtr aUser, bool checkList = false) throw(QueueException, FileException) {
-		string nick = Util::cleanPathChars(aUser->getNick()) + ".";
+		StringList nicks = ClientManager::getInstance()->getNicks(*aUser);
+		string nick = nicks.empty() ? Util::emptyString : Util::cleanPathChars(nicks[0]) + ".";
 		string target = Util::getConfigPath() + "TestSURs\\" + RsxUtil::getTestSURString() + nick + aUser->getCID().toBase32();
 		add(target, -1, TTHValue(), aUser, (Flags::MaskType)((checkList ? QueueItem::FLAG_CHECK_FILE_LIST : 0) | QueueItem::FLAG_TESTSUR));
 	}
 
 	void removeTestSUR(UserPtr aUser) {
 		try {
-			string nick = Util::cleanPathChars(aUser->getNick()) + ".";
+			StringList nicks = ClientManager::getInstance()->getNicks(*aUser);
+			string nick = nicks.empty() ? Util::emptyString : Util::cleanPathChars(nicks[0]) + ".";
 			string target = Util::getConfigPath() + "TestSURs\\" + RsxUtil::getTestSURString() + nick + aUser->getCID().toBase32();
 			remove(target);
 		} catch(...) {
@@ -134,9 +136,10 @@ public:
 	bool isTestSURinQueue(UserPtr aUser) const {
 		try {
 			Lock l(cs);
-			string nick = RsxUtil::getTestSURString() + Util::cleanPathChars(aUser->getNick()) + ".";
+			StringList nicks = ClientManager::getInstance()->getNicks(*aUser);
+			string nick = nicks.empty() ? Util::emptyString : Util::cleanPathChars(nicks[0]) + ".";
 			for(QueueItem::StringIter i = fileQueue.getQueue().begin(); i != fileQueue.getQueue().end(); ++i) {
-				if(i->second->getTargetFileName().find(nick + aUser->getCID().toBase32()) != string::npos ) {
+				if(i->second->getTargetFileName().find(RsxUtil::getTestSURString() + nick + aUser->getCID().toBase32()) != string::npos ) {
 					return true;
 				}
 			}
@@ -377,5 +380,5 @@ private:
 
 /**
  * @file
- * $Id: QueueManager.h 389 2008-06-08 10:51:15Z BigMuscle $
+ * $Id: QueueManager.h 391 2008-06-21 09:56:36Z BigMuscle $
  */

@@ -19,37 +19,37 @@
 #ifndef DETECTION_ENTRY_H
 #define DETECTION_ENTRY_H
 
-#include "Flags.h"
-
 namespace dcpp {
 
-class DetectionEntry : public Flags {
+class DetectionEntry {
 public:
 	typedef deque<pair<string, string> > StringMapV;
 
-	enum ClientFlag {
-		GREEN		= 0x01,
-		YELLOW		= 0x02,
-		RED			= 0x04
+	enum {
+		GREEN = 1,
+		YELLOW,
+		RED
 	};
 
-	DetectionEntry() : Id(0), name(""), cheat(""), comment(""), rawToSend(0), isEnabled(true) { };
+	DetectionEntry() : Id(0), name(""), cheat(""), comment(""), rawToSend(0), clientFlag(1), checkMismatch(false), isEnabled(true) { };
 	~DetectionEntry() { };
 
-	int Id;
+	uint32_t Id;
 	StringMapV infMap;
 
 	string name;
 	string cheat;
 	string comment;
-	int rawToSend;
+	uint32_t rawToSend;
+	uint32_t clientFlag;
+	bool checkMismatch;
 	bool isEnabled;
 
-private:
-
 };
+
 } // namespace dcpp
-#endif
+
+#endif // DETECTION_ENTRY_H
 
 /**
  * @file

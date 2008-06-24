@@ -1,3 +1,13 @@
+** SVN 83
+ ** updated OpenSSL to 0.9.8h (32 & 64 bit libs)
+ ** updated bats in stlport dir, added some cleanup parts
+ ** StrongDC++ SVN merge + some twearks on x64 mode
+ ** added crise's dialogs for new detection (some things has been changed comparing to branch, some doesn't work now)
+ KNOWN ISSUES: TestSUR doesn't work (comes with StrongDC++ SVN)
+
+** SVN 79
+ ** more pm frame fixes - properly loaded last lines
+
 ** SVN 78
  ** fixed no next line in pm frame
 

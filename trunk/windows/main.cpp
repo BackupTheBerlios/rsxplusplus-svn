@@ -166,10 +166,10 @@ LONG __stdcall DCUnhandledExceptionFilter( LPEXCEPTION_POINTERS e )
 
     f.write(LIT("\r\n"));
 
-#ifdef _WIN64
-	STACKTRACE2(f, e->ContextRecord->Rip, e->ContextRecord->Rsp, e->ContextRecord->Rbp);
-#else
+#ifndef _WIN64
 	STACKTRACE2(f, e->ContextRecord->Eip, e->ContextRecord->Esp, e->ContextRecord->Ebp);
+#else
+	STACKTRACE2(f, e->ContextRecord->Rip, e->ContextRecord->Rsp, e->ContextRecord->Rbp);
 #endif
 
 	f.write(LIT("\r\n"));
@@ -216,8 +216,7 @@ static void sendCmdLine(HWND hOther, LPTSTR lpstrCmdLine)
 }
 
 BOOL CALLBACK searchOtherInstance(HWND hWnd, LPARAM lParam) {
-#ifndef _WIN64 // PORT_ME
-	DWORD result;
+	ULONG_PTR result;
 	LRESULT ok = ::SendMessageTimeout(hWnd, WMU_WHERE_ARE_YOU, 0, 0,
 		SMTO_BLOCK | SMTO_ABORTIFHUNG, 5000, &result);
 	if(ok == 0)
@@ -228,7 +227,6 @@ BOOL CALLBACK searchOtherInstance(HWND hWnd, LPARAM lParam) {
 		*target = hWnd;
 		return FALSE;
 	}
-#endif
 	return TRUE;
 }
 
@@ -364,10 +362,12 @@ static int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 	splash.ReleaseDC(dc);
 	splash.HideCaret();
 	splash.SetWindowPos(NULL, &rc, SWP_SHOWWINDOW);
-	splash.SetWindowLong(GWL_WNDPROC, (LONG)&splashCallback);
+	splash.SetWindowLongPtr(GWLP_WNDPROC, (LONG)&splashCallback);
 	splash.CenterWindow();
 
 	sTitle = _T(VERSIONSTRING);
+	
+#ifndef _WIN64	
 	switch (get_cpu_type())
 	{
 		case 2:
@@ -381,6 +381,9 @@ static int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 			sTitle += _T(" SSE");
 			break;
 	}
+#else
+	sTitle += _T(" x64");
+#endif
 
 	splash.SetFocus();
 	splash.RedrawWindow();
@@ -526,5 +529,5 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 
 /**
  * @file
- * $Id: main.cpp 355 2008-01-05 14:43:39Z bigmuscle $
+ * $Id: main.cpp 392 2008-06-21 21:10:31Z BigMuscle $
  */

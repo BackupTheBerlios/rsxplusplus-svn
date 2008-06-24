@@ -8,7 +8,7 @@
 #include "PropPage.h"
 #include "ExListViewCtrl.h"
 
-#include "../client/ClientProfileManager.h"
+#include "../client/DetectionManager.h"
 
 class ClientsPage : public CPropertyPage<IDD_CLIENTS_PAGE>, public PropPage
 {
@@ -68,8 +68,7 @@ private:
 
 	static TextItem texts[];
 	TCHAR* title;
-	void addEntry(const ClientProfile& cp, int pos);
-private:
+	void addEntry(const DetectionEntry& de, int pos);
 	void reload();
 
 	string downBuf;

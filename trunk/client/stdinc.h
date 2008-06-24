@@ -114,8 +114,6 @@ typedef unsigned __int64 uint64_t;
 # define memcpy memcpy2
 # define memset memset2
 #else
-# undef memzero
-# define memzero(x, y) memset(x, 0, y)
 //@todo fix conversions in future
 #pragma warning(disable:4267)
 #pragma warning(disable:4244)
@@ -158,7 +156,7 @@ typedef unsigned __int64 uint64_t;
 #include <boost/shared_ptr.hpp>
 #include <boost/noncopyable.hpp>
 
-#ifdef _STLPORT_VERSION
+#if defined(_MSC_VER) || defined(_STLPORT_VERSION)
 
 #include <unordered_map>
 #include <unordered_set>
@@ -168,17 +166,6 @@ typedef unsigned __int64 uint64_t;
 #include <tr1/unordered_set>
 #include <tr1/unordered_map>
 
-#elif defined(_MSC_VER)			// Assume the msvc stl
-# if _MSC_VER >= 1500			// VisualC++ 2008
-#  ifdef _HAS_TR1				// OK, we've got Feature Pack installed
-#   include <unordered_set>
-#   include <unordered_map>
-#   define slist list			// But it lack slist...
-#   define NATIVE_MSVC_TR1 1	// just in case
-#  endif //_HAS_TR1
-# else
-#  error You have to instal either, STLport or Feature Pack to get Technical Report 1 support!
-# endif //_MSC_VER >= 1500
 #else
 #error "Unknown STL, please configure accordingly"
 #endif
@@ -192,5 +179,5 @@ using namespace std::tr1;
 
 /**
  * @file
- * $Id: stdinc.h 389 2008-06-08 10:51:15Z BigMuscle $
+ * $Id: stdinc.h 392 2008-06-21 21:10:31Z BigMuscle $
  */

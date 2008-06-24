@@ -25,8 +25,6 @@
 #include "ChatCtrl.h"
 #include "AGEmotionSetup.h"
 #include "PrivateFrame.h"
-//#include "atlstr.h"
-#include "StdString.h"
 
 #include "../client/pme.h" //RSX++
 #include "MainFrm.h" //RSX++
@@ -69,7 +67,7 @@ void ChatCtrl::AdjustTextSize() {
 		ReplaceSel(_T(""));
 		SetRedraw(TRUE);
 
-		//scrollToEnd();
+		scrollToEnd();
 	}
 }
 
@@ -132,12 +130,12 @@ void ChatCtrl::AppendText(const Identity& i, const tstring& sMyNick, const tstri
    		
 		lSelEnd = lSelBegin = GetTextLengthEx(GTL_NUMCHARS);
 		SetSel(lSelEnd, lSelEnd);
-		ReplaceSel(sMsg.substr(0, iAuthorLen+iLen).c_str(), false);
+		ReplaceSel(sMsg.substr(0, iAuthorLen + iLen).c_str(), false);
 		
 		if(isMyMessage) {
-			SetSel(lSelBegin, lSelBegin+iLen+1);
+			SetSel(lSelBegin, lSelBegin + iLen + 1);
 			SetSelectionCharFormat(WinUtil::m_ChatTextMyOwn);
-			SetSel(lSelBegin+iLen+1, lSelBegin+iLen+iAuthorLen);
+			SetSel(lSelBegin + iLen + 1, lSelBegin + iLen + iAuthorLen);
 			SetSelectionCharFormat(WinUtil::m_TextStyleMyNick);
 		} else {
 			bool isFavorite = FavoriteManager::getInstance()->isFavoriteUser(i.getUser());
@@ -145,7 +143,7 @@ void ChatCtrl::AppendText(const Identity& i, const tstring& sMyNick, const tstri
 			if(BOOLSETTING(BOLD_AUTHOR_MESS) || isFavorite || i.isOp() || isProtected) {
 				SetSel(lSelBegin, lSelBegin+iLen+1);
 				SetSelectionCharFormat(cf);
-				SetSel(lSelBegin+iLen+1, lSelBegin+iLen+iAuthorLen);
+				SetSel(lSelBegin + iLen + 1, lSelBegin + iLen + iAuthorLen);
 				if(isFavorite){
 					SetSelectionCharFormat(WinUtil::m_TextStyleFavUsers);
 				} else if(i.isOp()) {
@@ -156,7 +154,7 @@ void ChatCtrl::AppendText(const Identity& i, const tstring& sMyNick, const tstri
 					SetSelectionCharFormat(WinUtil::m_TextStyleBold);
 				}
 			} else {
-				SetSel(lSelBegin, lSelBegin+iLen+iAuthorLen);
+				SetSel(lSelBegin, lSelBegin + iLen + iAuthorLen);
 				SetSelectionCharFormat(cf);
             }
 		}
@@ -164,7 +162,7 @@ void ChatCtrl::AppendText(const Identity& i, const tstring& sMyNick, const tstri
 		bool thirdPerson = false;
         switch(sMsg[0]) {
 			case _T('*'):
-				thirdPerson = true;
+				thirdPerson = sMsg[1] == _T(' ');
             case _T('<'):
 				sText = _tcschr(sText + 1 + (int)thirdPerson, thirdPerson ? _T(' ') : _T('>'));
                 if(sText != NULL) {
@@ -175,12 +173,14 @@ void ChatCtrl::AppendText(const Identity& i, const tstring& sMyNick, const tstri
         			if(BOOLSETTING(BOLD_AUTHOR_MESS)) {
         				SetSel(lSelBegin, lSelBegin + 1);
         				SetSelectionCharFormat(cf);
-                        SetSel(lSelBegin+1, lSelBegin+iAuthorLen);
+                        SetSel(lSelBegin + 1, lSelBegin + iAuthorLen);
         				SetSelectionCharFormat(WinUtil::m_TextStyleBold);
         			} else {
-        				SetSel(lSelBegin, lSelBegin+iAuthorLen);
+        				SetSel(lSelBegin, lSelBegin + iAuthorLen);
         				SetSelectionCharFormat(cf);
                     }
+				} else {
+					sText = (TCHAR*)sMsg.c_str();
 				}
         }
 	}
@@ -311,7 +311,7 @@ void ChatCtrl::AppendTextOnly(const tstring& sMyNick, const TCHAR* sText, CHARFO
 
 		if(	!SETTING(CHATNAMEFILE).empty() && !BOOLSETTING(SOUNDS_DISABLED) &&
 			!sAuthor.empty() && (Util::stricmp(sAuthor.c_str(), sNick) != 0)) {
-				::PlaySound(Text::toT(SETTING(CHATNAMEFILE)).c_str(), NULL, SND_FILENAME | SND_ASYNC);	 	
+				PlaySound(Text::toT(SETTING(CHATNAMEFILE)).c_str(), NULL, SND_FILENAME | SND_ASYNC);	 	
         }
 	}
 

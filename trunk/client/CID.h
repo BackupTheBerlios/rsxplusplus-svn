@@ -34,9 +34,7 @@ public:
 
 	bool operator==(const CID& rhs) const { return memcmp(cid, rhs.cid, sizeof(cid)) == 0; }
 	bool operator<(const CID& rhs) const { return memcmp(cid, rhs.cid, sizeof(cid)) < 0; }
-#ifdef NATIVE_MSVC_TR1
-	operator size_t() const { return toHash(); }
-#endif //NATIVE_MSVC_TR1
+
 	string toBase32() const { return Encoder::toBase32(cid, sizeof(cid)); }
 	string& toBase32(string& tmp) const { return Encoder::toBase32(cid, sizeof(cid), tmp); }
 
@@ -58,7 +56,7 @@ private:
 };
 
 } // namespace dcpp
-#ifndef NATIVE_MSVC_TR1
+
 namespace std {
 template<>
 struct hash<dcpp::CID> {
@@ -67,7 +65,7 @@ struct hash<dcpp::CID> {
 	}
 };
 }
-#endif //NATIVE_MSVC_TR1
+
 #endif // !defined(CID_H)
 
 /**

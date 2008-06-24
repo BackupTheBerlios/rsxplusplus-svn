@@ -40,17 +40,6 @@
 namespace dcpp {
 
 FastCriticalSection Identity::cs;
-//RSX++
-string User::getNick(bool first /*= true*/) const {
-	if(first) {
-		const StringList& nl = ClientManager::getInstance()->getNicks(getCID());
-		return nl.empty() ? Util::emptyString : nl[0];
-	} else {
-		return Util::toString(ClientManager::getInstance()->getNicks(getCID()));
-	}
-}
-//END
-
 OnlineUser::OnlineUser(const UserPtr& ptr, Client& client_, uint32_t sid_) : identity(ptr, sid_), client(client_), isInList(false) { 
 	inc();
 }

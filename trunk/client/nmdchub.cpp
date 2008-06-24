@@ -292,7 +292,8 @@ void NmdcHub::onLine(const string& aLine) throw() {
 		}
 
 		i = j + 1;
-		
+		//{ //rsx++ added scope with lock
+		//	Lock l(cs);
 		uint64_t tick = GET_TICK();
 		clearFlooders(tick);
 
@@ -322,7 +323,7 @@ void NmdcHub::onLine(const string& aLine) throw() {
 				return;
 			}
 		}
-
+		//}
 		int a;
 		if(param[i] == 'F') {
 			a = SearchManager::SIZE_DONTCARE;
@@ -945,7 +946,7 @@ void NmdcHub::myInfo(bool alwaysSend) {
 			StatusMode += 2;
 		}
 	}
-	const string& extVer = getStealth() ? "<RSX++ " VERSIONSTRING ">" : Util::emptyString; //RSX++
+	string extVer = getStealth() ? "<RSX++ " VERSIONSTRING ">" : Util::emptyString; //RSX++
 	if (BOOLSETTING(THROTTLE_ENABLE) && SETTING(MAX_UPLOAD_SPEED_LIMIT) != 0) {
 		snprintf(tag, sizeof(tag), "%s %s V:%s,M:%c,H:%s,S:%d,L:%d>", extVer.c_str(), dc.c_str(), version.c_str(), modeChar, getCounts().c_str(), UploadManager::getInstance()->getSlots(), SETTING(MAX_UPLOAD_SPEED_LIMIT));
 	} else {

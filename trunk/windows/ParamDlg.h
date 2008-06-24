@@ -10,7 +10,7 @@
 		var.SetWindowText(Text::toT(txt).c_str());
 
 #define GET_TEXT(id, var) \
-			GetDlgItemText(id, buf, 512); \
+			GetDlgItemText(id, buf, 1024); \
 			var = Text::fromT(buf);
 
 class ParamDlg : public CDialogImpl<ParamDlg>
@@ -51,7 +51,7 @@ public:
 	LRESULT OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 	{
 		if(wID == IDOK) {
-			TCHAR buf[512];
+			TCHAR buf[1024];
 			if ( ctrlName.GetWindowTextLength() == 0 || ctrlRegExp.GetWindowTextLength() == 0) {
 				MessageBox(_T("Name or RegExp must not be empty"));
 				return 0;

@@ -22,7 +22,7 @@
 #include "Client.h"
 #include "AdcCommand.h"
 #include "Socket.h"
-#include "../rsx/UserMap.h" //RSX++
+#include "../rsx/HubUsersMap.h" //RSX++
 
 namespace dcpp {
 
@@ -67,7 +67,7 @@ private:
 
 	/** Map session id to OnlineUser */
 	typedef unordered_map<uint32_t, OnlineUser*> ADCMap;
-	typedef UserMap<true, ADCMap> SIDMap;
+	typedef HubUsersMap<true, ADCMap> SIDMap;
 	typedef SIDMap::const_iterator SIDIter;
 
 	void startChecking() { users.startCheck(this, getCheckClients(), getCheckFilelists()); }

@@ -83,23 +83,37 @@ size_t ClientManager::getUserCount() const {
 }
 
 StringList ClientManager::getHubs(const CID& cid) const {
-	Lock l(cs);
+/*	Lock l(cs);
 	StringList lst;
 	OnlinePairC op = onlineUsers.equal_range(cid);
 	for(OnlineIterC i = op.first; i != op.second; ++i) {
 		lst.push_back(i->second->getClient().getHubUrl());
 	}
-	return lst;
+	return lst;*/
+	Lock l(cs);
+	StringSet ret;
+	OnlinePairC op = onlineUsers.equal_range(cid);
+	for(OnlineIterC i = op.first; i != op.second; ++i) {
+		ret.insert(i->second->getClient().getHubUrl());
+	}
+	return StringList(ret.begin(), ret.end());
 }
 
 StringList ClientManager::getHubNames(const CID& cid) const {
-	Lock l(cs);
+	/*Lock l(cs);
 	StringList lst;
 	OnlinePairC op = onlineUsers.equal_range(cid);
 	for(OnlineIterC i = op.first; i != op.second; ++i) {
 		lst.push_back(i->second->getClient().getHubName());
 	}
-	return lst;
+	return lst;*/
+	Lock l(cs);
+	StringSet ret;
+	OnlinePairC op = onlineUsers.equal_range(cid);
+	for(OnlineIterC i = op.first; i != op.second; ++i) {
+		ret.insert(i->second->getClient().getHubName());
+	}
+	return StringList(ret.begin(), ret.end());
 }
 
 StringList ClientManager::getNicks(const CID& cid) const {
@@ -441,8 +455,8 @@ void ClientManager::userCommand(const UserPtr& p, const UserCommand& uc, StringM
 void ClientManager::sendRawCommand(const UserPtr& user, const string& aRaw, bool checkProtection/* = false*/) {
 	if(!aRaw.empty()) {
 		bool skipRaw = false;
+		Lock l(cs);
 		if(checkProtection) {
-			Lock l(cs);
 			OnlineIterC i = onlineUsers.find(user->getCID());
 			if(i == onlineUsers.end())
 				return;
@@ -464,7 +478,7 @@ void ClientManager::on(AdcSearch, const Client*, const AdcCommand& adc, const CI
 	SearchManager::getInstance()->respond(adc, from);
 }
 
-const string& ClientManager::getHubUrl(const UserPtr& aUser) const {
+string ClientManager::getHubUrl(const UserPtr& aUser) const {
 	Lock l(cs);
 	OnlineIterC i = onlineUsers.find(aUser->getCID());
 	if(i != onlineUsers.end()) {
@@ -1086,7 +1100,7 @@ void ClientManager::sendAction(const UserPtr& p, const int aAction) {
 		if(i == onlineUsers.end()) 
 			return;
 
-		if(!i->second->isProtectedUser() && i->second->getClient().isOp()) {
+		if(i->second->getClient().isOp() && !i->second->isProtectedUser()) {
 			i->second->getClient().sendActionCommand((*i->second), aAction);
 		}
 	}
@@ -1096,7 +1110,7 @@ void ClientManager::sendAction(OnlineUser& ou, const int aAction) {
 	if(aAction < 1)
 		return;
 
-	if(!ou.isProtectedUser() && ou.getClient().isOp()) {
+	if(ou.getClient().isOp() && !ou.isProtectedUser()) {
 		ou.getClient().sendActionCommand(ou, aAction);
 	}
 }

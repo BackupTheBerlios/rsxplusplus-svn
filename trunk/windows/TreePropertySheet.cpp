@@ -34,8 +34,7 @@ int TreePropertySheet::PropSheetProc(HWND hwndDlg, UINT uMsg, LPARAM lParam) {
 
 LRESULT TreePropertySheet::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /* bHandled */) {
 	if(ResourceManager::getInstance()->isRTL())
-		SetWindowLong(GWL_EXSTYLE, GetWindowLong(GWL_EXSTYLE) | WS_EX_LAYOUTRTL);
-	//RSX++
+		SetWindowLongPtr(GWL_EXSTYLE, GetWindowLongPtr(GWL_EXSTYLE) | WS_EX_LAYOUTRTL);
 	treeImg = RL_LoadFromResource(IDP_O_SETTINGS_DLG);
 	tree_icons.Create(16, 16, ILC_COLOR32 | ILC_MASK, 0, 23);
 	tree_icons.Add(*treeImg);
@@ -204,5 +203,5 @@ LRESULT TreePropertySheet::onSetCurSel(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lP
 
 /**
 * @file
-* $Id: TreePropertySheet.cpp 237 2006-08-13 19:03:50Z bigmuscle $
+* $Id: TreePropertySheet.cpp 392 2008-06-21 21:10:31Z BigMuscle $
 */

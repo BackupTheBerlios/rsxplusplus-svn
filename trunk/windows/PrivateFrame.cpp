@@ -288,7 +288,7 @@ void PrivateFrame::onEnter()
 		//RSX++
 		bool dropMessage = false;
 		if(ctrlClient.getClient() != NULL) {
-			iOnlineUser* iu = ctrlClient.getClient()->p_getUserByNick(replyTo->getNick().c_str());
+			iOnlineUser* iu = ctrlClient.getClient()->p_getUserByNick(ClientManager::getInstance()->getNicks(replyTo->getCID())[0].c_str());
 			if(iu != NULL)
 				dropMessage = PluginsManager::getInstance()->onOutgoingPM(iu, Text::fromT(s));
 		}
@@ -678,7 +678,7 @@ void PrivateFrame::readLog() {
 		int i = linesCount > (SETTING(SHOW_LAST_LINES_LOG) + 1) ? linesCount - SETTING(SHOW_LAST_LINES_LOG) : 0;
 
 		for(; i < linesCount; ++i){
-			ctrlClient.AppendText(Identity(NULL, 0), _T("- "), _T(""), (Text::toT(lines[i])).c_str(), WinUtil::m_ChatTextLog, true);
+			ctrlClient.AppendText(Identity(NULL, 0), _T("- "), _T(""), (Text::toT(lines[i])) + _T('\n'), WinUtil::m_ChatTextLog, true);
 		}
 
 		f.close();
@@ -795,5 +795,5 @@ string PrivateFrame::getCustomAway() const {
 
 /**
  * @file
- * $Id: PrivateFrame.cpp 390 2008-06-16 19:41:42Z BigMuscle $
+ * $Id: PrivateFrame.cpp 391 2008-06-21 09:56:36Z BigMuscle $
  */

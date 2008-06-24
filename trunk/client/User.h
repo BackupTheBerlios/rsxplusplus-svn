@@ -70,7 +70,6 @@ public:
 
 	bool isOnline() const { return isSet(ONLINE); }
 	bool isNMDC() const { return isSet(NMDC); }
-	string getNick(bool first = true) const;
 
 	GETSET(bool, soundActive, SoundActive); //RSX++
 private:

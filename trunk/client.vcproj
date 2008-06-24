@@ -101,8 +101,8 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|x64"
-			OutputDirectory="$(SolutionDir)$(PlatformName)\$(ConfigurationName)"
-			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
+			OutputDirectory="$(SolutionDir)vc7\$(ConfigurationName)\$(ProjectName)"
+			IntermediateDirectory="$(SolutionDir)vc7\$(ConfigurationName)\$(ProjectName)"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
@@ -128,7 +128,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)\openssl\include&quot;;&quot;$(SolutionDir)\lua\src&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)regex\pcre&quot;"
 				StringPooling="true"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
@@ -274,8 +274,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|x64"
-			OutputDirectory="$(SolutionDir)$(PlatformName)\$(ConfigurationName)"
-			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
+			OutputDirectory="$(SolutionDir)vc7\$(ConfigurationName)\$(ProjectName)"
+			IntermediateDirectory="$(SolutionDir)vc7\$(ConfigurationName)\$(ProjectName)"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
@@ -307,7 +307,7 @@
 				FavorSizeOrSpeed="2"
 				OmitFramePointers="false"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)boost&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)regex\pcre&quot;"
 				StringPooling="true"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
@@ -454,8 +454,8 @@
 		</Configuration>
 		<Configuration
 			Name="SvnRelease|x64"
-			OutputDirectory="$(SolutionDir)$(PlatformName)\$(ConfigurationName)"
-			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
+			OutputDirectory="$(SolutionDir)vc7\$(ConfigurationName)\$(ProjectName)"
+			IntermediateDirectory="$(SolutionDir)vc7\$(ConfigurationName)\$(ProjectName)"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
@@ -487,7 +487,7 @@
 				FavorSizeOrSpeed="2"
 				OmitFramePointers="false"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)boost&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)regex\pcre&quot;"
 				StringPooling="true"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
@@ -705,6 +705,14 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Debug|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						PrecompiledHeaderThrough="../client/stdinc.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
 					>
 					<Tool
@@ -713,7 +721,23 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Release|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						PrecompiledHeaderThrough="../client/stdinc.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="SvnRelease|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						PrecompiledHeaderThrough="../client/stdinc.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="SvnRelease|x64"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -733,6 +757,14 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Debug|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						PrecompiledHeaderThrough="../client/stdinc.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
 					>
 					<Tool
@@ -741,7 +773,23 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Release|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						PrecompiledHeaderThrough="../client/stdinc.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="SvnRelease|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						PrecompiledHeaderThrough="../client/stdinc.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="SvnRelease|x64"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -1363,6 +1411,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\rsx\HubUsersMap.h"
+				>
+			</File>
+			<File
 				RelativePath=".\client\IgnoreManager.h"
 				>
 			</File>
@@ -1523,7 +1575,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Building StringDefs.cpp and Example.xml from StringDefs.h..."
-						CommandLine="makedefs.py&#x0D;&#x0A;"
+						CommandLine="makedefs.py"
 						Outputs=".\client\StringDefs.cpp"
 					/>
 				</FileConfiguration>
@@ -1533,7 +1585,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Building StringDefs.cpp and Example.xml from StringDefs.h..."
-						CommandLine=".\vc7\$(ConfigurationName)\MakeDefs\MakeDefs.exe .\client\StringDefs.h .\client\StringDefs.cpp .\EN_Example.xml&#x0D;&#x0A;"
+						CommandLine="makedefs.py"
 						Outputs=".\client\StringDefs.cpp"
 					/>
 				</FileConfiguration>
@@ -1543,7 +1595,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Building StringDefs.cpp and Example.xml from StringDefs.h..."
-						CommandLine="makedefs.py&#x0D;&#x0A;"
+						CommandLine="makedefs.py"
 						Outputs=".\client\StringDefs.cpp"
 					/>
 				</FileConfiguration>
@@ -1553,7 +1605,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Building StringDefs.cpp and Example.xml from StringDefs.h..."
-						CommandLine=".\vc7\$(ConfigurationName)\MakeDefs\MakeDefs.exe .\client\StringDefs.h .\client\StringDefs.cpp .\EN_Example.xml&#x0D;&#x0A;"
+						CommandLine="makedefs.py"
 						Outputs=".\client\StringDefs.cpp"
 					/>
 				</FileConfiguration>
@@ -1563,7 +1615,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Building StringDefs.cpp and Example.xml from StringDefs.h..."
-						CommandLine="makedefs.py&#x0D;&#x0A;"
+						CommandLine="makedefs.py"
 						Outputs=".\client\StringDefs.cpp"
 					/>
 				</FileConfiguration>
@@ -1573,7 +1625,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Building StringDefs.cpp and Example.xml from StringDefs.h..."
-						CommandLine=".\vc7\$(ConfigurationName)\MakeDefs\MakeDefs.exe .\client\StringDefs.h .\client\StringDefs.cpp .\EN_Example.xml&#x0D;&#x0A;"
+						CommandLine="makedefs.py"
 						Outputs=".\client\StringDefs.cpp"
 					/>
 				</FileConfiguration>

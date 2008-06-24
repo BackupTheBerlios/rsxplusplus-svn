@@ -37,6 +37,7 @@
 #include "stdinc.h"
 #include "memcpy_amd.h"
 
+#ifndef _WIN64
 /*****************************************************************************
 MEMCPY_AMD.CPP
 ******************************************************************************/
@@ -85,11 +86,8 @@ static unsigned long CPU_Type = 0;
 // 3 = MMX2 for AMD Athlon/Duron and above (might also work on MMX2 (KATMAI) Intel machines)
 // 4 = SSE
 // 5 = SSE2 (only for Pentium 4 detection, the optimization used is SSE)
-// 6 = x64; on 64-bit compilers we can't use asm...
-
 unsigned long get_cpu_type()
 {
-#ifndef _WIN64
   __asm
   {
 	mov			eax, [CPU_Type]
@@ -148,16 +146,12 @@ cpu_done:
 	mov			[CPU_Type], eax
 ret_eax:
   }
-#else
-  return 6;
-#endif
 }
 
 static unsigned long memcpyProc = 0;
 static unsigned long memsetProc = 0;
 static unsigned long memzeroProc = 0;
 
-#ifndef _WIN64
 void* __stdcall memcpy2(void *dest, const void *src, size_t n)
 {
   __asm
@@ -991,4 +985,9 @@ $memzero_last_few:		; dword aligned from before stosd's
 $memzero_exit:
     }
 }
+
+#else
+
+  void __stdcall memzero(void *dest, size_t n) { memset(dest, 0, n); }
+  
 #endif

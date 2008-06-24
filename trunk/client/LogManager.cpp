@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2001-2007 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,5 +27,5 @@ namespace dcpp {
 
 /**
  * @file
- * $Id: LogManager.cpp 373 2008-02-06 17:23:49Z bigmuscle $
+ * $Id: LogManager.cpp 391 2008-06-21 09:56:36Z BigMuscle $
  */

@@ -389,12 +389,6 @@ static LRESULT CALLBACK KeyboardProc(int code, WPARAM wParam, LPARAM lParam) {
 }
 
 void WinUtil::reLoadImages() {
-/*	userImages.Destroy();
-	if(SETTING(USERLIST_IMAGE).empty())
-		userImages.CreateFromImage(IDB_USERS, 16, 16, CLR_DEFAULT, IMAGE_BITMAP, LR_CREATEDIBSECTION | LR_SHARED);
-	else
-		userImages.CreateFromImage(Text::toT(SETTING(USERLIST_IMAGE)).c_str(), 16, 0, CLR_DEFAULT, IMAGE_BITMAP, LR_CREATEDIBSECTION | LR_SHARED | LR_LOADFROMFILE);
-*/
 	userImages.Destroy();
 	RL_DeleteObject(usersImg);
 
@@ -454,6 +448,7 @@ void WinUtil::init(HWND hWnd) {
 	view.AppendMenu(MF_STRING, IDC_VIEW_PLUGINS_LIST, _T("Plugins List"));
 	view.AppendMenu(MF_SEPARATOR);
 	view.AppendMenu(MF_STRING, ID_VIEW_TOOLBAR, CTSTRING(MENU_TOOLBAR));
+	view.AppendMenu(MF_STRING, ID_TOGGLE_QSEARCH, CTSTRING(TOGGLE_QSEARCH));	
 	view.AppendMenu(MF_STRING, ID_VIEW_STATUS_BAR, CTSTRING(MENU_STATUS_BAR));
 	view.AppendMenu(MF_STRING, ID_VIEW_TRANSFER_VIEW, CTSTRING(MENU_TRANSFER_VIEW));
 	view.AppendMenu(MF_STRING, ID_VIEW_PLUGIN_TOOLBAR, _T("View Plugin Toolbar")); //rsx++
@@ -1820,7 +1815,32 @@ unsigned __int64 nCtr = 0, nFreq = 0, nCtrStop = 0;
     }
 	return ((float)cyclesStop-(float)cyclesStart) / 1000000;
 #else
-	return 0;
+	HKEY hKey;
+	DWORD dwSpeed;
+
+	// Get the key name
+	wchar_t szKey[256];
+	_snwprintf(szKey, sizeof(szKey)/sizeof(wchar_t),
+		L"HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\%d\\", 0);
+
+	// Open the key
+	if(RegOpenKeyEx(HKEY_LOCAL_MACHINE,szKey, 0, KEY_QUERY_VALUE, &hKey) != ERROR_SUCCESS)
+	{
+		return 0;
+	}
+
+	// Read the value
+	DWORD dwLen = 4;
+	if(RegQueryValueEx(hKey, L"~MHz", NULL, NULL, (LPBYTE)&dwSpeed, &dwLen) != ERROR_SUCCESS)
+	{
+		RegCloseKey(hKey);
+		return 0;
+	}
+
+	// Cleanup and return
+	RegCloseKey(hKey);
+	
+	return dwSpeed;
 #endif
 }
 
@@ -1997,5 +2017,5 @@ tstring WinUtil::getWindowText(HWND _hwnd, int ctrlID) {
 //END
 /**
  * @file
- * $Id: WinUtil.cpp 382 2008-03-09 10:40:22Z BigMuscle $
+ * $Id: WinUtil.cpp 392 2008-06-21 21:10:31Z BigMuscle $
  */

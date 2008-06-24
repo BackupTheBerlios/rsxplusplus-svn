@@ -56,7 +56,7 @@ public:
 		ctrlLine.SetWindowText(line.c_str());
 		ctrlLine.SetSelAll(TRUE);
 		if(password) {
-			ctrlLine.SetWindowLong(GWL_STYLE, ctrlLine.GetWindowLong(GWL_STYLE) | ES_PASSWORD);
+			ctrlLine.SetWindowLongPtr(GWL_STYLE, ctrlLine.GetWindowLongPtr(GWL_STYLE) | ES_PASSWORD);
 			ctrlLine.SetPasswordChar('*');
 		}
 
@@ -72,11 +72,8 @@ public:
 	LRESULT OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 	{
 		if(wID == IDOK) {
-			tstring buf;
-			int len = ctrlLine.GetWindowTextLength() + 1;
-			buf.resize(len);
-			GetDlgItemText(IDC_LINE, &buf[0], len);
-			line = buf;
+			line.resize(ctrlLine.GetWindowTextLength() + 1);
+			line.resize(GetDlgItemText(IDC_LINE, &line[0], line.size()));
 		}
 		EndDialog(wID);
 		return 0;
@@ -120,5 +117,5 @@ private:
 
 /**
  * @file
- * $Id: LineDlg.h 213 2006-05-08 08:36:23Z bigmuscle $
+ * $Id: LineDlg.h 392 2008-06-21 21:10:31Z BigMuscle $
  */

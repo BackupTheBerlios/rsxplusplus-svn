@@ -7,9 +7,16 @@
 #include "ParamDlg.h"
 
 #include "../rsx/rsx-settings/rsx-SettingsManager.h"
-#include "../client/ClientProfileManager.h"
+#include "../client/DetectionManager.h"
+#include "../client/version.h"
 
-#define BUFLEN 256
+#ifdef _DEBUG
+#define new DEBUG_NEW
+#undef THIS_FILE
+static char THIS_FILE[] = __FILE__;
+#endif
+
+#define BUFLEN 1024
 
 PropPage::TextItem ParamsPage::texts[] = {
 	{ IDC_ADD, ResourceManager::ADD },
@@ -51,9 +58,9 @@ LRESULT ParamsPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 
 	// Do specialized reading here
 
-	StringMap& pm = ClientProfileManager::getInstance()->getParams();
+	const StringMap& pm = DetectionManager::getInstance()->getParams();
 	TStringList cols;
-	for(StringMap::iterator j = pm.begin(); j != pm.end(); ++j) {
+	for(StringMap::const_iterator j = pm.begin(); j != pm.end(); ++j) {
 		cols.push_back(Text::toT(j->first));
 		cols.push_back(Text::toT(j->second));
 		ctrlParams.insert(cols);
@@ -67,10 +74,14 @@ LRESULT ParamsPage::onAdd(WORD , WORD , HWND , BOOL& ) {
 	ParamDlg dlg;
 
 	if(dlg.DoModal() == IDOK) {
-		TStringList lst;
-		lst.push_back(Text::toT(dlg.name));
-		lst.push_back(Text::toT(dlg.regexp));
-		ctrlParams.insert(lst);
+		if(ctrlParams.find(Text::toT(dlg.name)) == -1) {
+			TStringList lst;
+			lst.push_back(Text::toT(dlg.name));
+			lst.push_back(Text::toT(dlg.regexp));
+			ctrlParams.insert(lst);
+		} else {
+			MessageBox(CTSTRING(PARAM_EXISTS), _T(APPNAME) _T(" ") _T(VERSIONSTRING), MB_OK);
+		}
 	}
 	return 0;
 }
@@ -86,8 +97,13 @@ LRESULT ParamsPage::onChange(WORD , WORD , HWND , BOOL& ) {
 		dlg.regexp = Text::fromT(buf);
 
 		if(dlg.DoModal() == IDOK) {
-			ctrlParams.SetItemText(sel, 0, Text::toT(dlg.name).c_str());
-			ctrlParams.SetItemText(sel, 1, Text::toT(dlg.regexp).c_str());
+			int idx = ctrlParams.find(Text::toT(dlg.name));
+			if(idx == -1 || idx == sel) {
+				ctrlParams.SetItemText(sel, 0, Text::toT(dlg.name).c_str());
+				ctrlParams.SetItemText(sel, 1, Text::toT(dlg.regexp).c_str());
+			} else {
+				MessageBox(CTSTRING(PARAM_EXISTS), _T(APPNAME) _T(" ") _T(VERSIONSTRING), MB_OK);
+			}
 		}
 	}
 	return 0;
@@ -104,7 +120,7 @@ void ParamsPage::write() {
 	int it = ctrlParams.GetItemCount();
 	TCHAR buf[BUFLEN];
 	string name, regexp;
-	StringMap& pm = ClientProfileManager::getInstance()->getParams();
+	StringMap& pm = DetectionManager::getInstance()->getParams();
 	pm.clear();
 	for(int i = 0; i < it; ++i) {
 		ctrlParams.GetItemText(i, 0, buf, BUFLEN);
@@ -113,7 +129,7 @@ void ParamsPage::write() {
 		regexp = Text::fromT(buf);
 		pm[name] = regexp;
 	}
-	ClientProfileManager::getInstance()->saveClientProfiles();
+	DetectionManager::getInstance()->save();
 	PropPage::write((HWND)*this, items);
 }
 

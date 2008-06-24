@@ -58,7 +58,7 @@
 #include "IpWatchPage.h"
 #include "FileListDetectorPage.h"
 #include "AutosearchPage.h"
-#include "DetectionListPage.h"
+#include "ClientsPage.h"
 //END
 
 bool PropertiesDlg::needUpdate = false;
@@ -90,7 +90,7 @@ PropertiesDlg::PropertiesDlg(HWND parent, SettingsManager *s) : TreePropertyShee
 	pages[n++] = new FilterPage(s);
 	pages[n++] = new FakeDetect(s);
 	//pages[n++] = new ClientsPage(s);
-	pages[n++] = new DetectionListPage(s);
+	pages[n++] = new ClientsPage(s);
 	pages[n++] = new ParamsPage(s);
 	pages[n++] = new MyinfoPage(s);
 	pages[n++] = new FileListDetectorPage(s);

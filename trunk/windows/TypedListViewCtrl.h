@@ -135,7 +135,7 @@ public:
 		if(!BOOLSETTING(SHOW_INFOTIPS)) return 0;
 
 		NMLVGETINFOTIP* pInfoTip = (NMLVGETINFOTIP*) pnmh;
-		BOOL NoColumnHeader = (BOOL)(GetWindowLong(GWL_STYLE) & LVS_NOCOLUMNHEADER);
+		BOOL NoColumnHeader = (BOOL)(GetWindowLongPtr(GWL_STYLE) & LVS_NOCOLUMNHEADER);
 		tstring InfoTip(Util::emptyStringT);
 		tstring buffer;
 
@@ -999,5 +999,5 @@ const vector<T*> TypedTreeListViewCtrl<T, ctrlId, key, hashFunc, equalKey>::empt
 
 /**
  * @file
- * $Id: TypedListViewCtrl.h 385 2008-04-26 13:05:09Z BigMuscle $
+ * $Id: TypedListViewCtrl.h 392 2008-06-21 21:10:31Z BigMuscle $
  */

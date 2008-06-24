@@ -231,7 +231,7 @@ public:
 	void multiHubKick(const UserPtr& p, const string& aRaw);
 	tstring getHubsLoadInfo() const;
 	//END
-	const string& getHubUrl(const UserPtr& aUser) const;
+	string getHubUrl(const UserPtr& aUser) const;
 
 	const Client::List& getClients() const { return clients; }
 

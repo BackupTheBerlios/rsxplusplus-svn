@@ -22,29 +22,31 @@
 #include "Singleton.h"
 #include "CriticalSection.h"
 #include "DetectionEntry.h"
+#include "SimpleXML.h"
 
 namespace dcpp {
 
 class DetectionManager : public Singleton<DetectionManager> {
 public:
-	typedef std::vector<DetectionEntry> DetectionItems;
+	typedef vector<DetectionEntry> DetectionItems;
 
-	DetectionManager();
-	~DetectionManager();
+	DetectionManager() : profileVersion("N/A"), profileMessage("N/A"), profileUrl("N/A"), lastId(0) { };
+	~DetectionManager() throw() { save(); };
 
 	void load();
-	void reload();
-	void reloadFromHttp(bool bz2 = false);
 	void save();
 
-	void addDetectionItem(const DetectionEntry& e) throw(Exception);
-	void updateDetectionItem(const int aId /* old id */, const DetectionEntry& e) throw(Exception);
-	void validateItem(const DetectionEntry& e) throw(Exception);
-	void removeDetectionItem(const int id) throw();
+	const DetectionItems& reload();
+	const DetectionItems& reloadFromHttp(bool bz2 = false);
 
-	bool getDetectionItem(const int aId, DetectionEntry& e) throw();
-	bool moveDetectionItem(const int aId, int pos);
-	void setItemEnabled(const int aId, bool enabled) throw();
+	void addDetectionItem(DetectionEntry& e) throw(Exception);
+	void updateDetectionItem(const uint32_t aOrigId, const DetectionEntry& e) throw(Exception);
+	void removeDetectionItem(const uint32_t id) throw();
+
+	bool getNextDetectionItem(const uint32_t aId, int pos, DetectionEntry& e) throw();
+	bool getDetectionItem(const uint32_t aId, DetectionEntry& e) throw();
+	bool moveDetectionItem(const uint32_t aId, int pos);
+	void setItemEnabled(const uint32_t aId, bool enabled) throw();
 
 	const DetectionItems& getProfiles() throw() {
 		Lock l(cs);
@@ -57,30 +59,30 @@ public:
 		return det;
 	}
 
-	const StringMap& getParams() {
+	StringMap& getParams() throw() {
 		Lock l(cs);
 		return params;
 	}
-
-	void addParam(const string& aName, const string& aPattern) throw(Exception);
-	void changeParam(const string& aOldName, const string& aName, const string& aPattern) throw(Exception);
-	void removeParam(const string& aName);
 
 	GETSET(string, profileVersion, ProfileVersion);
 	GETSET(string, profileMessage, ProfileMessage);
 	GETSET(string, profileUrl, ProfileUrl);
 
 private:
-	//void validateEntry(DetectionEntry e, bool checkId = true) throw(Exception);
-
 	DetectionItems det;
 	StringMap params;
+	uint32_t lastId;
+
+	void validateItem(const DetectionEntry& e, bool checkIds) throw(Exception);
+	void importProfiles(SimpleXML& xml);
 
 	friend class Singleton<DetectionManager>;
 	CriticalSection cs;
 };
+
 }; // namespace dcpp
-#endif
+
+#endif // DETECTION_MANAGER_H
 
 /**
  * @file

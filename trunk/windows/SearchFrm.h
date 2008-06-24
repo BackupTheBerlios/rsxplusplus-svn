@@ -261,6 +261,8 @@ public:
 		return 0;
 	}
 	
+	static const TStringList& getLastSearches() { return lastSearches; }
+	
 private:
 	class SearchInfo;
 	
@@ -621,6 +623,6 @@ private:
 
 /**
  * @file
- * $Id: SearchFrm.h 386 2008-05-10 19:29:01Z BigMuscle $
+ * $Id: SearchFrm.h 391 2008-06-21 09:56:36Z BigMuscle $
  */
 

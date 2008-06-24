@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2007 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,8 +16,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#if !defined(LOG_MANAGER_H)
-#define LOG_MANAGER_H
+#ifndef DCPLUSPLUS_DCPP_LOG_MANAGER_H
+#define DCPLUSPLUS_DCPP_LOG_MANAGER_H
 
 #include "File.h"
 #include "CriticalSection.h"
@@ -38,10 +38,10 @@ public:
 class LogManager : public Singleton<LogManager>, public Speaker<LogManagerListener>
 {
 public:
-	enum LogArea { CHAT, PM, DOWNLOAD, UPLOAD, SYSTEM, STATUS, WEBSERVER, RAW, LAST };
+	enum Area { CHAT, PM, DOWNLOAD, UPLOAD, SYSTEM, STATUS, WEBSERVER, RAW, LAST };
 	enum {FILE, FORMAT};
 
-	void log(LogArea area, StringMap& params) throw() {
+	void log(Area area, StringMap& params) throw() {
 		string path = SETTING(LOG_DIRECTORY);
 		string msg;
 	
@@ -122,5 +122,5 @@ private:
 
 /**
  * @file
- * $Id: LogManager.h 373 2008-02-06 17:23:49Z bigmuscle $
+ * $Id: LogManager.h 391 2008-06-21 09:56:36Z BigMuscle $
  */

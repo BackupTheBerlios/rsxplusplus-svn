@@ -52,6 +52,7 @@ extern CAppModule _Module;
 
 #define _WTL_MDIWINDOWMENU_TEXT CTSTRING(MENU_WINDOW)
 #define _WTL_CMDBAR_VISTA_MENUS 0
+#define _WTL_NO_AUTO_THEME 1
 #include <atlwin.h>
 #include <atlframe.h>
 #include <atlctrls.h>
@@ -60,17 +61,12 @@ extern CAppModule _Module;
 #include <atlmisc.h>
 #include <atlsplit.h>
 #include <Shellapi.h>
+#endif // _WIN32
 
 #define WM_SPEAKER (WM_APP + 500)
-#ifdef _WIN64
-#define GWL_WNDPROC GWLP_WNDPROC
-#define GWL_HINSTANCE GWLP_HINSTANCE
-#endif
-
-#endif // _WIN32
 #endif // DCPLUSPLUS_WIN32_STDAFX_H
 
 /**
  * @file
- * $Id: stdafx.h 373 2008-02-06 17:23:49Z bigmuscle $
+ * $Id: stdafx.h 392 2008-06-21 21:10:31Z BigMuscle $
  */

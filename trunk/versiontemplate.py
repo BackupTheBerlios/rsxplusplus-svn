@@ -43,15 +43,15 @@ if __name__ == "__main__":
 	s = SVNReport()
 	s.walkrevision(".")
 	versiontemplate = open(TEMPLATE,'r').read()
-	print "Getting SVN Information:"
+
 	for key,value in s.data.iteritems():
 		versiontemplate = versiontemplate.replace("$%s" % key, value)
-	print "Revision %s" % (s.revision)
+
 	if not os.path.exists(TARGET):
 		open(TARGET,'w').write(versiontemplate)
-		print "Updated version.h from template file"
+		print "Updated version.h from template file (SVN: %s)" % (s.revision)
 	elif open(TARGET,'r').read() != versiontemplate:
-		print "Updated version.h from template file"
+		print "Updated version.h from template file (SVN: %s)" % (s.revision)
 		open(TARGET,'w').write(versiontemplate)
 	else:
-		print "No changes required in version.h."
+		print "No changes required in version.h. (SVN: %s)" % (s.revision)

@@ -109,7 +109,7 @@ public:
 	static bool checkType(const string& aString, int aType);
 	//END
 
-	GETSET(uint32_t, hits, Hits);
+	GETSET(size_t, hits, Hits);
 	GETSET(string, bzXmlFile, BZXmlFile);
 	GETSET(int64_t, sharedSize, SharedSize);
 
@@ -327,5 +327,5 @@ private:
 
 /**
  * @file
- * $Id: ShareManager.h 386 2008-05-10 19:29:01Z BigMuscle $
+ * $Id: ShareManager.h 392 2008-06-21 21:10:31Z BigMuscle $
  */

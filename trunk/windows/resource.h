@@ -133,7 +133,7 @@
 #define IDD_FAV_TAB_RAW                 324
 #define IDD_PLUGINS_LIST                326
 #define IDD_DETECTION_LIST_PAGE         327
-#define IDD_DETECTION_LIST_ITEM         328
+#define IDD_DETECTION_ENTRY             328
 #define IDD_ADD_STRING_PAIR             329
 #define IDP_RSX_SPLASH                  332
 #define IDP_ARROWS                      333
@@ -151,8 +151,8 @@
 #define IDP_TSPEEDS                     347
 #define IDP_TSPEEDSBW                   348
 #define IDP_USERS                       349
-#define IDR_PNG1                        350
 #define IDP_FAVTABS                     350
+#define IDR_TOGGLE_QSEARCH              351
 #define IDC_REFRESH                     1000
 #define IDC_NICK                        1001
 #define IDC_EMAIL                       1002
@@ -653,6 +653,7 @@
 #define IDC_FILTER_BOLD                 1307
 #define IDC_BAD_CLIENT                  1307
 #define IDC_USE_REGEXP_OR_WILD          1307
+#define IDC_CHECK_MISMATCH              1307
 #define IDC_SETTINGS_KB3                1308
 #define IDC_HASH_SPIN                   1308
 #define IDC_SLEEP_TIME_S                1308
@@ -698,6 +699,7 @@
 #define IDC_HAS_FONT_COLOR              1314
 #define IDC_DISPLAY_CHEAT               1314
 #define IDC_RAW_LUA                     1314
+#define IDC_ENABLE                      1314
 #define IDC_SETTINGS_CONFIRM_OPTIONS    1315
 #define IDC_ADD_ACTION                  1315
 #define IDC_SPIN1                       1315
@@ -950,15 +952,8 @@
 #define IDC_FILELIST_PAGE_LIST_TYPE     1490
 #define IDC_LIST2                       1491
 #define IDC_PLUGINS_LIST                1491
-#define IDC_INF_LIST                    1491
-#define IDC_DETECTION_ITEM_REMOVE       1494
-#define IDC_DETECTION_ITEM_CHEAT        1495
-#define IDC_DETECTION_ITEM_COMMENT      1496
-#define IDC_DETECTION_ITEM_ID           1499
-#define IDC_DETECTION_ITEM_ACTION       1500
-#define IDC_DETECTION_ITEM_ADD          1501
-#define IDC_DETECTION_ITEM_NEXT         1502
-#define IDC_DETECTION_ITEM_BACK         1503
+#define IDC_PARAMS                      1491
+#define IDC_DETECT_ID                   1499
 #define IDC_PERCENT_FAKE_SHARE_TOLERATED 1504
 #define IDC_DETECTION_LIST_ADD          1504
 #define IDC_TIMEOUTS_NO                 1505
@@ -974,7 +969,11 @@
 #define IDC_SLEEP_TIME                  1511
 #define IDC_BUTTON1                     1511
 #define IDC_DETECTION_ITEM_CHANGE       1511
+#define IDC_ID_EDIT                     1511
 #define IDC_CHECK_DELAY                 1512
+#define IDC_REGEX_TESTER                1513
+#define IDC_LEVEL                       1514
+#define IDC_INFMAP_TYPE                 1515
 #define IDC_USERLIST_COLORS             1517
 #define IDC_TABCOLOR_LIST               1522
 #define IDC_SELECT_TAB_COLOR            1523
@@ -1225,6 +1224,7 @@
 #define ID_SWINDOW_8                    32803
 #define ID_SWINDOW_9                    32804
 #define ID_SWINDOW_0                    32805
+#define ID_TOGGLE_QSEARCH               32806
 #define IDC_DIR_EX_NAME_TEXT            32816
 #define IDC_DIR_EX_PATH_TEXT            32817
 #define IDC_DIR_EX_EXT_TEXT             32818
@@ -1237,9 +1237,9 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        351
-#define _APS_NEXT_COMMAND_VALUE         32806
-#define _APS_NEXT_CONTROL_VALUE         1512
+#define _APS_NEXT_RESOURCE_VALUE        352
+#define _APS_NEXT_COMMAND_VALUE         32808
+#define _APS_NEXT_CONTROL_VALUE         1516
 #define _APS_NEXT_SYMED_VALUE           134
 #endif
 #endif

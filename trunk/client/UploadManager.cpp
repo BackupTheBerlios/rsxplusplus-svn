@@ -80,7 +80,7 @@ bool UploadManager::prepareFile(UserConnection& aSource, const string& aType, co
 	}
 	//RSX++
 	if(aFile.find("TestSUR") != string::npos) {
-		LogManager::getInstance()->message("User: " + aSource.getUser()->getNick() + " (" + aSource.getRemoteIp() + ") testing me!");
+		LogManager::getInstance()->message("User: " + ClientManager::getInstance()->getNicks((*aSource.getUser()))[0] + " (" + aSource.getRemoteIp() + ") testing me!");
 	}
 	//END
 	InputStream* is = 0;

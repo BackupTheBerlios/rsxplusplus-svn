@@ -49,7 +49,7 @@
 #include "UPnP.h"
 #include "WinUtil.h"
 
-#define QUICK_SEARCH_MAP 20 //RSX++ //qs
+#define QUICK_SEARCH_MAP 20
 
 class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFrame>,
 		public CMessageFilter, public CIdleHandler, public CSplitterImpl<MainFrame, false>, public Thread,
@@ -177,6 +177,7 @@ public:
 		COMMAND_ID_HANDLER(IDC_REFRESH_FILE_LIST, onRefreshFileList)
 		COMMAND_ID_HANDLER(ID_FILE_QUICK_CONNECT, onQuickConnect)
 		COMMAND_ID_HANDLER(IDC_HASH_PROGRESS, onHashProgress)
+		COMMAND_ID_HANDLER(ID_TOGGLE_QSEARCH, OnViewQuickSearchBar)
 		//RSX++
 		COMMAND_ID_HANDLER(IDC_VIEW_PLUGINS_LIST, onViewPluginsList)
 		COMMAND_ID_HANDLER(IDC_RECONNECT_DISCONNECTED, onCloseWindows)
@@ -204,12 +205,14 @@ public:
 		MESSAGE_HANDLER(WM_CTLCOLOREDIT, onQuickSearchColor)
 		MESSAGE_HANDLER(WM_CTLCOLORSTATIC, onQuickSearchColor)
 		MESSAGE_HANDLER(WM_CTLCOLORLISTBOX, onQuickSearchColor)
+		COMMAND_CODE_HANDLER(EN_CHANGE, onQuickSearchEditChange)
 	END_MSG_MAP()
 	//END
 	BEGIN_UPDATE_UI_MAP(MainFrame)
 		UPDATE_ELEMENT(ID_VIEW_TOOLBAR, UPDUI_MENUPOPUP)
 		UPDATE_ELEMENT(ID_VIEW_STATUS_BAR, UPDUI_MENUPOPUP)
 		UPDATE_ELEMENT(ID_VIEW_TRANSFER_VIEW, UPDUI_MENUPOPUP)
+		UPDATE_ELEMENT(ID_TOGGLE_QSEARCH, UPDUI_MENUPOPUP)
 		UPDATE_ELEMENT(ID_VIEW_PLUGIN_TOOLBAR, UPDUI_MENUPOPUP)
 	END_UPDATE_UI_MAP()
 
@@ -244,12 +247,14 @@ public:
 	LRESULT onUpdate(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT onDisableSounds(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT onOpenWindows(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+	LRESULT onQuickSearchChar(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled);
+	LRESULT onQuickSearchColor(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/);
+	LRESULT onQuickSearchEditChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled);
+	LRESULT OnViewQuickSearchBar(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	//RSX++
 	LRESULT onViewPluginsList(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT onSwitchWindow(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT onChangePriority(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-	LRESULT onQuickSearchChar(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled);
-	LRESULT onQuickSearchColor(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 	LRESULT OnViewPluginToolBar(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT onBnClick(WORD /*wNotifyCode*/, WORD wID, HWND hWndCtl, BOOL& /*bHandled*/);
 	LRESULT OnCreatePluginToolbar(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
@@ -386,7 +391,8 @@ public:
 	}
 
 	void ShowBalloonTip(tstring szMsg, tstring szTitle, DWORD dwInfoFlags=NIIF_INFO);
-
+	void updateQuickSearches();
+	
 	CImageList largeImages, largeImagesHot;
 	int run();
 	
@@ -411,12 +417,12 @@ private:
 	};
 	class FileListQueue: public Thread {
 	public:
-		bool stop, forceClose;
+		bool stop;
 		Semaphore s;
 		CriticalSection cs;
 		list<DirectoryListInfo*> fileLists;
 
-		FileListQueue() : stop(true), forceClose(false) {}
+		FileListQueue() : stop(true) {}
 		~FileListQueue() throw() {
 			shutdown();
 			join();
@@ -442,15 +448,16 @@ private:
 	string versionInfo;
 	CImageList images;
 	CToolBarCtrl ctrlToolbar;
-	//RSX++
-	string profileVerInfo;
-	CToolBarCtrl ctrlPluginToolbar;
+
 	CToolBarCtrl ctrlQuickSearchBar;
 	CComboBox QuickSearchBox;
 	CEdit QuickSearchEdit;
 	CContainedWindow QuickSearchBoxContainer;
 	CContainedWindow QuickSearchEditContainer;
-
+	bool m_bDisableAutoComplete;
+	//RSX++
+	string profileVerInfo;
+	CToolBarCtrl ctrlPluginToolbar;
 	ExCImage::Ptr toolbarImg;
 	ExCImage::Ptr toolbar20Img;
 	ExCImage::Ptr toolbar20HotImg;
@@ -492,10 +499,9 @@ private:
 	FileListQueue listQueue;
 	bool missedAutoConnect;
 	HWND createToolbar();
+	HWND createQuickSearchBar();
 	//RSX++
 	HWND createPluginsToolbar();
-	HWND createQuickSearchBar();
-	void updateQuickSearches(const tstring& search = Util::emptyStringT);
 	void setDefPrioMenu();
 	//END
 
@@ -540,5 +546,5 @@ private:
 
 /**
  * @file
- * $Id: MainFrm.h 364 2008-01-26 14:52:30Z bigmuscle $
+ * $Id: MainFrm.h 391 2008-06-21 09:56:36Z BigMuscle $
  */

@@ -225,6 +225,7 @@ public:
 	Segment getNextSegment(int64_t blockSize, int64_t wantedSize, int64_t lastSpeed, const PartialSource::Ptr partialSource) const;
 	
 	void addSegment(const Segment& segment);
+	void resetDownloaded() { done.clear(); }
 	
 	bool isFinished() const {
 		return done.size() == 1 && *done.begin() == Segment(0, getSize());
@@ -311,5 +312,5 @@ private:
 
 /**
 * @file
-* $Id: QueueItem.h 389 2008-06-08 10:51:15Z BigMuscle $
+* $Id: QueueItem.h 391 2008-06-21 09:56:36Z BigMuscle $
 */

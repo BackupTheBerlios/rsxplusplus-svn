@@ -57,6 +57,10 @@
 # pragma warning(disable: 4428) // universal-character-name encountered in source
 # pragma warning(disable: 4201) // nonstadard extension used : nameless struct/union
 
+#ifdef _WIN64
+//# pragma warning(disable: 4267) // conversion from 'xxx' to 'yyy', possible loss of data
+#endif
+
 typedef signed __int8 int8_t;
 typedef signed __int16 int16_t;
 typedef signed __int32 int32_t;
@@ -179,5 +183,5 @@ using namespace std::tr1;
 
 /**
  * @file
- * $Id: stdinc.h 392 2008-06-21 21:10:31Z BigMuscle $
+ * $Id: stdinc.h 393 2008-06-25 18:33:20Z BigMuscle $
  */

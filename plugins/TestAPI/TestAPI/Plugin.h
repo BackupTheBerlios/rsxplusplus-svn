@@ -20,25 +20,16 @@
 #define PLUGIN_H
 
 #include "Singleton.h"
-#include "PluginAPI.h"
-#include "PluginInterface.h"
-#include "ClientInterface.h"
 
-#include "version.h"
-
-class Plugin : public iPlugin, public Singleton<Plugin> {
+class Plugin : public Singleton<Plugin> {
 public:
 	Plugin();
 	~Plugin();
 
-	bool onIncommingMessage(iClient* c, const char* msg);
-	bool onOutgoingMessage(iClient* c, const char* msg);
-
-	bool onIncommingPM(iUser* from, const char* msg);
-	bool onOutgoingPM(iUser* to, const char* msg);
-
+	bool onOutgoingMessage(dcpp::iClient*, const rsxpp::String&);
+	bool onIncommingPM(dcpp::iOnlineUser*, const rsxpp::String&);
+	bool onOutgoingPM(dcpp::iOnlineUser*, const rsxpp::String&);
 	void onToolbarClick();
-	void onSettingsLoaded();
 
 private:
 	HWND r_hwnd;

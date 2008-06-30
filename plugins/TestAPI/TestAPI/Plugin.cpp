@@ -17,16 +17,16 @@
  */
 
 #include "stdafx.h"
+
+#include <ClientInterface.h>
+#include <UserInterface.h>
+
 #include "Plugin.h"
 #include "resource.h"
-#include "PluginAPI.h"
 #include "version.h"
-
-#pragma warning(disable:4100)
+#include <rsxppStringUtils.hpp>
 
 Plugin::Plugin() {
-	//set some info about plugin... name, version and icon id (if you dont' want icon, set -1)
-	PluginAPI::setPluginInfo(PLUGIN_ID, "TestAPI v2", "2.00", IDB_BITMAP);
 	//get a handle to window
 	PluginAPI::getMainWnd(r_hwnd);
 
@@ -38,31 +38,26 @@ Plugin::~Plugin() {
 	PluginAPI::logMessage("*** TestAPI v2 unloaded");
 }
 
-bool Plugin::onIncommingMessage(iClient* c, const char* msg) {
-	return false;
-}
-
-bool Plugin::onOutgoingMessage(iClient* c, const char* aMsg) {
+bool Plugin::onOutgoingMessage(dcpp::iClient* c, const rsxpp::String& aMsg) {
 	if(aMsg[0] == '/') {
 		string msg(aMsg);
 		if(msg == "/testapi") {
-			c->iAddHubLine("*** TestAPI Plugin Message");
+			const String& msgToSend = StringUtils::Format("*** TestAPI\n\tHub Name: %s\n\tHub URL: %s", c->p_getField("NI").c_str(), c->p_getHubUrl().c_str());
+			c->p_addHubLine(msgToSend);
 			return true;
 		} else if(msg == "/testapi send") {
-			c->iHubMessage("TestAPI chat message");
+			c->p_hubMessage("RSX++ PluginAPI Test Message");
 			return true;
 		} else if(msg.substr(0, 5) == "/spm ") {
 			string tmp1 = msg.substr(5);
 			string::size_type i = tmp1.find(" ");
 			if(i != string::npos) {
 				string nick = tmp1.substr(0, i);
-				iUser* iu = c->getUserByNick(nick.c_str());
+				dcpp::iOnlineUser* iu = c->p_getUserByNick(nick.c_str());
 				if(iu != NULL) {
 					string m = tmp1.substr(i+1);
-					iu->sendPM(m.c_str());
+					iu->p_sendPM(m.c_str());
 				}
-				const string& logm = "sent to " + nick;
-				PluginAPI::logMessage(logm.c_str());
 			}
 			return true;
 		}
@@ -70,26 +65,29 @@ bool Plugin::onOutgoingMessage(iClient* c, const char* aMsg) {
 	return false;
 }
 
-bool Plugin::onIncommingPM(iUser* from, const char* msg) {
-	const string& logm = "private message from " + string(from->iGetNick()) + " hub: " + string(from->getUserClient()->iGetHubUrl());
-	PluginAPI::logMessage(logm.c_str());
+bool Plugin::onIncommingPM(dcpp::iOnlineUser* from, const rsxpp::String&) {
+	const String& msgToSend = StringUtils::Format("Private Message from %s (Hub: %s)", from->p_getNick().c_str(), from->p_getUserClient()->p_getField("NI").c_str());
+	PluginAPI::logMessage(msgToSend);
 	return false;
 }
 
-bool Plugin::onOutgoingPM(iUser* to, const char* msg) {
-	const string& logm = "private message to " + string(to->iGetNick()) + " hub: " + string(to->getUserClient()->iGetHubUrl());
-	PluginAPI::logMessage(logm.c_str());
+bool Plugin::onOutgoingPM(dcpp::iOnlineUser* to, const rsxpp::String&) {
+	const String& msgToSend = StringUtils::Format("Private Message to %s (Hub: %s)", to->p_getNick().c_str(), to->p_getUserClient()->p_getField("NI").c_str());
+	PluginAPI::logMessage(msgToSend);
 	return false;
 }
 
 void Plugin::onToolbarClick() {
-	const string& tmp = PluginAPI::getSetting(PLUGIN_ID, "setting123");
-	MessageBox(r_hwnd, PluginAPI::toW(tmp.c_str()), _T("iPlugin"), 0);
-	PluginAPI::showToolTip("TestAPI Popup", "This is a test of RSX++ PluginAPI ;)", PluginAPI::TT_INFO);
-}
+	const String& setting = PluginAPI::getSetting(PLUGIN_ID, "setting123");
+	//String str = StringUtils::Format("Setting Value: %s", setting.c_str());
 
-void Plugin::onSettingsLoaded() {
-
+	String str = setting;
+	String::size_type i = 0;
+	while((i = str.find("PluginAPI", i)) != String::npos) {
+		str.replace(i, 9, "Software Development Kit");
+		i++;
+	}
+	MessageBoxA(r_hwnd, str, "ANSI Dialog - TestAPI", 0);
 }
 
 /**

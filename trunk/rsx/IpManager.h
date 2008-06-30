@@ -16,15 +16,15 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef IP_MANAGER_H
-#define IP_MANAGER_H
+#ifndef RSXPLUSPLUS_IP_MANAGER_H
+#define RSXPLUSPLUS_IP_MANAGER_H
 
 #include "../client/Singleton.h"
 #include "../client/CriticalSection.h"
 #include "../client/Util.h"
-
-#include "../client/HttpConnection.h"
 #include "../client/SettingsManager.h"
+
+#include "HTTPDownloadManager.h"
 
 namespace dcpp {
 
@@ -49,7 +49,7 @@ public:
 };
 
 class SimpleXML;
-class IpManager : public Singleton<IpManager>, private HttpConnectionListener {
+class IpManager : public Singleton<IpManager> {
 public:
 	void load() { WatchLoad(); }
 	void WatchLoad();
@@ -84,14 +84,17 @@ public:
 	GETSET(string, ipWatchVersion, IpWatchVersion);
 
 	//@todo make possible to use it in network page as well
-	void UpdateExternalIp() { c->addListener(this); c->downloadFile("http://checkip.dyndns.org/"); }
+	void UpdateExternalIp() {
+		HTTPDownloadManager::getInstance()->addRequest(boost::bind(&IpManager::onIPUpdate, this, _1, _2), "http://checkip.dyndns.org/");
+	}
 private:
+	friend class Singleton<IpManager>;
+
 	IpManager();
 	~IpManager();
 
-	mutable CriticalSection cs;
+	CriticalSection cs;
 	IPWatch::List ipwatch;
-	friend class Singleton<IpManager>;
 
 	void loadWatch(SimpleXML& aXml);
 	void clearWatchList() {
@@ -106,18 +109,12 @@ private:
 		ipwatch.clear();
 	}
 
-	//update external ip
-	HttpConnection* c;
-	string downBuf;
-
-	void on(HttpConnectionListener::Data, HttpConnection* /*conn*/, const uint8_t* buf, size_t len) throw() {
-		downBuf += string((const char*)buf, len);
-	}
-
-	void on(HttpConnectionListener::Complete, HttpConnection* conn, const string&) throw();
-	void on(HttpConnectionListener::Failed, HttpConnection* conn, const string& /*aLine*/) throw();
+	void onIPUpdate(string buf, bool isFailed);
 };
+} // namespace dcpp
+#endif //RSXPLUSPLUS_IP_MANAGER_H
 
-}; // namespace dcpp
-
-#endif //IP_MANAGER_H
+/**
+ * @file
+ * $Id$
+ */

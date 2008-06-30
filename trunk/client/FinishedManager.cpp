@@ -78,12 +78,11 @@ void FinishedManager::on(QueueManagerListener::Finished, const QueueItem* qi, co
 	}
 		
 	if(isFile || (qi->isSet(QueueItem::FLAG_USER_LIST) && BOOLSETTING(LOG_FILELIST_TRANSFERS))) {
-		uint64_t time = GET_TICK() - qi->getFileBegin();
 		
 		FinishedItemPtr item = new FinishedItem(
 			qi->getTarget(), d->getUser(),
 			Util::toString(ClientManager::getInstance()->getHubNames(d->getUser()->getCID())),
-			qi->getSize(), (int64_t)(((double)time / 1000) * d->getAverageSpeed()), time, GET_TIME(), qi->getTTH().toBase32());
+			qi->getSize(), d->getAverageSpeed(), GET_TIME(), qi->getTTH().toBase32());
 		{
 			Lock l(cs);
 			downloads.push_back(item);
@@ -113,7 +112,7 @@ void FinishedManager::on(UploadManagerListener::Complete, const Upload* u) throw
 		FinishedItemPtr item = new FinishedItem(
 			u->getPath(), u->getUser(),
 			Util::toString(ClientManager::getInstance()->getHubNames(u->getUser()->getCID())),
-			u->getFileSize(), u->getPos(), (GET_TICK() - u->getStart()), GET_TIME());
+			u->getFileSize(), u->getAverageSpeed(), GET_TIME());
 		{
 			Lock l(cs);
 			uploads.push_back(item);
@@ -170,5 +169,5 @@ bool FinishedManager::handlePartialRequest(const TTHValue& tth, vector<uint16_t>
 
 /**
  * @file
- * $Id: FinishedManager.cpp 373 2008-02-06 17:23:49Z bigmuscle $
+ * $Id: FinishedManager.cpp 393 2008-06-25 18:33:20Z BigMuscle $
  */

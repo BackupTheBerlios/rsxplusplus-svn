@@ -215,13 +215,13 @@ void DetectionEntryDlg::updateVars() {
 	int it = ctrlParams.GetItemCount();
 	string name, regexp;
 	TCHAR pbuf[1024];
-	curEntry.infMap.clear();
+	curEntry.defaultMap.clear();
 	for(int i = 0; i < it; ++i) {
 		ctrlParams.GetItemText(i, 0, pbuf, 1024);
 		name = Text::fromT(pbuf);
 		ctrlParams.GetItemText(i, 1, pbuf, 1024);
 		regexp = Text::fromT(pbuf);
-		curEntry.infMap.push_back(make_pair(name, regexp));
+		curEntry.defaultMap.push_back(make_pair(name, regexp));
 	}
 
 	if(idChanged) {
@@ -245,10 +245,10 @@ void DetectionEntryDlg::updateControls() {
 		ctrlCheat.SetWindowText(Text::toT(curEntry.cheat).c_str());
 
 		// params...
-		if(!curEntry.infMap.empty()) {
+		if(!curEntry.defaultMap.empty()) {
 			TStringList cols;
-			const DetectionEntry::StringMapV& lst = curEntry.infMap;
-			for(DetectionEntry::StringMapV::const_iterator j = lst.begin(); j != lst.end(); ++j) {
+			const DetectionEntry::INFMap& lst = curEntry.defaultMap;
+			for(DetectionEntry::INFMap::const_iterator j = lst.begin(); j != lst.end(); ++j) {
 				cols.push_back(Text::toT(j->first));
 				cols.push_back(Text::toT(j->second));
 				ctrlParams.insert(cols);

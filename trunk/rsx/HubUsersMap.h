@@ -82,35 +82,43 @@ private:
 	//myinfo check engine
 	class ThreadedMyINFOCheck : public Thread, public FastAlloc<ThreadedMyINFOCheck> {
 	public:
-		ThreadedMyINFOCheck() : client(NULL), inThread(false) { };
+		ThreadedMyINFOCheck() : client(NULL), stop(true) { };
 		~ThreadedMyINFOCheck() { cancel(); }
 
 		void cancel() { 
-			inThread = false;
-			join();
+			stop = true;
+			//join();
 		}
 
-		bool isRunning() const { return inThread; }
+		bool isRunning() const { return !stop; }
 
 		void startCheck(Client* _c) {
-			if(_c && !inThread) {
+			if(_c && stop) {
 				client = _c;
 				start();
 			}
 		}
 
 	private:
+		CriticalSection cs;
 		int run() {
-			inThread = true;
+			stop = false;
 			setThreadPriority(Thread::HIGH);
-			if(client && client->isConnected() && !client->getCheckedAtConnect()) {
-				//get users, release lock and then check them
+			if(client && client->isConnected()) {
+				client->setCheckedAtConnect(true);
+				// get users, release lock and then check them
 				OnlineUser::List ul;
 				{
 					Lock l(client->cs);
 					client->getUserList(ul);
 				}
+				Lock l(cs);
 				for(OnlineUser::List::const_iterator i = ul.begin(); i != ul.end(); ++i) {
+					//if(stop) {
+					//	// don't let to not execute it
+					//	(*i)->dec();
+					//	continue;
+					//}
 					OnlineUser* ou = *i;
 					if(ou->isCheckable()) {
 						string report = ou->getIdentity().myInfoDetect(*ou);
@@ -122,18 +130,17 @@ private:
 					ou->dec();
 					sleep(1);
 				}
-				client->setCheckedAtConnect(true);
 			}
 			return 0;
 		}
-		bool inThread;
+		bool stop;
 		Client* client;
 	}myInfoEngine;
 
 	//clients check engine
 	class ThreadedCheck : public Thread, public FastAlloc<ThreadedCheck> {
 	public:
-		ThreadedCheck(BaseMap* _u, Client* _c) : client(_c), users(_u), 
+		ThreadedCheck(HubUsersMap* _u, Client* _c) : client(_c), users(_u), 
 			keepChecking(false), canCheckFilelist(false), inThread(false), checkOnConnect(false) { };
 		~ThreadedCheck() {
 			keepChecking = inThread = false;
@@ -219,6 +226,8 @@ private:
 		int run() {
 			inThread = true;
 			setThreadPriority(Thread::LOW);
+			while(users->myInfoEngine.isRunning())
+				sleep(10);
 			if(checkOnConnect && !keepChecking) { 
 				Thread::sleep(RSXSETTING(CHECK_DELAY));
 				keepChecking = true;
@@ -283,9 +292,14 @@ private:
 		bool inThread;
 
 		Client* client;
-		BaseMap* users;
+		HubUsersMap* users;
 	}*clientEngine;
 };
 
 } // namespace dcpp
 #endif
+
+/**
+ * @file
+ * $Id$
+ */

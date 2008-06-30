@@ -86,14 +86,19 @@ public:
 		if(!userCommands.empty()) {
 			subMenu.DestroyMenu();
 			subMenu.m_hMenu = NULL;
-			subMenu.CreatePopupMenu();
+
+			menu.AppendMenu(MF_SEPARATOR);
+			
+			if(BOOLSETTING(UC_SUBMENU)) {
+				subMenu.CreatePopupMenu();				
+				subMenu.InsertSeparatorLast(TSTRING(SETTINGS_USER_COMMANDS));
+				
+				menu.AppendMenu(MF_POPUP, (UINT)(HMENU)subMenu, CTSTRING(SETTINGS_USER_COMMANDS));
+			}
+			
+			CMenuHandle cur = BOOLSETTING(UC_SUBMENU) ? subMenu.m_hMenu : menu.m_hMenu; 
 			extraItems = 1;
 
-			if(!(op && (ctx != UserCommand::CONTEXT_HUB))) //hack... maybe todo
-				menu.AppendMenu(MF_SEPARATOR);
-			menu.AppendMenu(MF_POPUP, (UINT)(HMENU)subMenu, CTSTRING(SETTINGS_USER_COMMANDS));
-			subMenu.InsertSeparatorLast(TSTRING(SETTINGS_USER_COMMANDS));
-			CMenuHandle cur = subMenu.m_hMenu;
 			for(UserCommand::List::iterator ui = userCommands.begin(); ui != userCommands.end(); ++ui) {
 				UserCommand& uc = *ui;
 				if(uc.getType() == UserCommand::TYPE_SEPARATOR) {
@@ -105,7 +110,7 @@ public:
 						m++;
 					}
 				} else if(uc.getType() == UserCommand::TYPE_RAW || uc.getType() == UserCommand::TYPE_RAW_ONCE) {
-					cur = subMenu.m_hMenu;
+					cur = BOOLSETTING(UC_SUBMENU) ? subMenu.m_hMenu : menu.m_hMenu;
 					StringTokenizer<tstring> t(Text::toT(uc.getName()), _T('\\'));
 					for(TStringIter i = t.getTokens().begin(); i != t.getTokens().end(); ++i) {
 						if(i+1 == t.getTokens().end()) {
@@ -151,5 +156,5 @@ private:
 
 /**
  * @file
- * $Id: UCHandler.h 330 2007-10-13 22:26:06Z bigmuscle $
+ * $Id: UCHandler.h 393 2008-06-25 18:33:20Z BigMuscle $
  */

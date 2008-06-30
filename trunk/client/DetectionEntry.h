@@ -23,7 +23,7 @@ namespace dcpp {
 
 class DetectionEntry {
 public:
-	typedef deque<pair<string, string> > StringMapV;
+	typedef deque<pair<string, string> > INFMap;
 
 	enum {
 		GREEN = 1,
@@ -35,7 +35,9 @@ public:
 	~DetectionEntry() { };
 
 	uint32_t Id;
-	StringMapV infMap;
+	INFMap defaultMap;
+	INFMap adcMap;
+	INFMap nmdcMap;
 
 	string name;
 	string cheat;

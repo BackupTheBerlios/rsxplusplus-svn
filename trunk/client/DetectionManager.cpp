@@ -72,14 +72,20 @@ void DetectionManager::load() {
 							xml.resetCurrentChild();
 						}
 
-						if(xml.findChild("InfFields")) {
+						if(xml.findChild("INFMaps")) {
 							xml.stepIn();
 							while(xml.findChild("InfField")) {
 								const string& field = xml.getChildAttrib("Field");
 								const string& pattern = xml.getChildAttrib("Pattern");
+								const string& type = xml.getChildAttrib("Protocol", "both");
 								if(field.empty() || pattern.empty())
 									continue;
-								item.infMap.push_back(make_pair(field, pattern));
+								if(type == "both")
+									item.defaultMap.push_back(make_pair(field, pattern));
+								else if(type == "nmdc")
+									item.nmdcMap.push_back(make_pair(field, pattern));
+								else if(type == "adc")
+									item.adcMap.push_back(make_pair(field, pattern));
 							}
 							xml.stepOut();
 							xml.resetCurrentChild();
@@ -181,7 +187,7 @@ void DetectionManager::importProfiles(SimpleXML& xml) {
 					item.name = xml.getChildData();
 					xml.resetCurrentChild();
 				} if(xml.findChild("Version") && !xml.getChildData().empty()) {
-					item.infMap.push_back(make_pair("VE", xml.getChildData()));
+					item.nmdcMap.push_back(make_pair("VE", xml.getChildData()));
 					xml.resetCurrentChild();
 				} if(xml.findChild("Tag") && !xml.getChildData().empty()) {
 					string tagExp = xml.getChildData();
@@ -190,7 +196,7 @@ void DetectionManager::importProfiles(SimpleXML& xml) {
 						tagExp.replace(i, 10, "%[VE]");
 					}
 
-					item.infMap.push_back(make_pair("TA", tagExp));
+					item.nmdcMap.push_back(make_pair("TA", tagExp));
 					xml.resetCurrentChild();
 				} if(xml.findChild("ExtendedTag") && !xml.getChildData().empty()) {
 					string extTagExp = xml.getChildData();
@@ -199,10 +205,10 @@ void DetectionManager::importProfiles(SimpleXML& xml) {
 						extTagExp.replace(i, 11, "%[VE]");
 					}
 
-					item.infMap.push_back(make_pair("DE", extTagExp));
+					item.nmdcMap.push_back(make_pair("DE", extTagExp));
 					xml.resetCurrentChild();
 				} if(xml.findChild("Lock") && !xml.getChildData().empty()) {
-					item.infMap.push_back(make_pair("LO", xml.getChildData()));
+					item.nmdcMap.push_back(make_pair("LO", xml.getChildData()));
 					xml.resetCurrentChild();
 				} if(xml.findChild("Pk") && !xml.getChildData().empty()) {
 					string pkExp = xml.getChildData();
@@ -211,19 +217,19 @@ void DetectionManager::importProfiles(SimpleXML& xml) {
 						pkExp.replace(i, 10, "%[PKVE]");
 					}
 
-					item.infMap.push_back(make_pair("PK", pkExp));
+					item.nmdcMap.push_back(make_pair("PK", pkExp));
 					xml.resetCurrentChild();
 				} if(xml.findChild("Supports") && !xml.getChildData().empty()) {
-					item.infMap.push_back(make_pair("SU", xml.getChildData()));
+					item.nmdcMap.push_back(make_pair("SU", xml.getChildData()));
 					xml.resetCurrentChild();
 				} if(xml.findChild("TestSUR") && !xml.getChildData().empty()) {
-					item.infMap.push_back(make_pair("TS", xml.getChildData()));
+					item.nmdcMap.push_back(make_pair("TS", xml.getChildData()));
 					xml.resetCurrentChild();
 				} if(xml.findChild("UserConCom") && !xml.getChildData().empty()) {
-					item.infMap.push_back(make_pair("UC", xml.getChildData()));
+					item.nmdcMap.push_back(make_pair("UC", xml.getChildData()));
 					xml.resetCurrentChild();
 				} if(xml.findChild("Status") && !xml.getChildData().empty()) {
-					item.infMap.push_back(make_pair("ST", xml.getChildData()));
+					item.nmdcMap.push_back(make_pair("ST", xml.getChildData()));
 					xml.resetCurrentChild();
 				} if(xml.findChild("CheatingDescription")) {
 					if(!xml.getChildData().empty()) {
@@ -239,7 +245,7 @@ void DetectionManager::importProfiles(SimpleXML& xml) {
 					item.checkMismatch = (Util::toInt(xml.getChildData()) > 0);
 					xml.resetCurrentChild();
 				} if(xml.findChild("Connection") && !xml.getChildData().empty()) {
-					item.infMap.push_back(make_pair("CO", xml.getChildData()));
+					item.nmdcMap.push_back(make_pair("CO", xml.getChildData()));
 					xml.resetCurrentChild();
 				} if(xml.findChild("Comment")) {
 					item.comment = xml.getChildData();
@@ -285,14 +291,33 @@ void DetectionManager::save() {
 					xml.addTag("IsEnabled", i->isEnabled);
 					xml.addTag("CheckMismatch", i->checkMismatch);
 
-					xml.addTag("InfFields");
+					xml.addTag("INFMaps");
 					xml.stepIn();
 					{
-						const DetectionEntry::StringMapV& InfMap = i->infMap;
-						for(DetectionEntry::StringMapV::const_iterator j = InfMap.begin(); j != InfMap.end(); ++j) {
+						const DetectionEntry::INFMap& InfMap = i->defaultMap;
+						for(DetectionEntry::INFMap::const_iterator j = InfMap.begin(); j != InfMap.end(); ++j) {
 							xml.addTag("InfField");
 							xml.addChildAttrib("Field", j->first);
 							xml.addChildAttrib("Pattern", j->second);
+							xml.addChildAttrib("Protocol", string("both"));
+						}
+					}
+					{
+						const DetectionEntry::INFMap& InfMap = i->nmdcMap;
+						for(DetectionEntry::INFMap::const_iterator j = InfMap.begin(); j != InfMap.end(); ++j) {
+							xml.addTag("InfField");
+							xml.addChildAttrib("Field", j->first);
+							xml.addChildAttrib("Pattern", j->second);
+							xml.addChildAttrib("Protocol", string("nmdc"));
+						}
+					}
+					{
+						const DetectionEntry::INFMap& InfMap = i->adcMap;
+						for(DetectionEntry::INFMap::const_iterator j = InfMap.begin(); j != InfMap.end(); ++j) {
+							xml.addTag("InfField");
+							xml.addChildAttrib("Field", j->first);
+							xml.addChildAttrib("Pattern", j->second);
+							xml.addChildAttrib("Protocol", string("adc"));
 						}
 					}
 					xml.stepOut();
@@ -375,18 +400,36 @@ void DetectionManager::validateItem(const DetectionEntry& e, bool checkIds) thro
 		}
 	}
 
+	if(e.defaultMap.empty() && e.adcMap.empty() && e.nmdcMap.empty())
+		throw Exception("You have to fill at least one map (Both, ADC or NMDC protocol)");
+
 	{
-		const DetectionEntry::StringMapV& inf = e.infMap;
-		if(inf.empty())
-			throw Exception("INF Map can't be empty!");
-		for(DetectionEntry::StringMapV::const_iterator i = inf.begin(); i != inf.end(); ++i) {
+		const DetectionEntry::INFMap& inf = e.defaultMap;
+		for(DetectionEntry::INFMap::const_iterator i = inf.begin(); i != inf.end(); ++i) {
 			if(i->first == Util::emptyString)
 				throw Exception("INF entry name can't be empty!");
 			else if(i->second == Util::emptyString)
 				throw Exception("INF entry pattern can't be empty!");
 		}
 	}
-
+	{
+		const DetectionEntry::INFMap& inf = e.nmdcMap;
+		for(DetectionEntry::INFMap::const_iterator i = inf.begin(); i != inf.end(); ++i) {
+			if(i->first == Util::emptyString)
+				throw Exception("INF entry name can't be empty!");
+			else if(i->second == Util::emptyString)
+				throw Exception("INF entry pattern can't be empty!");
+		}
+	}
+	{
+		const DetectionEntry::INFMap& inf = e.adcMap;
+		for(DetectionEntry::INFMap::const_iterator i = inf.begin(); i != inf.end(); ++i) {
+			if(i->first == Util::emptyString)
+				throw Exception("INF entry name can't be empty!");
+			else if(i->second == Util::emptyString)
+				throw Exception("INF entry pattern can't be empty!");
+		}
+	}
 	if(e.name.empty()) throw Exception("Item's name can't be empty!");
 }
 

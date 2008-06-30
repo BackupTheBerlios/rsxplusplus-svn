@@ -27,27 +27,18 @@
 #include "PropPage.h"
 //RSX++
 #include <atlctrlx.h>
-#include "../client/HttpConnection.h"
 #include "../client/SimpleXML.h"
 #include "../client/version.h"
+#include "../rsx/HTTPDownloadManager.h"
 //END
 
-class NetworkPage : public CPropertyPage<IDD_NETWORKPAGE>, public PropPage, private HttpConnectionListener
+class NetworkPage : public CPropertyPage<IDD_NETWORKPAGE>, public PropPage
 {
 public:
 	NetworkPage(SettingsManager *s) : PropPage(s) {
 		SetTitle(CTSTRING(SETTINGS_NETWORK));
 		m_psp.dwFlags |= PSP_RTLREADING;
-		c = new HttpConnection; //RSX++
 	}
-	//RSX++
-	~NetworkPage() {
-		if(c != NULL) {
-			delete c;
-			c = NULL;
-		}
-	}
-	//END
 
 	BEGIN_MSG_MAP(NetworkPage)
 		MESSAGE_HANDLER(WM_INITDIALOG, onInitDialog)
@@ -79,56 +70,12 @@ private:
 
 	//RSX++
 	CHyperLink ConnCheckUrl;
-	HttpConnection* c;
 	string downBuf;
 	//END
 	void fixControls();
 	void getAddresses();
 
-	//RSX++
-	void on(HttpConnectionListener::Data, HttpConnection* /*conn*/, const uint8_t* buf, size_t len) throw() {
-		downBuf = string((const char*)buf, len);
-	}
-
-	void on(HttpConnectionListener::Complete, HttpConnection* conn, const string&) throw() {
-		conn->removeListener(this);
-		if(!downBuf.empty()) {
-			SimpleXML xml;
-			xml.fromXML(downBuf);
-			if(xml.findChild("html")) {
-				xml.stepIn();
-				if(xml.findChild("body")) {
-					string x = xml.getChildData().substr(20);
-					if(Util::isPrivateIp(x)) {
-							CheckRadioButton(IDC_DIRECT, IDC_FIREWALL_PASSIVE, IDC_FIREWALL_PASSIVE);
-							fixControls();
-					}
-					SetDlgItemText(IDC_SERVER, Text::toT(x).c_str());
-					//::MessageBox(NULL, _T("IP fetched: checkip.dyndns.org"), _T("Debug"), MB_OK);
-				} else {
-					if(Util::isPrivateIp(Util::getLocalIp())) {
-							CheckRadioButton(IDC_DIRECT, IDC_FIREWALL_PASSIVE, IDC_FIREWALL_PASSIVE);
-							fixControls();
-					}
-					SetDlgItemText(IDC_SERVER, Text::toT(Util::getLocalIp()).c_str());
-				}
-			}
-		}
-		::EnableWindow(GetDlgItem(IDC_GETIP), true);
-	}
-
-	void on(HttpConnectionListener::Failed, HttpConnection* conn, const string& /*aLine*/) throw() {
-		conn->removeListener(this);
-		{
-			if(Util::isPrivateIp(Util::getLocalIp())) {
-					CheckRadioButton(IDC_DIRECT, IDC_FIREWALL_PASSIVE, IDC_FIREWALL_PASSIVE);
-					fixControls();
-			}
-			SetDlgItemText(IDC_SERVER, Text::toT(Util::getLocalIp()).c_str());	
-		}
-		::EnableWindow(GetDlgItem(IDC_GETIP), true);
-	}
-	//END
+	void onHttpRequest(string buf, bool isFailed); //RSX++
 };
 
 #endif // !defined(NETWORK_PAGE_H)

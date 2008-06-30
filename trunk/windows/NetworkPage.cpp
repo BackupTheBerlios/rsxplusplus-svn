@@ -249,14 +249,50 @@ LRESULT NetworkPage::onClickedActive(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*
 //RSX++
 LRESULT NetworkPage::onGetIP(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndCtl */, BOOL& /* bHandled */) {
 	::EnableWindow(GetDlgItem(IDC_GETIP), false);
-	c->addListener(this);
-	c->downloadFile("http://checkip.dyndns.org/");
+	HTTPDownloadManager::getInstance()->addRequest(boost::bind(&NetworkPage::onHttpRequest, this, _1, _2), "http://checkip.dyndns.org/");
 	return 0;
 }
 
 LRESULT NetworkPage::onCheckConn(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
-	write();	
-	WinUtil::openLink(_T("http://connect.majestyc.net/?i=") + Text::toT(SETTING(EXTERNAL_IP).c_str()) + _T("&t=") + Text::toT(Util::toString(SETTING(TCP_PORT))).c_str() + _T("&u=") + Text::toT(Util::toString(SETTING(UDP_PORT))).c_str() + _T("&c=pwdc"));
+	write();
+	WinUtil::openLink(Text::toT("http://connect.majestyc.net/?t=" + Util::toString(SETTING(TCP_PORT)) + "&u=" + Util::toString(SETTING(UDP_PORT))));
 	return 0;
+}
+
+void NetworkPage::onHttpRequest(string buf, bool isFailed) {
+	if(!isFailed) {
+		if(!buf.empty()) {
+			try {
+				SimpleXML xml;
+				xml.fromXML(buf);
+				if(xml.findChild("html")) {
+					xml.stepIn();
+					if(xml.findChild("body")) {
+						string x = xml.getChildData().substr(20);
+						if(Util::isPrivateIp(x)) {
+								CheckRadioButton(IDC_DIRECT, IDC_FIREWALL_PASSIVE, IDC_FIREWALL_PASSIVE);
+								fixControls();
+						}
+						SetDlgItemText(IDC_SERVER, Text::toT(x).c_str());
+					} else {
+						if(Util::isPrivateIp(Util::getLocalIp())) {
+								CheckRadioButton(IDC_DIRECT, IDC_FIREWALL_PASSIVE, IDC_FIREWALL_PASSIVE);
+								fixControls();
+						}
+						SetDlgItemText(IDC_SERVER, Text::toT(Util::getLocalIp()).c_str());
+					}
+				}
+			} catch(const SimpleXMLException&) {
+				//...
+			}
+		}
+	} else {
+		if(Util::isPrivateIp(Util::getLocalIp())) {
+			CheckRadioButton(IDC_DIRECT, IDC_FIREWALL_PASSIVE, IDC_FIREWALL_PASSIVE);
+			fixControls();
+		}
+		SetDlgItemText(IDC_SERVER, Text::toT(Util::getLocalIp()).c_str());
+	}
+	::EnableWindow(GetDlgItem(IDC_GETIP), true);
 }
 //END

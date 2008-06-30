@@ -82,8 +82,8 @@ void ChatCtrl::AppendText(const Identity& i, const tstring& sMyNick, const tstri
 	GetScrollInfo(SB_VERT, &si);
 	GetScrollPos(&pt);
 
-	long lSelBegin = 0, lSelEnd = 0;
-	long lSelBeginSaved, lSelEndSaved;
+	LONG lSelBegin = 0, lSelEnd = 0;
+	LONG lSelBeginSaved, lSelEndSaved;
 	GetSel(lSelBeginSaved, lSelEndSaved);
 
 	// Insert TimeStamp and format with default style
@@ -141,7 +141,7 @@ void ChatCtrl::AppendText(const Identity& i, const tstring& sMyNick, const tstri
 			bool isFavorite = FavoriteManager::getInstance()->isFavoriteUser(i.getUser());
 			bool isProtected = client ? i.isProtectedUser(*client, false) : i.isSet("PR"); //RSX++
 			if(BOOLSETTING(BOLD_AUTHOR_MESS) || isFavorite || i.isOp() || isProtected) {
-				SetSel(lSelBegin, lSelBegin+iLen+1);
+				SetSel(lSelBegin, lSelBegin + iLen + 1);
 				SetSelectionCharFormat(cf);
 				SetSel(lSelBegin + iLen + 1, lSelBegin + iLen + iAuthorLen);
 				if(isFavorite){
@@ -162,7 +162,8 @@ void ChatCtrl::AppendText(const Identity& i, const tstring& sMyNick, const tstri
 		bool thirdPerson = false;
         switch(sMsg[0]) {
 			case _T('*'):
-				thirdPerson = sMsg[1] == _T(' ');
+				if(sMsg[1] != _T(' ')) break;
+				thirdPerson = true;
             case _T('<'):
 				sText = _tcschr(sText + 1 + (int)thirdPerson, thirdPerson ? _T(' ') : _T('>'));
                 if(sText != NULL) {
@@ -311,7 +312,7 @@ void ChatCtrl::AppendTextOnly(const tstring& sMyNick, const TCHAR* sText, CHARFO
 
 		if(	!SETTING(CHATNAMEFILE).empty() && !BOOLSETTING(SOUNDS_DISABLED) &&
 			!sAuthor.empty() && (Util::stricmp(sAuthor.c_str(), sNick) != 0)) {
-				PlaySound(Text::toT(SETTING(CHATNAMEFILE)).c_str(), NULL, SND_FILENAME | SND_ASYNC);	 	
+				::PlaySound(Text::toT(SETTING(CHATNAMEFILE)).c_str(), NULL, SND_FILENAME | SND_ASYNC);	 	
         }
 	}
 
@@ -450,11 +451,11 @@ bool ChatCtrl::HitNick(const POINT& p, tstring& sNick, int& iBegin, int& iEnd) {
 
 	GetTextRange(lSelBegin, lSelEnd, &sText[0]);
 
-	int iLeft = 0, iRight = 0, iCRLF = sText.size(), iPos = sText.find(_T('<'));
+	size_t iLeft = 0, iRight = 0, iCRLF = sText.size(), iPos = sText.find(_T('<'));
 	if(iPos >= 0) {
 		iLeft = iPos + 1;
 		iPos = sText.find(_T('>'), iLeft);
-		if(iPos < 0) 
+		if(iPos == tstring::npos) 
 			return false;
 
 		iRight = iPos - 1;
@@ -526,11 +527,11 @@ bool ChatCtrl::HitIP(const POINT& p, tstring& sIP, int& iBegin, int& iEnd) {
 	}
 
 	sText += _T('.');
-	int iFindBegin = 0, iPos = -1, iEnd2 = 0;
+	size_t iFindBegin = 0, iPos = tstring::npos, iEnd2 = 0;
 	bool boOK = true;
 	for(int i = 0; i < 4; i++) {
 		iPos = sText.find(_T('.'), iFindBegin);
-		if(iPos < 0) {
+		if(iPos == tstring::npos) {
 			boOK = false;
 			break;
 		}

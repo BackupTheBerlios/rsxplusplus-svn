@@ -139,6 +139,7 @@ void NmdcHub::putUser(const string& aNick) {
 }
 
 void NmdcHub::clearUsers() {
+	stopMyINFOCheck(); //RSX++
 	NickMap u2;
 	
 	{
@@ -494,8 +495,8 @@ void NmdcHub::onLine(const string& aLine) throw() {
 			}
 		}
 		//RSX++ // $MyINFO check
-		if(getCheckMyInfo()) {
-			const string& report = u.getIdentity().myInfoDetect(u);
+		if(getCheckedAtConnect() && getCheckMyInfo()) {
+			string report = u.getIdentity().myInfoDetect(u);
 			if(!report.empty()) {
 				updated(u);
 				cheatMessage(report);
@@ -788,9 +789,9 @@ void NmdcHub::onLine(const string& aLine) throw() {
 
 			//RSX++
 			if(isOp()) {
-				//if(getCheckMyInfo()) {
-				//	users.startMyINFOCheck(this);
-				//}
+				if(!getCheckedAtConnect() && getCheckMyInfo()) {
+					users.startMyINFOCheck(this);
+				}
 				if(getCheckOnConnect()) {
 					users.startCheck(this, getCheckClients(), getCheckFilelists(), true);
 				}

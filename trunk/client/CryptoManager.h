@@ -42,7 +42,7 @@ public:
 	const string& getPk() const  { return pk; }
 	bool isExtended(const string& aLock) const { return strncmp(aLock.c_str(), "EXTENDEDPROTOCOL", 16) == 0; }
 
-	void decodeBZ2(const uint8_t* is, size_t sz, string& os) throw(CryptoException);
+	void decodeBZ2(const uint8_t* is, unsigned int sz, string& os) throw(CryptoException);
 
 	SSLSocket* getClientSocket(bool allowUntrusted) throw(SocketException);
 	SSLSocket* getServerSocket(bool allowUntrusted) throw(SocketException);
@@ -83,5 +83,5 @@ private:
 
 /**
  * @file
- * $Id: CryptoManager.h 373 2008-02-06 17:23:49Z bigmuscle $
+ * $Id: CryptoManager.h 393 2008-06-25 18:33:20Z BigMuscle $
  */

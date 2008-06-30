@@ -1,3 +1,12 @@
+** SVN 84
+ ** added adccommands.lua
+ ** changes in DetectionEntry - +2 INFMaps, now there are fields for 2 protocols + for both (only one used at check)
+ ** some code clean-up
+ ** some improvements on checking external ip
+ ** prevent crash on ip update
+TODO: remove MyINFO check and add replacement
+partial commit, crise - do the job ;)
+
 ** SVN 83
  ** updated OpenSSL to 0.9.8h (32 & 64 bit libs)
  ** updated bats in stlport dir, added some cleanup parts

@@ -20,30 +20,23 @@
 #define STDAFX_H
 
 #define _WIN32_WINNT 0x0501
+#define _WIN32_IE 0x0501
+#define WINVER 0x501
+
 #define STRICT
 #define WIN32_LEAN_AND_MEAN
 
-#ifdef _MSC_VER
-typedef signed __int8 int8_t;
-typedef signed __int16 int16_t;
-typedef signed __int32 int32_t;
-typedef signed __int64 int64_t;
-
-typedef unsigned __int8 uint8_t;
-typedef unsigned __int16 uint16_t;
-typedef unsigned __int32 uint32_t;
-typedef unsigned __int64 uint64_t;
-#endif
+#include <rsxppString.hpp>
+#include <rsxppStringW.hpp>
 
 #include <windows.h>
 #include <tchar.h>
-
-#include <algorithm>
 #include <string>
-#include <vector>
-//#include <set>
+#include <PluginAPI.h>
 
 using namespace std;
+using namespace dcpp;
+using namespace rsxpp;
 
 #endif
 

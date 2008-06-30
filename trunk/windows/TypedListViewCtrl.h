@@ -139,7 +139,7 @@ public:
 		tstring InfoTip(Util::emptyStringT);
 		tstring buffer;
 
-		size_t BUF_SIZE = 300;
+#define BUF_SIZE 300
 		buffer.resize(BUF_SIZE);
 		
 		LV_COLUMN lvCol;
@@ -687,7 +687,7 @@ public:
 		return 0;
 	} 
 
-	void Collapse(T* parent, size_t itemPos) {
+	void Collapse(T* parent, int itemPos) {
 		SetRedraw(false);
 		const vector<T*>& children = findChildren(parent->getGroupCond());
 		for(vector<T*>::const_iterator i = children.begin(); i != children.end(); i++) {
@@ -698,7 +698,7 @@ public:
 		SetRedraw(true);
 	}
 
-	void Expand(T* parent, size_t itemPos) {
+	void Expand(T* parent, int itemPos) {
 		SetRedraw(false);
 		const vector<T*>& children = findChildren(parent->getGroupCond());
 		if(children.size() > (size_t)(uniqueParent ? 1 : 0)) {
@@ -999,5 +999,5 @@ const vector<T*> TypedTreeListViewCtrl<T, ctrlId, key, hashFunc, equalKey>::empt
 
 /**
  * @file
- * $Id: TypedListViewCtrl.h 392 2008-06-21 21:10:31Z BigMuscle $
+ * $Id: TypedListViewCtrl.h 393 2008-06-25 18:33:20Z BigMuscle $
  */

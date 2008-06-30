@@ -42,6 +42,7 @@ namespace dcpp {
 FastCriticalSection Identity::cs;
 OnlineUser::OnlineUser(const UserPtr& ptr, Client& client_, uint32_t sid_) : identity(ptr, sid_), client(client_), isInList(false) { 
 	inc();
+	identity.isProtectedUser(client, true); //RSX++ // run init check
 }
 
 void Identity::getParams(StringMap& sm, const string& prefix, bool compatibility) const {
@@ -268,7 +269,7 @@ string Identity::updateClientType(OnlineUser& ou) {
 			ClientManager::getInstance()->sendAction(ou, RSXSETTING(LISTLEN_MISMATCH));
 			logDetect(true);
 			return report;
-		} else if(strncmp(getTag().c_str(), "<++ V:", 6) == 0 && versionf < (float)1.001 && versionf >= (float)0.69) {
+		} else if(strncmp(getTag().c_str(), "<++ V:", 6) == 0 && versionf < 1.001f && versionf >= 0.69f) {
 			//suppose to be dc++  >= 0.69
 			if(get("LL") != "42" && !get("LL").empty()) {
 				setClientType("Faked DC++");
@@ -296,21 +297,30 @@ string Identity::updateClientType(OnlineUser& ou) {
 		const DetectionEntry& entry = *i;
 		if(!entry.isEnabled)
 			continue;
-		DetectionEntry::StringMapV INFList = entry.infMap;
-		bool con = false;
+		DetectionEntry::INFMap INFList;
+		if(!entry.defaultMap.empty()) {
+			// fields to check for both, adc and nmdc
+			INFList = entry.defaultMap;
+		} else if(getUser()->isSet(User::NMDC)) {
+			INFList = entry.nmdcMap;
+		} else {
+			INFList = entry.adcMap;
+		}
+
+		bool _continue = false;
 
 		DETECTION_DEBUG("\tChecking profile: " + entry.name);
 
-		for(DetectionEntry::StringMapV::const_iterator j = INFList.begin(); j != INFList.end(); ++j) {
+		for(DetectionEntry::INFMap::const_iterator j = INFList.begin(); j != INFList.end(); ++j) {
 			string aPattern = Util::formatRegExp(j->second, params);
 			string aField = getDetectionField(j->first);
-			DETECTION_DEBUG("Pattern: " + aPattern + " Field: " + aField);
+			//DETECTION_DEBUG("Pattern: " + aPattern + " Field: " + aField);
 			if(!RegexUtil::match(aField, aPattern)) {
-				con = true;
+				_continue = true;
 				break;
 			}
 		}
-		if(con)
+		if(_continue)
 			continue;
 
 		DETECTION_DEBUG("Client found: " + entry.name + " time taken: " + Util::toString(GET_TICK()-tick) + " milliseconds");
@@ -363,11 +373,11 @@ string Identity::getPkVersion() const {
 }
 
 string Identity::myInfoDetect(OnlineUser& ou) {
-	StringMap params;
-	const MyinfoProfile::List& lst = ClientProfileManager::getInstance()->getMyinfoProfiles(params);
+	StringMap params = DetectionManager::getInstance()->getParams();
+	const MyinfoProfile::List& lst = ClientProfileManager::getInstance()->getMyinfoProfiles();
 	
 	//empty status = adc user, here status is empty till user change it
-	const string& fixed_status = getStatus().empty() ? "0" : getStatus(); 
+	string fixed_status = getStatus().empty() ? "0" : getStatus(); 
 	checkTagState(ou);
 
 	for(MyinfoProfile::List::const_iterator i = lst.begin(); i != lst.end(); ++i) {
@@ -399,8 +409,12 @@ string Identity::myInfoDetect(OnlineUser& ou) {
 		if(!RegexUtil::match(getNick(), cq.getNick()))									{ continue; } 
 		if(!RegexUtil::match(getEmail(), cq.getEmail()))								{ continue; } 
 
-		if(verTagExp.find("%[version]") != string::npos) {	version = RegexUtil::getVersion(verTagExp, getTag()); }
-		if(extTagExp.find("%[version2]") != string::npos) {	extraVersion = RegexUtil::getVersion(extTagExp, getDescription()); }
+		if(verTagExp.find("%[version]") != string::npos) {
+			version = RegexUtil::getVersion(verTagExp, getTag());
+		}
+		if(extTagExp.find("%[version2]") != string::npos) {
+			extraVersion = RegexUtil::getVersion(extTagExp, getDescription());
+		}
 		if(!(cq.getVersion().empty()) && !RegexUtil::match(version, cq.getVersion()))	{ continue; }
 
 		if(cq.getUseExtraVersion())
@@ -528,9 +542,9 @@ bool Identity::isPmSpamming() const {
 void Identity::checkIP(OnlineUser& ou) {
 	if(RSXBOOLSETTING(USE_IPWATCH)) {
 		set("IC", "1"); //ip checked, to avoid cheat spam caused by search
-		IPWatch::List& il = IpManager::getInstance()->getWatch();
+		const IPWatch::List& il = IpManager::getInstance()->getWatch();
 		bool matched = false;
-		for(IPWatch::Iter j = il.begin(); j != il.end(); j++) {
+		for(IPWatch::List::const_iterator j = il.begin(); j != il.end(); ++j) {
 			string strToMatch = Util::emptyString;
 			switch((*j)->getMode()) {
 				//case 0: strToMatch = getIp(); break;
@@ -708,8 +722,8 @@ void Identity::checkTagState(OnlineUser& ou) {
 
 void Identity::cleanUser() {
 	resetCounters();
-	set("MT", Util::emptyString); //MyINFO client type
-	set("I4", Util::emptyString); //IP
+	setMyInfoType(Util::emptyString); //MyINFO client type
+	//set("I4", Util::emptyString); //IP
 	setClientType(Util::emptyString); //Client Type
 	set("BC", Util::emptyString); //Bad Client
 	set("BF", Util::emptyString); //Bad FileList
@@ -744,7 +758,7 @@ void Identity::cleanUser() {
 	set("A7", Util::emptyString); //adls files count
 	set("SC", Util::emptyString); //real slots count
 	set("IC", Util::emptyString); //ip checked
-	set("R1", Util::emptyString); //recheck
+	//set("R1", Util::emptyString); //recheck
 }
 
 string Identity::checkSlotsCount(OnlineUser& ou, int realSlots) {

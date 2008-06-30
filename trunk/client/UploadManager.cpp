@@ -507,7 +507,7 @@ void UploadManager::logUpload(const Upload* u) {
 	fire(UploadManagerListener::Complete(), u);
 }
 
-int UploadManager::addFailedUpload(const UserPtr& aUser, const string& file, int64_t pos, int64_t size) {
+size_t UploadManager::addFailedUpload(const UserPtr& aUser, const string& file, int64_t pos, int64_t size) {
 	uint64_t currentTime = GET_TIME();
 	bool found = false;
 
@@ -838,5 +838,5 @@ void UploadManager::abortUpload(const string& aFile, bool waiting){
 
 /**
  * @file
- * $Id: UploadManager.cpp 389 2008-06-08 10:51:15Z BigMuscle $
+ * $Id: UploadManager.cpp 393 2008-06-25 18:33:20Z BigMuscle $
  */

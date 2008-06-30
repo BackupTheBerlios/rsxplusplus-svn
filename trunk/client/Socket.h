@@ -208,17 +208,17 @@ private:
 
 #ifdef _WIN32
 	static int getLastError() {  return ::WSAGetLastError(); }
-	static int checksocket(int ret) { 
+	static socket_t checksocket(socket_t ret) { 
 		if(ret == SOCKET_ERROR) { 
 			throw SocketException(getLastError()); 
 		} 
 		return ret;
 	}
-	static int check(int ret, bool blockOk = false) { 
+	static socket_t check(socket_t ret, bool blockOk = false) { 
 		if(ret == SOCKET_ERROR) {
 			int error = getLastError();
 			if(blockOk && error == WSAEWOULDBLOCK) {
-				return -1;
+				return (socket_t)-1;
 			} else {
 				throw SocketException(error); 
 			}
@@ -254,5 +254,5 @@ private:
 
 /**
  * @file
- * $Id: Socket.h 389 2008-06-08 10:51:15Z BigMuscle $
+ * $Id: Socket.h 393 2008-06-25 18:33:20Z BigMuscle $
  */

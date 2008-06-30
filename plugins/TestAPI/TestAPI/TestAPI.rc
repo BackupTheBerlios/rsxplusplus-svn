@@ -53,8 +53,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 0,0,0,1
- PRODUCTVERSION 0,0,0,1
+ FILEVERSION 3,0,0,0
+ PRODUCTVERSION 3,0,0,0
  FILEFLAGSMASK 0x17L
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -69,13 +69,13 @@ BEGIN
     BEGIN
         BLOCK "041504b0"
         BEGIN
-            VALUE "FileDescription", "TestAPI DLL"
-            VALUE "FileVersion", "0, 0, 0, 1"
+            VALUE "FileDescription", "RSX++ Plugin Example"
+            VALUE "FileVersion", "3, 0, 0, 0"
             VALUE "InternalName", "TestAPI"
             VALUE "LegalCopyright", "Copyright (C) 2007"
             VALUE "OriginalFilename", "TestAPI.dll"
             VALUE "ProductName", "TestAPI DLL"
-            VALUE "ProductVersion", "0, 0, 0, 1"
+            VALUE "ProductVersion", "3, 0, 0, 0"
         END
     END
     BLOCK "VarFileInfo"

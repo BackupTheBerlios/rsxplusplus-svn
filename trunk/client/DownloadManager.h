@@ -69,7 +69,7 @@ public:
 private:
 	void throttleSetup();
 	bool mThrottleEnable;
-	uint32_t mCycleTime;
+	size_t mCycleTime;
 	size_t mBytesSpokenFor, mDownloadLimit, mByteSlice;
 	
 	CriticalSection cs;
@@ -115,5 +115,5 @@ private:
 
 /**
  * @file
- * $Id: DownloadManager.h 378 2008-02-22 10:45:30Z bigmuscle $
+ * $Id: DownloadManager.h 393 2008-06-25 18:33:20Z BigMuscle $
  */

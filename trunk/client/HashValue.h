@@ -42,9 +42,7 @@ struct HashValue : FastAlloc<HashValue<Hasher> >{
 	bool operator!=(const HashValue& rhs) const { return !(*this == rhs); }
 	bool operator==(const HashValue& rhs) const { return memcmp(data, rhs.data, BYTES) == 0; }
 	bool operator<(const HashValue& rhs) const { return memcmp(data, rhs.data, BYTES) < 0; }
-#ifdef NATIVE_MSVC_TR1
-	operator size_t() const { return *(size_t*)data; }
-#endif //NATIVE_MSVC_TR1
+
 	std::string toBase32() const { return Encoder::toBase32(data, BYTES); }
 	std::string& toBase32(std::string& tmp) const { return Encoder::toBase32(data, BYTES, tmp); }
 
@@ -52,17 +50,17 @@ struct HashValue : FastAlloc<HashValue<Hasher> >{
 };
 
 } // namespace dcpp
-#ifndef NATIVE_MSVC_TR1
+
 namespace std {
 template<typename T>
 struct hash<dcpp::HashValue<T> > {
 	size_t operator()(const dcpp::HashValue<T>& rhs) const { return *(size_t*)rhs.data; }
 };
 }
-#endif //NATIVE_MSVC_TR1
+
 #endif // !defined(HASH_VALUE_H)
 
 /**
 * @file
-* $Id: HashValue.h 373 2008-02-06 17:23:49Z bigmuscle $
+* $Id: HashValue.h 389 2008-06-08 10:51:15Z BigMuscle $
 */

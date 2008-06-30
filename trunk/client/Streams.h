@@ -132,7 +132,7 @@ private:
 template<bool managed>
 class LimitedOutputStream : public OutputStream {
 public:
-	LimitedOutputStream(OutputStream* os, int64_t aMaxBytes) : s(os), maxBytes(aMaxBytes) {
+	LimitedOutputStream(OutputStream* os, uint64_t aMaxBytes) : s(os), maxBytes(aMaxBytes) {
 	}
 	virtual ~LimitedOutputStream() throw() { if(managed) delete s; }
 
@@ -151,7 +151,7 @@ public:
 	virtual bool eof() { return maxBytes == 0; }
 private:
 	OutputStream* s;
-	int64_t maxBytes;
+	uint64_t maxBytes;
 };
 
 template<bool managed>
@@ -227,5 +227,5 @@ private:
 
 /**
 * @file
-* $Id: Streams.h 386 2008-05-10 19:29:01Z BigMuscle $
+* $Id: Streams.h 393 2008-06-25 18:33:20Z BigMuscle $
 */

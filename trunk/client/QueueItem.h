@@ -292,7 +292,7 @@ public:
 		return priority;
 	}
 
-	int64_t getAverageSpeed() const;
+	uint64_t getAverageSpeed() const;
 
 private:
 	QueueItem& operator=(const QueueItem&);
@@ -312,5 +312,5 @@ private:
 
 /**
 * @file
-* $Id: QueueItem.h 391 2008-06-21 09:56:36Z BigMuscle $
+* $Id: QueueItem.h 393 2008-06-25 18:33:20Z BigMuscle $
 */

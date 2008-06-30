@@ -112,6 +112,7 @@ void AdcHub::putUser(const uint32_t aSID, bool disconnect) {
 }
 
 void AdcHub::clearUsers() {
+	stopMyINFOCheck(); //RSX++
 	SIDMap tmp;
 	{
 		Lock l(cs);
@@ -183,8 +184,8 @@ void AdcHub::handle(AdcCommand::INF, AdcCommand& c) throw() {
 		u->getUser()->setFlag(User::TLS);
 	}
 	//RSX++ // $MyINFO check
-	if(/*getCheckedAtConnect() && */getCheckMyInfo()) {
-		const string& report = u->getIdentity().myInfoDetect(*u);
+	if(getCheckedAtConnect() && getCheckMyInfo()) {
+		string report = u->getIdentity().myInfoDetect(*u);
 		if(!report.empty()) {
 			cheatMessage(report);
 			updated(*u);
@@ -209,9 +210,9 @@ void AdcHub::handle(AdcCommand::INF, AdcCommand& c) throw() {
 	}
 	//RSX++ // threaded checks
 	if(isOp()) {
-		//if(getCheckMyInfo()) {
-		//	users.startMyINFOCheck(this);
-		//}
+		if(!getCheckedAtConnect() && getCheckMyInfo()) {
+			users.startMyINFOCheck(this);
+		}
 		if(getCheckOnConnect()) {
 			users.startCheck(this, getCheckClients(), getCheckFilelists(), true);
 		}

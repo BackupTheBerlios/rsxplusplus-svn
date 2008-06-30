@@ -29,18 +29,12 @@
 
 namespace dcpp {
 
-IpManager::IpManager() : c(NULL), ipWatchVersion("1.00") { 
-	c = new HttpConnection; 
+IpManager::IpManager() : ipWatchVersion("1.00") { 
+
 }
 
 IpManager::~IpManager() {
 	clearWatchList();
-
-	if(c != NULL) { 
-		c->removeListener(this);
-		delete c; 
-		c = NULL; 
-	}
 }
 
 void IpManager::reloadIpWatch() {
@@ -129,33 +123,41 @@ void IpManager::WatchLoad() {
 	}	
 }
 
-void IpManager::on(HttpConnectionListener::Complete, HttpConnection* conn, const string&) throw() {
-	conn->removeListener(this);
-	if(!downBuf.empty()) {
-		SimpleXML xml;
-		xml.fromXML(downBuf);
-		if(xml.findChild("html")) {
-			xml.stepIn();
-			if(xml.findChild("body")) {
-				string x = xml.getChildData().substr(20);
-				if(Util::isPrivateIp(x)) {
-					SettingsManager::getInstance()->set(SettingsManager::INCOMING_CONNECTIONS, SettingsManager::INCOMING_FIREWALL_PASSIVE);
+void IpManager::onIPUpdate(string buf, bool isFailed) {
+	if(!isFailed) {
+		if(!buf.empty()) {
+			try {
+				SimpleXML xml;
+				xml.fromXML(buf);
+				if(xml.findChild("html")) {
+					xml.stepIn();
+					if(xml.findChild("body")) {
+						string x = xml.getChildData().substr(20);
+						if(Util::isPrivateIp(x)) {
+							SettingsManager::getInstance()->set(SettingsManager::INCOMING_CONNECTIONS, SettingsManager::INCOMING_FIREWALL_PASSIVE);
+						}
+						SettingsManager::getInstance()->set(SettingsManager::EXTERNAL_IP, x);				
+					} else {
+						SettingsManager::getInstance()->set(SettingsManager::EXTERNAL_IP, Util::getLocalIp());
+					}
 				}
-				SettingsManager::getInstance()->set(SettingsManager::EXTERNAL_IP, x);				
-			} else {
-				SettingsManager::getInstance()->set(SettingsManager::EXTERNAL_IP, Util::getLocalIp());
+			} catch(const SimpleXMLException&) {
+				//...
 			}
 		}
-	}
-}
-
-void IpManager::on(HttpConnectionListener::Failed, HttpConnection* conn, const string& /*aLine*/) throw() {
-	conn->removeListener(this);
-	if(!SETTING(NO_IP_OVERRIDE)) {
-		if(Util::isPrivateIp(Util::getLocalIp())) {
-			SettingsManager::getInstance()->set(SettingsManager::INCOMING_CONNECTIONS, SettingsManager::INCOMING_FIREWALL_PASSIVE);
+	} else {
+		if(!SETTING(NO_IP_OVERRIDE)) {
+			if(Util::isPrivateIp(Util::getLocalIp())) {
+				SettingsManager::getInstance()->set(SettingsManager::INCOMING_CONNECTIONS, SettingsManager::INCOMING_FIREWALL_PASSIVE);
+			}
+			SettingsManager::getInstance()->set(SettingsManager::EXTERNAL_IP, Util::getLocalIp());
 		}
-		SettingsManager::getInstance()->set(SettingsManager::EXTERNAL_IP, Util::getLocalIp());
 	}
+
 }
 }; // namespace dcpp
+
+/**
+ * @file
+ * $Id$
+ */

@@ -28,7 +28,7 @@
 
 class PropertiesDlg : public TreePropertySheet {
 public:
-	enum { numPages = 32 }; //RSX++
+	enum { numPages = 33 }; //RSX++
 
 	BEGIN_MSG_MAP(PropertiesDlg)
 		COMMAND_ID_HANDLER(IDOK, onOK)

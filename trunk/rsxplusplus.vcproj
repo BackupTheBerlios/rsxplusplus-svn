@@ -1368,6 +1368,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\windows\SharePage.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\windows\ShellContextMenu.cpp"
 				>
 			</File>
@@ -1437,10 +1441,6 @@
 			</File>
 			<File
 				RelativePath=".\windows\TextFrame.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\windows\ToolbarManager.cpp"
 				>
 			</File>
 			<File
@@ -1861,6 +1861,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\windows\SharePage.h"
+				>
+			</File>
+			<File
 				RelativePath=".\windows\ShellContextMenu.h"
 				>
 			</File>
@@ -1894,10 +1898,6 @@
 			</File>
 			<File
 				RelativePath=".\windows\TextFrame.h"
-				>
-			</File>
-			<File
-				RelativePath=".\windows\ToolbarManager.h"
 				>
 			</File>
 			<File

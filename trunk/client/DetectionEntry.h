@@ -32,7 +32,7 @@ public:
 	};
 
 	DetectionEntry() : Id(0), name(""), cheat(""), comment(""), rawToSend(0), clientFlag(1), checkMismatch(false), isEnabled(true) { };
-	~DetectionEntry() { };
+	~DetectionEntry() { defaultMap.clear(); adcMap.clear(); nmdcMap.clear(); };
 
 	uint32_t Id;
 	INFMap defaultMap;

@@ -53,7 +53,6 @@
 #include "ClientProfileManager.h"
 #include "WebServerManager.h"
 #include "../windows/PopupManager.h"
-#include "../windows/ToolbarManager.h"
 #include "../windows/ExCImage.h"
 
 /*
@@ -105,7 +104,6 @@ void startup(void (*f)(void*, const tstring&), void* p) {
 	//RSX++ //instances
 	HTTPDownloadManager::newInstance();
 	DetectionManager::newInstance();
-	ToolbarManager::newInstance();
 	IgnoreManager::newInstance();
 	ScriptManager::newInstance();
 	UpdateManager::newInstance();
@@ -169,7 +167,6 @@ void shutdown() {
 	ScriptManager::deleteInstance();
 	UpdateManager::deleteInstance();
 	IpManager::deleteInstance();
-	ToolbarManager::deleteInstance();
 	IgnoreManager::deleteInstance();
 	AutoSearchManager::deleteInstance();
 	DetectionManager::deleteInstance();

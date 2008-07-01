@@ -94,7 +94,7 @@ public:
 	Identity() { resetCounters(); }
 	Identity(const UserPtr& ptr, uint32_t aSID) : user(ptr) { setSID(aSID); resetCounters(); }
 	Identity(const Identity& rhs) { *this = rhs; } // Use operator= since we have to lock before reading...
-	Identity& operator=(const Identity& rhs) { FastLock l(cs); user = rhs.user; info = rhs.info; return *this; }
+	Identity& operator=(const Identity& rhs) { Lock l(cs); user = rhs.user; info = rhs.info; return *this; }
 
 #define GS(n, x) string get##n() const { return get(x); } void set##n(const string& v) { set(x, v); }
 	GS(Nick, "NI")
@@ -178,10 +178,10 @@ private:
 	typedef std::tr1::unordered_map<short, string> InfMap;
 	typedef InfMap::const_iterator InfIter;
 	InfMap info;
-
-	static FastCriticalSection cs;
+	// FastCriticalSection sux when it comes to work with many threads... adrian_007
+	static CriticalSection cs;
 	//RSX++
-	//Flood stuff
+	// Flood stuff
 	mutable uint16_t myinfoFloodCounter;	
 	mutable uint16_t cteFloodCounter;
 	mutable uint16_t pmFloodCounter;

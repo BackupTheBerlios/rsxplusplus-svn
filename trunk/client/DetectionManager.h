@@ -31,7 +31,7 @@ public:
 	typedef vector<DetectionEntry> DetectionItems;
 
 	DetectionManager() : profileVersion("N/A"), profileMessage("N/A"), profileUrl("N/A"), lastId(0) { };
-	~DetectionManager() throw() { save(); };
+	~DetectionManager() throw() { save(); det.clear(); };
 
 	void load();
 	void save();

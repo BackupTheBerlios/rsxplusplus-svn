@@ -55,13 +55,13 @@ public:
 	}
 
 	void prepareMenu(OMenu& menu, int ctx, const StringList& hubs) {
-		bool op = false;
-		userCommands = FavoriteManager::getInstance()->getUserCommands(ctx, hubs, op);
+		bool isOp = false;
+		userCommands = FavoriteManager::getInstance()->getUserCommands(ctx, hubs, isOp);
+		isOp = isOp && (ctx != UserCommand::CONTEXT_HUB);
 		int n = 0;
 		int m = 0;
-
 		//RSX++ // detector menu
-		if(op && (ctx != UserCommand::CONTEXT_HUB)) {
+		if(isOp) {
 			detector.DestroyMenu();
 			detector.m_hMenu = NULL;
 			detector.CreatePopupMenu();
@@ -83,7 +83,7 @@ public:
 		}
 		//END
 
-		if(!userCommands.empty()) {
+		if(!userCommands.empty() || isOp) {
 			subMenu.DestroyMenu();
 			subMenu.m_hMenu = NULL;
 
@@ -156,5 +156,5 @@ private:
 
 /**
  * @file
- * $Id: UCHandler.h 393 2008-06-25 18:33:20Z BigMuscle $
+ * $Id: UCHandler.h 394 2008-06-28 22:28:44Z BigMuscle $
  */

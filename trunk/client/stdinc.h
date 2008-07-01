@@ -110,13 +110,13 @@ typedef unsigned __int64 uint64_t;
 #include <stdint.h>
 #endif
 
-//RSX++ some mods
 #ifndef _WIN64
 # undef memcpy
 # undef memset
 # undef memzero
 # define memcpy memcpy2
 # define memset memset2
+//RSX++
 #else
 //@todo fix conversions in future
 #pragma warning(disable:4267)
@@ -125,7 +125,6 @@ typedef unsigned __int64 uint64_t;
 
 #define EXIMP __declspec(dllexport)
 #include "PluginAPI/rString.h"
-//#include "../rsxppString/rsxppString.hpp"
 //END
 
 #ifdef _MSC_VER

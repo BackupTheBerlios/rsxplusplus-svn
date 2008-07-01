@@ -258,6 +258,28 @@ string Client::getLocalIp() const {
 	return localIp;
 }
 
+uint64_t Client::search(int aSizeMode, int64_t aSize, int aFileType, const string& aString, const string& aToken, void* owner){
+	dcdebug("Queue search %s\n", aString);
+
+	if(searchQueue.interval){
+		Search s;
+		s.fileType = aFileType;
+		s.size     = aSize;
+		s.query    = aString;
+		s.sizeType = aSizeMode;
+		s.token    = aToken;
+		s.owners.insert(owner);
+
+		searchQueue.add(s);
+
+		return searchQueue.getSearchTime(owner) - GET_TICK();
+	}
+
+	search(aSizeMode, aSize, aFileType , aString, aToken);
+	return 0;
+
+}
+ 
 void Client::on(Line, const string& aLine) throw() {
 	updateActivity();
 	COMMAND_DEBUG(aLine, DebugManager::HUB_IN, getIpPort());
@@ -267,6 +289,16 @@ void Client::on(Second, uint64_t aTick) throw() {
 	if(state == STATE_DISCONNECTED && getAutoReconnect() && (aTick > (getLastActivity() + getReconnDelay() * 1000)) ) {
 		// Try to reconnect...
 		connect();
+	}
+
+	if(!searchQueue.interval) return;
+
+	if(isConnected()){
+		Search s;
+		
+		if(searchQueue.pop(s)){
+			search(s.sizeType, s.size, s.fileType , s.query, s.token);
+		}
 	}
 }
 //RSX++ // Lua
@@ -411,5 +443,5 @@ bool Client::isActionActive(const int aAction) const {
 
 /**
  * @file
- * $Id: Client.cpp 382 2008-03-09 10:40:22Z BigMuscle $
+ * $Id: Client.cpp 395 2008-06-30 12:11:32Z BigMuscle $
  */

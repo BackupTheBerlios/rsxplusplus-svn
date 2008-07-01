@@ -237,9 +237,9 @@ void NetworkPage::getAddresses() {
 			pAdapterInfo = pAdapterInfo->Next;
 		}
 	}
-	// Memory leak - BugMaster
+	
 	if(AdapterInfo)
-		HeapFree(GetProcessHeap(), 0, AdapterInfo);
+		HeapFree(GetProcessHeap(), 0, AdapterInfo);	
 }
 
 LRESULT NetworkPage::onClickedActive(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {

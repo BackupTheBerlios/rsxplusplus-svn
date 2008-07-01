@@ -29,7 +29,7 @@
 #define GET_TEXT(ctrl, var) \
 	len = ctrl.GetWindowTextLength() + 1; \
 	buf.resize(len); \
-	ctrl.GetWindowText(&buf[0], len); \
+	buf.resize(ctrl.GetWindowText(&buf[0], len)); \
 	var = Text::fromT(buf);
 
 #undef ATTACH
@@ -47,6 +47,7 @@ LRESULT DetectionEntryDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 	ATTACH(IDC_CHEAT, ctrlCheat);
 	ATTACH(IDC_PARAMS, ctrlParams);
 	ATTACH(IDC_LEVEL, ctrlLevel);
+	ATTACH(IDC_INFMAP_TYPE, ctrlProtocol);
 	ATTACH(IDC_REGEX_TESTER, ctrlExpTest);
 
 	ctrlRaw.attach(GetDlgItem(IDC_RAW), curEntry.rawToSend);
@@ -60,6 +61,11 @@ LRESULT DetectionEntryDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 	ctrlLevel.AddString(_T("Green"));
 	ctrlLevel.AddString(_T("Yellow"));
 	ctrlLevel.AddString(_T("Red"));
+
+	ctrlProtocol.AddString(_T("Shared Fields"));
+	ctrlProtocol.AddString(_T("NMDC Fields"));
+	ctrlProtocol.AddString(_T("ADC Fields"));
+	ctrlProtocol.SetCurSel(0);
 
 	updateControls();
 
@@ -76,6 +82,11 @@ LRESULT DetectionEntryDlg::onAdd(WORD , WORD , HWND , BOOL& ) {
 			lst.push_back(Text::toT(dlg.name));
 			lst.push_back(Text::toT(dlg.regexp));
 			ctrlParams.insert(lst);
+				switch(ctrlProtocol.GetCurSel()) {
+					case 0: sharedMap.push_back(make_pair(dlg.name, dlg.regexp)); break;
+					case 1: nmdcMap.push_back(make_pair(dlg.name, dlg.regexp)); break;
+					case 2: adcMap.push_back(make_pair(dlg.name, dlg.regexp)); break;
+				}
 		} else {
 			::MessageBox(m_hWnd, CTSTRING(PARAM_EXISTS), _T(APPNAME) _T(" ") _T(VERSIONSTRING), MB_OK);
 		}
@@ -101,11 +112,30 @@ LRESULT DetectionEntryDlg::onChange(WORD , WORD , HWND , BOOL& ) {
 		ctrlParams.GetItemText(sel, 1, buf, 1024);
 		dlg.regexp = Text::fromT(buf);
 
+		StringPair oldData = make_pair(dlg.name, dlg.regexp);
 		if(dlg.DoModal() == IDOK) {
 			int idx = ctrlParams.find(Text::toT(dlg.name));
 			if(idx == -1 || idx == sel) {
+				DetectionEntry::INFMap::iterator i;
 				ctrlParams.SetItemText(sel, 0, Text::toT(dlg.name).c_str());
 				ctrlParams.SetItemText(sel, 1, Text::toT(dlg.regexp).c_str());
+				switch(ctrlProtocol.GetCurSel()) {
+					case 0:
+						i = std::find(sharedMap.begin(), sharedMap.end(), oldData);
+						i->first = dlg.name;
+						i->second = dlg.regexp;
+						break;
+					case 1:
+						i = std::find(nmdcMap.begin(), nmdcMap.end(), oldData);
+						i->first = dlg.name;
+						i->second = dlg.regexp;
+						break;
+					case 2:
+						i = std::find(adcMap.begin(), adcMap.end(), oldData);
+						i->first = dlg.name;
+						i->second = dlg.regexp;
+						break;
+				}
 			} else {
 				::MessageBox(m_hWnd, CTSTRING(PARAM_EXISTS), _T(APPNAME) _T(" ") _T(VERSIONSTRING), MB_OK);
 			}
@@ -116,7 +146,32 @@ LRESULT DetectionEntryDlg::onChange(WORD , WORD , HWND , BOOL& ) {
 
 LRESULT DetectionEntryDlg::onRemove(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
 	if(ctrlParams.GetSelectedCount() == 1) {
-		ctrlParams.DeleteItem(ctrlParams.GetNextItem(-1, LVNI_SELECTED));
+		DetectionEntry::INFMap::iterator i;
+		string name, regexp;
+
+		int sel = ctrlParams.GetNextItem(-1, LVNI_SELECTED);
+		TCHAR buf[1024];
+		ctrlParams.GetItemText(sel, 0, buf, 1024);
+		name = Text::fromT(buf);
+		ctrlParams.GetItemText(sel, 1, buf, 1024);
+		regexp = Text::fromT(buf);
+
+		StringPair oldData = make_pair(name, regexp);
+		ctrlParams.DeleteItem(sel);
+		switch(ctrlProtocol.GetCurSel()) {
+			case 0:
+				i = std::find(sharedMap.begin(), sharedMap.end(), oldData);
+				sharedMap.erase(i);
+				break;
+			case 1:
+				i = std::find(nmdcMap.begin(), nmdcMap.end(), oldData);
+				nmdcMap.erase(i);
+				break;
+			case 2:
+				i = std::find(adcMap.begin(), adcMap.end(), oldData);
+				adcMap.erase(i);
+				break;
+		}
 	}
 	return 0;
 }
@@ -138,6 +193,7 @@ LRESULT DetectionEntryDlg::onNext(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl
 
 	origId = curEntry.Id;
 	ctrlParams.DeleteAllItems();
+	ctrlProtocol.SetCurSel(0);
 
 	updateControls();
 	return 0;
@@ -212,22 +268,22 @@ void DetectionEntryDlg::updateVars() {
 	GET_TEXT(ctrlCheat, curEntry.cheat);
 
 	// params...
-	int it = ctrlParams.GetItemCount();
-	string name, regexp;
-	TCHAR pbuf[1024];
 	curEntry.defaultMap.clear();
-	for(int i = 0; i < it; ++i) {
-		ctrlParams.GetItemText(i, 0, pbuf, 1024);
-		name = Text::fromT(pbuf);
-		ctrlParams.GetItemText(i, 1, pbuf, 1024);
-		regexp = Text::fromT(pbuf);
-		curEntry.defaultMap.push_back(make_pair(name, regexp));
-	}
+	curEntry.defaultMap = sharedMap;
+	sharedMap.clear();
+
+	curEntry.nmdcMap.clear();
+	curEntry.nmdcMap = nmdcMap;
+	nmdcMap.clear();
+
+	curEntry.adcMap.clear();
+	curEntry.adcMap = adcMap;
+	adcMap.clear();
 
 	if(idChanged) {
 		len = ::GetWindowTextLength(GetDlgItem(IDC_DETECT_ID)) + 1;
 		buf.resize(len);
-		GetDlgItemText(IDC_DETECT_ID, &buf[0], len);
+		buf.resize(GetDlgItemText(IDC_DETECT_ID, &buf[0], len));
 		uint32_t newId = Util::toUInt32(Text::fromT(buf).c_str());
 		if(newId != origId) curEntry.Id = newId;
 	}
@@ -247,16 +303,44 @@ void DetectionEntryDlg::updateControls() {
 		// params...
 		if(!curEntry.defaultMap.empty()) {
 			TStringList cols;
-			const DetectionEntry::INFMap& lst = curEntry.defaultMap;
-			for(DetectionEntry::INFMap::const_iterator j = lst.begin(); j != lst.end(); ++j) {
-				cols.push_back(Text::toT(j->first));
-				cols.push_back(Text::toT(j->second));
-				ctrlParams.insert(cols);
-				cols.clear();
+			sharedMap = curEntry.defaultMap;
+			if(ctrlProtocol.GetCurSel() == 0) {
+				for(DetectionEntry::INFMap::const_iterator j = sharedMap.begin(); j != sharedMap.end(); ++j) {
+					cols.push_back(Text::toT(j->first));
+					cols.push_back(Text::toT(j->second));
+					ctrlParams.insert(cols);
+					cols.clear();
+				}
 			}
 		}
 
-		SetDlgItemText(IDC_DETECT_ID, Util::toStringW(curEntry.Id).c_str());
+		if(!curEntry.nmdcMap.empty()) {
+			TStringList cols;
+			nmdcMap = curEntry.nmdcMap;
+			if(ctrlProtocol.GetCurSel() == 1) {
+				for(DetectionEntry::INFMap::const_iterator j = nmdcMap.begin(); j != nmdcMap.end(); ++j) {
+					cols.push_back(Text::toT(j->first));
+					cols.push_back(Text::toT(j->second));
+					ctrlParams.insert(cols);
+					cols.clear();
+				}
+			}
+		}
+
+		if(!curEntry.adcMap.empty()) {
+			TStringList cols;
+			adcMap = curEntry.adcMap;
+			if(ctrlProtocol.GetCurSel() == 2) {
+				for(DetectionEntry::INFMap::const_iterator j = adcMap.begin(); j != adcMap.end(); ++j) {
+					cols.push_back(Text::toT(j->first));
+					cols.push_back(Text::toT(j->second));
+					ctrlParams.insert(cols);
+					cols.clear();
+				}
+			}
+		}
+
+		SetDlgItemText(IDC_DETECT_ID, Text::toT(Util::toString(curEntry.Id)).c_str());
 	}
 
 	CheckDlgButton(IDC_CHECK_MISMATCH, curEntry.checkMismatch ? BST_CHECKED : BST_UNCHECKED);

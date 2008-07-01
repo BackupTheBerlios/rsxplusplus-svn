@@ -39,6 +39,7 @@ public:
 		SetTitle(CTSTRING(SETTINGS_NETWORK));
 		m_psp.dwFlags |= PSP_RTLREADING;
 	}
+	~NetworkPage() { }
 
 	BEGIN_MSG_MAP(NetworkPage)
 		MESSAGE_HANDLER(WM_INITDIALOG, onInitDialog)
@@ -82,5 +83,5 @@ private:
 
 /**
  * @file
- * $Id: NetworkPage.h 272 2006-12-28 15:30:12Z bigmuscle $
+ * $Id: NetworkPage.h 308 2007-07-13 18:57:02Z bigmuscle $
  */

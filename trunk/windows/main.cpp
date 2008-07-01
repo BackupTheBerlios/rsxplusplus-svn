@@ -165,8 +165,8 @@ LONG __stdcall DCUnhandledExceptionFilter( LPEXCEPTION_POINTERS e )
 	f.write(LIT("\r\n"));
 
     f.write(LIT("\r\n"));
-
-#ifndef _WIN64
+    
+#ifndef _WIN64   
 	STACKTRACE2(f, e->ContextRecord->Eip, e->ContextRecord->Esp, e->ContextRecord->Ebp);
 #else
 	STACKTRACE2(f, e->ContextRecord->Rip, e->ContextRecord->Rsp, e->ContextRecord->Rbp);
@@ -529,5 +529,5 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 
 /**
  * @file
- * $Id: main.cpp 392 2008-06-21 21:10:31Z BigMuscle $
+ * $Id: main.cpp 394 2008-06-28 22:28:44Z BigMuscle $
  */

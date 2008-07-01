@@ -114,11 +114,11 @@ private:
 				}
 				Lock l(cs);
 				for(OnlineUser::List::const_iterator i = ul.begin(); i != ul.end(); ++i) {
-					//if(stop) {
-					//	// don't let to not execute it
-					//	(*i)->dec();
-					//	continue;
-					//}
+					if(stop) {
+						// don't let to not execute it
+						(*i)->dec();
+						continue;
+					}
 					OnlineUser* ou = *i;
 					if(ou->isCheckable()) {
 						string report = ou->getIdentity().myInfoDetect(*ou);
@@ -131,6 +131,7 @@ private:
 					sleep(1);
 				}
 			}
+			stop = true;
 			return 0;
 		}
 		bool stop;
@@ -226,8 +227,8 @@ private:
 		int run() {
 			inThread = true;
 			setThreadPriority(Thread::LOW);
-			while(users->myInfoEngine.isRunning())
-				sleep(10);
+			//while(users->myInfoEngine.isRunning())
+			//	sleep(10);
 			if(checkOnConnect && !keepChecking) { 
 				Thread::sleep(RSXSETTING(CHECK_DELAY));
 				keepChecking = true;

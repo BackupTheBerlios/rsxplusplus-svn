@@ -31,7 +31,7 @@
 #include "CryptoManager.h"
 #include "ResourceManager.h"
 #include "LogManager.h"
-#include "PluginsManager.h"
+#include "PluginsManager.h" //RSX++
 
 namespace dcpp {
 

@@ -57,7 +57,7 @@ const string SettingsManager::settingTags[] =
 	"MainFrameVisible", "SearchFrameVisible", "QueueFrameVisible", "HubFrameVisible", "UploadQueueFrameVisible", 
 	"EmoticonsFile", "TLSPrivateKeyFile", "TLSCertificateFile", "TLSTrustedCertificatesPath",
 	"FinishedVisible", "FinishedULVisible", "DirectoryListingFrameVisible",
-	"RecentFrameOrder", "RecentFrameWidths",
+	"RecentFrameOrder", "RecentFrameWidths", "ToolbarSettings",
 	//RSX++
 	"RawLogFormat", "RawLogFile", "DownSpeed", "UpSpeed",
 	//END
@@ -129,7 +129,7 @@ const string SettingsManager::settingTags[] =
  	"AllowUntrustedHubs", "AllowUntrustedClients", "TLSPort", "FastHash", "DownConnPerSec",
 	"HighestPrioSize", "HighPrioSize", "NormalPrioSize", "LowPrioSize", "LowestPrio",
 	"FilterEnter", "SortFavUsersFirst", "ShowShellMenu", "SendBloom", "OverlapChunks", "ShowQuickSearch",
-	"UcSubMenu",
+	"UcSubMenu", "AutoSlots",
 	//RSX++
 	"TopSpeed", "TopUpSpeed", "OdcStyleBumped",
 	"StealthyIndicateSpeeds", "ProgressBarMode",
@@ -392,6 +392,7 @@ SettingsManager::SettingsManager()
 	setDefault(DISPLAY_CHEATS_IN_MAIN_CHAT, true);	
 	setDefault(SEARCH_TIME, 10);
 	setDefault(SUPPRESS_MAIN_CHAT, false);
+	setDefault(AUTO_SLOTS, 5);	
 	
 	// default sounds
 	setDefault(BEGINFILE, Util::emptyString);
@@ -446,6 +447,7 @@ SettingsManager::SettingsManager()
 	setDefault(FILTER_ENTER, false);
 	setDefault(SHOW_QUICK_SEARCH, true);	
 	setDefault(UC_SUBMENU, true);
+// TODO:	setDefault(TOOLBAR_SIZE, 800);
 
 	setDefault(DROP_MULTISOURCE_ONLY, true);
 	setDefault(DISCONNECT_SPEED, 5);
@@ -779,5 +781,5 @@ const string& SettingsManager::getString(const string& sname) const {
 
 /**
  * @file
- * $Id: SettingsManager.cpp 379 2008-02-24 19:56:47Z bigmuscle $
+ * $Id: SettingsManager.cpp 395 2008-06-30 12:11:32Z BigMuscle $
  */

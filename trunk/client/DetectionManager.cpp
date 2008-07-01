@@ -202,7 +202,7 @@ void DetectionManager::importProfiles(SimpleXML& xml) {
 					string extTagExp = xml.getChildData();
 					i = xml.getChildData().find("%[version2]");
 					if(i != string::npos) {
-						extTagExp.replace(i, 11, "%[VE]");
+						extTagExp.replace(i, 11, "[\\w\\.\\s]{2,10}");
 					}
 
 					item.nmdcMap.push_back(make_pair("DE", extTagExp));
@@ -430,6 +430,7 @@ void DetectionManager::validateItem(const DetectionEntry& e, bool checkIds) thro
 				throw Exception("INF entry pattern can't be empty!");
 		}
 	}
+
 	if(e.name.empty()) throw Exception("Item's name can't be empty!");
 }
 

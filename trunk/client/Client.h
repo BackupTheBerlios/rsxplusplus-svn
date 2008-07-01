@@ -27,6 +27,7 @@
 #include "TimerManager.h"
 #include "ClientListener.h"
 #include "DebugManager.h"
+#include "SearchQueue.h"
 //RSX++
 #include "ScriptManager.h" // Lua
 #include "../rsx/rsx-settings/rsx-SettingsManager.h"
@@ -53,7 +54,10 @@ public:
 	virtual void hubMessage(const string& aMessage, bool thirdPerson = false) = 0;
 	virtual void privateMessage(const OnlineUser& user, const string& aMessage, bool thirdPerson = false) = 0;
 	virtual void sendUserCmd(const string& aUserCmd) = 0;
-	virtual void search(int aSizeMode, int64_t aSize, int aFileType, const string& aString, const string& aToken) = 0;
+
+	uint64_t search(int aSizeMode, int64_t aSize, int aFileType, const string& aString, const string& aToken, void* owner);
+	void cancelSearch(void* aOwner) { searchQueue.cancelSearch(aOwner); }
+	
 	virtual void password(const string& pwd) = 0;
 	virtual void info(bool force) = 0;
 	virtual void cheatMessage(const string& aLine) = 0;
@@ -121,6 +125,15 @@ public:
 		}
 		return sm;
 	}
+	
+	void setSearchInterval(uint32_t aInterval){
+		// min interval is 30 seconds
+		searchQueue.interval = max(aInterval, (uint32_t)(30 * 1000));
+	}
+
+	uint32_t getSearchInterval(){
+		return searchQueue.interval;
+	}	
 
 	void reconnect();
 	void shutdown();
@@ -192,6 +205,7 @@ protected:
 		STATE_DISCONNECTED,	///< Nothing in particular
 	} state;
 
+	SearchQueue searchQueue;
 	BufferedSocket* sock;
 
 	static Counts counts;
@@ -206,6 +220,7 @@ protected:
 	void reloadSettings(bool updateNick);
 
 	virtual string checkNick(const string& nick) = 0;
+	virtual void search(int aSizeMode, int64_t aSize, int aFileType, const string& aString, const string& aToken) = 0;
 
 	// TimerManagerListener
 	virtual void on(Second, uint64_t aTick) throw();
@@ -247,5 +262,5 @@ private:
 
 /**
  * @file
- * $Id: Client.h 382 2008-03-09 10:40:22Z BigMuscle $
+ * $Id: Client.h 394 2008-06-28 22:28:44Z BigMuscle $
  */

@@ -78,14 +78,14 @@ public:
 	typedef vector<Ptr> List;
 	typedef List::const_iterator Iter;
 
-	FavoriteHubEntry() throw() : connect(false), encoding(Text::systemCharset), chatusersplit(0), stealth(false), userliststate(true), mode(0), ip(Util::emptyString)
+	FavoriteHubEntry() throw() : connect(false), encoding(Text::systemCharset), chatusersplit(0), stealth(false), userliststate(true), mode(0), ip(Util::emptyString), searchInterval(SETTING(MINIMUM_SEARCH_INTERVAL))
 		//RSX++
 		, favEmail(Util::emptyString), awayMsg(Util::emptyString), userProtected(Util::emptyString), checkOnConnect(false),
 		checkClients(false), checkFilelists(false), checkMyInfo(false), hideShare(false),
 		useFilter(RSXBOOLSETTING(USE_FILTER_FAV)), autosearch(false), useHL(RSXBOOLSETTING(USE_HL_FAV)), usersLimit(0), groupId(0)
 		//END
 		{ }
-	FavoriteHubEntry(const HubEntry& rhs) throw() : name(rhs.getName()), server(rhs.getServer()), encoding(Text::systemCharset),
+	FavoriteHubEntry(const HubEntry& rhs) throw() : name(rhs.getName()), server(rhs.getServer()), encoding(Text::systemCharset), searchInterval(SETTING(MINIMUM_SEARCH_INTERVAL)),
 		description(rhs.getDescription()), connect(false), chatusersplit(0), stealth(false), userliststate(true), mode(0), ip(Util::emptyString),
 		//RSX++
 		favEmail(Util::emptyString), awayMsg(Util::emptyString), userProtected(Util::emptyString), checkOnConnect(false), 
@@ -95,7 +95,7 @@ public:
 		{ }
 	FavoriteHubEntry(const FavoriteHubEntry& rhs) throw() : userdescription(rhs.userdescription), name(rhs.getName()), 
 		server(rhs.getServer()), description(rhs.getDescription()), password(rhs.getPassword()), connect(rhs.getConnect()), 
-		nick(rhs.nick), chatusersplit(rhs.chatusersplit), stealth(rhs.stealth),
+		nick(rhs.nick), chatusersplit(rhs.chatusersplit), stealth(rhs.stealth), searchInterval(rhs.searchInterval),
 		userliststate(rhs.userliststate), mode(rhs.mode), ip(rhs.ip), encoding(rhs.getEncoding()),
 		//RSX++
 		favEmail(rhs.favEmail), awayMsg(rhs.awayMsg), userProtected(rhs.userProtected) , checkOnConnect(rhs.checkOnConnect), 
@@ -126,13 +126,15 @@ public:
 	GETSET(string, headerOrder, HeaderOrder);
 	GETSET(string, headerWidths, HeaderWidths);
 	GETSET(string, headerVisible, HeaderVisible);
-	GETSET(bool, connect, Connect);
 	GETSET(string, encoding, Encoding);
-	GETSET(int, chatusersplit, ChatUserSplit);
-	GETSET(bool, stealth, Stealth);
-	GETSET(bool, userliststate, UserListState);	
-	GETSET(int, mode, Mode); // 0 = default, 1 = active, 2 = passive
 	GETSET(string, ip, IP);
+	GETSET(uint32_t, searchInterval, SearchInterval);
+	GETSET(int, mode, Mode); // 0 = default, 1 = active, 2 = passive	
+	GETSET(int, chatusersplit, ChatUserSplit);
+	GETSET(bool, connect, Connect);	
+	GETSET(bool, stealth, Stealth);
+	GETSET(bool, userliststate, UserListState);		
+	
 	//RSX++
 	GETSET(string, favEmail, FavEmail);
 	GETSET(string, awayMsg, AwayMsg);
@@ -147,7 +149,6 @@ public:
 	GETSET(bool, useHL, UseHL);
 	GETSET(int, usersLimit, UsersLimit);
 	GETSET(int, groupId, GroupId);
-	//END
 
 	//RSX++ //Raw Manager
 	struct Action {

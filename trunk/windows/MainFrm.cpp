@@ -65,7 +65,6 @@
 #include "../client/ScriptManager.h" // Lua
 #include "../client/ClientProfileManager.h"
 #include "../client/PluginsManager.h"
-#include "ToolbarManager.h"
 #include "UpdateDialog.h"
 #include "PluginsListDlg.h"
 //END
@@ -78,9 +77,10 @@ bool MainFrame::isShutdownStatus = false;
 MainFrame::MainFrame() : trayMessage(0), maximized(false), lastUpload(-1), lastUpdate(0), 
 lastUp(0), lastDown(0), oldshutdown(false), stopperThread(NULL), 
 closing(false), awaybyminimize(false), missedAutoConnect(false), lastTTHdir(Util::emptyStringT), tabsontop(false),
-bTrayIcon(false), bAppMinimized(false), bIsPM(false), UPnP_TCPConnection(NULL), UPnP_UDPConnection(NULL), 
-QuickSearchBoxContainer(WC_COMBOBOX, this, QUICK_SEARCH_MAP), QuickSearchEditContainer(WC_EDIT ,this, QUICK_SEARCH_MAP)
-{
+bTrayIcon(false), bAppMinimized(false), bIsPM(false), UPnP_TCPConnection(NULL), UPnP_UDPConnection(NULL),
+QuickSearchBoxContainer(WC_COMBOBOX, this, QUICK_SEARCH_MAP), QuickSearchEditContainer(WC_EDIT ,this, QUICK_SEARCH_MAP),
+m_bDisableAutoComplete(false)
+{ 
 		memzero(statusSizes, sizeof(statusSizes));
 		anyMF = this;
 }
@@ -240,25 +240,20 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	tbarcreated = false;
 	ptbarcreated = false;
 	HWND hWndToolBar = createToolbar();
-	HWND hWndQuickSearchkBar = createQuickSearchBar();
+	HWND hWndQuickSearchBar = createQuickSearchBar();
 	//RSX++
 	HWND hWndPluginToolBar = createPluginsToolbar();
 	//END
 
 	CreateSimpleReBar(ATL_SIMPLE_REBAR_NOBORDER_STYLE);
+	AddSimpleReBarBand(hWndPluginToolBar, NULL, FALSE, 0, TRUE); //RSX++
 	AddSimpleReBarBand(hWndCmdBar);
 	AddSimpleReBarBand(hWndToolBar, NULL, TRUE, 0, TRUE);
-	AddSimpleReBarBand(hWndPluginToolBar, NULL, FALSE, 0, TRUE); //RSX++
-	AddSimpleReBarBand(hWndQuickSearchkBar, NULL, FALSE, 200, TRUE);
+	AddSimpleReBarBand(hWndQuickSearchBar, NULL, FALSE, 200, TRUE);
 	CreateSimpleStatusBar();
 	
 	RECT toolRect = {0};
 	::GetWindowRect(hWndToolBar, &toolRect);
-
-	//RSX++
-	CReBarCtrl rebar = m_hWndToolBar;
-	ToolbarManager::getInstance()->applyTo(rebar, "MainToolBar");
-	//END
 
 	ctrlStatus.Attach(m_hWndStatusBar);
 	ctrlStatus.SetSimple(FALSE);
@@ -288,12 +283,15 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	m_nProportionalPos = SETTING(TRANSFER_SPLIT_SIZE);
 	UIAddToolBar(hWndPluginToolBar); //RSX++
 	UIAddToolBar(hWndToolBar);
-	UIAddToolBar(hWndQuickSearchkBar);
+	UIAddToolBar(hWndQuickSearchBar);
 	UISetCheck(ID_VIEW_TOOLBAR, 1);
 	UISetCheck(ID_VIEW_STATUS_BAR, 1);
 	UISetCheck(ID_VIEW_TRANSFER_VIEW, 1);
 	UISetCheck(ID_TOGGLE_QSEARCH, 1);
 	UISetCheck(ID_VIEW_PLUGIN_TOOLBAR, (ctrlPluginToolbar.GetButtonCount() > 0)); //RSX++
+	
+	// load bars settings
+	WinUtil::loadReBarSettings(m_hWndToolBar);	
 
 	// register object for message filtering and idle updates
 	CMessageLoop* pLoop = _Module.GetMessageLoop();
@@ -417,7 +415,19 @@ HWND MainFrame::createQuickSearchBar() {
 }
 
 LRESULT MainFrame::onQuickSearchChar(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled){
+	if(uMsg == WM_CHAR)
+		if(wParam == VK_BACK)
+			m_bDisableAutoComplete = true;
+		else
+			m_bDisableAutoComplete = false;
+
 	switch(wParam) {
+		case VK_DELETE:
+			if(uMsg == WM_KEYDOWN) {
+				m_bDisableAutoComplete = true;
+			}
+			bHandled = FALSE;
+			break;
 		case VK_RETURN:
 			if( WinUtil::isShift() || WinUtil::isCtrl() || WinUtil::isAlt() ) {
 				bHandled = FALSE;
@@ -1100,10 +1110,6 @@ LRESULT MainFrame::onEndSession(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled) {
 	if(!closing) {
 		if( oldshutdown ||(!BOOLSETTING(CONFIRM_EXIT)) || (MessageBox(CTSTRING(REALLY_EXIT), _T(APPNAME) _T(" ") _T(VERSIONSTRING), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2) == IDYES) ) {
-			//RSX++
-			CReBarCtrl rebar = m_hWndToolBar;
-			ToolbarManager::getInstance()->getFrom(rebar, "MainToolBar");
-			//END
 			updateTray(false);
 			string tmp1;
 			string tmp2;
@@ -1126,6 +1132,9 @@ LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 			if(wp.showCmd == SW_SHOWNORMAL || wp.showCmd == SW_SHOW || wp.showCmd == SW_SHOWMAXIMIZED || wp.showCmd == SW_MAXIMIZE)
 				SettingsManager::getInstance()->set(SettingsManager::MAIN_WINDOW_STATE, (int)wp.showCmd);
 
+			// save bars settings
+			WinUtil::saveReBarSettings(m_hWndToolBar);
+			
 			ShowWindow(SW_HIDE);
 			transferView.prepareClose();
 			
@@ -1238,7 +1247,7 @@ void MainFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 		w[8] = w[9] - 60;
 #define setw(x) w[x] = max(w[x+1] - statusSizes[x], 0)
 		setw(7); setw(6); setw(5); setw(4); setw(3); setw(2); setw(1); setw(0);
-#undef setw
+
 		ctrlStatus.SetParts(10, w);
 		ctrlLastLines.SetMaxTipWidth(w[0]);
 	}
@@ -1335,7 +1344,7 @@ LRESULT MainFrame::OnViewToolBar(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWnd
 	static BOOL bVisible = TRUE;	// initially visible
 	bVisible = !bVisible;
 	CReBarCtrl rebar = m_hWndToolBar;
-	int nBandIndex = rebar.IdToIndex(ATL_IDW_BAND_FIRST + 1);	// toolbar is 3nd added band
+	int nBandIndex = rebar.IdToIndex(ATL_IDW_BAND_FIRST + 2);	// toolbar is 3nd added band
 	rebar.ShowBand(nBandIndex, bVisible);
 	UISetCheck(ID_VIEW_TOOLBAR, bVisible);
 	UpdateLayout();
@@ -1348,7 +1357,7 @@ LRESULT MainFrame::OnViewQuickSearchBar(WORD /*wNotifyCode*/, WORD /*wID*/, HWND
 	static BOOL bVisible = TRUE;	// initially visible
 	bVisible = !bVisible;
 	CReBarCtrl rebar = m_hWndToolBar;
-	int nBandIndex = rebar.IdToIndex(ATL_IDW_BAND_FIRST + 3);	// toolbar is 3rd added band
+	int nBandIndex = rebar.IdToIndex(ATL_IDW_BAND_FIRST + 3);	// quick search is 4th added band
 	rebar.ShowBand(nBandIndex, bVisible);
 	UISetCheck(ID_TOGGLE_QSEARCH, bVisible);
 	UpdateLayout();
@@ -1362,7 +1371,7 @@ LRESULT MainFrame::OnViewPluginToolBar(WORD /*wNotifyCode*/, WORD /*wID*/, HWND 
 	if(ctrlPluginToolbar.GetButtonCount() == 0 && !bVisible)
 		bVisible = FALSE;
 	CReBarCtrl rebar = m_hWndToolBar;
-	int nBandIndex = rebar.IdToIndex(ATL_IDW_BAND_FIRST + 2);
+	int nBandIndex = rebar.IdToIndex(ATL_IDW_BAND_FIRST); // plugin toolbar is 1st added band
 	rebar.ShowBand(nBandIndex, bVisible);
 	UISetCheck(ID_VIEW_PLUGIN_TOOLBAR, bVisible);
 	UpdateLayout();

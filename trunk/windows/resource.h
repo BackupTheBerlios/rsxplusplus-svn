@@ -41,7 +41,7 @@
 #define IDC_OPEN_MY_LIST                132
 #define IDC_SERVER                      133
 #define IDC_EXTERNAL_IP                 133
-#define IDC_CONVERT_FAV                 134
+#define ID_TOGGLE_QSEARCH               134
 #define IDC_FILES                       135
 #define IDC_CHANGE_PRIO_REALTIME        136
 #define IDC_CHANGE_PRIO_HIGH            137
@@ -57,7 +57,7 @@
 #define IDD_LINE                        209
 #define IDD_ADVANCEDPAGE                210
 #define IDD_DOWNLOADPAGE                211
-#define IDD_UPLOADPAGE                  212
+#define IDD_SHAREPAGE                   212
 #define IDD_APPEARANCEPAGE              213
 #define IDR_FLATTAB                     214
 #define IDR_PUBLICHUBS                  215
@@ -71,6 +71,7 @@
 #define IDD_FAVORITEHUB                 223
 #define IDR_USERS                       224
 #define IDD_LOGPAGE                     224
+#define IDD_UPLOADPAGE                  225
 #define IDD_USER_COMMAND                230
 #define IDR_FINISHED_DL                 231
 #define IDR_FINISHED_UL                 232
@@ -662,13 +663,16 @@
 #define IDC_FILELIST_DLG_DETECT_STRING  1308
 #define IDC_SETTINGS_KB4                1309
 #define IDC_BUFFER_SPIN                 1309
+#define IDC_FAV_SEARCH_INTERVAL         1309
 #define IDC_CHECK_DELAY_S               1309
 #define IDC_FILELIST_PROFILE_RAW        1309
 #define IDC_FILTER_BOLD2                1309
+#define IDC_FAV_SEARCH_INTERVAL_BOX     1310
 #define IDC_SETTINGS_KB5                1310
 #define IDC_DOWNCONN_SPIN               1310
 #define IDC_MAX_TESTSURS_S              1310
 #define IDC_FILELIST_PROFILE_NAME       1310
+#define IDC_FAV_SEARCH_INTERVAL_SPIN    1311
 #define IDC_SETTINGS_KB6                1311
 #define IDC_RAW_PAGE_ACTION_CTN         1311
 #define IDC_MAX_FILELISTS_S             1311
@@ -679,6 +683,7 @@
 #define IDC_PERCENT_HASHED              1312
 #define IDC_SETTINGS_SEGMENT            1313
 #define IDC_BOLD_BOOLEANS               1313
+#define IDC_SLOTS_GROUP                 1313
 #define IDC_RAW_PAGE_ACTION             1313
 #define IDC_FD_PROTECT                  1313
 #define IDC_FILELIST_PROFILE_DETECT     1313
@@ -1006,6 +1011,10 @@
 #define IDC_HELP_GEOIPFILE              2227
 #define IDC_CHECK_ON_CONNECT            2227
 #define IDC_EMOMENU                     2228
+#define IDC_SETTINGS_AUTO_SLOTS         3023
+#define IDC_AUTO_SLOTS                  3024
+#define IDC_AUTO_SLOTS_SPIN             3025
+#define IDC_PAUSE                       3140
 #define IDD_FILTER_PAGE                 2275
 #define IDD_ADD_FILTER_PAGE             2276
 #define IDC_DOWNLOAD_TARGET             5000
@@ -1224,7 +1233,6 @@
 #define ID_SWINDOW_8                    32803
 #define ID_SWINDOW_9                    32804
 #define ID_SWINDOW_0                    32805
-#define ID_TOGGLE_QSEARCH               32806
 #define IDC_DIR_EX_NAME_TEXT            32816
 #define IDC_DIR_EX_PATH_TEXT            32817
 #define IDC_DIR_EX_EXT_TEXT             32818

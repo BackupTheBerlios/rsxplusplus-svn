@@ -119,6 +119,13 @@ void CFavTabOp::prepareClose() {
 }
 
 LRESULT CCustomTab::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
+	SetDlgItemText(IDC_FAV_SEARCH_INTERVAL, CTSTRING(MINIMUM_SEARCH_INTERVAL));
+	SetDlgItemText(IDC_FAV_SEARCH_INTERVAL_BOX, Util::toStringW(hub->getSearchInterval()).c_str());
+	CUpDownCtrl updown;
+	updown.Attach(GetDlgItem(IDC_FAV_SEARCH_INTERVAL_SPIN));
+	updown.SetRange32(10, 9999);
+	updown.Detach();
+
 	::CheckDlgButton(*this, IDC_STEALTH, hub->getStealth()					? BST_CHECKED : BST_UNCHECKED);
 	::CheckDlgButton(*this, IDC_HIDE_SHARE, hub->getHideShare()				? BST_CHECKED : BST_UNCHECKED);
 	::CheckDlgButton(*this, IDC_USE_FILTER_FAV, hub->getUseFilter()			? BST_CHECKED : BST_UNCHECKED);
@@ -142,4 +149,10 @@ void CCustomTab::prepareClose() {
 
 	btn = ::GetDlgItem(m_hWnd, IDC_USE_HIGHLIGHT_FAV);
 	hub->setUseHL(RsxUtil::toBool(btn.GetCheck()));
+
+	tstring buf;
+	int len = ::GetWindowTextLength(GetDlgItem(IDC_FAV_SEARCH_INTERVAL_BOX)) + 1;
+	buf.resize(len);
+	GetDlgItemText(IDC_FAV_SEARCH_INTERVAL_BOX, &buf[0], len);
+	hub->setSearchInterval(Util::toUInt32(Text::fromT(buf)));
 }

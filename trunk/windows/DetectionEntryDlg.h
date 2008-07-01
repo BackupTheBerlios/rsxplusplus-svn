@@ -50,6 +50,7 @@ public:
 		COMMAND_ID_HANDLER(IDC_MATCH, onMatch)
 		COMMAND_ID_HANDLER(IDOK, OnCloseCmd)
 		COMMAND_ID_HANDLER(IDCANCEL, OnCloseCmd)
+		COMMAND_HANDLER(IDC_INFMAP_TYPE, LBN_SELCHANGE, onProtocolChange)
 		NOTIFY_HANDLER(IDC_PARAMS, LVN_ITEMCHANGED, onItemchangedDirectories)
 	END_MSG_MAP()
 
@@ -58,7 +59,8 @@ public:
 	~DetectionEntryDlg() {
 		ctrlName.Detach(); ctrlComment.Detach(); ctrlLevel.Detach();
 		ctrlCheat.Detach(); ctrlRaw.Detach(); ctrlParams.Detach();
-		ctrlExpTest.Detach();
+		ctrlExpTest.Detach(); ctrlProtocol.Detach(); sharedMap.clear();
+		nmdcMap.clear(); adcMap.clear();
 	}
 
 	LRESULT onFocus(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
@@ -71,6 +73,13 @@ public:
 		::EnableWindow(GetDlgItem(IDC_DETECT_ID), true);
 		::EnableWindow(GetDlgItem(IDC_ID_EDIT), false);
 		return 0;
+	}
+
+	LRESULT onProtocolChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/){
+		updateVars();
+		ctrlParams.DeleteAllItems();
+		updateControls();
+		return S_OK;
 	}
 
 	LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
@@ -87,9 +96,11 @@ public:
 private:
 	CEdit ctrlName, ctrlComment, ctrlCheat, ctrlExpTest;
 	CRawCombo ctrlRaw;
-	CComboBox ctrlLevel;
+	CComboBox ctrlLevel, ctrlProtocol;
 	ExListViewCtrl ctrlParams;
 	bool idChanged;
+
+	DetectionEntry::INFMap sharedMap, nmdcMap, adcMap;
 
 	void updateVars();
 	void updateControls();

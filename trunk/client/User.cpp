@@ -39,7 +39,7 @@
 
 namespace dcpp {
 
-FastCriticalSection Identity::cs;
+CriticalSection Identity::cs;
 OnlineUser::OnlineUser(const UserPtr& ptr, Client& client_, uint32_t sid_) : identity(ptr, sid_), client(client_), isInList(false) { 
 	inc();
 	identity.isProtectedUser(client, true); //RSX++ // run init check
@@ -47,7 +47,7 @@ OnlineUser::OnlineUser(const UserPtr& ptr, Client& client_, uint32_t sid_) : ide
 
 void Identity::getParams(StringMap& sm, const string& prefix, bool compatibility) const {
 	{
-		FastLock l(cs);
+		Lock l(cs);
 		for(InfMap::const_iterator i = info.begin(); i != info.end(); ++i) {
 			sm[prefix + string((char*)(&i->first), 2)] = i->second;
 		}
@@ -111,20 +111,20 @@ string Identity::getTag() const {
 }
 
 string Identity::get(const char* name) const {
-	FastLock l(cs);
+	Lock l(cs);
 	InfMap::const_iterator i = info.find(*(short*)name);
 	return i == info.end() ? Util::emptyString : i->second;
 }
 
 bool Identity::isSet(const char* name) const {
-	FastLock l(cs);
+	Lock l(cs);
 	InfMap::const_iterator i = info.find(*(short*)name);
 	return i != info.end();
 }
 
 
 void Identity::set(const char* name, const string& val) {
-	FastLock l(cs);
+	Lock l(cs);
 	if(val.empty())
 		info.erase(*(short*)name);
 	else
@@ -178,16 +178,16 @@ string Identity::setCheat(const Client& c, const string& aCheatDescription, bool
 	string newCheat = Util::emptyString;
 	bool newOne = false;
 
-	/*{
-		string currentCS = get("CS");
-		StringTokenizer<string> st(currentCS, ';');
-		for(StringIter i = st.getTokens().begin(); i != st.getTokens().end(); ++i) {
-			if((*i).find(cheat) == string::npos) {
-				newCheat += (*i) + ";";
-				newOne = true;
-			}
+	//Lock l(cs);
+	string currentCS = get("CS");
+	StringTokenizer<string> st(currentCS, ';');
+	for(StringIter i = st.getTokens().begin(); i != st.getTokens().end(); ++i) {
+		if((*i).find(cheat) == string::npos) {
+			newCheat += (*i) + ";";
+			newOne = true;
 		}
-	}*/
+	}
+
 	newCheat += cheat + ";";
 
 	if(newOne) {
@@ -301,11 +301,16 @@ string Identity::updateClientType(OnlineUser& ou) {
 		if(!entry.defaultMap.empty()) {
 			// fields to check for both, adc and nmdc
 			INFList = entry.defaultMap;
-		} else if(getUser()->isSet(User::NMDC)) {
-			INFList = entry.nmdcMap;
-		} else {
-			INFList = entry.adcMap;
+		} 
+
+		if(getUser()->isSet(User::NMDC) && !entry.nmdcMap.empty()) {
+			INFList.insert(INFList.end(), entry.nmdcMap.begin(), entry.nmdcMap.end());
+		} else if(!entry.adcMap.empty()) {
+			INFList.insert(INFList.end(), entry.adcMap.begin(), entry.adcMap.end());
 		}
+
+		if(INFList.empty())
+			continue;
 
 		bool _continue = false;
 

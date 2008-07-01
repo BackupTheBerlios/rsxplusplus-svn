@@ -83,37 +83,23 @@ size_t ClientManager::getUserCount() const {
 }
 
 StringList ClientManager::getHubs(const CID& cid) const {
-/*	Lock l(cs);
+	Lock l(cs);
 	StringList lst;
 	OnlinePairC op = onlineUsers.equal_range(cid);
 	for(OnlineIterC i = op.first; i != op.second; ++i) {
 		lst.push_back(i->second->getClient().getHubUrl());
 	}
-	return lst;*/
-	Lock l(cs);
-	StringSet ret;
-	OnlinePairC op = onlineUsers.equal_range(cid);
-	for(OnlineIterC i = op.first; i != op.second; ++i) {
-		ret.insert(i->second->getClient().getHubUrl());
-	}
-	return StringList(ret.begin(), ret.end());
+	return lst;
 }
 
 StringList ClientManager::getHubNames(const CID& cid) const {
-	/*Lock l(cs);
+	Lock l(cs);
 	StringList lst;
 	OnlinePairC op = onlineUsers.equal_range(cid);
 	for(OnlineIterC i = op.first; i != op.second; ++i) {
 		lst.push_back(i->second->getClient().getHubName());
 	}
-	return lst;*/
-	Lock l(cs);
-	StringSet ret;
-	OnlinePairC op = onlineUsers.equal_range(cid);
-	for(OnlineIterC i = op.first; i != op.second; ++i) {
-		ret.insert(i->second->getClient().getHubName());
-	}
-	return StringList(ret.begin(), ret.end());
+	return lst;
 }
 
 StringList ClientManager::getNicks(const CID& cid) const {
@@ -487,28 +473,32 @@ string ClientManager::getHubUrl(const UserPtr& aUser) const {
 	return Util::emptyString;
 }
 
-void ClientManager::search(int aSizeMode, int64_t aSize, int aFileType, const string& aString, const string& aToken) {
+void ClientManager::search(int aSizeMode, int64_t aSize, int aFileType, const string& aString, const string& aToken, void* aOwner) {
 	Lock l(cs);
 
 	for(Client::Iter i = clients.begin(); i != clients.end(); ++i) {
 		if((*i)->isConnected()) {
-			(*i)->search(aSizeMode, aSize, aFileType, aString, aToken);
+			(*i)->search(aSizeMode, aSize, aFileType, aString, aToken, aOwner);
 		}
 	}
 }
 
-void ClientManager::search(StringList& who, int aSizeMode, int64_t aSize, int aFileType, const string& aString, const string& aToken) {
+uint64_t ClientManager::search(StringList& who, int aSizeMode, int64_t aSize, int aFileType, const string& aString, const string& aToken, void* aOwner) {
 	Lock l(cs);
 
+	uint64_t estimateSearchSpan = 0;
+	
 	for(StringIter it = who.begin(); it != who.end(); ++it) {
 		string& client = *it;
 		for(Client::Iter j = clients.begin(); j != clients.end(); ++j) {
 			Client* c = *j;
 			if(c->isConnected() && c->getHubUrl() == client) {
-				c->search(aSizeMode, aSize, aFileType, aString, aToken);
+				uint64_t ret = c->search(aSizeMode, aSize, aFileType, aString, aToken, aOwner);
+				estimateSearchSpan = max(estimateSearchSpan, ret);
 			}
 		}
 	}
+	return estimateSearchSpan;
 }
 
 void ClientManager::on(TimerManagerListener::Minute, uint64_t /*aTick*/) throw() {
@@ -999,23 +989,23 @@ void ClientManager::setListSize(const UserPtr& p, int64_t aFileLength, bool adc)
 int ClientManager::getMode(const string& aHubUrl) const {
 	if(aHubUrl.empty()) return SETTING(INCOMING_CONNECTIONS);
 
-	int mode = 0;
 	const FavoriteHubEntry* hub = FavoriteManager::getInstance()->getFavoriteHubEntry(aHubUrl);
 	if(hub) {
 		switch(hub->getMode()) {
-			case 1 :
-				mode = SettingsManager::INCOMING_DIRECT;
-				break;
-			case 2 :
-				mode = SettingsManager::INCOMING_FIREWALL_PASSIVE;
-				break;
-			default:
-				mode = SETTING(INCOMING_CONNECTIONS);
+			case 1 : return SettingsManager::INCOMING_DIRECT;
+			case 2 : return SettingsManager::INCOMING_FIREWALL_PASSIVE;
+			default: return SETTING(INCOMING_CONNECTIONS);
 		}
-	} else {
-		mode = SETTING(INCOMING_CONNECTIONS);
 	}
-	return mode;
+	return SETTING(INCOMING_CONNECTIONS);
+}
+
+void ClientManager::cancelSearch(void* aOwner) {
+	Lock l(cs);
+
+	for(Client::Iter i = clients.begin(); i != clients.end(); ++i) {
+		(*i)->cancelSearch(aOwner);
+	}
 }
 //RSX++ //Lua
 bool ClientManager::ucExecuteLua(const string& ucCommand, StringMap& params) throw() {
@@ -1069,7 +1059,7 @@ void ClientManager::multiHubKick(const UserPtr& p, const string& aRaw) {
 	}
 }
 
-bool ClientManager::compareUsers(const OnlineUser& ou1, const OnlineUser& ou2) {
+bool ClientManager::compareUsers(const OnlineUser& ou1, const OnlineUser& ou2) const {
 	//first, check if im op on hub ;]
 	if(!ou1.getClient().isOp() || !ou2.getClient().isOp())
 		return false;
@@ -1120,5 +1110,5 @@ void ClientManager::sendAction(OnlineUser& ou, const int aAction) {
 
 /**
  * @file
- * $Id: ClientManager.cpp 387 2008-05-16 10:41:48Z BigMuscle $
+ * $Id: ClientManager.cpp 394 2008-06-28 22:28:44Z BigMuscle $
  */

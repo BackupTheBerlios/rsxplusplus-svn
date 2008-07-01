@@ -1,3 +1,10 @@
+** SVN 86
+ ** StrongDC++ SVN merge
+ ** removed toolbarmanager
+ ** fixed threaded detector - ups...
+ ** changed Fast to normal critical section, it mess other threads and make locks
+ ** branches sync.
+
 ** SVN 84
  ** added adccommands.lua
  ** changes in DetectionEntry - +2 INFMaps, now there are fields for 2 protocols + for both (only one used at check)

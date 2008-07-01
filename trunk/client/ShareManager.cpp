@@ -926,6 +926,11 @@ StringPairList ShareManager::getDirectories() const throw() {
 }
 
 int ShareManager::run() {
+	// KUL - hash progress dialog patch
+	// cache the paused state of hashmanager, if it's paused when we start, don't resume it when we're finished.
+	bool pause = HashManager::getInstance()->isPaused();
+	if(!pause)
+		HashManager::getInstance()->pause();
 		
 	StringPairList dirs = getDirectories();
 	// Don't need to refresh if no directories are shared
@@ -963,6 +968,8 @@ int ShareManager::run() {
 	if(update) {
 		ClientManager::getInstance()->infoUpdated();
 	}
+	if(!pause) 
+		HashManager::getInstance()->resume(); // KUL - hash progress dialog patch
 	refreshing = 0;
 	return 0;
 }
@@ -1713,5 +1720,5 @@ int64_t ShareManager::removeExcludeFolder(const string &path, bool returnSize /*
 
 /**
  * @file
- * $Id: ShareManager.cpp 390 2008-06-16 19:41:42Z BigMuscle $
+ * $Id: ShareManager.cpp 395 2008-06-30 12:11:32Z BigMuscle $
  */

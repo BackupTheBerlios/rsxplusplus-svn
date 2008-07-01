@@ -30,7 +30,12 @@
 BOOL InitSymInfo( PCSTR );
 BOOL UninitSymInfo();
 void StackTrace( HANDLE, LPCTSTR, File& file);
-void StackTrace( HANDLE, LPCTSTR, File& file, DWORD eip, DWORD esp, DWORD ebp);
+
+#ifndef _WIN64
+void StackTrace( HANDLE hThread, LPCTSTR lpszMessage, File& f, DWORD eip, DWORD esp, DWORD ebp );
+#else
+void StackTrace( HANDLE hThread, LPCTSTR lpszMessage, File& f, DWORD64 eip, DWORD64 esp, DWORD64 ebp );
+#endif
 
 #else
 
@@ -44,5 +49,5 @@ void StackTrace( HANDLE, LPCTSTR, File& file, DWORD eip, DWORD esp, DWORD ebp);
 
 /**
  * @file
- * $Id: ExtendedTrace.h 373 2008-02-06 17:23:49Z bigmuscle $
+ * $Id: ExtendedTrace.h 394 2008-06-28 22:28:44Z BigMuscle $
  */

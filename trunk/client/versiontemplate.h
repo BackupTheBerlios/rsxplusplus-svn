@@ -23,7 +23,7 @@
 #define DCVERSIONSTRING "0.707"
 #define DCVERSIONFLOAT 0.7071
 
-#define SVNVERSION "svn393"
+#define SVNVERSION "svn395"
 
 // RSX++
 #define SVN_REVISION $revision

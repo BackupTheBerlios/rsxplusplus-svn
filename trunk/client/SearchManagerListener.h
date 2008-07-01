@@ -31,9 +31,7 @@ public:
 	template<int I>	struct X { enum { TYPE = I };  };
 
 	typedef X<0> SR;
-	typedef X<1> Searching;
 	virtual void on(SR, const SearchResultPtr&) throw() = 0;
-	virtual void on(Searching, const SearchQueueItem*) throw() { }
 };
 
 } // namespace dcpp
@@ -42,5 +40,5 @@ public:
 
 /**
  * @file
- * $Id: SearchManagerListener.h 386 2008-05-10 19:29:01Z BigMuscle $
+ * $Id: SearchManagerListener.h 394 2008-06-28 22:28:44Z BigMuscle $
  */

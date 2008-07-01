@@ -418,14 +418,15 @@ void FavoriteManager::save() {
 			xml.addChildAttrib("Server", (*i)->getServer());
 			xml.addChildAttrib("UserDescription", (*i)->getUserDescription());
 			xml.addChildAttrib("Encoding", (*i)->getEncoding());
-			xml.addChildAttrib("Mode", Util::toString((*i)->getMode()));
-			xml.addChildAttrib("IP", (*i)->getIP());
 			xml.addChildAttrib("ChatUserSplit", (*i)->getChatUserSplit());
 			xml.addChildAttrib("StealthMode", (*i)->getStealth());
 			xml.addChildAttrib("UserListState", (*i)->getUserListState());
-			xml.addChildAttrib("HeaderOrder",		(*i)->getHeaderOrder());
-			xml.addChildAttrib("HeaderWidths",		(*i)->getHeaderWidths());
-			xml.addChildAttrib("HeaderVisible",		(*i)->getHeaderVisible());
+			xml.addChildAttrib("HubFrameOrder",	(*i)->getHeaderOrder());
+			xml.addChildAttrib("HubFrameWidths", (*i)->getHeaderWidths());
+			xml.addChildAttrib("HubFrameVisible", (*i)->getHeaderVisible());
+			xml.addChildAttrib("Mode", Util::toString((*i)->getMode()));
+			xml.addChildAttrib("IP", (*i)->getIP());
+			xml.addChildAttrib("SearchInterval", Util::toString((*i)->getSearchInterval()));
 			//RSX++
 			xml.addChildAttrib("Email", (*i)->getFavEmail());
 			xml.addChildAttrib("AwayMsg", (*i)->getAwayMsg());
@@ -736,9 +737,9 @@ void FavoriteManager::load(SimpleXML& aXml) {
 			e->setChatUserSplit(aXml.getIntChildAttrib("ChatUserSplit"));
 			e->setStealth(aXml.getBoolChildAttrib("StealthMode"));
 			e->setUserListState(aXml.getBoolChildAttrib("UserListState"));
-			e->setHeaderOrder(aXml.getChildAttrib("HeaderOrder", SETTING(HUBFRAME_ORDER)));
-			e->setHeaderWidths(aXml.getChildAttrib("HeaderWidths", SETTING(HUBFRAME_WIDTHS)));
-			e->setHeaderVisible(aXml.getChildAttrib("HeaderVisible", SETTING(HUBFRAME_VISIBLE)));
+			e->setHeaderOrder(aXml.getChildAttrib("HubFrameOrder", SETTING(HUBFRAME_ORDER)));
+			e->setHeaderWidths(aXml.getChildAttrib("HubFrameWidths", SETTING(HUBFRAME_WIDTHS)));
+			e->setHeaderVisible(aXml.getChildAttrib("HubFrameVisible", SETTING(HUBFRAME_VISIBLE)));
 			//RSX++
 			e->setFavEmail(aXml.getChildAttrib("Email"));
 			e->setAwayMsg(aXml.getChildAttrib("AwayMsg"));
@@ -756,7 +757,7 @@ void FavoriteManager::load(SimpleXML& aXml) {
 			//END
 			e->setMode(Util::toInt(aXml.getChildAttrib("Mode")));
 			e->setIP(aXml.getChildAttrib("IP"));
-
+			e->setSearchInterval(Util::toUInt32(aXml.getChildAttrib("SearchInterval")));
 			//RSX++ //Raw Manager
 			aXml.stepIn();
 			while(aXml.findChild("Action")) {

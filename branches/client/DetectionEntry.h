@@ -23,7 +23,7 @@ namespace dcpp {
 
 class DetectionEntry {
 public:
-	typedef deque<pair<string, string> > StringMapV;
+	typedef deque<pair<string, string> > INFMap;
 
 	enum {
 		GREEN = 1,
@@ -32,10 +32,12 @@ public:
 	};
 
 	DetectionEntry() : Id(0), name(""), cheat(""), comment(""), rawToSend(0), clientFlag(1), checkMismatch(false), isEnabled(true) { };
-	~DetectionEntry() { };
+	~DetectionEntry() { defaultMap.clear(); adcMap.clear(); nmdcMap.clear(); };
 
 	uint32_t Id;
-	StringMapV infMap;
+	INFMap defaultMap;
+	INFMap adcMap;
+	INFMap nmdcMap;
 
 	string name;
 	string cheat;
@@ -53,5 +55,5 @@ public:
 
 /**
  * @file
- * $Id: DetectionEntry.h 61 2008-03-09 17:26:28Z adrian_007 $
+ * $Id: DetectionEntry.h 84 2008-06-30 14:47:54Z adrian_007 $
  */

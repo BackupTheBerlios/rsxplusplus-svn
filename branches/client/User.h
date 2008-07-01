@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2007 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,8 +16,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef DCPLUSPLUS_CLIENT_USER_H
-#define DCPLUSPLUS_CLIENT_USER_H
+#ifndef DCPLUSPLUS_DCPP_USER_H
+#define DCPLUSPLUS_DCPP_USER_H
 
 #include "Util.h"
 #include "Pointer.h"
@@ -28,11 +28,13 @@
 #include "forward.h"
 //RSX++
 #include "TimerManager.h"
-#include "../rsx/PluginAPI/UserInterface.h"
+#include "PluginAPI/UserInterface.h"
 //END
 
+namespace dcpp {
+
 /** A user connected to one or more hubs. */
-class User : public FastAlloc<User>, public PointerBase, public Flags
+class User : public FastAlloc<User>, public intrusive_ptr_base, public Flags
 {
 public:
 	/** Each flag is set if it's true in at least one hub */
@@ -51,7 +53,7 @@ public:
 		NO_ADC_0_10_PROTOCOL = 0x800,	//< Doesn't support "ADC/0.10"
 		NO_ADCS_0_10_PROTOCOL = 0x1000,	//< Doesn't support "ADCS/0.10"
 		//RSX++
-		PROTECTED 	= 0x2000 //< User protected
+		PROTECTED 	= 0x2000			//< User protected
 		//END
 	};
 
@@ -59,7 +61,7 @@ public:
 		size_t operator()(const UserPtr& x) const { return ((size_t)(&(*x)))/sizeof(User); }
 	};
 
-	User(const CID& aCID) : cid(aCID), lastDownloadSpeed(0), firstNick(Util::emptyString), soundActive(true) { }
+	User(const CID& aCID) : cid(aCID), soundActive(true) { }
 
 	~User() throw() { }
 
@@ -68,10 +70,7 @@ public:
 
 	bool isOnline() const { return isSet(ONLINE); }
 	bool isNMDC() const { return isSet(NMDC); }
-	const string& getNick(bool first = true) const;
 
-	GETSET(string, firstNick, FirstNick);
-	GETSET(size_t, lastDownloadSpeed, LastDownloadSpeed);
 	GETSET(bool, soundActive, SoundActive); //RSX++
 private:
 	User(const User&);
@@ -98,6 +97,7 @@ public:
 	Identity& operator=(const Identity& rhs) { FastLock l(cs); user = rhs.user; info = rhs.info; return *this; }
 
 #define GS(n, x) string get##n() const { return get(x); } void set##n(const string& v) { set(x, v); }
+	GS(Nick, "NI")
 	GS(Description, "DE")
 	GS(Ip, "I4")
 	GS(UdpPort, "U4")
@@ -106,29 +106,13 @@ public:
 	//RSX++
 	GS(MyInfoType, "MT")
 	GS(ISP, "IS")
-	GS(TestSURQueued, "TQ")
 	GS(TestSURChecked, "TC")
-	GS(FileListQueued, "FQ")
+	GS(TestSURQueued, "TQ")
 	GS(FileListChecked, "FC")
+	GS(FileListQueued, "FQ")
 	GS(ClientType, "CL")
 	GS(ClientComment, "CM")
 	//END
-
-	void setNick(const string& aNick) {
-		if(!user || !user->isSet(User::NMDC)) {
-			set("NI", aNick);
-		}
-	}
-
-	const string& getNick() const {
-		if(user && user->isSet(User::NMDC)) {
-			return user->getFirstNick();
-		} else {
-			FastLock l(cs);
-			InfMap::const_iterator i = info.find(*(short*)"NI");
-			return i == info.end() ? Util::emptyString : i->second;
-		}
-	}
 
 	void setBytesShared(const string& bs) { set("SS", bs); }
 	int64_t getBytesShared() const { return Util::toInt64(get("SS")); }
@@ -151,10 +135,10 @@ public:
 	bool isTcpActive() const { return (!user->isSet(User::NMDC) && !getIp().empty()) || !user->isSet(User::PASSIVE); }
 	bool isUdpActive() const { return !getIp().empty() && !getUdpPort().empty(); }
 	//RSX++
-	bool isTestSURQueued() const { return isSet("TQ"); }
-	bool isFileListQueued() const { return isSet("FQ"); }
 	bool isClientChecked() const { return isSet("TC"); }
 	bool isFileListChecked() const { return isSet("FC"); }
+	bool isClientQueued() const { return isSet("TQ"); }
+	bool isFileListQueued() const { return isSet("FQ"); }
 	//END
 	string get(const char* name) const;
 	void set(const char* name, const string& val);
@@ -166,22 +150,22 @@ public:
 
 	bool isClientType(ClientType ct) const;
 
-	const string getReport() const;
+	string getReport() const;
 	void getParams(StringMap& map, const string& prefix, bool compatibility) const;
 
 	//RSX++
 	string setCheat(const Client& c, const string& aCheatDescription, bool aBadClient, bool aBadFilelist = false, bool aDisplayCheat = true);
 	bool canICheckUser(OnlineUser& ou, bool filelist = false);
 	bool isMyInfoSpamming();
-	bool isCtmSpamming();
-	bool isPmSpamming();
+	bool isCtmSpamming() const;
+	bool isPmSpamming() const;
 
-	const string myInfoDetect(OnlineUser& ou);
-	const string updateClientType(OnlineUser& ou);
+	string myInfoDetect(OnlineUser& ou);
+	string updateClientType(OnlineUser& ou);
 	void checkIP(OnlineUser& ou);
-	const string checkFilelistGenerator(OnlineUser& ou);
-	const string checkrmDC(OnlineUser& ou);
-	const string checkSlotsCount(OnlineUser& ou, int realSlots);
+	string checkFilelistGenerator(OnlineUser& ou);
+	string checkrmDC(OnlineUser& ou);
+	string checkSlotsCount(OnlineUser& ou, int realSlots);
 
 	string getVersion() const;
 	void cleanUser();
@@ -198,13 +182,13 @@ private:
 	static FastCriticalSection cs;
 	//RSX++
 	//Flood stuff
-	uint16_t myinfoFloodCounter;	
-	uint16_t cteFloodCounter;
-	uint16_t pmFloodCounter;
+	mutable uint16_t myinfoFloodCounter;	
+	mutable uint16_t cteFloodCounter;
+	mutable uint16_t pmFloodCounter;
 
-	uint64_t lastMyInfo;
-	uint64_t lastCte;	
-	uint64_t lastPm;
+	mutable uint64_t lastMyInfo;
+	mutable uint64_t lastCte;	
+	mutable uint64_t lastPm;
 
 	void resetCounters() {
 		set("MC", Util::emptyString);
@@ -234,7 +218,7 @@ private:
 class NmdcHub;
 #include "UserInfoBase.h"
 
-class OnlineUser : public iUser, public FastAlloc<OnlineUser>, public PointerBase, public UserInfoBase {
+class OnlineUser : public FastAlloc<OnlineUser>, public intrusive_ptr_base, public UserInfoBase, public iOnlineUser {
 public:
 	enum {
 		COLUMN_FIRST,
@@ -252,7 +236,6 @@ public:
 		COLUMN_MODE, 
 		COLUMN_HUBS, 
 		COLUMN_SLOTS,
-		COLUMN_UPLOAD_SPEED,
 		COLUMN_IP,
 		COLUMN_HOST,
 		COLUMN_ISP,
@@ -290,34 +273,57 @@ public:
 
 	bool isInList;
 	//RSX++
-	inline const string setCheat(const string& aCheat, bool aBadClient, bool aBadFilelist = false, bool aDisplayCheat = true) {
+	inline void initializeData() { 
+		identity.setLoggedIn(GET_TICK());
+		identity.set("LT", Util::formatTime("%d-%m %H:%M", GET_TIME()));
+	}
+	inline string setCheat(const string& aCheat, bool aBadClient, bool aBadFilelist = false, bool aDisplayCheat = true) {
 		return identity.setCheat(getClient(), aCheat, aBadClient, aBadFilelist, aDisplayCheat);
 	}
-	inline bool isProtectedUser(bool checkOp = true) const { return identity.isProtectedUser(getClient(), checkOp); }
-	bool getChecked(bool filelist = false);
-	bool isCheckable(bool delay = true) const;
-	bool shouldTestSUR() const { return (!identity.isTestSURQueued() && !identity.isClientChecked()); }
-	bool shouldCheckFileList(bool onlyFilelist = false) const;
-	void initializeData() { identity.setLoggedIn(GET_TICK()); identity.set("LT", Util::formatTime("%d-%m %H:%M", GET_TIME())); }
-	void setTestSURComplete() { identity.setTestSURChecked(Util::toString(GET_TIME())); }
-	void setFileListComplete() { identity.setFileListChecked(Util::toString(GET_TIME())); }
-	void updateUser();
+	inline bool isProtectedUser(bool checkOp = true) const { 
+		return identity.isProtectedUser(getClient(), checkOp);
+	}
+	/** Detection stuff functions **/
+	inline bool shouldCheckClient() const {
+		if(identity.isClientChecked() || identity.isClientQueued())
+			return false;
+		return true;
+	}
+	inline bool shouldCheckFileList() const {
+		if(identity.isFileListQueued() || identity.isFileListChecked() || identity.isClientQueued())
+			return false;
+		return (GET_TIME() - Util::toInt64(identity.getTestSURChecked()) > 10);
+	}
+	inline void setTestSURComplete() {
+		identity.setTestSURChecked(Util::toString(GET_TIME()));
+	}
+	inline void setFileListComplete() {
+		identity.setFileListChecked(Util::toString(GET_TIME()));
+	}
+	inline bool isCheckable(uint16_t delay = 0) const {
+		if(identity.isOp())
+			return false;
+		if(identity.isBot() || getUser()->isSet(User::BOT))
+			return false;
+		if(identity.isHub())
+			return false;
+		if(identity.isHidden())
+			return false;
+		if(delay == 0)
+			return true;
+		return (GET_TICK() - identity.getLoggedIn()) > delay;
+	}
+	bool getChecked(bool filelist = false, bool checkComplete = true);
 
-	/** User Interface **/
-	// get field value from user identity
-	const char* __stdcall iGet(const char* name) const { 
-		return getIdentity().get(name).c_str(); 
-	}
-	// get user nick
-	const wchar_t* __stdcall iGetNick() const {
-		wstring ret = Text::toT(getNick());
-		return ret.c_str(); 
-	}
-	// send private message to user
-	void __stdcall sendPM(const char* aMsg);
-	//get user client
-	iClient* __stdcall getUserClient();
+	/** iOnlineUser functions **/
+	rString __fastcall p_get(const char* name) { return getIdentity().get(name).c_str(); }
+	void __fastcall p_set(const char* name, const rString& value) { getIdentity().set(name, value.c_str()); }
+	void __fastcall p_sendPM(const rString& aMsg);
+	iClient* __fastcall p_getUserClient();
+	void __fastcall p_inc() { inc(); }
+	void __fastcall p_dec() { dec(); }
 	//END
+
 	GETSET(Identity, identity, Identity);
 private:
 	friend class NmdcHub;
@@ -328,9 +334,11 @@ private:
 	Client& client;
 };
 
+} // namespace dcpp
+
 #endif // !defined(USER_H)
 
 /**
  * @file
- * $Id: User.h 355 2008-01-05 14:43:39Z bigmuscle $
+ * $Id: User.h 386 2008-05-10 19:29:01Z BigMuscle $
  */

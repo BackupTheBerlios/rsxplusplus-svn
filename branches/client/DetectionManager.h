@@ -31,7 +31,7 @@ public:
 	typedef vector<DetectionEntry> DetectionItems;
 
 	DetectionManager() : profileVersion("N/A"), profileMessage("N/A"), profileUrl("N/A"), lastId(0) { };
-	~DetectionManager() throw() { save(); };
+	~DetectionManager() throw() { save(); det.clear(); };
 
 	void load();
 	void save();
@@ -86,5 +86,5 @@ private:
 
 /**
  * @file
- * $Id: DetectionManager.h 61 2008-03-09 17:26:28Z adrian_007 $
+ * $Id: DetectionManager.h 83 2008-06-24 21:00:15Z adrian_007 $
  */

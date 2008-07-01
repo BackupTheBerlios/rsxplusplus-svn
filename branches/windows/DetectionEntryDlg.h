@@ -29,6 +29,7 @@
 #include "../client/version.h"
 
 #include "ExListViewCtrl.h"
+#include "CRawCombo.h"
 
 class DetectionEntryDlg : public CDialogImpl<DetectionEntryDlg>
 {
@@ -49,6 +50,7 @@ public:
 		COMMAND_ID_HANDLER(IDC_MATCH, onMatch)
 		COMMAND_ID_HANDLER(IDOK, OnCloseCmd)
 		COMMAND_ID_HANDLER(IDCANCEL, OnCloseCmd)
+		COMMAND_HANDLER(IDC_PROTOCOL, LBN_SELCHANGE, onProtocolChange)
 		NOTIFY_HANDLER(IDC_PARAMS, LVN_ITEMCHANGED, onItemchangedDirectories)
 	END_MSG_MAP()
 
@@ -57,7 +59,8 @@ public:
 	~DetectionEntryDlg() {
 		ctrlName.Detach(); ctrlComment.Detach(); ctrlLevel.Detach();
 		ctrlCheat.Detach(); ctrlRaw.Detach(); ctrlParams.Detach();
-		ctrlExpTest.Detach();
+		ctrlExpTest.Detach(); ctrlProtocol.Detach(); sharedMap.clear();
+		nmdcMap.clear(); adcMap.clear();
 	}
 
 	LRESULT onFocus(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
@@ -72,6 +75,13 @@ public:
 		return 0;
 	}
 
+	LRESULT onProtocolChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/){
+		updateVars();
+		ctrlParams.DeleteAllItems();
+		updateControls();
+		return S_OK;
+	}
+
 	LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 	LRESULT onAdd(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT onChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
@@ -81,13 +91,16 @@ public:
 	LRESULT onItemchangedDirectories(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/);
 	LRESULT OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 
+	uint32_t origId;
+
 private:
 	CEdit ctrlName, ctrlComment, ctrlCheat, ctrlExpTest;
 	CRawCombo ctrlRaw;
-	CComboBox ctrlLevel;
+	CComboBox ctrlLevel, ctrlProtocol;
 	ExListViewCtrl ctrlParams;
 	bool idChanged;
-	uint32_t origId;
+
+	DetectionEntry::INFMap sharedMap, nmdcMap, adcMap;
 
 	void updateVars();
 	void updateControls();

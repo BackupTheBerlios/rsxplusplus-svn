@@ -88,13 +88,13 @@ public:
 	}
 
 	void onRES(const AdcCommand& cmd, const UserPtr& from, const string& removeIp = Util::emptyString);
-	void sendPSR(const string& ip, uint16_t port, bool wantResponse, const string& myNick, const string& hubIpPort, const string& tth, const vector<uint16_t>& partialInfo);
+	AdcCommand toPSR(bool wantResponse, const string& myNick, const string& hubIpPort, const string& tth, const vector<uint16_t>& partialInfo) const;
 
 private:
-	class ResultsQueue: public Thread {
+	class UdpQueue: public Thread {
 	public:
-		ResultsQueue() : stop(false) {}
-		~ResultsQueue() throw() { shutdown(); }
+		UdpQueue() : stop(false) {}
+		~UdpQueue() throw() { shutdown(); }
 
 		int run();
 		void shutdown() {
@@ -141,5 +141,5 @@ private:
 
 /**
  * @file
- * $Id: SearchManager.h 394 2008-06-28 22:28:44Z BigMuscle $
+ * $Id: SearchManager.h 397 2008-07-04 14:58:44Z BigMuscle $
  */

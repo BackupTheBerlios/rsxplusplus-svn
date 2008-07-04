@@ -43,7 +43,6 @@ public:
 	using Client::connect;
 
 	void onLine(const string& aLine) throw(); //RSX++
-
 	void connect(const OnlineUser& aUser, const string&);
 
 	void hubMessage(const string& aMessage, bool /*thirdPerson*/ = false);
@@ -52,10 +51,6 @@ public:
 	void search(int aSizeType, int64_t aSize, int aFileType, const string& aString, const string& aToken);
 	void password(const string& aPass) { send("$MyPass " + fromUtf8(aPass) + "|"); }
 	void info(bool force) { myInfo(force); }
-
-	void cheatMessage(const string& aLine) {
-		fire(ClientListener::CheatMessage(), this, unescape(aLine));
-	}    
 
 	size_t getUserCount() const { Lock l(cs); return users.size(); }
 	
@@ -90,7 +85,7 @@ private:
 	typedef NickMap::const_iterator NickIter;
 
 	NickMap users;
-
+	//RSX++
 	void startChecking() { users.startCheck(this, getCheckClients(), getCheckFilelists()); }
 	void startCustomCheck(bool clients, bool filelists) { users.startCheck(this, clients, filelists); }
 	bool isDetectorRunning() { return users.isDetectorRunning(); }
@@ -155,5 +150,5 @@ private:
 
 /**
  * @file
- * $Id: nmdchub.h 386 2008-05-10 19:29:01Z BigMuscle $
+ * $Id: nmdchub.h 396 2008-07-01 21:26:33Z BigMuscle $
  */

@@ -353,7 +353,6 @@ int LuaManager::RunTimer(lua_State* L) {
 
 lua_State* ScriptInstance::L = 0;		//filled in by scriptmanager.
 CriticalSection ScriptInstance::cs;
-FastCriticalSection ScriptInstance::fastCs;
 
 ScriptManager::ScriptManager() : isRunning(false), timerEnabled(false) {
 }

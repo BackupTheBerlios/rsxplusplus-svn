@@ -26,7 +26,6 @@
 
 #include "ClientManager.h"
 #include "ClientProfileManager.h"
-#include "pme.h"
 #include "UserCommand.h"
 #include "ResourceManager.h"
 #include "FavoriteManager.h"
@@ -59,6 +58,7 @@ void Identity::getParams(StringMap& sm, const string& prefix, bool compatibility
 		sm[prefix + "TAG"] = getTag();
 		sm[prefix + "SSshort"] = Util::formatBytes(get("SS"));
 		//RSX++
+		sm[prefix + "CO"] = getConnection();
 		sm[prefix + "RSshort"] = Util::formatBytes(get("RS"));
 		sm[prefix + "LSshort"] = Util::formatBytes(get("LS"));
 		sm[prefix + "TCTime"] = Util::formatTime("%d-%m %H:%M:%S", Util::toInt64(get("TC")));
@@ -319,7 +319,7 @@ string Identity::updateClientType(OnlineUser& ou) {
 		for(DetectionEntry::INFMap::const_iterator j = INFList.begin(); j != INFList.end(); ++j) {
 			string aPattern = Util::formatRegExp(j->second, params);
 			string aField = getDetectionField(j->first);
-			//DETECTION_DEBUG("Pattern: " + aPattern + " Field: " + aField);
+			DETECTION_DEBUG("Pattern: " + aPattern + " Field: " + aField);
 			if(!RegexUtil::match(aField, aPattern)) {
 				_continue = true;
 				break;
@@ -334,6 +334,11 @@ string Identity::updateClientType(OnlineUser& ou) {
 		set("CM", entry.comment);
 		set("BC", entry.cheat.empty() ? Util::emptyString : "1");
 		logDetect(true);
+
+		if(entry.checkMismatch && getUser()->isSet(User::NMDC) &&  (params["VE"] != params["PKVE"])) { 
+			setClientType(entry.name + " Version mis-match");
+			return ou.setCheat(entry.cheat + " Version mis-match", true, false, ou.getClient().isActionActive(RSXSETTING(VERSION_MISMATCH)));
+		}
 
 		string report = Util::emptyString;
 		if(!entry.cheat.empty()) {
@@ -353,6 +358,8 @@ string Identity::getDetectionField(const string& aName) const {
 	if(aName.length() == 2) {
 		if(aName == "TA")
 			return getTag();
+		else if(aName == "CO")
+			return getConnection();
 		else
 			return get(aName.c_str());
 	} else {
@@ -564,8 +571,9 @@ void Identity::checkIP(OnlineUser& ou) {
 					break;
 				}
 				case 1: {
-					PME reg((*j)->getPattern(), "gi");
-					if(reg.IsValid() && reg.match(strToMatch))
+					//PME reg((*j)->getPattern(), "gi");
+					//if(reg.IsValid() && reg.match(strToMatch))
+					if(RegexUtil::match(strToMatch, (*j)->getPattern()))
 						matched = true;
 					break;
 				}
@@ -610,17 +618,14 @@ void Identity::checkIP(OnlineUser& ou) {
 }
 //RSX++ //Filelist Detector
 string Identity::checkFilelistGenerator(OnlineUser& ou) {
-	{
-		PME reg("^<StrgDC\\+\\+ V:1.00 RC([89]){1}");
-		if((get("FG") == "DC++ 0.403")) {
-			if(reg.match(getTag())) {
-				string report = ou.setCheat("rmDC++ in StrongDC++ %[userVE] emulation mode" , true, false, RSXBOOLSETTING(SHOW_RMDC_RAW));
-				setClientType("rmDC++");
-				logDetect(true);
-				ou.getClient().updated(ou);
-				ClientManager::getInstance()->sendAction(ou, RSXSETTING(RMDC_RAW));
-				return report;
-			}
+	if((get("FG") == "DC++ 0.403")) {
+		if(RegexUtil::match(getTag(), "^<StrgDC\\+\\+ V:1.00 RC([89]){1}")) {
+			string report = ou.setCheat("rmDC++ in StrongDC++ %[userVE] emulation mode" , true, false, RSXBOOLSETTING(SHOW_RMDC_RAW));
+			setClientType("rmDC++");
+			logDetect(true);
+			ou.getClient().updated(ou);
+			ClientManager::getInstance()->sendAction(ou, RSXSETTING(RMDC_RAW));
+			return report;
 		}
 	}
 
@@ -644,16 +649,14 @@ string Identity::checkFilelistGenerator(OnlineUser& ou) {
 		}
 	}
 
-	{
-		PME reg("^DC\\+\\+.*");
-		if(reg.match(get("FG"))) {
-			if(!get("VE").empty() && (get("VE") != getFilelistGeneratorVer())) {
-				string report = ou.setCheat("Filelist Version mis-match", false, true, RSXBOOLSETTING(SHOW_FILELIST_VERSION_MISMATCH));
-				logDetect(true);
-				ou.getClient().updated(ou);
-				ClientManager::getInstance()->sendAction(ou, RSXSETTING(FILELIST_VERSION_MISMATCH));
-				return report;
-			}
+
+	if(RegexUtil::match(get("FG"), "^DC\\+\\+.*")) {
+		if(!get("VE").empty() && (get("VE") != getFilelistGeneratorVer())) {
+			string report = ou.setCheat("Filelist Version mis-match", false, true, RSXBOOLSETTING(SHOW_FILELIST_VERSION_MISMATCH));
+			logDetect(true);
+			ou.getClient().updated(ou);
+			ClientManager::getInstance()->sendAction(ou, RSXSETTING(FILELIST_VERSION_MISMATCH));
+			return report;
 		}
 	}
 
@@ -700,8 +703,7 @@ string Identity::getFilelistGeneratorVer() const {
 
 string Identity::checkrmDC(OnlineUser& ou) {
 	string report = Util::emptyString;
-	PME reg("^0.40([0123]){1}$");
-	if(reg.match(getVersion())) {
+	if(RegexUtil::match(getVersion(), "^0.40([0123]){1}$")) {
 		report = ou.setCheat("rmDC++ in DC++ %[userVE] emulation mode" , true, false, RSXBOOLSETTING(SHOW_RMDC_RAW));
 		setClientType("rmDC++");
 		ClientManager::getInstance()->sendAction(ou, RSXSETTING(RMDC_RAW));

@@ -18,7 +18,8 @@
 
 #include "stdafx.h"
 #include "../client/DCPlusPlus.h"
-#include "../client/pme.h"
+
+#include "../rsx/RegexUtil.h"
 
 #include "DetectionEntryDlg.h"
 #include "Resource.h"
@@ -228,15 +229,8 @@ LRESULT DetectionEntryDlg::onMatch(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
 				i = j + 2;
 			}
 		}
-
-		PME reg(formattedExp);
-		if(reg.IsValid()) {
-			::MessageBox(m_hWnd, ((reg.match(test) > 0) ? CTSTRING(REGEXP_MATCH) : CTSTRING(REGEXP_MISMATCH)), CTSTRING(REGEXP_TESTER), MB_ICONINFORMATION | MB_OK);
-		} else {
-			::MessageBox(m_hWnd, CTSTRING(INVALID_REGEXP), CTSTRING(REGEXP_TESTER), MB_ICONINFORMATION | MB_OK);
-		}
+		::MessageBox(m_hWnd, Text::toT(RegexUtil::matchExp(formattedExp, test)).c_str(), CTSTRING(REGEXP_TESTER), MB_ICONINFORMATION | MB_OK);
 	}
-
 	return 0;
 }
 

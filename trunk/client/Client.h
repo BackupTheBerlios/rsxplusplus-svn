@@ -44,7 +44,7 @@ struct ClientScriptInstance : public ScriptInstance {
 class Client : public Speaker<ClientListener>, public iClient, public BufferedSocketListener, protected TimerManagerListener, 
 	/*RSX++*/ public ClientScriptInstance/*END*/ {
 public:
-	typedef slist<Client*> List;
+	typedef list<Client*> List;
 	typedef List::const_iterator Iter;
 
 	virtual void connect();
@@ -60,7 +60,6 @@ public:
 	
 	virtual void password(const string& pwd) = 0;
 	virtual void info(bool force) = 0;
-	virtual void cheatMessage(const string& aLine) = 0;
 
 	virtual size_t getUserCount() const = 0;
 	int64_t getAvailable() const { return availableBytes; };
@@ -126,15 +125,19 @@ public:
 		return sm;
 	}
 	
-	void setSearchInterval(uint32_t aInterval){
-		// min interval is 30 seconds
-		searchQueue.interval = max(aInterval, (uint32_t)(30 * 1000));
+	void setSearchInterval(uint32_t aInterval) {
+		// min interval is 10 seconds
+		searchQueue.interval = max(aInterval + 2000, (uint32_t)(10 * 1000));
 	}
 
-	uint32_t getSearchInterval(){
+	uint32_t getSearchInterval() const {
 		return searchQueue.interval;
 	}	
 
+	void cheatMessage(const string& msg) {
+		fire(ClientListener::CheatMessage(), this, msg);
+	}
+	
 	void reconnect();
 	void shutdown();
 	bool isActive() const;
@@ -157,7 +160,6 @@ public:
 	GETSET(string, defpassword, Password);
 	
 	GETSET(string, currentNick, CurrentNick);
-	GETSET(string, currentDescription, CurrentDescription);
 	//RSX++
 	GETSET(string, currentEmail, CurrentEmail);
 	GETSET(bool, useFilter, UseFilter);
@@ -170,6 +172,10 @@ public:
 	GETSET(bool, checkMyInfo, CheckMyInfo);
 	GETSET(bool, hideShare, HideShare);
 	GETSET(bool, checkedAtConnect, CheckedAtConnect);
+	void setCurrentDescription(const string& description) {
+		currentDescription = description;
+	}
+	string getCurrentDescription() const;
 	//END
 	GETSET(string, favIp, FavIp);
 	
@@ -182,8 +188,7 @@ public:
 	GETSET(bool, autoReconnect, AutoReconnect);
 	GETSET(bool, stealth, Stealth);
 
-	mutable CriticalSection cs;
-
+	mutable CriticalSection cs; //RSX++
 protected:
 	friend class ClientManager;
 	Client(const string& hubURL, char separator, bool secure_);
@@ -234,7 +239,10 @@ protected:
 	void insertRaw(const string& aRawCmd);
 	//END
 private:
-	void putSender(bool clear = false); //RSX++
+	//RSX++
+	void putSender(bool clear = false);
+	string currentDescription;
+	//END
 
 	enum CountType {
 		COUNT_UNCOUNTED,
@@ -262,5 +270,5 @@ private:
 
 /**
  * @file
- * $Id: Client.h 394 2008-06-28 22:28:44Z BigMuscle $
+ * $Id: Client.h 396 2008-07-01 21:26:33Z BigMuscle $
  */

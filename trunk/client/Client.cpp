@@ -29,7 +29,6 @@
 #include "ClientManager.h"
 //RSX++
 #include "RawManager.h"
-#include "pme.h"
 #include "version.h"
 #include "Thread.h"
 #include "LogManager.h"
@@ -82,11 +81,11 @@ void Client::shutdown() {
 
 void Client::reloadSettings(bool updateNick) {
 	const FavoriteHubEntry* hub = FavoriteManager::getInstance()->getFavoriteHubEntry(getHubUrl());
-
+	//RSX++
 	string speedDescription = Util::emptyString;
 	if(BOOLSETTING(SHOW_DESCRIPTION_SPEED))
 		speedDescription = "["+SETTING(DOWN_SPEED)+"/"+SETTING(UP_SPEED)+"]";
-
+	//END
 	if(hub) {
 		if(updateNick) {
 			setCurrentNick(checkNick(hub->getNick(true)));
@@ -99,17 +98,19 @@ void Client::reloadSettings(bool updateNick) {
 		}
 		if(!hub->getPassword().empty())
 			setPassword(hub->getPassword());
-
+		setStealth(hub->getStealth());
+		setFavIp(hub->getIP());
+		
+		if(hub->getSearchInterval() < 10)
+			setSearchInterval(SETTING(MINIMUM_SEARCH_INTERVAL));
+		else
+			setSearchInterval(hub->getSearchInterval() * 1000);
+		//RSX++
 		if(!hub->getFavEmail().empty()) {
 			setCurrentEmail(hub->getFavEmail());
 		} else {
 			setCurrentEmail(SETTING(EMAIL));
 		}
-
-		setStealth(hub->getStealth());
-		setFavIp(hub->getIP());
-		hubUrl = hub->getServer();
-
 		if(!hub->getUserProtected().empty())
 			setUserProtected(hub->getUserProtected());
 
@@ -127,11 +128,12 @@ void Client::reloadSettings(bool updateNick) {
 		if(updateNick) {
 			setCurrentNick(checkNick(SETTING(NICK)));
 		}
-		setCurrentDescription(speedDescription + SETTING(DESCRIPTION));
-		setCurrentEmail(SETTING(EMAIL));
+		setCurrentDescription(SETTING(DESCRIPTION));
 		setStealth(true);
 		setFavIp(Util::emptyString);
+		setSearchInterval(SETTING(MINIMUM_SEARCH_INTERVAL));
 		//RSX++
+		setCurrentEmail(SETTING(EMAIL));
 		setUserProtected(Util::emptyString);
 		setCheckOnConnect(false);
 		setCheckClients(false);
@@ -144,9 +146,6 @@ void Client::reloadSettings(bool updateNick) {
 		setUsersLimit(0);
 		//END
 	}
-	#ifdef SVNBUILD
-	currentDescription += "<SVN " BOOST_STRINGIZE(SVN_REVISION) ">";
-	#endif
 }
 
 bool Client::isActive() const {
@@ -259,7 +258,7 @@ string Client::getLocalIp() const {
 }
 
 uint64_t Client::search(int aSizeMode, int64_t aSize, int aFileType, const string& aString, const string& aToken, void* owner){
-	dcdebug("Queue search %s\n", aString);
+	dcdebug("Queue search %s\n", aString.c_str());
 
 	if(searchQueue.interval){
 		Search s;
@@ -300,6 +299,16 @@ void Client::on(Second, uint64_t aTick) throw() {
 			search(s.sizeType, s.size, s.fileType , s.query, s.token);
 		}
 	}
+}
+//RSX++
+string Client::getCurrentDescription() const {
+#ifdef SVNBUILD
+	return currentDescription + "<SVN " BOOST_STRINGIZE(SVN_REVISION) ">";
+#elif _DEBUG
+	return currentDescription + "<DEBUG SVN " BOOST_STRINGIZE(SVN_REVISION) ">";
+#else
+	return currentDescription;
+#endif
 }
 //RSX++ // Lua
 bool ClientScriptInstance::onHubFrameEnter(Client* aClient, const string& aLine) {
@@ -443,5 +452,5 @@ bool Client::isActionActive(const int aAction) const {
 
 /**
  * @file
- * $Id: Client.cpp 395 2008-06-30 12:11:32Z BigMuscle $
+ * $Id: Client.cpp 396 2008-07-01 21:26:33Z BigMuscle $
  */

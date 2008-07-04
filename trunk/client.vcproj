@@ -866,26 +866,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\client\pme.cpp"
-				>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="2"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="SvnRelease|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="2"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
 				RelativePath=".\client\QueueItem.cpp"
 				>
 			</File>
@@ -1464,10 +1444,6 @@
 			</File>
 			<File
 				RelativePath=".\client\PluginsManager.h"
-				>
-			</File>
-			<File
-				RelativePath=".\client\pme.h"
 				>
 			</File>
 			<File

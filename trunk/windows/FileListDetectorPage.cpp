@@ -185,7 +185,7 @@ LRESULT FileListDetectorPage::onContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LP
 }
 
 void FileListDetectorPage::write() {
-	ClientProfileManager::getInstance()->saveClientProfiles();
+	//ClientProfileManager::getInstance()->saveClientProfiles();
 	PropPage::write((HWND)*this, items);
 }
 

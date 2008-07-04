@@ -8,7 +8,7 @@
 #include "IgnoreManager.h"
 
 #include "Util.h"
-#include "pme.h"
+#include "../rsx/RegexUtil.h"
 #include "../rsx/Wildcards.h"
 #include "ClientManager.h"
 
@@ -55,9 +55,7 @@ bool IgnoreManager::isIgnored(const string& aNick) {
 			const string tmp = Text::fromT(*i);
 			if(Util::strnicmp(tmp, "$Re:", 4) == 0) {
 				if(tmp.length() > 4) {
-					PME regexp(tmp.substr(4), "gims");
-
-					if(regexp.match(aNick)) {
+					if(RegexUtil::match(aNick, tmp.substr(4))) {
 						ret = true;
 						break;
 					}

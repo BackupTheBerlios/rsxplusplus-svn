@@ -78,18 +78,19 @@ public:
 		return onlineUsers.find(aUser->getCID()) != onlineUsers.end();
 	}
 	
-	void setIPUser(const string& IP, const UserPtr& user, bool resolveHost = false) {
+	void setIPUser(const UserPtr& user, const string& IP, uint16_t udpPort = 0, bool resolveHost = false) {
 		string aHost = resolveHost ? Socket::getRemoteHost(IP) : Util::emptyString;
 		Lock l(cs);
 		OnlinePairC p = onlineUsers.equal_range(user->getCID());
-		for(OnlineIterC i = p.first; i != p.second; i++) {
-			OnlineUser* ou = i->second;
+		for (OnlineIterC i = p.first; i != p.second; i++) {
+			i->second->getIdentity().setIp(IP);
+			if(udpPort > 0)
+				i->second->getIdentity().setUdpPort(Util::toString(udpPort));
 			//RSX++ //IP check
-			ou->getIdentity().setIp(IP);
 			if(!aHost.empty())
-				ou->getIdentity().set("HT", aHost);
-			if(ou->getIdentity().get("IC").empty())
-				ou->getIdentity().checkIP(*ou);
+				i->second->getIdentity().set("HT", aHost);
+			if(i->second->getIdentity().get("IC").empty())
+				i->second->getIdentity().checkIP(*i->second);
 			//END
 		}
 	}
@@ -312,5 +313,5 @@ private:
 
 /**
  * @file
- * $Id: ClientManager.h 394 2008-06-28 22:28:44Z BigMuscle $
+ * $Id: ClientManager.h 397 2008-07-04 14:58:44Z BigMuscle $
  */

@@ -31,8 +31,6 @@
 #include "../client/TimerManager.h"
 #include "../client/SearchManager.h"
 
-#include "../client/pme.h"
-
 TStringList SearchFrame::lastSearches;
 
 int SearchFrame::columnIndexes[] = { COLUMN_FILENAME, COLUMN_HITS, COLUMN_NICK, COLUMN_TYPE, COLUMN_SIZE,
@@ -316,7 +314,7 @@ LRESULT SearchFrame::onDrawItem(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& b
 			CDC dc(dis->hDC);
 
 			uint64_t now = GET_TICK();
-			uint64_t length = (rc.right - rc.left) * (now - searchStartTime) / (searchEndTime - searchStartTime);
+			uint64_t length = min((uint64_t)(rc.right - rc.left), (rc.right - rc.left) * (now - searchStartTime) / (searchEndTime - searchStartTime));
 
 			OperaColors::FloodFill(dc, rc.left, rc.top,  rc.left + (LONG)length, rc.bottom, RGB(128,128,128), RGB(160,160,160));
 
@@ -339,7 +337,7 @@ LRESULT SearchFrame::onDrawItem(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& b
 			rc2 = rc;
 			rc2.left = rc.left + (LONG)length;
 			dc.ExtTextOut(rc.left + borders[2], top, ETO_CLIPPED, &rc2, buf.c_str(), buf.size(), NULL);
-
+			
 			dc.Detach();
 		}	
 	} else if(dis->CtlType == ODT_MENU) {
@@ -478,7 +476,6 @@ void SearchFrame::onEnter() {
 	droppedResults = 0;
 	resultsCount = 0;
 	bPaused = false;
-	waiting = true;
 
 	isHash = (ftype == SearchManager::TYPE_TTH);
 	
@@ -505,11 +502,17 @@ void SearchFrame::onEnter() {
 	// stop old search
 	ClientManager::getInstance()->cancelSearch((void*)this);	
 
-	searchStartTime = GET_TICK();
-	// more 5 seconds for transfering results
-	searchEndTime = searchStartTime + SearchManager::getInstance()->search(clients, Text::fromT(s), llsize, 
-		(SearchManager::TypeModes)ftype, mode, "manual", (void*)this) + 5000;
+	{
+		Lock l(cs);
+		
+		searchStartTime = GET_TICK();
+		// more 5 seconds for transfering results
+		searchEndTime = searchStartTime + SearchManager::getInstance()->search(clients, Text::fromT(s), llsize, 
+			(SearchManager::TypeModes)ftype, mode, "manual", (void*)this) + 5000;
 
+		waiting = true;
+	}
+	
 	ctrlStatus.SetText(2, (TSTRING(TIME_LEFT) + _T(" ") + Util::formatSeconds((searchEndTime - searchStartTime) / 1000)).c_str());
 
 	if(BOOLSETTING(CLEAR_SEARCH)) // Only clear if the search was sent
@@ -561,6 +564,8 @@ void SearchFrame::on(SearchManagerListener::SR, const SearchResultPtr& aResult) 
 }
 
 void SearchFrame::on(TimerManagerListener::Second, uint64_t aTick) throw() {
+	Lock l(cs);
+	
 	if(waiting) {
 		if(aTick < searchEndTime + 1000){
 			TCHAR buf[64];
@@ -1595,11 +1600,13 @@ bool SearchFrame::matchFilter(SearchInfo* si, int sel, bool doSizeCompare, Filte
 			case NOT_EQUAL: insert = (size != si->sr->getSize()); break;
 		}
 	} else {
-		PME reg(filter, _T("i"));
-		if(!reg.IsValid()) {
+		try {
+			boost::wregex reg(filter, boost::regex_constants::icase);
+			tstring s = si->getText(static_cast<uint8_t>(sel));
+
+			insert = boost::regex_search(s.begin(), s.end(), reg);
+		} catch(...) {
 			insert = true;
-		} else {
-			insert = reg.match(si->getText(static_cast<uint8_t>(sel))) > 0;
 		}
 	}
 	return insert;
@@ -1678,5 +1685,5 @@ void SearchFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/) throw() 
 
 /**
  * @file
- * $Id: SearchFrm.cpp 395 2008-06-30 12:11:32Z BigMuscle $
+ * $Id: SearchFrm.cpp 397 2008-07-04 14:58:44Z BigMuscle $
  */

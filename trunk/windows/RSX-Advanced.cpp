@@ -60,6 +60,8 @@ RSXAdvanced::ListItem RSXAdvanced::listItems[] = {
 	{ RSXSettingsManager::PROTECT_PM_USERS,						ResourceManager::SETTINGS_PROTECT_PM_USERS },
 	{ RSXSettingsManager::USE_WILDCARDS_TO_PROTECT,				ResourceManager::SETTINGS_USE_WILDCARDS_TO_PROTECT },
 	{ RSXSettingsManager::GET_UPDATE_PROFILE,					ResourceManager::SETTINGS_GET_UPDATE_PROFILE },
+	{ RSXSettingsManager::UPDATE_PROFILE_CHEATS,				ResourceManager::SETTINGS_UPDATE_PROFILE_CHEATS },
+	{ RSXSettingsManager::UPDATE_PROFILE_COMMENTS,				ResourceManager::SETTINGS_UPDATE_PROFILE_COMMENTS },
 	{ RSXSettingsManager::SHOW_CLIENT_NEW_VER,					ResourceManager::SETTINGS_SHOW_CLIENT_NEW_VER },
 	{ RSXSettingsManager::SHOW_MYINFO_NEW_VER,					ResourceManager::SETTINGS_SHOW_MYINFO_NEW_VER },
 	{ RSXSettingsManager::SHOW_IPWATCH_NEW_VER,					ResourceManager::SETTINGS_SHOW_IPWATCH_NEW_VER },

@@ -23,18 +23,14 @@
 #define DCVERSIONSTRING "0.707"
 #define DCVERSIONFLOAT 0.7071
 
-#define SVNVERSION "svn395"
+#define SVNVERSION "svn397"
 
-// RSX++
 #define SVN_REVISION $revision
-
-#ifdef SVNBUILD
-#define SVN_REVISION_STR "$revision"
-#endif
 
 #define __HOMESITE "http://rsxplusplus.sf.net/"
 #define __WIKI "http://rsxplusplus.wiki.sourceforge.net/"
 #define __FORUM "http://rsxplusplus.sf.net/forum/"
 #define VERSION_URL "http://rsxplusplus.sf.net/version.xml"
+
 
 /* Update the .rc file as well... */

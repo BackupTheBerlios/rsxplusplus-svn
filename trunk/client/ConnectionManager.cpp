@@ -495,7 +495,7 @@ void ConnectionManager::on(UserConnectionListener::MyNick, UserConnection* aSour
 	if(ClientManager::getInstance()->isStealth(aSource->getHubUrl()))
 		aSource->setFlag(UserConnection::FLAG_STEALTH);
 
-	ClientManager::getInstance()->setIPUser(aSource->getRemoteIp(), aSource->getUser(), true);
+	ClientManager::getInstance()->setIPUser(aSource->getUser(), aSource->getRemoteIp(), 0, true);
 
 	if(ClientManager::getInstance()->isOp(aSource->getUser(), aSource->getHubUrl()))
 		aSource->setFlag(UserConnection::FLAG_OP);

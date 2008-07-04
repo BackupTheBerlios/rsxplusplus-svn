@@ -22,6 +22,8 @@
 #include "File.h"
 #include "DetectionManager.h"
 
+#include "../rsx/rsx-settings/rsx-SettingsManager.h"
+
 namespace dcpp {
 
 void DetectionManager::load() {
@@ -161,7 +163,10 @@ const DetectionManager::DetectionItems& DetectionManager::reloadFromHttp(bool /*
 		for(DetectionManager::DetectionItems::const_iterator k = oldDet.begin(); k != oldDet.end(); ++k) {
 			if(k->Id == j->Id) {
 				j->rawToSend = k->rawToSend;
-				j->cheat = k->cheat;
+				if(RSXBOOLSETTING(UPDATE_PROFILE_CHEATS))
+					j->cheat = k->cheat;
+				if(RSXBOOLSETTING(UPDATE_PROFILE_COMMENTS))
+					j->comment = k->comment;
 				j->clientFlag = k->clientFlag;
 				j->isEnabled = k->isEnabled;
 			}

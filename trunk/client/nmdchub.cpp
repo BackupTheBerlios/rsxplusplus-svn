@@ -293,8 +293,7 @@ void NmdcHub::onLine(const string& aLine) throw() {
 		}
 
 		i = j + 1;
-		//{ //rsx++ added scope with lock
-		//	Lock l(cs);
+		
 		uint64_t tick = GET_TICK();
 		clearFlooders(tick);
 
@@ -324,7 +323,7 @@ void NmdcHub::onLine(const string& aLine) throw() {
 				return;
 			}
 		}
-		//}
+
 		int a;
 		if(param[i] == 'F') {
 			a = SearchManager::SIZE_DONTCARE;

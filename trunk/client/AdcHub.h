@@ -50,11 +50,7 @@ public:
 	void send(const AdcCommand& cmd);
 
 	string getMySID() { return AdcCommand::fromSID(sid); }
-	void cheatMessage(const string& aLine) {
-		fire(ClientListener::CheatMessage(), this, aLine);
-	}
 
-	/* these functions not implemented yet */
 private:
 	friend class ClientManager;
 	friend class CommandHandler<AdcHub>;
@@ -65,11 +61,11 @@ private:
 	AdcHub& operator=(const AdcHub&);
 	~AdcHub() throw();
 
-	/** Map session id to OnlineUser */
+	/** Map session id to OnlineUser */ //thread with detections
 	typedef unordered_map<uint32_t, OnlineUser*> ADCMap;
 	typedef HubUsersMap<true, ADCMap> SIDMap;
 	typedef SIDMap::const_iterator SIDIter;
-
+	//RSX++
 	void startChecking() { users.startCheck(this, getCheckClients(), getCheckFilelists()); }
 	void startCustomCheck(bool clients, bool filelists) { users.startCheck(this, clients, filelists); }
 	bool isDetectorRunning() { return users.isDetectorRunning(); }
@@ -161,5 +157,5 @@ private:
 
 /**
  * @file
- * $Id: AdcHub.h 386 2008-05-10 19:29:01Z BigMuscle $
+ * $Id: AdcHub.h 396 2008-07-01 21:26:33Z BigMuscle $
  */

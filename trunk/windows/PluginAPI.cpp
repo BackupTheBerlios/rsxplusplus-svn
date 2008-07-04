@@ -18,23 +18,21 @@
 
 #include "stdafx.h"
 #include "../client/DCPlusPlus.h"
-
 #include "../client/PluginAPI/PluginAPI.h"
+#include "../client/PluginsManager.h"
 
 #include "../client/Text.h"
 #include "../client/LogManager.h"
 #include "../client/ClientProfileManager.h"
 #include "../client/DetectionManager.h"
-#include "../client/pme.h"
-
-#include "MainFrm.h"
-#include "HubFrame.h"
 
 #include "../rsx/Wildcards.h"
+#include "../rsx/RegexUtil.h"
 #include "../rsx/IpManager.h"
 #include "../rsx/AutoSearchManager.h"
 
-#include "../client/PluginsManager.h"
+#include "MainFrm.h"
+#include "HubFrame.h"
 
 namespace dcpp {
 
@@ -121,12 +119,8 @@ int PluginAPI::getClientSettingInt(const rString& aName, bool rsxmng) {
 	}
 }
 
-bool PluginAPI::RegExMatch(const rString& strToMatch, const rString& regEx, const char* opt) {
-	PME reg(regEx, opt);
-	if(reg.IsValid()) {
-		return reg.match(strToMatch.c_str()) > 0;
-	}
-	return false;
+bool PluginAPI::RegExMatch(const rString& strToMatch, const rString& regEx, const char* /*opt*/) {
+	return RegexUtil::match(strToMatch.c_str(), regEx.c_str());
 }
 
 bool PluginAPI::WildcardMatch(const rString& strToMatch, const rString& pattern, char delim, bool useSet) {

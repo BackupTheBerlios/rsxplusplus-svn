@@ -18,13 +18,13 @@
 #include "../client/DCPlusPlus.h"
 
 #include "AutoSearchManager.h"
+#include "RegexUtil.h"
 
 #include "../client/ClientManager.h"
 #include "../client/LogManager.h"
 #include "../client/ShareManager.h"
 #include "../client/QueueManager.h"
 #include "../client/StringTokenizer.h"
-#include "../client/pme.h"
 #include "../client/Pointer.h"
 #include "../client/Thread.h"
 #include "../client/SearchResult.h"
@@ -191,8 +191,7 @@ private:
 					Autosearch::List& list = AutoSearchManager::getInstance()->getAutosearch();
 					for(Autosearch::List::const_iterator i = list.begin(); i != list.end(); ++i) {
 						if((*i)->getFileType() == 9) {
-							PME reg((*i)->getSearchString(), "gims");
-							if(reg.IsValid() && reg.match(sr->getFile())) {
+							if(RegexUtil::match(sr->getFile(), (*i)->getSearchString())) {
 								processAction(sr);
 							}
 						}

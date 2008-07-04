@@ -104,7 +104,7 @@ void DownloadManager::on(TimerManagerListener::Second, uint64_t aTick) throw() {
 						if(d->getAverageSpeed() < RSXSETTING(SDL_SPEED)) {
 							if(((aTick - d->getLastTick())/1000) > (uint32_t)RSXSETTING(SDL_TIME)) {
 								dropTargets.push_back(make_pair(d->getPath(), d->getUser()));
-								string cheat = str(boost::format("Too low download speed (%1%)") % Util::formatBytes(d->getAverageSpeed()));
+								string cheat = str(boost::format("Too low download speed (%1%/s)") % Util::formatBytes(d->getAverageSpeed()));
 								ClientManager::getInstance()->setCheating(d->getUser(), "", cheat, RSXSETTING(SDL_RAW), RSXBOOLSETTING(SHOW_SDL_RAW), false, true, false, true);						
 							}
 						} else {

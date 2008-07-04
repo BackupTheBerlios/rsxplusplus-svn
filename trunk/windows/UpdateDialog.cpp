@@ -198,7 +198,7 @@ LRESULT UpdateDialog::OnButton(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/,
 					}
 
 					if(j->first == 0) {
-						ClientProfileManager::getInstance()->reloadClientProfiles();
+						//ClientProfileManager::getInstance()->reloadClientProfiles();
 					} else if(j->first == 1) {
 						ClientProfileManager::getInstance()->reloadMyinfoProfiles();
 					} else if(j->first == 2) {

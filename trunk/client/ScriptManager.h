@@ -86,7 +86,6 @@ protected:
 	virtual ~ScriptInstance() { }
 	static lua_State* L;
 	static CriticalSection cs;
-	static FastCriticalSection fastCs;
 
 	template <typename T>
 	bool MakeCall(const string& table, const string& method, int ret, const T& t) throw() {

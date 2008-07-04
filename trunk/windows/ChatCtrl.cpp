@@ -26,7 +26,6 @@
 #include "AGEmotionSetup.h"
 #include "PrivateFrame.h"
 
-#include "../client/pme.h" //RSX++
 #include "MainFrm.h" //RSX++
 
 CAGEmotionSetup* g_pEmotionsSetup = NULL;
@@ -333,25 +332,20 @@ void ChatCtrl::AppendTextOnly(const tstring& sMyNick, const TCHAR* sText, CHARFO
 		}
 	}
 
-	//RSX++ //crappy highlights implement
+	//RSX++ // Highlights
 	if(client && useHL) {
 		if(client->getUseHL() && RSXBOOLSETTING(USE_HIGHLIGHT)) {
-		//	CStdString sDat = "";
-			long HLStart = 0, HLEnd = 0;
-
+			// decrease number of string allocs
 			tstring textToMatch = Util::emptyStringT;
-			tstring msg = sMsgLower;
-
-			tstring matchedStrings = Util::emptyStringT;
 			bool matched = false;
-
 			CHARFORMAT2 hlcf;
 
-			HighLight::List hll = FavoriteManager::getInstance()->getHLs();
-			for(HighLight::Iter i = hll.begin(); i != hll.end(); i++) {
+			const HighLight::List& hll = FavoriteManager::getInstance()->getHLs();
+			for(HighLight::List::const_iterator i = hll.begin(); i != hll.end(); i++) {
 				textToMatch = Text::toT((*i)->getHstring());
-				PME regexp(textToMatch, _T("gims"));
-				if(regexp.IsValid()) {
+				try {
+					const boost::wregex reg(Text::toT((*i)->getHstring()));
+
 					memzero(&hlcf, sizeof(CHARFORMAT2));
 					hlcf.cbSize = sizeof(hlcf);
 					hlcf.dwReserved = 0;
@@ -373,43 +367,23 @@ void ChatCtrl::AppendTextOnly(const tstring& sMyNick, const TCHAR* sText, CHARFO
 					if((*i)->getStrikeoutFont())
 						 hlcf.dwEffects |= CFM_STRIKEOUT;
 
-					while(regexp.match(msg) > 0) {
-						if(regexp.NumBackRefs() == 1) {
-							HLStart = regexp.GetStartPos(0);
-							HLEnd = HLStart + regexp.GetLength(0);
-
-							SetSel(lSelBegin + HLStart, lSelBegin + HLEnd);
-							SetSelectionCharFormat(hlcf);
-							
-							struct hlAction curAction = {
-								msg.substr(HLStart, regexp.GetLength(0)),
-								(*i)->getDisplayPopup(), 
-								(*i)->getFlashWindow(), 
-								(*i)->getPlaySound(), 
-								(*i)->getSoundFilePath()
-							};
-							actions.push_back(curAction);
-							matched = true;
-						} else {
-							for(int j = 0; j < regexp.NumBackRefs(); ++j) {
-								HLStart = regexp.GetStartPos(j);
-								HLEnd = HLStart + regexp.GetLength(j);
-
-								SetSel(lSelBegin + HLStart, lSelBegin + HLEnd);
-								SetSelectionCharFormat(hlcf);
-
-								struct hlAction curAction = {
-									msg.substr(HLStart, regexp.GetLength(j)),
-									(*i)->getDisplayPopup(), 
-									(*i)->getFlashWindow(), 
-									(*i)->getPlaySound(), 
-									(*i)->getSoundFilePath()
-								};
-								actions.push_back(curAction);
-								matched = true;
-							}
-						}
+					boost::wsregex_iterator iter(sMsgLower.begin(), sMsgLower.end(), reg);
+					boost::wsregex_iterator enditer;
+					for(; iter != enditer; ++iter) {
+						SetSel(lSelBegin + iter->position(), lSelBegin + iter->position() + iter->length());
+						SetSelectionCharFormat(hlcf);
+						struct hlAction curAction = {
+							sMsgLower.substr(iter->position(), iter->length()),
+							(*i)->getDisplayPopup(), 
+							(*i)->getFlashWindow(), 
+							(*i)->getPlaySound(), 
+							(*i)->getSoundFilePath()
+						};
+						actions.push_back(curAction);
+						matched = true;
 					}
+				} catch(...) {
+					//...
 				}
 			}
 			//avoid spam, show popup after scan all msg
@@ -452,7 +426,7 @@ bool ChatCtrl::HitNick(const POINT& p, tstring& sNick, int& iBegin, int& iEnd) {
 	GetTextRange(lSelBegin, lSelEnd, &sText[0]);
 
 	size_t iLeft = 0, iRight = 0, iCRLF = sText.size(), iPos = sText.find(_T('<'));
-	if(iPos >= 0) {
+	if(iPos != tstring::npos) {
 		iLeft = iPos + 1;
 		iPos = sText.find(_T('>'), iLeft);
 		if(iPos == tstring::npos) 

@@ -73,6 +73,7 @@ const string RSXSettingsManager::settingTags[] =
 	"AutosearchRecheckTime", "UseHighLight", "GetUpdateProfile", "UseFiltersOnNewHubs", "UseHighlightsOnNewHubs", "ProtectPMUser",
 	"UseSlowDownloadKick", "IpInChat", "CountryInChat",
 	"ShowClientNewVer", "ShowMyInfoNewVer", "ShowIpWatchNewVer", "UseWildcardsToProtect",
+	"UpdateProfileCheats", "UpdateProfileComments",
 	"SENTRY",
 	// Int64
 	"TotalDetects", "TotalFailedDetects", "TotalRawCommandsSent",
@@ -211,6 +212,8 @@ RSXSettingsManager::RSXSettingsManager()
 	setDefault(COUNTRY_IN_CHAT,				false);
 	setDefault(USE_WILDCARDS_TO_PROTECT,	false);
 	setDefault(DEFAULT_PRIO,				3); //normal prio
+	setDefault(UPDATE_PROFILE_CHEATS,		true);
+	setDefault(UPDATE_PROFILE_COMMENTS,		true);
 }
 
 void RSXSettingsManager::load(string const& aFileName) {

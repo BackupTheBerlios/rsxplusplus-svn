@@ -16,30 +16,45 @@
 
 // RegexpHandler.h Added by Sulan 2005-05-20
 // Pothead had a little play with it
+// adrian_007 have converted it to boost::regex and made everything inline 04/07/2008
 
 #ifndef REGEX_UTIL_H
 #define REGEX_UTIL_H
 
 #include "../client/ResourceManager.h"
-#include "../client/pme.h"
+#include <boost/regex.hpp>
 
 namespace dcpp {
 
 namespace RegexUtil {
-	inline string splitVersion(const string& aExp, const string& aTag, const int part) {
-		PME reg(aExp);
-		if(!reg.IsValid())
-			return "";
-		reg.split(aTag, 2);
-		return reg[part];
+	inline string splitVersion(const string& aExp, string aTag, size_t part) {
+		try {
+			const boost::regex reg(aExp);
+
+			vector<string> out;
+			boost::regex_split(std::back_inserter(out), aTag, reg, boost::regex_constants::match_default, 2);
+			
+			if(part >= out.size())
+				return "";
+			
+			return out[part];
+		} catch(...) {
+			//
+		}
+		return "";
 	}
 
-	inline bool match(const string& aString, const string& aProfile, bool caseSensative = true) {
-		PME reg(aProfile, caseSensative ? "" : "i");
-		return reg.IsValid() ? (reg.match(aString) > 0) : false;
+	inline bool match(const string& strToMatch, const string& expression, bool caseSensative = true) {
+		try {
+			const boost::regex reg(expression, caseSensative ? 0 : boost::regex::icase);
+			return boost::regex_search(strToMatch.begin(), strToMatch.end(), reg);
+		} catch(...) {
+			//...
+		}
+		return false;
 	}
 
-	//Return the tags version number for %[version]
+	// Return the tags version number for %[version]
 	inline string getVersion(const string& aExp, const string& aTag) {
 		string::size_type i = aExp.find("%[version]");
 		if (i == string::npos) { 
@@ -48,13 +63,16 @@ namespace RegexUtil {
 		}
 		return splitVersion(aExp.substr(i + 10), splitVersion(aExp.substr(0, i), aTag, 1), 0);
 	}
-	//Check if regexp is valid and return if it is a match or no match
-	inline string matchExp(const string& aExp, const string& aString, const bool caseSensative = true) {
-		PME reg(aExp, caseSensative ? "" : "i");
-		if(!reg.IsValid()) { 
-			return CSTRING(S_INVALID); 
+
+	// Check if regexp is valid and return if it is a match or no match
+	inline string matchExp(const string& expression, const string& strToMatch, const bool caseSensative = true) {
+		try {
+			const boost::regex reg(expression, caseSensative ? 0 : boost::regex::icase);
+			return boost::regex_search(strToMatch.begin(), strToMatch.end(), reg) ? STRING(S_MATCH) : STRING(S_MISSMATCH);
+		} catch(const boost::regex_error& e) {
+			return STRING(S_INVALID) + " Error: " + e.what();
 		}
-		return reg.match(aString) ? CSTRING(S_MATCH) : CSTRING(S_MISSMATCH);
+		return STRING(S_INVALID);
 	}
 
 	//Format the params so we can view the regexp string
@@ -78,9 +96,9 @@ namespace RegexUtil {
 		return result;
 	}
 	// Check if string is an IP
-	inline bool isIp(const string& aString) {
-		return match(aString, "\\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\b") ? true : false;
-	}
+	//inline bool isIp(const string& aString) {
+	//	return match(aString, "\\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\b") ? true : false;
+	//}
 } // namespace RegexUtil
 } // namespace dcpp
 #endif //REGEX_Util_H

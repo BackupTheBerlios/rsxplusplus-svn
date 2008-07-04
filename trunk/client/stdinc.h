@@ -159,6 +159,10 @@ typedef unsigned __int64 uint64_t;
 #include <boost/shared_ptr.hpp>
 #include <boost/noncopyable.hpp>
 
+#define BOOST_REGEX_NO_LIB 1
+#include <boost/regex.hpp>
+//#include <regex>
+
 #if defined(_MSC_VER) || defined(_STLPORT_VERSION)
 
 #include <unordered_map>
@@ -182,5 +186,5 @@ using namespace std::tr1;
 
 /**
  * @file
- * $Id: stdinc.h 393 2008-06-25 18:33:20Z BigMuscle $
+ * $Id: stdinc.h 397 2008-07-04 14:58:44Z BigMuscle $
  */

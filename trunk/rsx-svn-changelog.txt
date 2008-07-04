@@ -1,3 +1,11 @@
+** SVN 87
+ ** StrongDC++ SVN merge
+ ** code cleanup a bit
+ ** some missing settings
+ ** highlights improved a bit
+ ** some revision info in window title in debug mode + some info in description as well
+ KNOWN ISSUES: MyINFO detector seems to be broken
+
 ** SVN 86
  ** StrongDC++ SVN merge
  ** removed toolbarmanager

@@ -456,7 +456,7 @@ void ShareManager::addDirectory(const string& realPath, const string& virtualNam
 	}
 #endif
 
-	slist<string> removeMap;
+	list<string> removeMap;
 	{
 		Lock l(cs);
 		
@@ -472,7 +472,7 @@ void ShareManager::addDirectory(const string& realPath, const string& virtualNam
 		}
 	}
 
-	for(slist<string>::const_iterator i = removeMap.begin(); i != removeMap.end(); i++) {
+	for(list<string>::const_iterator i = removeMap.begin(); i != removeMap.end(); i++) {
 		removeDirectory(*i);
 	}
 	
@@ -1720,5 +1720,5 @@ int64_t ShareManager::removeExcludeFolder(const string &path, bool returnSize /*
 
 /**
  * @file
- * $Id: ShareManager.cpp 395 2008-06-30 12:11:32Z BigMuscle $
+ * $Id: ShareManager.cpp 397 2008-07-04 14:58:44Z BigMuscle $
  */

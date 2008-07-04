@@ -311,8 +311,9 @@ tstring RsxUtil::formatAdditionalInfo(const string& aIp, bool sIp, bool sCC) {
 
 tstring RsxUtil::getWndTitle() {
 #ifdef SVNBUILD
-	string format = APPNAME " " VERSIONSTRING " [SVN:" SVN_REVISION_STR " / " DCVERSIONSTRING " / " SVNVERSION "]";
-	return Text::toT(format);
+	return _T(APPNAME) _T(" ") _T(VERSIONSTRING) _T(" [SVN:") _T(BOOST_STRINGIZE(SVN_REVISION)) _T(" / ") _T(DCVERSIONSTRING) _T(" / ") _T(SVNVERSION) _T("]");
+#elif _DEBUG
+	return _T(APPNAME) _T(" ") _T(VERSIONSTRING) _T(" DEBUG [SVN:") _T(BOOST_STRINGIZE(SVN_REVISION)) _T(" / ") _T(DCVERSIONSTRING) _T(" / ") _T(SVNVERSION) _T("]");
 #else
 	return _T(APPNAME) _T(" ") _T(VERSIONSTRING);
 #endif

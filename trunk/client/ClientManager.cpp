@@ -411,7 +411,7 @@ void ClientManager::on(NmdcSearch, Client* aClient, const string& aSeeker, int a
 		TTHValue aTTH(aString.substr(4));
 		if(!QueueManager::getInstance()->handlePartialSearch(aTTH, partialInfo)) {
 			// if not found, try to find in finished list
-			if(!FinishedManager::getInstance()->handlePartialRequest(aTTH, partialInfo)){
+			if(!FinishedManager::getInstance()->handlePartialRequest(aTTH, partialInfo)) {
 				return;
 			}
 		}
@@ -419,7 +419,14 @@ void ClientManager::on(NmdcSearch, Client* aClient, const string& aSeeker, int a
 		string ip, file;
 		uint16_t port = 0;
 		Util::decodeUrl(aSeeker, ip, port, file);
-		SearchManager::getInstance()->sendPSR(ip, port, true, aClient->getMyNick(), aClient->getIpPort(), aTTH.toBase32(), partialInfo);
+		
+		try {
+			AdcCommand cmd = SearchManager::getInstance()->toPSR(true, aClient->getMyNick(), aClient->getIpPort(), aTTH.toBase32(), partialInfo);
+			Socket s;
+			s.writeTo(Socket::resolve(ip), port, cmd.toString(ClientManager::getInstance()->getMyCID()));
+		} catch(...) {
+			dcdebug("Partial search caught error\n");		
+		}
 	}
 }
 
@@ -575,7 +582,7 @@ void ClientManager::on(UserUpdated, const Client*, const OnlineUser& user) throw
 	fire(ClientManagerListener::UserUpdated(), user);
 }
 
-void ClientManager::on(UsersUpdated, const Client* /*c*/, const OnlineUserList& l) throw() {
+void ClientManager::on(UsersUpdated, const Client*, const OnlineUserList& l) throw() {
 	for(OnlineUserList::const_iterator i = l.begin(), iend = l.end(); i != iend; ++i) {
 		updateNick(*(*i));
 		fire(ClientManagerListener::UserUpdated(), *(*i)); 

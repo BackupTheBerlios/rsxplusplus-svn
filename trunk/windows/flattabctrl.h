@@ -137,7 +137,10 @@ public:
 			setTop(aWnd);
 
 		TabInfo* ti = getTabInfo(aWnd);
-		dcassert(ti != NULL);
+		
+		if(ti == NULL)
+			return;
+			
 		active = ti;
 		ti->dirty = false;
 		calcRows(false);
@@ -331,7 +334,7 @@ public:
 			::SendMessage(closing, WM_CLOSE, 0, 0);
 		return 0;
 	}
-//RSX++
+	//RSX++
 	void SwitchWindow(int aWindow){
 		TabInfo::List::iterator i = tabs.begin();
 
@@ -344,7 +347,7 @@ public:
 			::SetWindowPos((*i)->hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
 		}
 	}
-//END
+	//END
 
 	int getTabHeight() const { return height; }
 	int getHeight() const { return (getRows() * getTabHeight())+1; }
@@ -686,11 +689,11 @@ private:
 	TabInfo* moving;
 	typename TabInfo::List tabs;
 	CPen black;
-//rsx++
+	//rsx++
 	CPen defaultgrey;
 	CPen white;
 	CPen facepen;
-//end
+	//end
 	typedef list<HWND> WindowList;
 	typedef WindowList::const_iterator WindowIter;
 
@@ -737,7 +740,7 @@ private:
 		HBRUSH oldbrush = dc.SelectBrush(hBr);
 		dc.FillPath();
 
-//RSX++ //change tabs to old style
+		//RSX++ //change tabs to old style
 		if(!active || (tab->row != (rows - 1))) {
 			dc.MoveTo(p[3]);
 			dc.LineTo(p[0]);
@@ -754,7 +757,7 @@ private:
 			dc.LineTo(p[2]);
 			dc.SelectPen(white);
 		}
-//END
+		//END
 		dc.SelectPen(oldpen);
 		dc.SelectBrush(oldbrush);
 		
@@ -973,5 +976,5 @@ private:
 
 /**
  * @file
- * $Id: flattabctrl.h 392 2008-06-21 21:10:31Z BigMuscle $
+ * $Id: flattabctrl.h 396 2008-07-01 21:26:33Z BigMuscle $
  */

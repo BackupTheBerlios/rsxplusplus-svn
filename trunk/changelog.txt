@@ -1,4 +1,8 @@
 ** RSX++ 1.00 ** xx/xx/2008
+ ** updated to latest StrongDC++
+ ** replaced PCRE with boost::regex
+ ** added new detection engine to fit ADC protocol and for optimization
+ ** improved MyINFO check (threaded check is back again w/o old bugs)
  ** fixed many smaller and bigger bugs
  ** fixed rare and often deadlocks
 

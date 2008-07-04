@@ -1,3 +1,7 @@
+** SVN 88
+ ** compile fix
+ ** some changelog updates
+
 ** SVN 87
  ** StrongDC++ SVN merge
  ** code cleanup a bit

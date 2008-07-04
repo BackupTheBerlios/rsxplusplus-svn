@@ -944,7 +944,7 @@ bool WinUtil::getUCParams(HWND parent, const UserCommand& uc, StringMap& sm) thr
 }
 
 #ifdef SVNBUILD
-#define LINE2 _T("-- <RSX++ ") _T(VERSIONSTRING) _T(" SVN:") _T(SVN_REVISION_STR) _T(">")
+#define LINE2 _T("-- <RSX++ ") _T(VERSIONSTRING) _T(" SVN:") _T(BOOST_STRINGIZE(SVN_REVISION)) _T(">")
 #else
 #define LINE2 _T("-- <RSX++ ") _T(VERSIONSTRING) _T(" / ") _T(DCVERSIONSTRING) _T(">")
 #endif
@@ -1874,7 +1874,7 @@ string WinUtil::generateStats() {
 		int64_t userTime = userTimeFT.dwLowDateTime | (((int64_t)userTimeFT.dwHighDateTime) << 32);  
 		snprintf(buf, sizeof(buf), "-=[ %s %s  [Core: %s] ]=-\r\n-=[ Uptime: %s][ Cpu time: %s ]=-\r\n-=[ Memory usage (peak): %s (%s) ]=-\r\n-=[ Virtual memory usage (peak): %s (%s) ]=-\r\n-=[ Downloaded: %s ][ Uploaded: %s ]=-\r\n-=[ Total download: %s ][ Total upload: %s ]=-\r\n-=[ System: %s ]=-\r\n-=[ System Uptime: %s]=-\r\n-=[ CPU Name: %s ]=-\r\n-=[ CPU Clock: %i MHz ]=-\r\n-=[ Total clients detected (Successful/Failed):  %s/%s ]=-\r\n-=[ Total raw commands sent: %s ]=-", 
 #ifdef SVNBUILD
-			APPNAME, VERSIONSTRING " SVN: " SVN_REVISION_STR, DCVERSIONSTRING,
+			APPNAME, VERSIONSTRING " SVN: " BOOST_STRINGIZE(SVN_REVISION), DCVERSIONSTRING,
 #else
 			APPNAME, VERSIONSTRING, DCVERSIONSTRING,
 #endif

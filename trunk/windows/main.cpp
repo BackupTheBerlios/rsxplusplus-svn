@@ -142,7 +142,7 @@ LONG __stdcall DCUnhandledExceptionFilter( LPEXCEPTION_POINTERS e )
 
 	f.write(buf, strlen(buf));
 #ifdef SVNBUILD
-	sprintf(buf, "SVN: %s\r\n", SVN_REVISION_STR);	
+	sprintf(buf, "SVN: %s\r\n", BOOST_STRINGIZE(SVN_REVISION));	
 	f.write(buf, strlen(buf));
 #endif	
 	

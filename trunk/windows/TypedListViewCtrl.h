@@ -214,7 +214,7 @@ public:
 	struct CompFirst {
 		CompFirst() { } 
 		bool operator()(T& a, const tstring& b) {
-			return Util::stricmp(a.getText(0), b) < 0;
+			return stricmp(a.getText(0), b) < 0;
 		}
 	};
 	int findItem(const tstring& b, int start = -1, bool aPartial = false) const {
@@ -611,7 +611,7 @@ private:
 			GetColumn(i, &lvcl);
 			
 			for(size_t j = 0; j < columnList.size(); ++j) {
-				if(Util::stricmp(columnList[j]->name.c_str(), lvcl.pszText) == 0) {
+				if(stricmp(columnList[j]->name.c_str(), lvcl.pszText) == 0) {
 					columnIndexes.push_back(static_cast<uint8_t>(j));
 					break;
 				}
@@ -999,5 +999,5 @@ const vector<T*> TypedTreeListViewCtrl<T, ctrlId, key, hashFunc, equalKey>::empt
 
 /**
  * @file
- * $Id: TypedListViewCtrl.h 393 2008-06-25 18:33:20Z BigMuscle $
+ * $Id: TypedListViewCtrl.h 399 2008-07-06 19:48:02Z BigMuscle $
  */

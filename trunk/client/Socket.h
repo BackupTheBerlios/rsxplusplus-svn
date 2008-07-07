@@ -214,11 +214,11 @@ private:
 		} 
 		return ret;
 	}
-	static int check(socket_t ret, bool blockOk = false) { 
+	static socket_t check(socket_t ret, bool blockOk = false) { 
 		if(ret == SOCKET_ERROR) {
 			int error = getLastError();
 			if(blockOk && error == WSAEWOULDBLOCK) {
-				return -1;
+				return INVALID_SOCKET;
 			} else {
 				throw SocketException(error); 
 			}
@@ -254,5 +254,5 @@ private:
 
 /**
  * @file
- * $Id: Socket.h 397 2008-07-04 14:58:44Z BigMuscle $
+ * $Id: Socket.h 398 2008-07-05 20:54:25Z BigMuscle $
  */

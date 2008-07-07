@@ -282,6 +282,12 @@ void ConnectionManager::accept(const Socket& sock, bool secure) throw() {
 bool ConnectionManager::checkIpFlood(const string& aServer, uint16_t aPort) {
 	Lock l(cs);
 
+	// Temporary fix to avoid spamming
+	if(aPort == 80 || aPort == 2501) {
+		LogManager::getInstance()->message("Someone is trying to use your client to spam " + aServer + ", please urge hub owner to fix this");
+		return true;
+	}	
+	
 	// We don't want to be used as a flooding instrument
 	uint8_t count = 0;
 	for(UserConnectionList::const_iterator j = userConnections.begin(); j != userConnections.end(); ++j) {
@@ -302,14 +308,14 @@ bool ConnectionManager::checkIpFlood(const string& aServer, uint16_t aPort) {
 	return false;
 } 
 	
-void ConnectionManager::nmdcConnect(const string& aServer, uint16_t aPort, const string& aNick, const string& hubUrl, string* encoding, bool stealth) {
+void ConnectionManager::nmdcConnect(const string& aServer, uint16_t aPort, const string& aNick, const string& hubUrl, string* encoding, bool stealth, bool secure) {
 	if(shuttingDown)
 		return;
 		
 	if(checkIpFlood(aServer, aPort))
 		return;
 
-	UserConnection* uc = getConnection(true, false);
+	UserConnection* uc = getConnection(true, secure);
 	uc->setToken(aNick);
 	uc->setHubUrl(hubUrl);
 	uc->setEncoding(encoding);
@@ -808,5 +814,5 @@ void ConnectionManager::on(UserConnectionListener::Supports, UserConnection* con
 
 /**
  * @file
- * $Id: ConnectionManager.cpp 385 2008-04-26 13:05:09Z BigMuscle $
+ * $Id: ConnectionManager.cpp 399 2008-07-06 19:48:02Z BigMuscle $
  */

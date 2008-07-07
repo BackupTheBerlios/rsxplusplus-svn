@@ -79,6 +79,8 @@ public:
 	}
 	
 	void setIPUser(const UserPtr& user, const string& IP, uint16_t udpPort = 0, bool resolveHost = false) {
+		if(IP.empty())
+			return;
 		string aHost = resolveHost ? Socket::getRemoteHost(IP) : Util::emptyString;
 		Lock l(cs);
 		OnlinePairC p = onlineUsers.equal_range(user->getCID());
@@ -93,7 +95,7 @@ public:
 				i->second->getIdentity().checkIP(*i->second);
 			//END
 		}
-	}
+	}	
 	
 	string getMyNMDCNick(const UserPtr& p) const {
 		Lock l(cs);
@@ -313,5 +315,5 @@ private:
 
 /**
  * @file
- * $Id: ClientManager.h 397 2008-07-04 14:58:44Z BigMuscle $
+ * $Id: ClientManager.h 399 2008-07-06 19:48:02Z BigMuscle $
  */

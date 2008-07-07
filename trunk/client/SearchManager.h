@@ -87,7 +87,8 @@ public:
 		onData((const uint8_t*)aLine.data(), aLine.length(), Util::emptyString);
 	}
 
-	void onRES(const AdcCommand& cmd, const UserPtr& from, const string& removeIp = Util::emptyString);
+	void onRES(const AdcCommand& cmd, const UserPtr& from, const string& remoteIp = Util::emptyString);
+	void onPSR(const AdcCommand& cmd, UserPtr from, const string& remoteIp = Util::emptyString);
 	AdcCommand toPSR(bool wantResponse, const string& myNick, const string& hubIpPort, const string& tth, const vector<uint16_t>& partialInfo) const;
 
 private:
@@ -141,5 +142,5 @@ private:
 
 /**
  * @file
- * $Id: SearchManager.h 397 2008-07-04 14:58:44Z BigMuscle $
+ * $Id: SearchManager.h 399 2008-07-06 19:48:02Z BigMuscle $
  */

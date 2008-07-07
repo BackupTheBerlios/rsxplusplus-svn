@@ -68,9 +68,9 @@ void AutoSearchManager::removeRegExpFromSearches() {
 }
 
 void AutoSearchManager::getAllowedHubs() {
+	Lock l(cs);
 	allowedHubs.clear();
 	ClientManager* cm = ClientManager::getInstance();
-
 	const Client::List& clients = cm->getClients();
 	cm->lock();
 	for(Client::List::const_iterator i = clients.begin(); i != clients.end(); ++i) {

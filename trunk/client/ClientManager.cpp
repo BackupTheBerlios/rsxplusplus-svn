@@ -47,9 +47,9 @@ namespace dcpp {
 
 Client* ClientManager::getClient(const string& aHubURL) {
 	Client* c;
-	if(Util::strnicmp("adc://", aHubURL.c_str(), 6) == 0) {
+	if(strnicmp("adc://", aHubURL.c_str(), 6) == 0) {
 		c = new AdcHub(aHubURL, false);
-	} else if(Util::strnicmp("adcs://", aHubURL.c_str(), 7) == 0) {
+	} else if(strnicmp("adcs://", aHubURL.c_str(), 7) == 0) {
 		c = new AdcHub(aHubURL, true);
 	} else {
 		c = new NmdcHub(aHubURL);
@@ -197,7 +197,7 @@ UserPtr ClientManager::findLegacyUser(const string& aNick) const throw() {
 
 	for(OnlineMap::const_iterator i = onlineUsers.begin(); i != onlineUsers.end(); ++i) {
 		const OnlineUser* ou = i->second;
-		if(ou->getUser()->isSet(User::NMDC) && Util::stricmp(ou->getIdentity().getNick(), aNick) == 0)
+		if(ou->getUser()->isSet(User::NMDC) && stricmp(ou->getIdentity().getNick(), aNick) == 0)
 			return ou->getUser();
 	}
 	return UserPtr();
@@ -524,8 +524,6 @@ void ClientManager::on(TimerManagerListener::Minute, uint64_t /*aTick*/) throw()
 	for(Client::Iter j = clients.begin(); j != clients.end(); ++j) {
 		(*j)->info(false);
 	}
-
-	QueueManager::getInstance()->removeOfflineChecks(); //RSX++
 }
 
 UserPtr& ClientManager::getMe() {
@@ -889,7 +887,7 @@ void ClientManager::addCheckToQueue(const UserPtr& p, bool filelist) {
 			if(!ou->getChecked(filelist)) {
 				if((filelist && ou->shouldCheckFileList()) || (!filelist && ou->shouldCheckClient())) {
 					addCheck = true;
-					//ou->inc();
+					ou->inc();
 				}
 			}
 		}
@@ -899,13 +897,15 @@ void ClientManager::addCheckToQueue(const UserPtr& p, bool filelist) {
 		try {
 			if(filelist) {
 				QueueManager::getInstance()->addFileListCheck(p);
+				ou->getIdentity().setFileListQueued("1");
 			} else {
 				QueueManager::getInstance()->addTestSUR(p);
+				ou->getIdentity().setTestSURQueued("1");
 			}
 		} catch(...) {
 			//...
 		}
-		//ou->dec();
+		ou->dec();
 	}
 }
 //hub stats

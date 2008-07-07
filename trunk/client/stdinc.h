@@ -58,7 +58,8 @@
 # pragma warning(disable: 4201) // nonstadard extension used : nameless struct/union
 
 #ifdef _WIN64
-//# pragma warning(disable: 4267) // conversion from 'xxx' to 'yyy', possible loss of data
+# pragma warning(disable: 4244) // conversion from 'xxx' to 'yyy', possible loss of data
+# pragma warning(disable: 4267) // conversion from 'xxx' to 'yyy', possible loss of data
 #endif
 
 typedef signed __int8 int8_t;
@@ -186,5 +187,5 @@ using namespace std::tr1;
 
 /**
  * @file
- * $Id: stdinc.h 397 2008-07-04 14:58:44Z BigMuscle $
+ * $Id: stdinc.h 399 2008-07-06 19:48:02Z BigMuscle $
  */

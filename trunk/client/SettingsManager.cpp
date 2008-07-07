@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2001-2007 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -129,7 +129,7 @@ const string SettingsManager::settingTags[] =
  	"AllowUntrustedHubs", "AllowUntrustedClients", "TLSPort", "FastHash", "DownConnPerSec",
 	"HighestPrioSize", "HighPrioSize", "NormalPrioSize", "LowPrioSize", "LowestPrio",
 	"FilterEnter", "SortFavUsersFirst", "ShowShellMenu", "SendBloom", "OverlapChunks", "ShowQuickSearch",
-	"UcSubMenu", "AutoSlots",
+	"UcSubMenu", "AutoSlots", "Coral",
 	//RSX++
 	"TopSpeed", "TopUpSpeed", "OdcStyleBumped",
 	"StealthyIndicateSpeeds", "ProgressBarMode",
@@ -196,7 +196,7 @@ SettingsManager::SettingsManager()
 	setDefault(IGNORE_HUB_PMS, false);
 	setDefault(IGNORE_BOT_PMS, false);
 	setDefault(BUFFER_SIZE, 64);
-	setDefault(HUBLIST_SERVERS, "http://adchublist.com.nyud.net/hublist.xml.bz2;http://hublist.hubtracker.com.nyud.net/hublist.xml.bz2;http://dchublist.com.nyud.net/hublist.xml.bz2");
+	setDefault(HUBLIST_SERVERS, "http://adchublist.com/hublist.xml.bz2;http://hublist.hubtracker/hublist.xml.bz2;http://dchublist.com/hublist.xml.bz2");
 	setDefault(DOWNLOAD_SLOTS, 50);
     setDefault(FILE_SLOTS, 15);
 	setDefault(MAX_DOWNLOAD_SPEED, 0);
@@ -313,7 +313,8 @@ SettingsManager::SettingsManager()
 	setDefault(FAST_HASH, true);
 	setDefault(SORT_FAVUSERS_FIRST, false);
 	setDefault(SHOW_SHELL_MENU, false);
-	setDefault(SEND_BLOOM, true);		
+	setDefault(SEND_BLOOM, true);
+	setDefault(CORAL, true);	
 	setDefault(NUMBER_OF_SEGMENTS, 3);
 	setDefault(SEGMENTS_MANUAL, false);
 	setDefault(HUB_SLOTS, 1);
@@ -781,5 +782,5 @@ const string& SettingsManager::getString(const string& sname) const {
 
 /**
  * @file
- * $Id: SettingsManager.cpp 395 2008-06-30 12:11:32Z BigMuscle $
+ * $Id: SettingsManager.cpp 399 2008-07-06 19:48:02Z BigMuscle $
  */

@@ -21,12 +21,14 @@
 
 #include "File.h"
 #include "DetectionManager.h"
+#include "FilteredFile.h"
+#include "BZUtils.h"
 
 #include "../rsx/rsx-settings/rsx-SettingsManager.h"
 
 namespace dcpp {
 
-void DetectionManager::load() {
+void DetectionManager::ProfilesLoad() {
 	try {
 		SimpleXML xml;
 		xml.fromXML(File(Util::getConfigPath() + "Profiles.xml", File::READ, File::OPEN).read());
@@ -144,23 +146,41 @@ void DetectionManager::load() {
 	}
 }
 
-const DetectionManager::DetectionItems& DetectionManager::reload() {
-	Lock l(cs);
-	det.clear();
-	params.clear();
-	load();
+void DetectionManager::UserInfoLoad() {
 
-	return det;
 }
 
-const DetectionManager::DetectionItems& DetectionManager::reloadFromHttp(bool /*bz2 = false*/) {
+void DetectionManager::UserInfoSave() {
+
+}
+
+const DetectionManager::DetectionItems& DetectionManager::reload(bool isUserInfo /*= false*/) {
 	Lock l(cs);
-	DetectionManager::DetectionItems oldDet = det;
-	det.clear();
+	if(!isUserInfo) {
+		det.clear();
+		params.clear();
+		ProfilesLoad();
+		return det;
+	} else {
+		ui_det.clear();
+		UserInfoLoad();
+		return ui_det;
+	}
+}
+
+const DetectionManager::DetectionItems& DetectionManager::reloadFromHttp(bool bz2 /*= false*/, bool isUserInfo /*= false*/) {
+	Lock l(cs);
+	if(bz2)
+		loadCompressedProfiles();
+
+	DetectionItems& list = isUserInfo ? ui_det : det;
+
+	DetectionManager::DetectionItems oldList = list;
+	list.clear();
 	params.clear();
 	load();
-	for(DetectionManager::DetectionItems::iterator j = det.begin(); j != det.end(); ++j) {
-		for(DetectionManager::DetectionItems::const_iterator k = oldDet.begin(); k != oldDet.end(); ++k) {
+	for(DetectionManager::DetectionItems::iterator j = list.begin(); j != list.end(); ++j) {
+		for(DetectionManager::DetectionItems::const_iterator k = oldList.begin(); k != oldList.end(); ++k) {
 			if(k->Id == j->Id) {
 				j->rawToSend = k->rawToSend;
 				if(RSXBOOLSETTING(UPDATE_PROFILE_CHEATS))
@@ -173,7 +193,7 @@ const DetectionManager::DetectionItems& DetectionManager::reloadFromHttp(bool /*
 		}
 	}
 
-	return det;
+	return list;
 }
 
 void DetectionManager::importProfiles(SimpleXML& xml) {
@@ -270,7 +290,7 @@ void DetectionManager::importProfiles(SimpleXML& xml) {
 	}
 }
 
-void DetectionManager::save() {
+void DetectionManager::ProfilesSave() {
 	try {
 		SimpleXML xml;
 		xml.addTag("Profiles");
@@ -371,9 +391,40 @@ void DetectionManager::save() {
 	}
 }
 
-void DetectionManager::addDetectionItem(DetectionEntry& e) throw(Exception) {
+void DetectionManager::loadCompressedProfiles() {
+	string xml = Util::emptyString;
+	string file = Util::getConfigPath() + "Profiles.xml";
+	if(!Util::fileExists(file + ".bz2"))
+		return;
+	try {
+		dcpp::File ff(file + ".bz2", dcpp::File::READ, dcpp::File::OPEN);
+		FilteredInputStream<UnBZFilter, false> f(&ff);
+		const size_t BUF_SIZE = 64*1024;
+		boost::scoped_array<char> buf(new char[BUF_SIZE]);
+		size_t len;
+		for(;;) {
+			size_t n = BUF_SIZE;
+			len = f.read(&buf[0], n);
+			xml.append(&buf[0], len);
+			if(len < BUF_SIZE)
+				break;
+		}
+
+		File newfile(file + ".tmp", File::WRITE, File::CREATE | File::TRUNCATE);
+		newfile.write(xml);
+		newfile.close();
+		File::deleteFile(file);
+		//File::deleteFile(file + ".bz2");
+		File::renameFile(file + ".tmp", file);
+	} catch(...) {
+		//
+	}
+}
+
+void DetectionManager::addDetectionItem(DetectionEntry& e, bool isUserInfo /*=false*/) throw(Exception) {
 	Lock l(cs);
-	if(det.size() >= 2147483647)
+	DetectionItems& list = isUserInfo ? ui_det : det;
+	if(list.size() >= 2147483647)
 		throw Exception("No more items can be added!");
 
 	validateItem(e, true);
@@ -384,7 +435,7 @@ void DetectionManager::addDetectionItem(DetectionEntry& e) throw(Exception) {
 		// This should only happen if lastId (aka. unsigned int) goes over it's capacity ie. virtually never :P
 		while(e.Id == 0) {
 			e.Id = Util::rand(1, 2147483647);
-			for(DetectionItems::iterator i = det.begin(); i != det.end(); ++i) {
+			for(DetectionItems::iterator i = list.begin(); i != list.end(); ++i) {
 				if(i->Id == e.Id) {
 					e.Id = 0;
 				}
@@ -392,13 +443,14 @@ void DetectionManager::addDetectionItem(DetectionEntry& e) throw(Exception) {
 		}
 	}
 
-	det.push_back(e);
+	list.push_back(e);
 }
 
-void DetectionManager::validateItem(const DetectionEntry& e, bool checkIds) throw(Exception) {
+void DetectionManager::validateItem(const DetectionEntry& e, bool checkIds, bool isUserInfo /*=false*/) throw(Exception) {
 	Lock l(cs);
+	const DetectionItems& list = isUserInfo ? ui_det : det;
 	if(checkIds && e.Id > 0) {
-		for(DetectionItems::const_iterator i = det.begin(); i != det.end(); ++i) {
+		for(DetectionItems::const_iterator i = list.begin(); i != list.end(); ++i) {
 			if(i->Id == e.Id || e.Id <= 0) {
 				throw Exception("Item with this ID already exist!");
 			}
@@ -439,20 +491,22 @@ void DetectionManager::validateItem(const DetectionEntry& e, bool checkIds) thro
 	if(e.name.empty()) throw Exception("Item's name can't be empty!");
 }
 
-void DetectionManager::removeDetectionItem(const uint32_t id) throw() {
+void DetectionManager::removeDetectionItem(const uint32_t id, bool isUserInfo /*=false*/) throw() {
 	Lock l(cs);
-	for(DetectionItems::iterator i = det.begin(); i != det.end(); ++i) {
+	DetectionItems& list = isUserInfo ? ui_det : det;
+	for(DetectionItems::iterator i = list.begin(); i != list.end(); ++i) {
 		if(i->Id == id) {
-			det.erase(i);
+			list.erase(i);
 			return;
 		}
 	}
 }
 
-void DetectionManager::updateDetectionItem(const uint32_t aOrigId, const DetectionEntry& e) throw(Exception) {
+void DetectionManager::updateDetectionItem(const uint32_t aOrigId, const DetectionEntry& e, bool isUserInfo /*=false*/) throw(Exception) {
 	Lock l(cs);
+	DetectionItems& list = isUserInfo ? ui_det : det;
 	validateItem(e, e.Id != aOrigId);
-	for(DetectionItems::iterator i = det.begin(); i != det.end(); ++i) {
+	for(DetectionItems::iterator i = list.begin(); i != list.end(); ++i) {
 		if(i->Id == aOrigId) {
 			*i = e;
 			break;
@@ -460,9 +514,10 @@ void DetectionManager::updateDetectionItem(const uint32_t aOrigId, const Detecti
 	}
 }
 
-bool DetectionManager::getDetectionItem(const uint32_t aId, DetectionEntry& e) throw() {
+bool DetectionManager::getDetectionItem(const uint32_t aId, DetectionEntry& e, bool isUserInfo /*=false*/) throw() {
 	Lock l(cs);
-	for(DetectionItems::iterator i = det.begin(); i != det.end(); ++i) {
+	DetectionItems& list = isUserInfo ? ui_det : det;
+	for(DetectionItems::iterator i = list.begin(); i != list.end(); ++i) {
 		if(i->Id == aId) {
 			e = *i;
 			return true;
@@ -471,12 +526,13 @@ bool DetectionManager::getDetectionItem(const uint32_t aId, DetectionEntry& e) t
 	return false;
 }
 
-bool DetectionManager::getNextDetectionItem(const uint32_t aId, int pos, DetectionEntry& e) throw() {
+bool DetectionManager::getNextDetectionItem(const uint32_t aId, int pos, DetectionEntry& e, bool isUserInfo /*=false*/) throw() {
 	Lock l(cs);
-	for(DetectionItems::iterator i = det.begin(); i != det.end(); ++i) {
+	DetectionItems& list = isUserInfo ? ui_det : det;
+	for(DetectionItems::iterator i = list.begin(); i != list.end(); ++i) {
 		if(i->Id == aId) {
 			i += pos;
-			if(i < det.end() && i >= det.begin()) {
+			if(i < list.end() && i >= list.begin()) {
 				e = *i;
 				return true;
 			}
@@ -486,9 +542,10 @@ bool DetectionManager::getNextDetectionItem(const uint32_t aId, int pos, Detecti
 	return false;
 }
 
-bool DetectionManager::moveDetectionItem(const uint32_t aId, int pos) {
+bool DetectionManager::moveDetectionItem(const uint32_t aId, int pos, bool isUserInfo /*=false*/) {
 	Lock l(cs);
-	for(DetectionItems::iterator i = det.begin(); i != det.end(); ++i) {
+	DetectionItems& list = isUserInfo ? ui_det : det;
+	for(DetectionItems::iterator i = list.begin(); i != list.end(); ++i) {
 		if(i->Id == aId) {
 			swap(*i, *(i + pos));
 			return true;
@@ -497,9 +554,10 @@ bool DetectionManager::moveDetectionItem(const uint32_t aId, int pos) {
 	return false;
 }
 
-void DetectionManager::setItemEnabled(const uint32_t aId, bool enabled) throw() {
+void DetectionManager::setItemEnabled(const uint32_t aId, bool enabled, bool isUserInfo /*=false*/) throw() {
 	Lock l(cs);
-	for(DetectionItems::iterator i = det.begin(); i != det.end(); ++i) {
+	DetectionItems& list = isUserInfo ? ui_det : det;
+	for(DetectionItems::iterator i = list.begin(); i != list.end(); ++i) {
 		if(i->Id == aId) {
 			i->isEnabled = enabled;
 			break;

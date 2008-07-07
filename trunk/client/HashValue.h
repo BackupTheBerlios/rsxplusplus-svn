@@ -51,16 +51,17 @@ struct HashValue : FastAlloc<HashValue<Hasher> >{
 
 } // namespace dcpp
 
-namespace std {
+namespace std { //namespace tr1 {
 template<typename T>
 struct hash<dcpp::HashValue<T> > {
 	size_t operator()(const dcpp::HashValue<T>& rhs) const { return *(size_t*)rhs.data; }
 };
+//}
 }
 
 #endif // !defined(HASH_VALUE_H)
 
 /**
 * @file
-* $Id: HashValue.h 389 2008-06-08 10:51:15Z BigMuscle $
+* $Id: HashValue.h 397 2008-07-04 14:58:44Z BigMuscle $
 */

@@ -208,9 +208,9 @@ void UsersFrame::updateUser(const UserPtr& aUser) {
 		if(ui->user == aUser) {
 			ui->columns[COLUMN_SEEN] = aUser->isOnline() ? TSTRING(ONLINE) : Text::toT(Util::formatTime("%Y-%m-%d %H:%M", FavoriteManager::getInstance()->getLastSeen(aUser)));
 			if(aUser->isOnline()) {
-				if(aUser->isSet(User::AWAY))
-					ctrlUsers.SetItem(i,0,LVIF_IMAGE, NULL, 1, 0, 0, NULL);
-				else
+				// TODO: if(aUser->isSet(User::AWAY))
+				//	ctrlUsers.SetItem(i,0,LVIF_IMAGE, NULL, 1, 0, 0, NULL);
+				//else
 					ctrlUsers.SetItem(i,0,LVIF_IMAGE, NULL, 0, 0, 0, NULL);
 			} else
 				ctrlUsers.SetItem(i,0,LVIF_IMAGE, NULL, 2, 0, 0, NULL);
@@ -306,5 +306,5 @@ void UsersFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/) throw() {
 
 /**
  * @file
- * $Id: UsersFrame.cpp 334 2007-11-04 13:04:34Z bigmuscle $
+ * $Id: UsersFrame.cpp 398 2008-07-05 20:54:25Z BigMuscle $
  */

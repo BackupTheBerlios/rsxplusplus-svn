@@ -578,6 +578,8 @@ private:
 	bool closed;
 
 	StringMap ucLineParams;
+	
+	std::string token;
 		
 	static int columnIndexes[];
 	static int columnSizes[];
@@ -624,6 +626,6 @@ private:
 
 /**
  * @file
- * $Id: SearchFrm.h 394 2008-06-28 22:28:44Z BigMuscle $
+ * $Id: SearchFrm.h 398 2008-07-05 20:54:25Z BigMuscle $
  */
 

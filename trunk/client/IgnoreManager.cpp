@@ -53,7 +53,7 @@ bool IgnoreManager::isIgnored(const string& aNick) {
 		Lock l(cs);
 		for(TStringHashIterC i = ignoredUsers.begin(); i != ignoredUsers.end(); ++i) {
 			const string tmp = Text::fromT(*i);
-			if(Util::strnicmp(tmp, "$Re:", 4) == 0) {
+			if(strnicmp(tmp, "$Re:", 4) == 0) {
 				if(tmp.length() > 4) {
 					if(RegexUtil::match(aNick, tmp.substr(4))) {
 						ret = true;

@@ -25,7 +25,7 @@
 #include "FavoriteUser.h"
 
 #include "ClientManager.h"
-#include "ClientProfileManager.h"
+#include "DetectionManager.h"
 #include "UserCommand.h"
 #include "ResourceManager.h"
 #include "FavoriteManager.h"
@@ -33,12 +33,13 @@
 #include "../rsx/RegexUtil.h"
 #include "../rsx/IpManager.h"
 #include "../rsx/Wildcards.h"
-#include "DetectionManager.h"
+#include "../rsx/RsxUtil.h"
 //END
 
 namespace dcpp {
 
-CriticalSection Identity::cs;
+FastCriticalSection Identity::cs;
+
 OnlineUser::OnlineUser(const UserPtr& ptr, Client& client_, uint32_t sid_) : identity(ptr, sid_), client(client_), isInList(false) { 
 	inc();
 	identity.isProtectedUser(client, true); //RSX++ // run init check
@@ -46,8 +47,8 @@ OnlineUser::OnlineUser(const UserPtr& ptr, Client& client_, uint32_t sid_) : ide
 
 void Identity::getParams(StringMap& sm, const string& prefix, bool compatibility) const {
 	{
-		Lock l(cs);
-		for(InfMap::const_iterator i = info.begin(); i != info.end(); ++i) {
+		FastLock l(cs);
+		for(InfIter i = info.begin(); i != info.end(); ++i) {
 			sm[prefix + string((char*)(&i->first), 2)] = i->second;
 		}
 	}
@@ -56,9 +57,9 @@ void Identity::getParams(StringMap& sm, const string& prefix, bool compatibility
 		sm[prefix + "SID"] = getSIDString();
 		sm[prefix + "CID"] = user->getCID().toBase32();
 		sm[prefix + "TAG"] = getTag();
+		sm[prefix + "CO"] = getConnection();
 		sm[prefix + "SSshort"] = Util::formatBytes(get("SS"));
 		//RSX++
-		sm[prefix + "CO"] = getConnection();
 		sm[prefix + "RSshort"] = Util::formatBytes(get("RS"));
 		sm[prefix + "LSshort"] = Util::formatBytes(get("LS"));
 		sm[prefix + "TCTime"] = Util::formatTime("%d-%m %H:%M:%S", Util::toInt64(get("TC")));
@@ -78,6 +79,7 @@ void Identity::getParams(StringMap& sm, const string& prefix, bool compatibility
 				sm["share"] = get("SS");
 				sm["shareshort"] = Util::formatBytes(get("SS"));
 				sm["realshareformat"] = Util::formatBytes(get("RS"));
+				//RSX++
 				sm["listsize"] = Util::formatBytes(get("LS"));
 				sm["host"] =					get("HT");
 				sm["isp"] =						getISP();
@@ -91,6 +93,7 @@ void Identity::getParams(StringMap& sm, const string& prefix, bool compatibility
 				sm["adlFilesCount"] =			get("A7");
 				sm["adlFileSizeShort"] =		Util::formatBytes(get("A3"));
 				sm["adlForbiddenSizeShort"] =	Util::formatBytes(get("A5"));
+				//END
 			}
 		}
 	}
@@ -111,20 +114,20 @@ string Identity::getTag() const {
 }
 
 string Identity::get(const char* name) const {
-	Lock l(cs);
-	InfMap::const_iterator i = info.find(*(short*)name);
+	FastLock l(cs);
+	InfIter i = info.find(*(short*)name);
 	return i == info.end() ? Util::emptyString : i->second;
 }
 
 bool Identity::isSet(const char* name) const {
-	Lock l(cs);
-	InfMap::const_iterator i = info.find(*(short*)name);
+	FastLock l(cs);
+	InfIter i = info.find(*(short*)name);
 	return i != info.end();
 }
 
 
 void Identity::set(const char* name, const string& val) {
-	Lock l(cs);
+	FastLock l(cs);
 	if(val.empty())
 		info.erase(*(short*)name);
 	else
@@ -178,7 +181,6 @@ string Identity::setCheat(const Client& c, const string& aCheatDescription, bool
 	string newCheat = Util::emptyString;
 	bool newOne = false;
 
-	//Lock l(cs);
 	string currentCS = get("CS");
 	StringTokenizer<string> st(currentCS, ';');
 	for(StringIter i = st.getTokens().begin(); i != st.getTokens().end(); ++i) {
@@ -234,7 +236,7 @@ string Identity::getReport() const {
 	report += "\r\n-]> Pk:		" +					isEmpty(get("PK"));
 	report += "\r\n-]> Tag:		" +					isEmpty(getTag());
 	report += "\r\n-]> Supports:	" +				isEmpty(get("SU"));
-	report += "\r\n-]> Status:	" +					Util::formatStatus(Util::toInt(getStatus()));
+	report += "\r\n-]> Status:	" +					Util::formatStatus(getStatus());
 	report += "\r\n-]> TestSUR:	" +					isEmpty(get("TS"));
 	report += "\r\n-]> Disconnects:	" +				isEmpty(get("FD"));
 	report += "\r\n-]> Timeouts:	" +				isEmpty(get("TO"));
@@ -287,11 +289,11 @@ string Identity::updateClientType(OnlineUser& ou) {
 		}
 	}
 
-	int64_t tick = GET_TICK();
+	uint64_t tick = GET_TICK();
 
 	StringMap params;
+	getDetectionParams(params); // get identity fields and escape them, then get the rest and leave as-is
 	const DetectionManager::DetectionItems& profiles = DetectionManager::getInstance()->getProfiles(params);
-	getDetectionParams(params);
 
 	for(DetectionManager::DetectionItems::const_iterator i = profiles.begin(); i != profiles.end(); ++i) {
 		const DetectionEntry& entry = *i;
@@ -328,7 +330,7 @@ string Identity::updateClientType(OnlineUser& ou) {
 		if(_continue)
 			continue;
 
-		DETECTION_DEBUG("Client found: " + entry.name + " time taken: " + Util::toString(GET_TICK()-tick) + " milliseconds");
+		DETECTION_DEBUG("**** Client found: " + entry.name + " time taken: " + Util::toString(GET_TICK()-tick) + " milliseconds\r\n");
 
 		setClientType(entry.name);
 		set("CM", entry.comment);
@@ -374,6 +376,25 @@ void Identity::getDetectionParams(StringMap& p) {
 	getParams(p, "", false);
 	p["PKVE"] = getPkVersion();
 	p["VEformat"] = getVersion();
+
+	// convert all special chars to make regex happy
+	for(StringMap::iterator i = p.begin(); i != p.end(); ++i) {
+		// looks really bad... but do the job
+		Util::replace(i->second, "\\", "\\\\"); // this one must be first
+		Util::replace(i->second, "[", "\\[");
+		Util::replace(i->second, "]", "\\]");
+		Util::replace(i->second, "^", "\\^");
+		Util::replace(i->second, "$", "\\$");
+		Util::replace(i->second, ".", "\\.");
+		Util::replace(i->second, "|", "\\|");
+		Util::replace(i->second, "?", "\\?");
+		Util::replace(i->second, "*", "\\*");
+		Util::replace(i->second, "+", "\\+");
+		Util::replace(i->second, "(", "\\(");
+		Util::replace(i->second, ")", "\\)");
+		Util::replace(i->second, "{", "\\{");
+		Util::replace(i->second, "}", "\\}");
+	}
 }
 
 string Identity::getPkVersion() const {
@@ -384,8 +405,8 @@ string Identity::getPkVersion() const {
 	return Util::emptyString;
 }
 
-string Identity::myInfoDetect(OnlineUser& ou) {
-	StringMap params = DetectionManager::getInstance()->getParams();
+string Identity::myInfoDetect(OnlineUser& /*ou*/) {
+/*	StringMap params = DetectionManager::getInstance()->getParams();
 	const MyinfoProfile::List& lst = ClientProfileManager::getInstance()->getMyinfoProfiles();
 	
 	//empty status = adc user, here status is empty till user change it
@@ -442,7 +463,7 @@ string Identity::myInfoDetect(OnlineUser& ou) {
 		}
 		ClientManager::getInstance()->sendAction(ou, cq.getRawToSend());
 		return report;
-	}
+	}*/
 	return Util::emptyString;
 }
 //RSX++ //Protected users
@@ -660,7 +681,7 @@ string Identity::checkFilelistGenerator(OnlineUser& ou) {
 		}
 	}
 
-	const FileListDetectorProfile::List& lst = ClientProfileManager::getInstance()->getFileListDetectors();
+/*	const FileListDetectorProfile::List& lst = ClientProfileManager::getInstance()->getFileListDetectors();
 	for(FileListDetectorProfile::List::const_iterator i = lst.begin(); i != lst.end(); ++i) {
 		const FileListDetectorProfile& fd = *i;	
 		if(!RegexUtil::match(get("FG"), fd.getDetect())) { continue; }
@@ -674,7 +695,7 @@ string Identity::checkFilelistGenerator(OnlineUser& ou) {
 		ClientManager::getInstance()->sendAction(ou, fd.getRawToSend());
 		return report;
 	}
-	logDetect(false);
+	logDetect(false);*/
 	return Util::emptyString;
 }
 
@@ -814,7 +835,7 @@ int OnlineUser::compareItems(const OnlineUser* a, const OnlineUser* b, uint8_t c
 	return lstrcmpi(a->getText(col).c_str(), b->getText(col).c_str());
 }
 
-const tstring OnlineUser::getText(uint8_t col) const {
+tstring OnlineUser::getText(uint8_t col) const {
 	switch(col) {
 		case COLUMN_NICK: return Text::toT(identity.getNick());
 		case COLUMN_SHARED: return Util::formatBytesW(identity.getBytesShared());
@@ -865,9 +886,9 @@ const tstring OnlineUser::getText(uint8_t col) const {
 		case COLUMN_SUPPORT: return Text::toT(identity.get("SU"));
 		case COLUMN_STATUS: { 
 			if(getUser()->isSet(User::NMDC)) {
-				return Text::toT(Util::formatStatus(Util::toInt(identity.getStatus())));
+				return Text::toT(Util::formatStatus(identity.getStatus()));
 			} else {
-				switch(Util::toInt(identity.getStatus())) {
+				switch(Util::toInt(identity.get("AW"))) {
 					case 0: return _T("Normal (0)");
 					case 1: return _T("Away (1)");
 					case 2: return _T("Extended Away (2)");
@@ -897,5 +918,5 @@ bool OnlineUser::update(int sortCol, const tstring& oldText) {
 
 /**
  * @file
- * $Id: User.cpp 379 2008-02-24 19:56:47Z bigmuscle $
+ * $Id: User.cpp 397 2008-07-04 14:58:44Z BigMuscle $
  */

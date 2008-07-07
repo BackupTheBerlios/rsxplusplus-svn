@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2007 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -148,7 +148,7 @@ public:
 		ALLOW_UNTRUSTED_HUBS, ALLOW_UNTRUSTED_CLIENTS, TLS_PORT, FAST_HASH, DOWNCONN_PER_SEC,
 		PRIO_HIGHEST_SIZE, PRIO_HIGH_SIZE, PRIO_NORMAL_SIZE, PRIO_LOW_SIZE, PRIO_LOWEST,
 		FILTER_ENTER, SORT_FAVUSERS_FIRST, SHOW_SHELL_MENU, SEND_BLOOM, OVERLAP_CHUNKS, SHOW_QUICK_SEARCH,
-		UC_SUBMENU, AUTO_SLOTS,
+		UC_SUBMENU, AUTO_SLOTS, CORAL,
 		//RSX++
 		TOP_SPEED, TOP_UP_SPEED, PROGRESSBAR_ODC_BUMPED,
 		STEALTHY_INDICATE_SPEEDS, PROGRESSBAR_MODE,
@@ -318,5 +318,5 @@ private:
 
 /**
  * @file
- * $Id: SettingsManager.h 395 2008-06-30 12:11:32Z BigMuscle $
+ * $Id: SettingsManager.h 399 2008-07-06 19:48:02Z BigMuscle $
  */

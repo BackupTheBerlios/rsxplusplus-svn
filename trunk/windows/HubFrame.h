@@ -272,19 +272,11 @@ public:
 	LRESULT onIgnore(UINT /*uMsg*/, WPARAM /*wParam*/, HWND /*lParam*/, BOOL& /*bHandled*/) {
 		int i=-1;
 		if(client->isConnected()) {
-			//if(!ChatCtrl::sSelectedUser.empty()) {
-			//	const OnlineUser* ui = client->findUser(Text::fromT(ChatCtrl::sSelectedUser));
-			//	if(ui) { 
-			//		ignoreList.insert(ui->getUser());
-			//		IgnoreManager::getInstance()->storeIgnore(ui->getUser());
-			//	}
-			//} else {
-				while( (i = ctrlUsers.GetNextItem(i, LVNI_SELECTED)) != -1) {
-					UserPtr user = ((OnlineUser*)ctrlUsers.getItemData(i))->getUser();
-					ignoreList.insert(user);
-					IgnoreManager::getInstance()->storeIgnore(user);
-				}
-			//}
+			while( (i = ctrlUsers.GetNextItem(i, LVNI_SELECTED)) != -1) {
+				UserPtr& user = ((OnlineUser*)ctrlUsers.getItemData(i))->getUser();
+				ignoreList.insert(user);
+				IgnoreManager::getInstance()->storeIgnore(user);
+			}
 		}
 		return 0;
 	}
@@ -292,19 +284,11 @@ public:
 	LRESULT onUnignore(UINT /*uMsg*/, WPARAM /*wParam*/, HWND /*lParam*/, BOOL& /*bHandled*/) {
 		int i=-1;
 		if(client->isConnected()) {
-			//if(!ChatCtrl::sSelectedUser.empty()) {
-			//	const OnlineUser* ui = client->findUser(Text::fromT(ChatCtrl::sSelectedUser));
-			//	if(ui) { 
-			//		ignoreList.erase(ui->getUser());
-			//		IgnoreManager::getInstance()->removeIgnore(ui->getUser());
-			//	}
-			//} else {
-				while( (i = ctrlUsers.GetNextItem(i, LVNI_SELECTED)) != -1) {
-					UserPtr user = ((OnlineUser*)ctrlUsers.getItemData(i))->getUser();
-					ignoreList.erase(user);
-					IgnoreManager::getInstance()->removeIgnore(user);
-				}
-			//}
+			while( (i = ctrlUsers.GetNextItem(i, LVNI_SELECTED)) != -1) {
+				UserPtr& user = ((OnlineUser*)ctrlUsers.getItemData(i))->getUser();
+				ignoreList.erase(user);
+				IgnoreManager::getInstance()->removeIgnore(user);
+			}
 		}
 		return 0;
 	}
@@ -528,5 +512,5 @@ private:
 
 /**
  * @file
- * $Id: HubFrame.h 389 2008-06-08 10:51:15Z BigMuscle $
+ * $Id: HubFrame.h 394 2008-06-28 22:28:44Z BigMuscle $
  */

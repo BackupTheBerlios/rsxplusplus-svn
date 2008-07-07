@@ -342,7 +342,7 @@ HTREEITEM QueueFrame::addDirectory(const string& dir, bool isFileList /* = false
 		while(next != NULL) {
 			if(next != fileLists && (next != flcRoot && next != testsurRoot)) { //rsx++ was here
 				string* stmp = reinterpret_cast<string*>(ctrlDirs.GetItemData(next));
-					if(Util::strnicmp(*stmp, dir, 3) == 0)
+					if(strnicmp(*stmp, dir, 3) == 0)
 						break;
 				}
 			next = ctrlDirs.GetNextSiblingItem(next);
@@ -377,7 +377,7 @@ HTREEITEM QueueFrame::addDirectory(const string& dir, bool isFileList /* = false
 			j = dir.find('\\', i);
 				if(j == string::npos)
 					break;
-				if(Util::strnicmp(dir.c_str() + i, rootStr->c_str() + i, j - i + 1) != 0)
+				if(strnicmp(dir.c_str() + i, rootStr->c_str() + i, j - i + 1) != 0)
 					break;
 					i = j + 1;
 				}
@@ -411,7 +411,7 @@ HTREEITEM QueueFrame::addDirectory(const string& dir, bool isFileList /* = false
 		parent = startAt;
 		next = ctrlDirs.GetChildItem(parent);
 		i = getDir(parent).length();
-		dcassert(Util::strnicmp(getDir(parent), dir, getDir(parent).length()) == 0);
+		dcassert(strnicmp(getDir(parent), dir, getDir(parent).length()) == 0);
 	}
 
 	HTREEITEM firstParent = parent;
@@ -420,7 +420,7 @@ HTREEITEM QueueFrame::addDirectory(const string& dir, bool isFileList /* = false
 		while(next != NULL) {
 			if(next != fileLists && (next != flcRoot && next != testsurRoot)) { //rsx++ was here
 				const string& n = getDir(next);
-			if(Util::strnicmp(n.c_str()+i, dir.c_str()+i, n.length()-i) == 0) {
+			if(strnicmp(n.c_str()+i, dir.c_str()+i, n.length()-i) == 0) {
 				// Found a part, we assume it's the best one we can find...
 				i = n.length();
 
@@ -486,7 +486,7 @@ void QueueFrame::removeDirectory(const string& dir, bool isFileList /* = false *
 			while(next != NULL) {
 				if(next != fileLists && (next != flcRoot && next != testsurRoot)) { //rsx++ was here
 				const string& n = getDir(next);
-				if(Util::strnicmp(n.c_str()+i, dir.c_str()+i, n.length()-i) == 0) {
+				if(strnicmp(n.c_str()+i, dir.c_str()+i, n.length()-i) == 0) {
 					// Match!
 					parent = next;
 					next = ctrlDirs.GetChildItem(next);
@@ -1499,5 +1499,5 @@ void QueueFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/) throw() {
 
 /**
  * @file
- * $Id: QueueFrame.cpp 385 2008-04-26 13:05:09Z BigMuscle $
+ * $Id: QueueFrame.cpp 399 2008-07-06 19:48:02Z BigMuscle $
  */

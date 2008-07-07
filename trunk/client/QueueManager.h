@@ -87,6 +87,7 @@ public:
 		StringList nicks = ClientManager::getInstance()->getNicks(*aUser);
 		string nick = nicks.empty() ? Util::emptyString : Util::cleanPathChars(nicks[0]) + ".";
 		string target = Util::getConfigPath() + "TestSURs\\" + RsxUtil::getTestSURString() + nick + aUser->getCID().toBase32();
+
 		add(target, -1, TTHValue(), aUser, (Flags::MaskType)((checkList ? QueueItem::FLAG_CHECK_FILE_LIST : 0) | QueueItem::FLAG_TESTSUR));
 	}
 
@@ -95,6 +96,7 @@ public:
 			StringList nicks = ClientManager::getInstance()->getNicks(*aUser);
 			string nick = nicks.empty() ? Util::emptyString : Util::cleanPathChars(nicks[0]) + ".";
 			string target = Util::getConfigPath() + "TestSURs\\" + RsxUtil::getTestSURString() + nick + aUser->getCID().toBase32();
+
 			remove(target);
 		} catch(...) {
 			// exception
@@ -102,6 +104,15 @@ public:
 		return;
 	}
 	//RSX++ 
+	string addClientCheck(UserPtr aUser) throw(QueueException, FileException) {
+		StringList nicks = ClientManager::getInstance()->getNicks(*aUser);
+		string nick = nicks.empty() ? Util::emptyString : Util::cleanPathChars(nicks[0]) + ".";
+		string filename = RsxUtil::getTestSURString() + nick + aUser->getCID().toBase32();
+
+		add(Util::getConfigPath() + "TestSURs\\" + filename, -1, TTHValue(), aUser, QueueItem::FLAG_TESTSUR);
+		return filename;
+	}
+
 	void addFileListCheck(UserPtr aUser) throw(QueueException, FileException) {
 		addList(aUser, QueueItem::FLAG_CHECK_FILE_LIST);
 	}
@@ -116,30 +127,11 @@ public:
 		}
 	}
 
-	void removeOfflineChecks() {
-		StringList targets;
-		{
-			Lock l(cs);
-			for(QueueItem::StringIter i = fileQueue.getQueue().begin(); i != fileQueue.getQueue().end(); ++i) {
-				if(i->second->isSet(QueueItem::FLAG_TESTSUR) || i->second->isSet(QueueItem::FLAG_CHECK_FILE_LIST)) {
-					if(i->second->countOnlineUsers() == 0) {
-						targets.push_back(i->second->getTarget());
-					}
-				}
-			}
-		}
-		for(StringIter i = targets.begin(); i != targets.end(); ++i) {
-			try { remove((*i)); } catch(...) { /* exception */ }
-		}
-	}
-
-	bool isTestSURinQueue(UserPtr aUser) const {
+	bool isFileInQueue(const string& filename) const {
 		try {
 			Lock l(cs);
-			StringList nicks = ClientManager::getInstance()->getNicks(*aUser);
-			string nick = nicks.empty() ? Util::emptyString : Util::cleanPathChars(nicks[0]) + ".";
 			for(QueueItem::StringIter i = fileQueue.getQueue().begin(); i != fileQueue.getQueue().end(); ++i) {
-				if(i->second->getTargetFileName().find(RsxUtil::getTestSURString() + nick + aUser->getCID().toBase32()) != string::npos ) {
+				if(i->second->getTargetFileName().find(filename) != string::npos ) {
 					return true;
 				}
 			}

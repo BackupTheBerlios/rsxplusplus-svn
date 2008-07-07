@@ -468,7 +468,7 @@ void HashManager::Hasher::hashFile(const string& fileName, int64_t size) {
 void HashManager::Hasher::stopHashing(const string& baseDir) {
 	Lock l(cs);
 	for(WorkIter i = w.begin(); i != w.end(); ) {
-		if(Util::strnicmp(baseDir, i->first, baseDir.length()) == 0) {
+		if(strnicmp(baseDir, i->first, baseDir.length()) == 0) {
 			w.erase(i++);
 		} else {
 			++i;
@@ -785,5 +785,5 @@ int HashManager::Hasher::run() {
 
 /**
  * @file
- * $Id: HashManager.cpp 395 2008-06-30 12:11:32Z BigMuscle $
+ * $Id: HashManager.cpp 399 2008-07-06 19:48:02Z BigMuscle $
  */

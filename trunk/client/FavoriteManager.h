@@ -343,7 +343,7 @@ public:
 	RecentHubEntry* getRecentHubEntry(const string& aServer) {
 		for(RecentHubEntry::Iter i = recentHubs.begin(); i != recentHubs.end(); ++i) {
 			RecentHubEntry* r = *i;
-			if(Util::stricmp(r->getServer(), aServer) == 0) {
+			if(stricmp(r->getServer(), aServer) == 0) {
 				return r;
 			}
 		}
@@ -531,7 +531,7 @@ private:
 
 	RecentHubEntry::Iter getRecentHub(const string& aServer) const {
 		for(RecentHubEntry::Iter i = recentHubs.begin(); i != recentHubs.end(); ++i) {
-			if(Util::stricmp((*i)->getServer(), aServer) == 0) {
+			if(stricmp((*i)->getServer(), aServer) == 0) {
 				return i;
 			}
 		}
@@ -585,5 +585,5 @@ private:
 
 /**
  * @file
- * $Id: FavoriteManager.h 382 2008-03-09 10:40:22Z BigMuscle $
+ * $Id: FavoriteManager.h 399 2008-07-06 19:48:02Z BigMuscle $
  */

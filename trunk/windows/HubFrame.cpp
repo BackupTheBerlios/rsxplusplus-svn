@@ -298,7 +298,7 @@ void HubFrame::onEnter() {
 				if(!status.empty()) {
 					addClientLine(status, WinUtil::m_ChatTextSystem);
 				}
-			} else if(Util::stricmp(cmd.c_str(), _T("join"))==0) {
+			} else if(stricmp(cmd.c_str(), _T("join"))==0) {
 				if(!param.empty()) {
 					redirect = param;
 					if(BOOLSETTING(JOIN_OPEN_NEW_WINDOW)) {
@@ -310,70 +310,70 @@ void HubFrame::onEnter() {
 				} else {
 					addClientLine(TSTRING(SPECIFY_SERVER), WinUtil::m_ChatTextSystem);
 				}
-			} else if((Util::stricmp(cmd.c_str(), _T("clear")) == 0) || (Util::stricmp(cmd.c_str(), _T("cls")) == 0)) {
+			} else if((stricmp(cmd.c_str(), _T("clear")) == 0) || (stricmp(cmd.c_str(), _T("cls")) == 0)) {
 				ctrlClient.SetWindowText(_T(""));
-			} else if(Util::stricmp(cmd.c_str(), _T("ts")) == 0) {
+			} else if(stricmp(cmd.c_str(), _T("ts")) == 0) {
 				timeStamps = !timeStamps;
 				if(timeStamps) {
 					addClientLine(TSTRING(TIMESTAMPS_ENABLED), WinUtil::m_ChatTextSystem);
 				} else {
 					addClientLine(TSTRING(TIMESTAMPS_DISABLED), WinUtil::m_ChatTextSystem);
 				}
-			} else if( (Util::stricmp(cmd.c_str(), _T("password")) == 0) && waitingForPW ) {
+			} else if( (stricmp(cmd.c_str(), _T("password")) == 0) && waitingForPW ) {
 				client->setPassword(Text::fromT(param));
 				client->password(Text::fromT(param));
 				waitingForPW = false;
-			} else if( Util::stricmp(cmd.c_str(), _T("showjoins")) == 0 ) {
+			} else if( stricmp(cmd.c_str(), _T("showjoins")) == 0 ) {
 				showJoins = !showJoins;
 				if(showJoins) {
 					addClientLine(TSTRING(JOIN_SHOWING_ON), WinUtil::m_ChatTextSystem);
 				} else {
 					addClientLine(TSTRING(JOIN_SHOWING_OFF), WinUtil::m_ChatTextSystem);
 				}
-			} else if( Util::stricmp(cmd.c_str(), _T("favshowjoins")) == 0 ) {
+			} else if( stricmp(cmd.c_str(), _T("favshowjoins")) == 0 ) {
 				favShowJoins = !favShowJoins;
 				if(favShowJoins) {
 					addClientLine(TSTRING(FAV_JOIN_SHOWING_ON), WinUtil::m_ChatTextSystem);
 				} else {
 					addClientLine(TSTRING(FAV_JOIN_SHOWING_OFF), WinUtil::m_ChatTextSystem);
 				}
-			} else if(Util::stricmp(cmd.c_str(), _T("close")) == 0) {
+			} else if(stricmp(cmd.c_str(), _T("close")) == 0) {
 				PostMessage(WM_CLOSE);
-			} else if(Util::stricmp(cmd.c_str(), _T("userlist")) == 0) {
+			} else if(stricmp(cmd.c_str(), _T("userlist")) == 0) {
 				ctrlShowUsers.SetCheck(showUsers ? BST_UNCHECKED : BST_CHECKED);
-			} else if(Util::stricmp(cmd.c_str(), _T("connection")) == 0) {
+			} else if(stricmp(cmd.c_str(), _T("connection")) == 0) {
 				addClientLine(Text::toT((STRING(IP) + client->getLocalIp() + ", " + 
 					STRING(PORT) + 
 					Util::toString(ConnectionManager::getInstance()->getPort()) + "/" + 
 					Util::toString(SearchManager::getInstance()->getPort()) + "/" +
 					Util::toString(ConnectionManager::getInstance()->getSecurePort())))
 					, WinUtil::m_ChatTextSystem);
-			} else if((Util::stricmp(cmd.c_str(), _T("favorite")) == 0) || (Util::stricmp(cmd.c_str(), _T("fav")) == 0)) {
+			} else if((stricmp(cmd.c_str(), _T("favorite")) == 0) || (stricmp(cmd.c_str(), _T("fav")) == 0)) {
 				addAsFavorite();
-			} else if((Util::stricmp(cmd.c_str(), _T("removefavorite")) == 0) || (Util::stricmp(cmd.c_str(), _T("removefav")) == 0)) {
+			} else if((stricmp(cmd.c_str(), _T("removefavorite")) == 0) || (stricmp(cmd.c_str(), _T("removefav")) == 0)) {
 				removeFavoriteHub();
-			} else if(Util::stricmp(cmd.c_str(), _T("getlist")) == 0){
+			} else if(stricmp(cmd.c_str(), _T("getlist")) == 0){
 				if( !param.empty() ){
 					OnlineUser* ui = client->findUser(Text::fromT(param));
 					if(ui) {
 						ui->getList();
 					}
 				}
-			} else if(Util::stricmp(cmd.c_str(), _T("log")) == 0) {
+			} else if(stricmp(cmd.c_str(), _T("log")) == 0) {
 				StringMap params;
 				params["hubNI"] = client->getHubName();
 				params["hubURL"] = client->getHubUrl();
 				params["myNI"] = client->getMyNick(); 
 				if(param.empty()) {
 					WinUtil::openFile(Text::toT(Util::validateFileName(SETTING(LOG_DIRECTORY) + Util::formatParams(SETTING(LOG_FILE_MAIN_CHAT), params, false))));
-				} else if(Util::stricmp(param.c_str(), _T("status")) == 0) {
+				} else if(stricmp(param.c_str(), _T("status")) == 0) {
 					WinUtil::openFile(Text::toT(Util::validateFileName(SETTING(LOG_DIRECTORY) + Util::formatParams(SETTING(LOG_FILE_STATUS), params, false))));
 				}
-			} else if(Util::stricmp(cmd.c_str(), _T("f")) == 0) {
+			} else if(stricmp(cmd.c_str(), _T("f")) == 0) {
 				if(param.empty())
 					param = findTextPopup();
 				findText(param);
-			} else if(Util::stricmp(cmd.c_str(), _T("extraslots"))==0) {
+			} else if(stricmp(cmd.c_str(), _T("extraslots"))==0) {
 				int j = Util::toInt(Text::fromT(param));
 				if(j > 0) {
 					SettingsManager::getInstance()->set(SettingsManager::EXTRA_SLOTS, j);
@@ -381,7 +381,7 @@ void HubFrame::onEnter() {
 				} else {
 					addClientLine(TSTRING(INVALID_NUMBER_OF_SLOTS), WinUtil::m_ChatTextSystem );
 				}
-			} else if(Util::stricmp(cmd.c_str(), _T("smallfilesize"))==0) {
+			} else if(stricmp(cmd.c_str(), _T("smallfilesize"))==0) {
 				int j = Util::toInt(Text::fromT(param));
 				if(j >= 64) {
 					SettingsManager::getInstance()->set(SettingsManager::SET_MINISLOT_SIZE, j);
@@ -389,29 +389,29 @@ void HubFrame::onEnter() {
 				} else {
 					addClientLine(TSTRING(INVALID_SIZE), WinUtil::m_ChatTextSystem );
 				}
-			} else if(Util::stricmp(cmd.c_str(), _T("savequeue")) == 0) {
+			} else if(stricmp(cmd.c_str(), _T("savequeue")) == 0) {
 				QueueManager::getInstance()->saveQueue();
 				addClientLine(_T("Queue saved."), WinUtil::m_ChatTextSystem );
-			} else if(Util::stricmp(cmd.c_str(), _T("whois")) == 0) {
+			} else if(stricmp(cmd.c_str(), _T("whois")) == 0) {
 				WinUtil::openLink(_T("http://www.ripe.net/perl/whois?form_type=simple&full_query_string=&searchtext=") + Text::toT(Util::encodeURI(Text::fromT(param))));
-			} else if(Util::stricmp(cmd.c_str(), _T("ignorelist"))==0) {
+			} else if(stricmp(cmd.c_str(), _T("ignorelist"))==0) {
 				tstring ignorelist = _T("Ignored users:");
 				for(IgnoreMap::const_iterator i = ignoreList.begin(); i != ignoreList.end(); ++i)
 					ignorelist += _T(" ") + Text::toT(ClientManager::getInstance()->getNicks((*i)->getCID())[0]);
 				addLine(ignorelist, WinUtil::m_ChatTextSystem);
-			} else if(Util::stricmp(cmd.c_str(), _T("log")) == 0) {
+			} else if(stricmp(cmd.c_str(), _T("log")) == 0) {
 				StringMap params;
 				params["hubNI"] = client->getHubName();
 				params["hubURL"] = client->getHubUrl();
 				params["myNI"] = client->getMyNick(); 
 				if(param.empty()) {
 					WinUtil::openFile(Text::toT(Util::validateFileName(SETTING(LOG_DIRECTORY) + Util::formatParams(SETTING(LOG_FILE_MAIN_CHAT), params, false))));
-				} else if(Util::stricmp(param.c_str(), _T("status")) == 0) {
+				} else if(stricmp(param.c_str(), _T("status")) == 0) {
 					WinUtil::openFile(Text::toT(Util::validateFileName(SETTING(LOG_DIRECTORY) + Util::formatParams(SETTING(LOG_FILE_STATUS), params, false))));
 				}
-			} else if(Util::stricmp(cmd.c_str(), _T("help")) == 0) {
+			} else if(stricmp(cmd.c_str(), _T("help")) == 0) {
 				addLine(_T("*** ") + WinUtil::commands + _T(", /smallfilesize #, /extraslots #, /savequeue, /join <hub-ip>, /clear, /ts, /showjoins, /favshowjoins, /close, /userlist, /connection, /favorite, /pm <user> [message], /getlist <user>, /winamp, /whois [IP], /ignorelist, /removefavorite"), WinUtil::m_ChatTextSystem);
-			} else if(Util::stricmp(cmd.c_str(), _T("pm")) == 0) {
+			} else if(stricmp(cmd.c_str(), _T("pm")) == 0) {
 				string::size_type j = param.find(_T(' '));
 				if(j != string::npos) {
 					tstring nick = param.substr(0, j);
@@ -429,44 +429,19 @@ void HubFrame::onEnter() {
 						PrivateFrame::openWindow(ui->getUser(), client);
 					}
 				}
-			} else if(Util::stricmp(cmd.c_str(), _T("me")) == 0) {
+			} else if(stricmp(cmd.c_str(), _T("me")) == 0) {
 				client->hubMessage(Text::fromT(s));
-			} else if(Util::stricmp(cmd.c_str(), _T("stats")) == 0) {
+			} else if(stricmp(cmd.c_str(), _T("stats")) == 0) {
 				addLine(Text::toT(WinUtil::generateStats()));
 			//RSX++ //Public Stats
-			} else if(Util::stricmp(cmd.c_str(), _T("pstats")) == 0) {
+			} else if(stricmp(cmd.c_str(), _T("pstats")) == 0) {
 				client->hubMessage(WinUtil::generateStats());
 			//RSX++ // detector commands
-			} else if(Util::stricmp(cmd.c_str(), _T("sc")) == 0) {
-				if(client->isOp()) {
-					if(!client->isDetectorRunning()) {
-						if(!param.empty()) {
-							bool cl = false, fl = false;
-							if(Util::stricmp(param.c_str(), _T("clients")) == 0) 
-								cl = true;
-							else if(Util::stricmp(param.c_str(), _T("filelists")) == 0) 
-								fl = true;
-							else if(Util::stricmp(param.c_str(), _T("all")) == 0) 
-								cl = fl = true;
-
-							if(fl || cl) {
-								client->startCustomCheck(cl, fl);
-								addClientLine(_T("Checking started"), WinUtil::m_ChatTextSystem);
-							} else {
-								addClientLine(_T("Incorrect parameters!"), WinUtil::m_ChatTextSystem);
-							}
-						} else {
-							client->startChecking();
-							addClientLine(_T("Checking started"), WinUtil::m_ChatTextSystem);
-						}
-					} else {
-						client->stopChecking();
-						addClientLine(_T("Checking stopped"), WinUtil::m_ChatTextSystem);
-					}
-				} else {
-					addClientLine(_T("You are not Operator in this hub"), WinUtil::m_ChatTextSystem);
-				}
-			} else if((Util::stricmp(cmd.c_str(), _T("hubrefresh")) == 0) || (Util::stricmp(cmd.c_str(), _T("hr")) == 0)) {
+			} else if(stricmp(cmd.c_str(), _T("sc")) == 0) {
+				tstring detectorMsg = client->startChecking(param);
+				if(!detectorMsg.empty())
+					addClientLine(detectorMsg, WinUtil::m_ChatTextSystem);
+			} else if((stricmp(cmd.c_str(), _T("hubrefresh")) == 0) || (stricmp(cmd.c_str(), _T("hr")) == 0)) {
 					const FavoriteHubEntry::List& fh = FavoriteManager::getInstance()->getFavoriteHubs();
 					for(FavoriteHubEntry::List::const_iterator i = fh.begin(); i != fh.end(); ++i) {
 						if((*i)->getServer().compare(Text::fromT(server)) == 0) {
@@ -487,7 +462,7 @@ void HubFrame::onEnter() {
 							ClientManager::getInstance()->infoUpdated();
 						}
 					}
-			} else if((Util::stricmp(cmd.c_str(), _T("hubsetting")) == 0) || (Util::stricmp(cmd.c_str(), _T("hs")) == 0)) {
+			} else if((stricmp(cmd.c_str(), _T("hubsetting")) == 0) || (stricmp(cmd.c_str(), _T("hs")) == 0)) {
 				string tmp = "Hub Settings:"; 
 				tmp += "\r\n-]> My Nick: \t\t\t" +						client->getCurrentNick();
 				tmp += "\r\n-]> My Description: \t\t" +					client->getCurrentDescription();
@@ -505,7 +480,7 @@ void HubFrame::onEnter() {
 					tmp += "\r\n-]> Protected Users(RegEx): \t" +		client->getUserProtected();
 				}
 				addLine(Text::toT(tmp));
-			} else if((Util::stricmp(cmd.c_str(), _T("hubsstats")) == 0)) {
+			} else if((stricmp(cmd.c_str(), _T("hubsstats")) == 0)) {
 				addLine(ClientManager::getInstance()->getHubsLoadInfo());
 			//END
 			} else {
@@ -1261,7 +1236,7 @@ void HubFrame::addLine(const Identity& i, const tstring& aLine, CHARFORMAT2& cf,
 		LOG(LogManager::CHAT, params);
 	}
 	//@todo fav setting
-	const tstring& extraInfo = RsxUtil::formatAdditionalInfo(i.getIp(), RSXBOOLSETTING(IP_IN_CHAT), RSXBOOLSETTING(COUNTRY_IN_CHAT));
+	tstring extraInfo = RsxUtil::formatAdditionalInfo(i.getIp(), RSXBOOLSETTING(IP_IN_CHAT), RSXBOOLSETTING(COUNTRY_IN_CHAT));
 	if(timeStamps) {
 		ctrlClient.AppendText(i, Text::toT(client->getCurrentNick()), Text::toT("[" + Util::getShortTimeString() + "] "), aLine + _T('\n'), cf, bUseEmo, useHL, extraInfo);
 	} else {
@@ -1446,7 +1421,7 @@ void HubFrame::onTab() {
 		while(firstPass || (!firstPass && i < start)) {
 			const OnlineUser* ui = ctrlUsers.getItemData(i);
 			const tstring& nick = ui->getText(OnlineUser::COLUMN_NICK);
-			bool found = (Util::strnicmp(nick, complete, complete.length()) == 0);
+			bool found = (strnicmp(nick, complete, complete.length()) == 0);
 			tstring::size_type x = 0;
 			if(!found) {
 				// Check if there's one or more [ISP] tags to ignore...
@@ -1454,7 +1429,7 @@ void HubFrame::onTab() {
 				while(nick[y] == _T('[')) {
 					x = nick.find(_T(']'), y);
 					if(x != string::npos) {
-						if(Util::strnicmp(nick.c_str() + x + 1, complete.c_str(), complete.length()) == 0) {
+						if(strnicmp(nick.c_str() + x + 1, complete.c_str(), complete.length()) == 0) {
 							found = true;
 							break;
 						}
@@ -2347,6 +2322,7 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
 	switch(cd->nmcd.dwDrawStage) {
 	case CDDS_PREPAINT:
 		return CDRF_NOTIFYITEMDRAW;
+
 	case CDDS_ITEMPREPAINT: {
 			OnlineUser* ui = (OnlineUser*)cd->nmcd.lItemlParam;
 			if(ui->getIdentity().isOp()) {
@@ -2361,9 +2337,9 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
 				cd->clrText = SETTING(RESERVED_SLOT_COLOR);
 			} else if (ignoreList.find(ui->getUser()) != ignoreList.end()) {
 				cd->clrText = SETTING(IGNORED_COLOR);
-			} else if(ui->getUser()->isSet(User::FIREBALL)) {
+			} else if(ui->getIdentity().getStatus() & Identity::FIREBALL) {
 				cd->clrText = SETTING(FIREBALL_COLOR);
-			} else if(ui->getUser()->isSet(User::SERVER)) {
+			} else if(ui->getIdentity().getStatus() & Identity::SERVER) {
 				cd->clrText = SETTING(SERVER_COLOR);
 			} else if(!ui->getIdentity().isTcpActive()) {
 				cd->clrText = SETTING(PASIVE_COLOR);
@@ -2475,5 +2451,5 @@ void HubFrame::displayCheat(const tstring& aMessage) {
 
 /**
  * @file
- * $Id: HubFrame.cpp 389 2008-06-08 10:51:15Z BigMuscle $
+ * $Id: HubFrame.cpp 399 2008-07-06 19:48:02Z BigMuscle $
  */

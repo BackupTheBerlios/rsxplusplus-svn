@@ -53,6 +53,7 @@ void HTTPDownloadItem::on(HttpConnectionListener::Failed, HttpConnection*, const
 	if(!callback.empty()) {
 		callback(aLine, true);
 	}
+	dcdebug("Failed on HTTP Download, reason: %s\n", aLine.c_str());
 	_idle = true;
 }
 

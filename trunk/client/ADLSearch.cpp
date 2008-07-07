@@ -354,7 +354,7 @@ void ADLSearchManager::PrepareDestinationDirectories(DestDirList& destDirVector,
 		bool isNew = true;
 		long ddIndex = 0;
 		for(id = destDirVector.begin(); id != destDirVector.end(); ++id, ++ddIndex) {
-			if(Util::stricmp(is->destDir.c_str(), id->name.c_str()) == 0) {
+			if(stricmp(is->destDir.c_str(), id->name.c_str()) == 0) {
 				// Already exists, reuse index
 				is->ddIndex = ddIndex;
 				isNew = false;
@@ -409,5 +409,5 @@ void ADLSearchManager::matchRecurse(DestDirList &aDestList, DirectoryListing::Di
 
 /**
  * @file
- * $Id: ADLSearch.cpp 373 2008-02-06 17:23:49Z bigmuscle $
+ * $Id: ADLSearch.cpp 399 2008-07-06 19:48:02Z BigMuscle $
  */

@@ -85,7 +85,7 @@ public:
 
 	//@todo make possible to use it in network page as well
 	void UpdateExternalIp() {
-		HTTPDownloadManager::getInstance()->addRequest(boost::bind(&IpManager::onIPUpdate, this, _1, _2), "http://checkip.dyndns.org/");
+		HTTPDownloadManager::getInstance()->addRequest(boost::bind(&IpManager::onIPUpdate, this, _1, _2), "http://checkip.dyndns.org/", false);
 	}
 private:
 	friend class Singleton<IpManager>;

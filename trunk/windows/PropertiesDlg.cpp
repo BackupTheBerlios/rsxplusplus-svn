@@ -91,7 +91,6 @@ PropertiesDlg::PropertiesDlg(HWND parent, SettingsManager *s) : TreePropertyShee
 	pages[n++] = new RSXPage(s);
 	pages[n++] = new FilterPage(s);
 	pages[n++] = new FakeDetect(s);
-	//pages[n++] = new ClientsPage(s);
 	pages[n++] = new ClientsPage(s);
 	pages[n++] = new ParamsPage(s);
 	pages[n++] = new MyinfoPage(s);
@@ -136,5 +135,5 @@ LRESULT PropertiesDlg::onOK(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/
 
 /**
  * @file
- * $Id: PropertiesDlg.cpp 219 2006-07-08 23:19:56Z bigmuscle $
+ * $Id: PropertiesDlg.cpp 395 2008-06-30 12:11:32Z BigMuscle $
  */

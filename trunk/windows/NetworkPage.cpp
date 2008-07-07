@@ -22,6 +22,8 @@
 #include "../client/SettingsManager.h"
 #include "../client/Socket.h"
 
+#include "../client/SimpleXML.h"
+#include "../client/version.h"
 #include "../rsx/rsx-settings/rsx-SettingsManager.h" //RSX++
 
 #include "Resource.h"
@@ -249,7 +251,7 @@ LRESULT NetworkPage::onClickedActive(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*
 //RSX++
 LRESULT NetworkPage::onGetIP(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndCtl */, BOOL& /* bHandled */) {
 	::EnableWindow(GetDlgItem(IDC_GETIP), false);
-	HTTPDownloadManager::getInstance()->addRequest(boost::bind(&NetworkPage::onHttpRequest, this, _1, _2), "http://checkip.dyndns.org/");
+	HTTPDownloadManager::getInstance()->addRequest(boost::bind(&NetworkPage::onHttpRequest, this, _1, _2), "http://checkip.dyndns.org/", false);
 	return 0;
 }
 

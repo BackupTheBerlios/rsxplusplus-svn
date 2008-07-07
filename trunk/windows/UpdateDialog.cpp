@@ -312,7 +312,8 @@ void UpdateDialog::updateStatus(const tstring& text, bool history/* = false*/) {
 	statText += text.c_str();
 
 	GetDlgItem(wnd).SetWindowText(statText.c_str());
-	GetDlgItem(wnd).PostMessage(EM_SCROLL, SB_BOTTOM, 0);
+	if(!history)
+		GetDlgItem(wnd).PostMessage(EM_SCROLL, SB_BOTTOM, 0);
 }
 
 void UpdateDialog::initClose() {

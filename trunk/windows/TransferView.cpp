@@ -1231,6 +1231,8 @@ void TransferView::on(QueueManagerListener::StatusUpdated, const QueueItem* qi) 
 		double ratio = 0;
 		int64_t totalSpeed = 0;
 		int16_t segs = 0;
+		
+		bool partial = false, trusted = false, untrusted = false, tthcheck = false, zdownload = false, chunked = false;
 
 		for(DownloadList::const_iterator i = qi->getDownloads().begin(); i != qi->getDownloads().end(); i++) {
 			Download *d = *i;
@@ -1238,6 +1240,26 @@ void TransferView::on(QueueManagerListener::StatusUpdated, const QueueItem* qi) 
 			if(d->getStart() > 0) {
 				segs++;
 
+				if(d->isSet(Download::FLAG_PARTIAL)) {
+					partial = true;
+				}
+				if(d->getUserConnection().isSecure()) {
+					if(d->getUserConnection().isTrusted()) {
+						trusted = true;
+					} else {
+						untrusted = true;
+					}
+				}
+				if(d->isSet(Download::FLAG_TTH_CHECK)) {
+					tthcheck = true;
+				}
+				if(d->isSet(Download::FLAG_ZDOWNLOAD)) {
+					zdownload = true;
+				}
+				if(d->isSet(Download::FLAG_CHUNKED)) {
+					chunked = true;
+				}
+		
 				totalSpeed += d->getAverageSpeed();
 				ratio += d->getPos() > 0 ? (double)d->getActual() / (double)d->getPos() : 1.00;
 			}
@@ -1271,8 +1293,32 @@ void TransferView::on(QueueManagerListener::StatusUpdated, const QueueItem* qi) 
 					tstring pos = Util::formatBytesW(ui->pos);
 					double percent = (double)ui->pos*100.0/(double)ui->size;
 					tstring elapsed = Util::formatSeconds(time/1000);
+					tstring flag;
+					
+					if(partial) {
+						flag += _T("[P]");
+					}
+					if(trusted) {
+						flag += _T("[S]");
+					}
+					if(untrusted) {
+						flag += _T("[U]");
+					}
+					if(tthcheck) {
+						flag += _T("[T]");
+					}
+					if(zdownload) {
+						flag += _T("[Z]");
+					}
+					if(chunked) {
+						flag += _T("[C]");
+					}					
 
-					ui->setStatusString(Text::tformat(TSTRING(DOWNLOADED_BYTES), pos.c_str(), percent, elapsed.c_str()));
+					if(!flag.empty()) {
+						flag += _T(" ");
+					}
+					
+					ui->setStatusString(flag + Text::tformat(TSTRING(DOWNLOADED_BYTES), pos.c_str(), percent, elapsed.c_str()));
 				}
 			}
 		}
@@ -1290,6 +1336,7 @@ void TransferView::on(QueueManagerListener::StatusUpdated, const QueueItem* qi) 
 void TransferView::on(QueueManagerListener::Finished, const QueueItem* qi, const string&, const Download* download) throw() {
 	// update download item
 	UpdateInfo* ui = new UpdateInfo(download->getUser(), true);
+	//RSX++
 	const bool isCheck = download->isSet(Download::FLAG_CHECK_FILE_LIST) || download->isSet(Download::FLAG_TESTSUR);
 
 	ui->setStatus(ItemInfo::STATUS_WAITING);	
@@ -1332,5 +1379,5 @@ void TransferView::on(QueueManagerListener::Removed, const QueueItem* qi) throw(
 
 /**
  * @file
- * $Id: TransferView.cpp 389 2008-06-08 10:51:15Z BigMuscle $
+ * $Id: TransferView.cpp 398 2008-07-05 20:54:25Z BigMuscle $
  */

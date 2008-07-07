@@ -184,7 +184,7 @@ public:
 	 * was not needed...
 	 */
 	static bool needsEscape(const string& aString, bool aAttrib, bool aLoading = false, const string &encoding = Text::utf8) {
-		return Util::stricmp(encoding, Text::utf8) != 0 || (((aLoading) ? aString.find('&') : aString.find_first_of(aAttrib ? "<&>'\"" : "<&>")) != string::npos);
+		return stricmp(encoding, Text::utf8) != 0 || (((aLoading) ? aString.find('&') : aString.find_first_of(aAttrib ? "<&>'\"" : "<&>")) != string::npos);
 	}
 	static const string utf8Header;
 private:
@@ -284,5 +284,5 @@ private:
 
 /**
  * @file
- * $Id: SimpleXML.h 373 2008-02-06 17:23:49Z bigmuscle $
+ * $Id: SimpleXML.h 399 2008-07-06 19:48:02Z BigMuscle $
  */

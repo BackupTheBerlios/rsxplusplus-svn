@@ -35,11 +35,9 @@ public:
 		clearContainer(WC_BUTTON, this, CLEAR_MESSAGE_MAP),
 		statusContainer(STATUSCLASSNAME, this, CLEAR_MESSAGE_MAP)
 	 { 
-		start();
-		DebugManager::getInstance()->addListener(this);
 	 }
 	
-	~CDMDebugFrame() { DebugManager::getInstance()->removeListener(this); }
+	~CDMDebugFrame() { }
 	void OnFinalMessage(HWND /*hWnd*/) { delete this; }
 
 	typedef MDITabChildWindowImpl<CDMDebugFrame, RGB(0, 0, 0), IDR_CDM> baseClass;
@@ -116,9 +114,11 @@ public:
 	void addLine(const string& aLine);
 	
 private:
+	//RSX++
 	bool scrollbarAtBottom();
 	tstring currentMessage;
 	static DWORD CALLBACK funWithWin32CallBacks(DWORD dwCookie, LPBYTE pbBuff, LONG cb, LONG *pcb);
+	//END
 
 	bool stop;
 	CriticalSection cs;
@@ -157,8 +157,8 @@ private:
 		s.signal();
 	}
 
-	CEdit /*ctrlPad,*/ ctrlFilterText;
-	CRichEditCtrl ctrlPad;
+	CEdit ctrlFilterText;
+	CRichEditCtrl ctrlPad; //RSX++
 
 	CStatusBarCtrl ctrlStatus;
 	CButton ctrlClear, ctrlCommands, ctrlHubCommands, ctrlDetection, ctrlFilterIp;

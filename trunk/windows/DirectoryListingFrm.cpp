@@ -1300,5 +1300,5 @@ LRESULT DirectoryListingFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM /*
 
 /**
  * @file
- * $Id: DirectoryListingFrm.cpp 382 2008-03-09 10:40:22Z BigMuscle $
+ * $Id: DirectoryListingFrm.cpp 392 2008-06-21 21:10:31Z BigMuscle $
  */

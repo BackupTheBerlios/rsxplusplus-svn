@@ -35,7 +35,7 @@ public:
 		TimerManager::getInstance()->removeListener(this);
 	}
 
-	bool addRequest(const HTTPDownloadItem::CallBack& callBack, const string& aUrl);
+	bool addRequest(const HTTPDownloadItem::CallBack& callBack, const string& aUrl, bool useCoral = true);
 private:
 	typedef vector<HTTPDownloadItem*> Requests;
 

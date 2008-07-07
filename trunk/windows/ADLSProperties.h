@@ -76,5 +76,5 @@ private:
 
 /**
  * @file
- * $Id: ADLSProperties.h 217 2006-07-04 11:05:30Z bigmuscle $
+ * $Id: ADLSProperties.h 373 2008-02-06 17:23:49Z bigmuscle $
  */

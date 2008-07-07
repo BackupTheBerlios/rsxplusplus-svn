@@ -53,5 +53,5 @@ protected:
 
 /**
  * @file
- * $Id: PropertiesDlg.h 308 2007-07-13 18:57:02Z bigmuscle $
+ * $Id: PropertiesDlg.h 395 2008-06-30 12:11:32Z BigMuscle $
  */

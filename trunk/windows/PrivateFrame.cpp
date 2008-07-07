@@ -307,20 +307,20 @@ void PrivateFrame::onEnter()
 				if(!status.empty()) {
 					addClientLine(status);
 				}
-			} else if((Util::stricmp(s.c_str(), _T("clear")) == 0) || (Util::stricmp(s.c_str(), _T("cls")) == 0)) {
+			} else if((stricmp(s.c_str(), _T("clear")) == 0) || (stricmp(s.c_str(), _T("cls")) == 0)) {
 				ctrlClient.SetWindowText(_T(""));
-			} else if(Util::stricmp(s.c_str(), _T("grant")) == 0) {
+			} else if(stricmp(s.c_str(), _T("grant")) == 0) {
 				UploadManager::getInstance()->reserveSlot(replyTo, 600);
 				addClientLine(TSTRING(SLOT_GRANTED));
-			} else if(Util::stricmp(s.c_str(), _T("close")) == 0) {
+			} else if(stricmp(s.c_str(), _T("close")) == 0) {
 				PostMessage(WM_CLOSE);
-			} else if((Util::stricmp(s.c_str(), _T("favorite")) == 0) || (Util::stricmp(s.c_str(), _T("fav")) == 0)) {
+			} else if((stricmp(s.c_str(), _T("favorite")) == 0) || (stricmp(s.c_str(), _T("fav")) == 0)) {
 				FavoriteManager::getInstance()->addFavoriteUser(replyTo);
 				addClientLine(TSTRING(FAVORITE_USER_ADDED));
-			} else if(Util::stricmp(s.c_str(), _T("getlist")) == 0) {
+			} else if(stricmp(s.c_str(), _T("getlist")) == 0) {
 				BOOL bTmp;
 				onGetList(0,0,0,bTmp);
-			} else if(Util::stricmp(s.c_str(), _T("log")) == 0) {
+			} else if(stricmp(s.c_str(), _T("log")) == 0) {
 				StringMap params;
 
 				params["hubNI"] = Util::toString(ClientManager::getInstance()->getHubNames(replyTo->getCID()));
@@ -329,11 +329,11 @@ void PrivateFrame::onEnter()
 				params["userNI"] = ClientManager::getInstance()->getNicks(replyTo->getCID())[0];
 				params["myCID"] = ClientManager::getInstance()->getMe()->getCID().toBase32();
 				WinUtil::openFile(Text::toT(Util::validateFileName(SETTING(LOG_DIRECTORY) + Util::formatParams(SETTING(LOG_FILE_PRIVATE_CHAT), params, false))));
-			} else if(Util::stricmp(s.c_str(), _T("stats")) == 0) {
+			} else if(stricmp(s.c_str(), _T("stats")) == 0) {
 				addLine(Text::toT(WinUtil::generateStats()), WinUtil::m_ChatTextMyOwn);
-			} else if(Util::stricmp(s.c_str(), _T("pstats")) == 0) {
+			} else if(stricmp(s.c_str(), _T("pstats")) == 0) {
 				sendMessage(Text::toT(WinUtil::generateStats()));
-			} else if(Util::stricmp(s.c_str(), _T("help")) == 0) {
+			} else if(stricmp(s.c_str(), _T("help")) == 0) {
 				addLine(_T("*** ") + WinUtil::commands + _T(", /getlist, /clear, /grant, /close, /favorite, /winamp"), WinUtil::m_ChatTextSystem);
 			} else {
 				if(replyTo->isOnline()) {
@@ -668,7 +668,7 @@ void PrivateFrame::readLog() {
 		string buf = f.read(32*1024);
 		StringList lines;
 
-		if(Util::strnicmp(buf.c_str(), "\xef\xbb\xbf", 3) == 0)
+		if(strnicmp(buf.c_str(), "\xef\xbb\xbf", 3) == 0)
 			lines = StringTokenizer<string>(buf.substr(3), "\r\n").getTokens();
 		else
 			lines = StringTokenizer<string>(buf, "\r\n").getTokens();
@@ -678,7 +678,7 @@ void PrivateFrame::readLog() {
 		int i = linesCount > (SETTING(SHOW_LAST_LINES_LOG) + 1) ? linesCount - SETTING(SHOW_LAST_LINES_LOG) : 0;
 
 		for(; i < linesCount; ++i){
-			ctrlClient.AppendText(Identity(NULL, 0), _T("- "), _T(""), (Text::toT(lines[i])) + _T('\n'), WinUtil::m_ChatTextLog, true);
+			ctrlClient.AppendText(Identity(NULL, 0), _T("- "), _T(""), Text::toT(lines[i]) + _T('\n'), WinUtil::m_ChatTextLog, true);
 		}
 
 		f.close();
@@ -795,5 +795,5 @@ string PrivateFrame::getCustomAway() const {
 
 /**
  * @file
- * $Id: PrivateFrame.cpp 391 2008-06-21 09:56:36Z BigMuscle $
+ * $Id: PrivateFrame.cpp 399 2008-07-06 19:48:02Z BigMuscle $
  */

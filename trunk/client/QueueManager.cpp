@@ -127,7 +127,7 @@ void QueueManager::FileQueue::find(QueueItem::List& sl, int64_t aSize, const str
 		if(i->second->getSize() == aSize) {
 			const string& t = i->second->getTarget();
 			if(suffix.empty() || (suffix.length() < t.length() &&
-				Util::stricmp(suffix.c_str(), t.c_str() + (t.length() - suffix.length())) == 0) )
+				stricmp(suffix.c_str(), t.c_str() + (t.length() - suffix.length())) == 0) )
 				sl.push_back(i->second);
 		}
 	}
@@ -422,6 +422,7 @@ struct PartsInfoReqParam{
 void QueueManager::on(TimerManagerListener::Minute, uint64_t aTick) throw() {
 	string searchString;
 	vector<const PartsInfoReqParam*> params;
+	StringList offlineChecks; //RSX++
 
 	{
 		Lock l(cs);
@@ -473,16 +474,35 @@ void QueueManager::on(TimerManagerListener::Minute, uint64_t aTick) throw() {
 					LogManager::getInstance()->message(CSTRING(ALTERNATES_SEND) + Util::getFileName(qi->getTargetFileName()));		
 			}
 		}
+		//RSX++
+		for(QueueItem::StringIter i = fileQueue.getQueue().begin(); i != fileQueue.getQueue().end(); ++i) {
+			if(i->second->isSet(QueueItem::FLAG_TESTSUR) || i->second->isSet(QueueItem::FLAG_CHECK_FILE_LIST)) {
+				if(i->second->countOnlineUsers() == 0) {
+					offlineChecks.push_back(i->second->getTarget());
+				}
+			}
+		}
+		//END
 	}
+	//RSX++
+	for(StringIter i = offlineChecks.begin(); i != offlineChecks.end(); ++i) {
+		try {
+			remove(*i);
+		} catch(...) {
+			// exception
+		}
+	}
+	//END
 
 	// Request parts info from partial file sharing sources
 	for(vector<const PartsInfoReqParam*>::const_iterator i = params.begin(); i != params.end(); i++){
 		const PartsInfoReqParam* param = *i;
+		dcassert(param->udpPort > 0);
 		
 		try {
 			AdcCommand cmd = SearchManager::getInstance()->toPSR(true, param->myNick, param->hubIpPort, param->tth, param->parts);
 			Socket s;
-			s.writeTo(Socket::resolve(param->ip), param->udpPort, cmd.toString(ClientManager::getInstance()->getMyCID()));
+			s.writeTo(param->ip, param->udpPort, cmd.toString(ClientManager::getInstance()->getMyCID()));
 		} catch(...) {
 			dcdebug("Partial search caught error\n");		
 		}
@@ -715,7 +735,7 @@ void QueueManager::addDirectory(const string& aDir, const UserPtr& aUser, const 
 		DirectoryItem::DirectoryPair dp = directories.equal_range(aUser);
 		
 		for(DirectoryItem::DirectoryIter i = dp.first; i != dp.second; ++i) {
-			if(Util::stricmp(aTarget.c_str(), i->second->getName().c_str()) == 0)
+			if(stricmp(aTarget.c_str(), i->second->getName().c_str()) == 0)
 				return;
 		}
 		
@@ -813,7 +833,7 @@ void QueueManager::move(const string& aSource, const string& aTarget) throw() {
 
 		// Let's see if the target exists...then things get complicated...
 		QueueItem* qt = fileQueue.find(target);
-		if(qt == NULL || Util::stricmp(aSource, target) == 0) {
+		if(qt == NULL || stricmp(aSource, target) == 0) {
 			// Good, update the target and move in the queue...
 			fire(QueueManagerListener::Moved(), qs, aSource);
 			fileQueue.move(qs, target);
@@ -1170,7 +1190,7 @@ void QueueManager::putDownload(Download* aDownload, bool finished, bool reportFi
 							}
 						
 							// Check if we need to move the file
-							if( !aDownload->getTempTarget().empty() && (Util::stricmp(aDownload->getPath().c_str(), aDownload->getTempTarget().c_str()) != 0) ) {
+							if( !aDownload->getTempTarget().empty() && (stricmp(aDownload->getPath().c_str(), aDownload->getTempTarget().c_str()) != 0) ) {
 								moveFile(aDownload->getTempTarget(), aDownload->getPath());
 							}
 
@@ -1897,9 +1917,12 @@ bool QueueManager::handlePartialResult(const UserPtr& aUser, const TTHValue& tth
 				si = qi->getSource(aUser);
 				si->setFlag(QueueItem::Source::FLAG_PARTIAL);
 
-				QueueItem::PartialSource* ps = new QueueItem::PartialSource(partialSource.getMyNick(),
-					partialSource.getHubIpPort(), partialSource.getIp(), partialSource.getUdpPort());
-				si->setPartialSource(ps);
+				if(partialSource.getUdpPort() > 0) {
+					// no worth to save partial sources without udp port
+					QueueItem::PartialSource* ps = new QueueItem::PartialSource(partialSource.getMyNick(),
+						partialSource.getHubIpPort(), partialSource.getIp(), partialSource.getUdpPort());
+					si->setPartialSource(ps);
+				}
 
 				userQueue.add(qi, aUser);
 				dcassert(si != qi->getSources().end());
@@ -1991,5 +2014,5 @@ void QueueManager::FileQueue::findPFSSources(PFSSourceList& sl)
 
 /**
  * @file
- * $Id: QueueManager.cpp 397 2008-07-04 14:58:44Z BigMuscle $
+ * $Id: QueueManager.cpp 399 2008-07-06 19:48:02Z BigMuscle $
  */

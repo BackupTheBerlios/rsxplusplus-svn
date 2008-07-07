@@ -95,7 +95,7 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) throw
 			fire(UserConnectionListener::Direction(), this, param.substr(0, x), param.substr(x+1));
 		}
 	} else if(cmd == "$Error") {
-		if(Util::stricmp(param.c_str(), FILE_NOT_AVAILABLE) == 0 || 
+		if(stricmp(param.c_str(), FILE_NOT_AVAILABLE) == 0 || 
 			param.rfind(/*path/file*/" no more exists") != string::npos) { 
     		fire(UserConnectionListener::FileNotAvailable(), this);
     	} else {
@@ -105,7 +105,7 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) throw
 	    }
 	//RSX++
 	} else if(cmd == "$FileLength") {
-		if(!param.empty() && isSet(FLAG_DOWNLOAD) && download != NULL) {
+		if(!param.empty() && isSet(FLAG_DOWNLOAD) && download != NULL && getUser()) {
 			if(download->isSet(Download::FLAG_CHECK_FILE_LIST)) {	
 				ClientManager::getInstance()->setListSize(getUser(), Util::toInt64(param), false);
 			}
@@ -287,5 +287,5 @@ void UserConnection::updateChunkSize(int64_t leafSize, int64_t lastChunk, uint64
 
 /**
  * @file
- * $Id: UserConnection.cpp 385 2008-04-26 13:05:09Z BigMuscle $
+ * $Id: UserConnection.cpp 399 2008-07-06 19:48:02Z BigMuscle $
  */

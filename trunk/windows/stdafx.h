@@ -68,5 +68,5 @@ extern CAppModule _Module;
 
 /**
  * @file
- * $Id: stdafx.h 392 2008-06-21 21:10:31Z BigMuscle $
+ * $Id: stdafx.h 394 2008-06-28 22:28:44Z BigMuscle $
  */

@@ -113,7 +113,7 @@ int ExListViewCtrl::insert(TStringList& aList, int iImage, LPARAM lParam) {
 				comp = compare(b, tstring(buf));
 			} else if(comp == SORT_STRING_NOCASE) {
 				GetItemText(loc, sortColumn, buf, 128);
-				comp =  Util::stricmp(b.c_str(), buf);
+				comp =  stricmp(b.c_str(), buf);
 			} else if(comp == SORT_INT) {
 				GetItemText(loc, sortColumn, buf, 128);
 				comp = compare(c, _tstoi(buf)); 
@@ -141,7 +141,7 @@ int ExListViewCtrl::insert(TStringList& aList, int iImage, LPARAM lParam) {
 		if(comp == SORT_STRING) {
 			comp = compare(b, tstring(buf));
 		} else if(comp == SORT_STRING_NOCASE) {
-			comp =  Util::stricmp(b.c_str(), buf);
+			comp =  stricmp(b.c_str(), buf);
 		} else if(comp == SORT_INT) {
 			comp = compare(c, _tstoi(buf)); 
 		} else if(comp == SORT_FLOAT) {
@@ -181,5 +181,5 @@ int ExListViewCtrl::insert(int nItem, TStringList& aList, int iImage, LPARAM lPa
 
 /**
  * @file
- * $Id: ExListViewCtrl.cpp 217 2006-07-04 11:05:30Z bigmuscle $
+ * $Id: ExListViewCtrl.cpp 399 2008-07-06 19:48:02Z BigMuscle $
  */

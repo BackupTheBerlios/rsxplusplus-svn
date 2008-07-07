@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2007 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,8 +48,8 @@ public:
 class HttpConnection : BufferedSocketListener, public Speaker<HttpConnectionListener>
 {
 public:
-	void downloadFile(const string& aUrl);
-	HttpConnection() : ok(false), port(80), size(-1), moved302(false), socket(NULL) { }
+	void downloadFile(const string& aUrl, bool UseCoral = true);
+	HttpConnection() : ok(false), port(80), size(-1), moved302(false), coralizeState(CST_DEFAULT), socket(NULL) { }
 	~HttpConnection() throw() {
 		if(socket) {
 			socket->removeListener(this); 
@@ -69,6 +69,9 @@ private:
 	uint16_t port;
 	int64_t size;
 	bool moved302;
+
+	enum CoralizeStates {CST_DEFAULT, CST_CONNECTED, CST_NOCORALIZE};
+	CoralizeStates coralizeState;
 
 	BufferedSocket* socket;
 
@@ -90,5 +93,5 @@ private:
 
 /**
  * @file
- * $Id: HttpConnection.h 373 2008-02-06 17:23:49Z bigmuscle $
+ * $Id: HttpConnection.h 399 2008-07-06 19:48:02Z BigMuscle $
  */

@@ -58,6 +58,7 @@ AdvancedPage::ListItem AdvancedPage::listItems[] = {
 	{ SettingsManager::FILTER_ENTER, ResourceManager::SETTINGS_FILTER_ENTER },
 	{ SettingsManager::SHOW_SHELL_MENU, ResourceManager::SETTINGS_SHOW_SHELL_MENU },
 	{ SettingsManager::MAGNET_ASK, ResourceManager::MAGNET_ASK },
+	{ SettingsManager::CORAL, ResourceManager::CORAL },
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
 
@@ -75,5 +76,5 @@ void AdvancedPage::write() {
 
 /**
  * @file
- * $Id: AdvancedPage.cpp 373 2008-02-06 17:23:49Z bigmuscle $
+ * $Id: AdvancedPage.cpp 399 2008-07-06 19:48:02Z BigMuscle $
  */

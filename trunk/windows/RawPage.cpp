@@ -100,7 +100,7 @@ LRESULT RawPage::onRenameAction(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndC
 			name.description = TSTRING(NAME);
 			name.line = tstring(buf);
 			if(name.DoModal(m_hWnd) == IDOK) {
-				if (Util::stricmp(buf, name.line) != 0) {
+				if (stricmp(buf, name.line) != 0) {
 					RawManager::getInstance()->renameAction(Text::fromT(buf), Text::fromT(name.line));
 					ctrlAction.SetItemText(i, 0, name.line.c_str());
 				} else {

@@ -84,12 +84,11 @@ public:
 
 	void updated(const OnlineUser& aUser) { fire(ClientListener::UserUpdated(), this, aUser); }
 	//RSX++
-	void attention() { fire(ClientListener::Attention(), this); }
-	virtual void startChecking() = 0;
+	virtual tstring startChecking(const tstring& aParams) = 0;
 	virtual void stopChecking() = 0;
-	virtual bool isDetectorRunning() = 0;
 	virtual void stopMyINFOCheck() = 0;
-	virtual void startCustomCheck(bool clients, bool filelists) = 0;
+
+	void attention() { fire(ClientListener::Attention(), this); }
 	void addHubLine(const string& aMsg, int mType) { fire(ClientListener::AddClientLine(), this, aMsg, mType); }
 	void sendActionCommand(const OnlineUser& ou, int actionId);
 	void putDetectors() { stopMyINFOCheck(); stopChecking(); setCheckedAtConnect(false); }
@@ -270,5 +269,5 @@ private:
 
 /**
  * @file
- * $Id: Client.h 396 2008-07-01 21:26:33Z BigMuscle $
+ * $Id: Client.h 397 2008-07-04 14:58:44Z BigMuscle $
  */

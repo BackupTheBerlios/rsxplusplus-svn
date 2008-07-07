@@ -102,7 +102,7 @@ void Client::reloadSettings(bool updateNick) {
 		setFavIp(hub->getIP());
 		
 		if(hub->getSearchInterval() < 10)
-			setSearchInterval(SETTING(MINIMUM_SEARCH_INTERVAL));
+			setSearchInterval(SETTING(MINIMUM_SEARCH_INTERVAL) * 1000);
 		else
 			setSearchInterval(hub->getSearchInterval() * 1000);
 		//RSX++
@@ -131,7 +131,7 @@ void Client::reloadSettings(bool updateNick) {
 		setCurrentDescription(SETTING(DESCRIPTION));
 		setStealth(true);
 		setFavIp(Util::emptyString);
-		setSearchInterval(SETTING(MINIMUM_SEARCH_INTERVAL));
+		setSearchInterval(SETTING(MINIMUM_SEARCH_INTERVAL) * 1000);
 		//RSX++
 		setCurrentEmail(SETTING(EMAIL));
 		setUserProtected(Util::emptyString);
@@ -362,13 +362,12 @@ public:
 				Lock l(cs);
 				string& cmd = rawQueue.front();
 				if(c) {
-					//Lock lc(c->cs);
 					if(!cmd.empty() && c->isConnected())
 						c->sendUserCmd(cmd);
 				}
 				rawQueue.pop_front();
-				sleep(sleepTime);
 			}
+			sleep(sleepTime);
 			RSXS_SET(TOTAL_RAW_COMMANDS_SENT, RSXSETTING(TOTAL_RAW_COMMANDS_SENT)+1);
 		}
 		stop = true;
@@ -401,8 +400,8 @@ void Client::putSender(bool clear /*= false*/) {
 }
 
 void Client::sendActionCommand(const OnlineUser& ou, int actionId) {
-	if(!isConnected() || (getUserCount() < getUsersLimit()))
-		return;
+//	if(!isConnected() || (getUserCount() < getUsersLimit()))
+//		return;
 
 	FavoriteHubEntry* hub = FavoriteManager::getInstance()->getFavoriteHubEntry(getHubUrl());
 	if(hub) {
@@ -452,5 +451,5 @@ bool Client::isActionActive(const int aAction) const {
 
 /**
  * @file
- * $Id: Client.cpp 396 2008-07-01 21:26:33Z BigMuscle $
+ * $Id: Client.cpp 401 2008-07-07 17:02:03Z BigMuscle $
  */

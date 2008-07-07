@@ -16,8 +16,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef DETECTION_MANAGER_H
-#define DETECTION_MANAGER_H
+#ifndef RSXPLUSPLUS_DETECTION_MANAGER_H
+#define RSXPLUSPLUS_DETECTION_MANAGER_H
 
 #include "Singleton.h"
 #include "CriticalSection.h"
@@ -30,23 +30,36 @@ class DetectionManager : public Singleton<DetectionManager> {
 public:
 	typedef vector<DetectionEntry> DetectionItems;
 
-	DetectionManager() : profileVersion("N/A"), profileMessage("N/A"), profileUrl("N/A"), lastId(0) { };
+	DetectionManager() : profileVersion("N/A"), profileMessage("N/A"), profileUrl("N/A"), lastId(0),
+		userInfoVersion("N/A"), userInfoMessage("N/A"), userInfoUrl("N/A"), ui_lastId(0) { };
 	~DetectionManager() throw() { save(); det.clear(); };
 
-	void load();
-	void save();
+	void ProfilesLoad();
+	void ProfilesSave();
 
-	const DetectionItems& reload();
-	const DetectionItems& reloadFromHttp(bool bz2 = false);
+	void UserInfoLoad();
+	void UserInfoSave();
 
-	void addDetectionItem(DetectionEntry& e) throw(Exception);
-	void updateDetectionItem(const uint32_t aOrigId, const DetectionEntry& e) throw(Exception);
-	void removeDetectionItem(const uint32_t id) throw();
+	inline void load() {
+		ProfilesLoad();
+		UserInfoLoad();
+	}
+	inline void save() {
+		ProfilesSave();
+		UserInfoSave();
+	}
 
-	bool getNextDetectionItem(const uint32_t aId, int pos, DetectionEntry& e) throw();
-	bool getDetectionItem(const uint32_t aId, DetectionEntry& e) throw();
-	bool moveDetectionItem(const uint32_t aId, int pos);
-	void setItemEnabled(const uint32_t aId, bool enabled) throw();
+	const DetectionItems& reload(bool isUserInfo = false);
+	const DetectionItems& reloadFromHttp(bool bz2 = false, bool isUserInfo = false);
+
+	void addDetectionItem(DetectionEntry& e, bool isUserInfo = false) throw(Exception);
+	void updateDetectionItem(const uint32_t aOrigId, const DetectionEntry& e, bool isUserInfo = false) throw(Exception);
+	void removeDetectionItem(const uint32_t id, bool isUserInfo = false) throw();
+
+	bool getNextDetectionItem(const uint32_t aId, int pos, DetectionEntry& e, bool isUserInfo = false) throw();
+	bool getDetectionItem(const uint32_t aId, DetectionEntry& e, bool isUserInfo = false) throw();
+	bool moveDetectionItem(const uint32_t aId, int pos, bool isUserInfo = false);
+	void setItemEnabled(const uint32_t aId, bool enabled, bool isUserInfo = false) throw();
 
 	const DetectionItems& getProfiles() throw() {
 		Lock l(cs);
@@ -55,8 +68,23 @@ public:
 
 	const DetectionItems& getProfiles(StringMap& p) throw() {
 		Lock l(cs);
-		p = params;
+		// don't override other params
+		for(StringMapIter i = params.begin(); i != params.end(); ++i)
+			p[i->first] = i->second;
 		return det;
+	}
+
+	const DetectionItems& getUserInfoProfiles() throw() {
+		Lock l(cs);
+		return ui_det;
+	}
+
+	const DetectionItems& getUserInfoProfiles(StringMap& p) throw() {
+		Lock l(cs);
+		// don't override other params
+		for(StringMapIter i = params.begin(); i != params.end(); ++i)
+			p[i->first] = i->second;
+		return ui_det;
 	}
 
 	StringMap& getParams() throw() {
@@ -68,12 +96,21 @@ public:
 	GETSET(string, profileMessage, ProfileMessage);
 	GETSET(string, profileUrl, ProfileUrl);
 
+	GETSET(string, userInfoVersion, UserInfoVersion);
+	GETSET(string, userInfoMessage, UserInfoMessage);
+	GETSET(string, userInfoUrl, UserInfoUrl);
+
 private:
+	void loadCompressedProfiles();
+
 	DetectionItems det;
+	DetectionItems ui_det;
+
 	StringMap params;
 	uint32_t lastId;
+	uint32_t ui_lastId;
 
-	void validateItem(const DetectionEntry& e, bool checkIds) throw(Exception);
+	void validateItem(const DetectionEntry& e, bool checkIds, bool isUserInfo =false) throw(Exception);
 	void importProfiles(SimpleXML& xml);
 
 	friend class Singleton<DetectionManager>;
@@ -82,7 +119,7 @@ private:
 
 }; // namespace dcpp
 
-#endif // DETECTION_MANAGER_H
+#endif // RSXPLUSPLUS_DETECTION_MANAGER_H
 
 /**
  * @file

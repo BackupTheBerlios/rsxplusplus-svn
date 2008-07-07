@@ -168,7 +168,7 @@ LRESULT SpyFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /
 		delete x;
 
 		ctrlStatus.SetText(2, (TSTRING(TOTAL) + Util::toStringW(total)).c_str());
-		ctrlStatus.SetText(4, (TSTRING(HITS) + Util::toStringW((size_t)ShareManager::getInstance()->getHits())).c_str());
+		ctrlStatus.SetText(4, (TSTRING(HITS) + Util::toStringW(ShareManager::getInstance()->getHits())).c_str());
 		double ratio = total > 0 ? ((double)ShareManager::getInstance()->getHits()) / (double)total : 0.0;
 		ctrlStatus.SetText(5, (TSTRING(HIT_RATIO) + Util::toStringW(ratio)).c_str());
 	} else if(wParam == TICK_AVG) {
@@ -207,7 +207,7 @@ LRESULT SpyFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOO
 }
 
 LRESULT SpyFrame::onSearch(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
-	if(Util::strnicmp(searchString.c_str(), _T("TTH:"), 4) == 0)
+	if(strnicmp(searchString.c_str(), _T("TTH:"), 4) == 0)
 		SearchFrame::openWindow(searchString.substr(4), 0, SearchManager::SIZE_DONTCARE, SearchManager::TYPE_TTH);
 	else
 		SearchFrame::openWindow(searchString);
@@ -255,5 +255,5 @@ void SpyFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/) throw() {
 
 /**
  * @file
- * $Id: SpyFrame.cpp 382 2008-03-09 10:40:22Z BigMuscle $
+ * $Id: SpyFrame.cpp 399 2008-07-06 19:48:02Z BigMuscle $
  */

@@ -1,3 +1,12 @@
+** SVN 89
+ ** added option to load compressed ClientProfiles
+ ** begun work on UserInfo Detector
+ ** reverted some changes related with critical section class
+ ** fixed lock with delay in threaded sender
+ ** some more improvements in detection
+ ** detector has been rewritten (fixed deadlock, big thanks to BigMuscle for help in finding it and some tips) - need twearking
+ ** StrongDC++ SVN merge (2.2)
+
 ** SVN 88
  ** compile fix
  ** some changelog updates

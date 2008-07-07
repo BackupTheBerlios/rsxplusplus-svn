@@ -27,8 +27,6 @@
 #include "PropPage.h"
 //RSX++
 #include <atlctrlx.h>
-#include "../client/SimpleXML.h"
-#include "../client/version.h"
 #include "../rsx/HTTPDownloadManager.h"
 //END
 

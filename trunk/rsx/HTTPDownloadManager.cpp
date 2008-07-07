@@ -23,7 +23,7 @@
 
 namespace dcpp {
 
-bool HTTPDownloadManager::addRequest(const HTTPDownloadItem::CallBack& callBack, const string& aUrl) {
+bool HTTPDownloadManager::addRequest(const HTTPDownloadItem::CallBack& callBack, const string& aUrl, bool useCoral /*= true*/) {
 	Lock l(cs);
 	HTTPDownloadItem* item = new HTTPDownloadItem(callBack);
 	Requests::const_iterator i = std::find(requests.begin(), requests.end(), item);
@@ -33,7 +33,7 @@ bool HTTPDownloadManager::addRequest(const HTTPDownloadItem::CallBack& callBack,
 		return false;
 	}
 	requests.push_back(item);
-	item->startDownload(aUrl);
+	item->startDownload(aUrl, useCoral);
 	return true;
 }
 

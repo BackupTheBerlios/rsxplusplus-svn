@@ -93,6 +93,7 @@ enum Strings { // @DontAdd
 	COPY_MAGNET_LINK, // "Copy magnet link to clipboard"
 	COPY_NICK, // "Copy nick"
 	COPY_URL, // "Copy URL"
+	CORAL, // "Use Coral network when downloading hub lists (improves reliability)"
 	COULD_NOT_OPEN_TARGET_FILE, // "Could not open target file: "
 	COUNT, // "Count"
 	COUNTRY, // "Country"

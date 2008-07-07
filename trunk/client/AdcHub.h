@@ -66,10 +66,7 @@ private:
 	typedef HubUsersMap<true, ADCMap> SIDMap;
 	typedef SIDMap::const_iterator SIDIter;
 	//RSX++
-	void startChecking() { users.startCheck(this, getCheckClients(), getCheckFilelists()); }
-	void startCustomCheck(bool clients, bool filelists) { users.startCheck(this, clients, filelists); }
-	bool isDetectorRunning() { return users.isDetectorRunning(); }
-
+	tstring startChecking(const tstring& aParams) { return users.startChecking(this, aParams); }
 	void stopChecking()	{ users.stopCheck(); }
 	void stopMyINFOCheck() { users.stopMyINFOCheck(); }
 	//END
@@ -137,6 +134,7 @@ private:
 	void handle(AdcCommand::CMD, AdcCommand& c) throw();
 	void handle(AdcCommand::RES, AdcCommand& c) throw();
 	void handle(AdcCommand::GET, AdcCommand& c) throw();
+	void handle(AdcCommand::PSR, AdcCommand& c) throw();
 
 	template<typename T> void handle(T, AdcCommand&) { }
 
@@ -157,5 +155,5 @@ private:
 
 /**
  * @file
- * $Id: AdcHub.h 396 2008-07-01 21:26:33Z BigMuscle $
+ * $Id: AdcHub.h 399 2008-07-06 19:48:02Z BigMuscle $
  */

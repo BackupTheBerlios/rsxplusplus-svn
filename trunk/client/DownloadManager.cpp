@@ -62,8 +62,11 @@ DownloadManager::~DownloadManager() throw() {
 
 void DownloadManager::on(TimerManagerListener::Second, uint64_t aTick) throw() {
 	typedef vector<pair<string, UserPtr> > TargetList;
+	typedef vector<pair<uint64_t, UserPtr> > SlowChecks;
+
 	TargetList dropTargets;
-	
+	SlowChecks slowdl;
+
 	{
 		Lock l(cs);
 
@@ -104,8 +107,7 @@ void DownloadManager::on(TimerManagerListener::Second, uint64_t aTick) throw() {
 						if(d->getAverageSpeed() < RSXSETTING(SDL_SPEED)) {
 							if(((aTick - d->getLastTick())/1000) > (uint32_t)RSXSETTING(SDL_TIME)) {
 								dropTargets.push_back(make_pair(d->getPath(), d->getUser()));
-								string cheat = str(boost::format("Too low download speed (%1%/s)") % Util::formatBytes(d->getAverageSpeed()));
-								ClientManager::getInstance()->setCheating(d->getUser(), "", cheat, RSXSETTING(SDL_RAW), RSXBOOLSETTING(SHOW_SDL_RAW), false, true, false, true);						
+								slowdl.push_back(make_pair(d->getAverageSpeed(), d->getUser()));
 							}
 						} else {
 							d->setLastTick(aTick);
@@ -118,7 +120,12 @@ void DownloadManager::on(TimerManagerListener::Second, uint64_t aTick) throw() {
 		if(tickList.size() > 0)
 			fire(DownloadManagerListener::Tick(), tickList);
 	}
-
+	//RSX++
+	for(SlowChecks::iterator j = slowdl.begin(); j != slowdl.end(); ++j) {
+		string cheat = str(boost::format("Too low download speed (%1%/s)") % Util::formatBytes(j->first));
+		ClientManager::getInstance()->setCheating(j->second, "", cheat, RSXSETTING(SDL_RAW), RSXBOOLSETTING(SHOW_SDL_RAW), false, true, false, true);						
+	}
+	//END
 	for(TargetList::iterator i = dropTargets.begin(); i != dropTargets.end(); ++i) {
 		QueueManager::getInstance()->removeSource(i->first, i->second, QueueItem::Source::FLAG_SLOW_SOURCE);
 	}
@@ -553,6 +560,7 @@ void DownloadManager::fileNotAvailable(UserConnection* aSource) {
 	//fire(DownloadManagerListener::Failed(), d, d->getTargetFileName() + ": " + STRING(FILE_NOT_AVAILABLE));
 
 	if (d->getType() == Transfer::TYPE_FULL_LIST) {
+		fire(DownloadManagerListener::Failed(), d, "Check complete, idle");
 		ClientManager::getInstance()->setCheating(aSource->getUser(), "", "Filelist Not Available", RSXSETTING(FILELIST_NA), RSXBOOLSETTING(SHOW_FILELIST_NA), false, true, false, true);
 		QueueManager::getInstance()->putDownload(d, true);
 		removeConnection(aSource);

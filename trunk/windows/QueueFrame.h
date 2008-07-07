@@ -332,7 +332,7 @@ private:
 		}
 	}
 
-	bool isCurDir(const string& aDir) const { return Util::stricmp(curDir, aDir) == 0; }
+	bool isCurDir(const string& aDir) const { return stricmp(curDir, aDir) == 0; }
 
 	void moveSelected();	
 	void moveSelectedDir();
@@ -369,5 +369,5 @@ private:
 
 /**
  * @file
- * $Id: QueueFrame.h 389 2008-06-08 10:51:15Z BigMuscle $
+ * $Id: QueueFrame.h 399 2008-07-06 19:48:02Z BigMuscle $
  */

@@ -80,7 +80,7 @@ TCHAR* crashLibs[LIBCOUNT][2] = {
 static void checkBuggyLibrary(PCSTR library) {
 	for(int i = 0; i < LIBCOUNT; i++) {
 		string lib = Text::fromT(crashLibs[i][0]); tstring app = crashLibs[i][1];
-		if(Util::stricmp(library, lib) == 0) {
+		if(stricmp(library, lib) == 0) {
 			size_t BUF_SIZE = TSTRING(LIB_CRASH).size() + app.size() + 16;
 			
 			tstring buf;
@@ -414,5 +414,5 @@ void StackTrace( HANDLE hThread, LPCTSTR lpszMessage, File& f, DWORD64 eip, DWOR
 
 /**
 * @file
-* $Id: ExtendedTrace.cpp 394 2008-06-28 22:28:44Z BigMuscle $
+* $Id: ExtendedTrace.cpp 399 2008-07-06 19:48:02Z BigMuscle $
 */

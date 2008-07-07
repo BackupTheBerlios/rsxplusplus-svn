@@ -16,8 +16,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef DETECTION_ENTRY_H
-#define DETECTION_ENTRY_H
+#ifndef RSXPLUSPLUS_DETECTION_ENTRY_H
+#define RSXPLUSPLUS_DETECTION_ENTRY_H
 
 namespace dcpp {
 
@@ -51,7 +51,7 @@ public:
 
 } // namespace dcpp
 
-#endif // DETECTION_ENTRY_H
+#endif // RSXPLUSPLUS_DETECTION_ENTRY_H
 
 /**
  * @file

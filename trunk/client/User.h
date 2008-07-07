@@ -39,21 +39,18 @@ class User : public FastAlloc<User>, public intrusive_ptr_base, public Flags
 public:
 	/** Each flag is set if it's true in at least one hub */
 	enum UserFlags {
-		ONLINE		= 0x01,
-		DCPLUSPLUS	= 0x02,
-		PASSIVE		= 0x04,
-		NMDC		= 0x08,
-		BOT			= 0x10,
-		TLS			= 0x20,	//< Client supports TLS
-		OLD_CLIENT	= 0x40, //< Can't download - old client
-		AWAY		= 0x80,
-		SERVER		= 0x100,
-		FIREBALL	= 0x200,
-		NO_ADC_1_0_PROTOCOL = 0x400,	//< Doesn't support "ADC/1.0" (dc++ <=0.703)
-		NO_ADC_0_10_PROTOCOL = 0x800,	//< Doesn't support "ADC/0.10"
-		NO_ADCS_0_10_PROTOCOL = 0x1000,	//< Doesn't support "ADCS/0.10"
+		ONLINE					=  0x01,
+		DCPLUSPLUS				=  0x02,
+		PASSIVE					=  0x04,
+		NMDC					=  0x08,
+		BOT						=  0x10,
+		TLS						=  0x20,	//< Client supports TLS
+		OLD_CLIENT				=  0x40,	//< Can't download - old client
+		NO_ADC_1_0_PROTOCOL		=  0x80,	//< Doesn't support "ADC/1.0" (dc++ <=0.703)
+		NO_ADC_0_10_PROTOCOL	= 0x100,	//< Doesn't support "ADC/0.10"
+		NO_ADCS_0_10_PROTOCOL	= 0x200,	//< Doesn't support "ADCS/0.10"
 		//RSX++
-		PROTECTED 	= 0x2000			//< User protected
+		PROTECTED 				= 0x400		//< User protected
 		//END
 	};
 
@@ -90,11 +87,19 @@ public:
 		CT_OWNER = 16,
 		CT_HUB = 32
 	};
-
+	
+	enum StatusFlags {
+		NORMAL		= 0x01,
+		AWAY		= 0x02,
+		SERVER		= 0x04,
+		FIREBALL	= 0x08,
+		TLS			= 0x10
+	};
 	Identity() { resetCounters(); }
 	Identity(const UserPtr& ptr, uint32_t aSID) : user(ptr) { setSID(aSID); resetCounters(); }
 	Identity(const Identity& rhs) { *this = rhs; } // Use operator= since we have to lock before reading...
-	Identity& operator=(const Identity& rhs) { Lock l(cs); user = rhs.user; info = rhs.info; return *this; }
+	Identity& operator=(const Identity& rhs) { FastLock l(cs); user = rhs.user; info = rhs.info; return *this; }
+	~Identity() { FastLock l(cs); }
 
 #define GS(n, x) string get##n() const { return get(x); } void set##n(const string& v) { set(x, v); }
 	GS(Nick, "NI")
@@ -102,7 +107,6 @@ public:
 	GS(Ip, "I4")
 	GS(UdpPort, "U4")
 	GS(Email, "EM")
-	GS(Status, "ST")
 	//RSX++
 	GS(MyInfoType, "MT")
 	GS(ISP, "IS")
@@ -119,6 +123,9 @@ public:
 	
 	void setConnection(const string& name) { set("US", name); }
 	string getConnection() const;
+	
+	void setStatus(const string& st) { set("ST", st); }
+	StatusFlags getStatus() const { return static_cast<StatusFlags>(Util::toInt(get("ST"))); }
 
 	void setOp(bool op) { set("OP", op ? "1" : Util::emptyString); }
 	void setHub(bool hub) { set("HU", hub ? "1" : Util::emptyString); }
@@ -131,7 +138,7 @@ public:
 	bool isRegistered() const { return isClientType(CT_REGGED) || isSet("RG"); }
 	bool isHidden() const { return isSet("HI"); }
 	bool isBot() const { return isClientType(CT_BOT) || isSet("BO"); }
-	bool isAway() const { return isSet("AW"); }
+	bool isAway() const { return (getStatus() & AWAY) || isSet("AW"); }
 	bool isTcpActive() const { return (!user->isSet(User::NMDC) && !getIp().empty()) || !user->isSet(User::PASSIVE); }
 	bool isUdpActive() const { return !getIp().empty() && !getUdpPort().empty(); }
 	//RSX++
@@ -147,7 +154,7 @@ public:
 	
 	uint32_t getSID() const { return Util::toUInt32(get("SI")); }
 	void setSID(uint32_t sid) { if(sid != 0) set("SI", Util::toString(sid)); }
-
+	
 	bool isClientType(ClientType ct) const;
 
 	string getReport() const;
@@ -178,8 +185,8 @@ private:
 	typedef std::tr1::unordered_map<short, string> InfMap;
 	typedef InfMap::const_iterator InfIter;
 	InfMap info;
-	// FastCriticalSection sux when it comes to work with many threads... adrian_007
-	static CriticalSection cs;
+
+	static FastCriticalSection cs;
 	//RSX++
 	// Flood stuff
 	mutable uint16_t myinfoFloodCounter;	
@@ -266,10 +273,9 @@ public:
 	bool update(int sortCol, const tstring& oldText = Util::emptyStringT);
 	uint8_t imageIndex() const { return UserInfoBase::getImage(identity); }
 	static int compareItems(const OnlineUser* a, const OnlineUser* b, uint8_t col);
-	const string getNick() const { return identity.getNick(); }
 	bool isHidden() const { return identity.isHidden(); }
 	
-	const tstring getText(uint8_t col) const;
+	tstring getText(uint8_t col) const;
 
 	bool isInList;
 	//RSX++
@@ -340,5 +346,5 @@ private:
 
 /**
  * @file
- * $Id: User.h 386 2008-05-10 19:29:01Z BigMuscle $
+ * $Id: User.h 398 2008-07-05 20:54:25Z BigMuscle $
  */

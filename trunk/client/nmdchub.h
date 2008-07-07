@@ -86,10 +86,7 @@ private:
 
 	NickMap users;
 	//RSX++
-	void startChecking() { users.startCheck(this, getCheckClients(), getCheckFilelists()); }
-	void startCustomCheck(bool clients, bool filelists) { users.startCheck(this, clients, filelists); }
-	bool isDetectorRunning() { return users.isDetectorRunning(); }
-
+	tstring startChecking(const tstring& aParams) { return users.startChecking(this, aParams); }
 	void stopChecking()	{ users.stopCheck(); }
 	void stopMyINFOCheck() { users.stopMyINFOCheck(); }
 	//END

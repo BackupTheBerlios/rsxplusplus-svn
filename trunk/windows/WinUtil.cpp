@@ -1037,27 +1037,27 @@ bool WinUtil::checkCommand(tstring& cmd, tstring& param, tstring& message, tstri
 		cmd = cmd.substr(1);
 	}
 
-	if(Util::stricmp(cmd.c_str(), _T("log")) == 0) {
-		if(Util::stricmp(param.c_str(), _T("system")) == 0) {
+	if(stricmp(cmd.c_str(), _T("log")) == 0) {
+		if(stricmp(param.c_str(), _T("system")) == 0) {
 			WinUtil::openFile(Text::toT(Util::validateFileName(SETTING(LOG_DIRECTORY) + "system.log")));
-		} else if(Util::stricmp(param.c_str(), _T("downloads")) == 0) {
+		} else if(stricmp(param.c_str(), _T("downloads")) == 0) {
 			WinUtil::openFile(Text::toT(Util::validateFileName(SETTING(LOG_DIRECTORY) + Util::formatTime(SETTING(LOG_FILE_DOWNLOAD), time(NULL)))));
-		} else if(Util::stricmp(param.c_str(), _T("uploads")) == 0) {
+		} else if(stricmp(param.c_str(), _T("uploads")) == 0) {
 			WinUtil::openFile(Text::toT(Util::validateFileName(SETTING(LOG_DIRECTORY) + Util::formatTime(SETTING(LOG_FILE_UPLOAD), time(NULL)))));
 		} else {
 			return false;
 		}
-	} else if(Util::stricmp(cmd.c_str(), _T("me")) == 0) {
+	} else if(stricmp(cmd.c_str(), _T("me")) == 0) {
 		message = param;
 		thirdPerson = true;
-	} else if(Util::stricmp(cmd.c_str(), _T("refresh"))==0) {
+	} else if(stricmp(cmd.c_str(), _T("refresh"))==0) {
 		try {
 			ShareManager::getInstance()->setDirty();
 			ShareManager::getInstance()->refresh(true);
 		} catch(const ShareException& e) {
 			status = Text::toT(e.getError());
 		}
-	} else if(Util::stricmp(cmd.c_str(), _T("slots"))==0) {
+	} else if(stricmp(cmd.c_str(), _T("slots"))==0) {
 		int j = Util::toInt(Text::fromT(param));
 		if(j > 0) {
 			SettingsManager::getInstance()->set(SettingsManager::SLOTS, j);
@@ -1066,15 +1066,15 @@ bool WinUtil::checkCommand(tstring& cmd, tstring& param, tstring& message, tstri
 		} else {
 			status = TSTRING(INVALID_NUMBER_OF_SLOTS);
 		}
-	} else if(Util::stricmp(cmd.c_str(), _T("search")) == 0) {
+	} else if(stricmp(cmd.c_str(), _T("search")) == 0) {
 		if(!param.empty()) {
 			SearchFrame::openWindow(param);
 		} else {
 			status = TSTRING(SPECIFY_SEARCH_STRING);
 		}
-	} else if(Util::stricmp(cmd.c_str(), _T("rsx++")) == 0) {
+	} else if(stricmp(cmd.c_str(), _T("strongdc++")) == 0) {
 		message = msgs[GET_TICK() % MSGS];
-	} else if(Util::stricmp(cmd.c_str(), _T("away")) == 0) {
+	} else if(stricmp(cmd.c_str(), _T("away")) == 0) {
 		if(Util::getAway() && param.empty()) {
 			Util::setAway(false);
 			MainFrame::setAwayButton(false);
@@ -1086,9 +1086,9 @@ bool WinUtil::checkCommand(tstring& cmd, tstring& param, tstring& message, tstri
 			status = TSTRING(AWAY_MODE_ON) + Text::toT(Util::getAwayMessage());
 		}
 		ClientManager::getInstance()->infoUpdated();
-	} else if(Util::stricmp(cmd.c_str(), _T("rebuild")) == 0) {
+	} else if(stricmp(cmd.c_str(), _T("rebuild")) == 0) {
 		HashManager::getInstance()->rebuild();
-	} else if(Util::stricmp(cmd.c_str(), _T("shutdown")) == 0) {
+	} else if(stricmp(cmd.c_str(), _T("shutdown")) == 0) {
 		MainFrame::setShutDown(!(MainFrame::getShutDown()));
 		if (MainFrame::getShutDown()) {
 			status = TSTRING(SHUTDOWN_ON);
@@ -1096,7 +1096,7 @@ bool WinUtil::checkCommand(tstring& cmd, tstring& param, tstring& message, tstri
 			status = TSTRING(SHUTDOWN_OFF);
 		}
 	//RSX++
-	} else if(Util::stricmp(cmd.c_str(), _T("pinfo")) == 0) {
+	} else if(stricmp(cmd.c_str(), _T("pinfo")) == 0) {
 		const PluginsManager::Plugins& p = PluginsManager::getInstance()->getPlugins();
 		tstring pinfo = _T("Active Plugins Info\nLoaded plugins: ") + Util::toStringW(p.size());
 		for(PluginsManager::Plugins::const_iterator i = p.begin(); i != p.end(); ++i) {
@@ -1105,9 +1105,9 @@ bool WinUtil::checkCommand(tstring& cmd, tstring& param, tstring& message, tstri
 			pinfo += _T("\n");
 		}
 		status = pinfo;
-	} else if(Util::stricmp(cmd.c_str(), _T("lua")) == 0) {
+	} else if(stricmp(cmd.c_str(), _T("lua")) == 0) {
 		ScriptManager::getInstance()->EvaluateChunk(Text::fromT(param));
-	} else if(Util::stricmp(cmd.c_str(), _T("luafile")) == 0) {
+	} else if(stricmp(cmd.c_str(), _T("luafile")) == 0) {
 		ScriptManager::getInstance()->EvaluateFile(Text::fromT(param));
 	//END
 	} else {
@@ -1152,7 +1152,7 @@ void WinUtil::copyMagnet(const TTHValue& aHash, const string& aFile, int64_t aSi
 		::RegCloseKey(hk);
 	}
 
-	if(Util::stricmp(app.c_str(), Buf) != 0) {
+	if(stricmp(app.c_str(), Buf) != 0) {
 		if (::RegCreateKeyEx(HKEY_CLASSES_ROOT, _T("dchub"), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hk, NULL))  {
 			LogManager::getInstance()->message(STRING(ERROR_CREATING_REGISTRY_KEY_DCHUB));
 			return;
@@ -1191,7 +1191,7 @@ void WinUtil::copyMagnet(const TTHValue& aHash, const string& aFile, int64_t aSi
 		 ::RegCloseKey(hk);
 	 }
 
-	 if(Util::stricmp(app.c_str(), Buf) != 0) {
+	 if(stricmp(app.c_str(), Buf) != 0) {
 		 if (::RegCreateKeyEx(HKEY_CLASSES_ROOT, _T("adc"), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hk, NULL))  {
 			 LogManager::getInstance()->message(STRING(ERROR_CREATING_REGISTRY_KEY_ADC));
 			 return;
@@ -1263,7 +1263,7 @@ void WinUtil::registerMagnetHandler() {
 		magnetLoc = _T('"') + magnetExe + _T('"');
 	}
 	// (re)register the handler if magnet.exe isn't the default, or if DC++ is handling it
-	if(BOOLSETTING(MAGNET_REGISTER) && (Util::strnicmp(openCmd, magnetLoc, magnetLoc.size()) != 0 || !haveMagnet)) {
+	if(BOOLSETTING(MAGNET_REGISTER) && (strnicmp(openCmd, magnetLoc, magnetLoc.size()) != 0 || !haveMagnet)) {
 		SHDeleteKey(HKEY_CLASSES_ROOT, _T("magnet"));
 		if (::RegCreateKeyEx(HKEY_CLASSES_ROOT, _T("magnet"), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hk, NULL))  {
 			LogManager::getInstance()->message(STRING(ERROR_CREATING_REGISTRY_KEY_MAGNET));
@@ -1422,7 +1422,7 @@ void WinUtil::parseMagnetUri(const tstring& aUrl, bool /*aOverride*/) {
 	//  as = acceptable substitute
 	//  dn = display name
 	//  xl = exact length
-	if (Util::strnicmp(aUrl.c_str(), _T("magnet:?"), 8) == 0) {
+	if (strnicmp(aUrl.c_str(), _T("magnet:?"), 8) == 0) {
 		LogManager::getInstance()->message(STRING(MAGNET_DLG_TITLE) + ": " + Text::fromT(aUrl));
 		StringTokenizer<tstring> mag(aUrl.substr(8), _T('&'));
 		typedef map<tstring, tstring> MagMap;
@@ -1440,17 +1440,17 @@ void WinUtil::parseMagnetUri(const tstring& aUrl, bool /*aOverride*/) {
 				param.clear();
 			}
 			// extract what is of value
-			if(param.length() == 85 && Util::strnicmp(param.c_str(), _T("urn:bitprint:"), 13) == 0) {
+			if(param.length() == 85 && strnicmp(param.c_str(), _T("urn:bitprint:"), 13) == 0) {
 				hashes[type] = param.substr(46);
-			} else if(param.length() == 54 && Util::strnicmp(param.c_str(), _T("urn:tree:tiger:"), 15) == 0) {
+			} else if(param.length() == 54 && strnicmp(param.c_str(), _T("urn:tree:tiger:"), 15) == 0) {
 				hashes[type] = param.substr(15);
-			} else if(param.length() == 55 && Util::strnicmp(param.c_str(), _T("urn:tree:tiger/:"), 16) == 0) {
+			} else if(param.length() == 55 && strnicmp(param.c_str(), _T("urn:tree:tiger/:"), 16) == 0) {
 				hashes[type] = param.substr(16);
-			} else if(param.length() == 59 && Util::strnicmp(param.c_str(), _T("urn:tree:tiger/1024:"), 20) == 0) {
+			} else if(param.length() == 59 && strnicmp(param.c_str(), _T("urn:tree:tiger/1024:"), 20) == 0) {
 				hashes[type] = param.substr(20);
-			} else if(type.length() == 2 && Util::strnicmp(type.c_str(), _T("dn"), 2) == 0) {
+			} else if(type.length() == 2 && strnicmp(type.c_str(), _T("dn"), 2) == 0) {
 				fname = param;
-			} else if(type.length() == 2 && Util::strnicmp(type.c_str(), _T("xl"), 2) == 0) {
+			} else if(type.length() == 2 && strnicmp(type.c_str(), _T("xl"), 2) == 0) {
 				fsize = _tstoi64(param.c_str());
 			}
 		}
@@ -1513,24 +1513,24 @@ int WinUtil::textUnderCursor(POINT p, CEdit& ctrl, tstring& x) {
 }
 
 bool WinUtil::parseDBLClick(const tstring& aString, string::size_type start, string::size_type end) {
-	if( (Util::strnicmp(aString.c_str() + start, _T("http://"), 7) == 0) || 
-		(Util::strnicmp(aString.c_str() + start, _T("www."), 4) == 0) ||
-		(Util::strnicmp(aString.c_str() + start, _T("ftp://"), 6) == 0) ||
-		(Util::strnicmp(aString.c_str() + start, _T("irc://"), 6) == 0) ||
-		(Util::strnicmp(aString.c_str() + start, _T("https://"), 8) == 0) ||	
-		(Util::strnicmp(aString.c_str() + start, _T("file://"), 7) == 0) ||
-		(Util::strnicmp(aString.c_str() + start, _T("mailto:"), 7) == 0) )
+	if( (strnicmp(aString.c_str() + start, _T("http://"), 7) == 0) || 
+		(strnicmp(aString.c_str() + start, _T("www."), 4) == 0) ||
+		(strnicmp(aString.c_str() + start, _T("ftp://"), 6) == 0) ||
+		(strnicmp(aString.c_str() + start, _T("irc://"), 6) == 0) ||
+		(strnicmp(aString.c_str() + start, _T("https://"), 8) == 0) ||	
+		(strnicmp(aString.c_str() + start, _T("file://"), 7) == 0) ||
+		(strnicmp(aString.c_str() + start, _T("mailto:"), 7) == 0) )
 	{
 
 		openLink(aString.substr(start, end-start));
 		return true;
-	} else if(Util::strnicmp(aString.c_str() + start, _T("dchub://"), 8) == 0) {
+	} else if(strnicmp(aString.c_str() + start, _T("dchub://"), 8) == 0) {
 		parseDchubUrl(aString.substr(start, end-start));
 		return true;
-	} else if(Util::strnicmp(aString.c_str() + start, _T("magnet:?"), 8) == 0) {
+	} else if(strnicmp(aString.c_str() + start, _T("magnet:?"), 8) == 0) {
 		parseMagnetUri(aString.substr(start, end-start));
 		return true;
-	} else if(Util::strnicmp(aString.c_str() + start, _T("adc://"), 6) == 0) {
+	} else if(strnicmp(aString.c_str() + start, _T("adc://"), 6) == 0) {
 		parseADChubUrl(aString.substr(start, end-start));
 		return true;
 	}
@@ -2042,7 +2042,7 @@ string WinUtil::CPUInfo() {
 		DWORD speed;
 		if(key.QueryDWORDValue(_T("~MHz"), speed) == ERROR_SUCCESS){
 			result += _T(" (");
-			result += Util::toStringW(speed);
+			result += Util::toStringW((uint32_t)speed);
 			result += _T(" MHz)");
 		}
 	}
@@ -2064,5 +2064,5 @@ tstring WinUtil::getWindowText(HWND _hwnd, int ctrlID) {
 //END
 /**
  * @file
- * $Id: WinUtil.cpp 392 2008-06-21 21:10:31Z BigMuscle $
+ * $Id: WinUtil.cpp 399 2008-07-06 19:48:02Z BigMuscle $
  */

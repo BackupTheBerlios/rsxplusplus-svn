@@ -108,14 +108,14 @@ public:
 	} sourceType;
 
 	SourceType StringToSourceType(const string& s) {
-		if(Util::stricmp(s.c_str(), "Filename") == 0) {
+		if(stricmp(s.c_str(), "Filename") == 0) {
 			return OnlyFile;
-		} else if(Util::stricmp(s.c_str(), "Directory") == 0) {
+		} else if(stricmp(s.c_str(), "Directory") == 0) {
 			return OnlyDirectory;
-		} else if(Util::stricmp(s.c_str(), "Full Path") == 0) {
+		} else if(stricmp(s.c_str(), "Full Path") == 0) {
 			return FullPath;
 		//RSX++
-		} else if(Util::stricmp(s.c_str(), "TTH") == 0) {
+		} else if(stricmp(s.c_str(), "TTH") == 0) {
 			return TTHFile;
 		//END
 		} else {
@@ -158,13 +158,13 @@ public:
 	SizeType typeFileSize;
 
 	SizeType StringToSizeType(const string& s) {
-		if(Util::stricmp(s.c_str(), "B") == 0) {
+		if(stricmp(s.c_str(), "B") == 0) {
 			return SizeBytes;
-		} else if(Util::stricmp(s.c_str(), "kB") == 0) {
+		} else if(stricmp(s.c_str(), "kB") == 0) {
 			return SizeKiloBytes;
-		} else if(Util::stricmp(s.c_str(), "MB") == 0) {
+		} else if(stricmp(s.c_str(), "MB") == 0) {
 			return SizeMegaBytes;
-		} else if(Util::stricmp(s.c_str(), "GB") == 0) {
+		} else if(stricmp(s.c_str(), "GB") == 0) {
 			return SizeGigaBytes;
 		} else {
 			return SizeBytes;
@@ -259,6 +259,11 @@ private:
 	// Substring searches
 	StringSearch::List stringSearchList;
 	bool SearchAll(const string& s) {
+		//try {
+		//	const boost::regex reg(searchString, boost::regex_constants::icase);
+		//	return boost::regex_search(s.begin(), s.end(), reg);
+		//} catch(...) {
+		//}
 		// Match all substrings
 		for(StringSearch::List::const_iterator i = stringSearchList.begin(); i != stringSearchList.end(); ++i) {
 			if(!i->match(s)) {
@@ -345,7 +350,7 @@ private:
 		for(vector<DestDir>::iterator id = destDirVector.begin(); id != destDirVector.end(); ++id) {
 			if(id->dir->files.size() == 0 && id->dir->directories.size() == 0) {
 				delete (id->dir);
-			} else if(Util::stricmp(id->dir->getName(), szDiscard) == 0) {
+			} else if(stricmp(id->dir->getName(), szDiscard) == 0) {
 				delete (id->dir);
 			} else {
 				root->directories.push_back(id->dir);
@@ -367,5 +372,5 @@ private:
 
 /**
  * @file
- * $Id: ADLSearch.h 393 2008-06-25 18:33:20Z BigMuscle $
+ * $Id: ADLSearch.h 399 2008-07-06 19:48:02Z BigMuscle $
   */

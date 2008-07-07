@@ -455,6 +455,7 @@ void SearchFrame::onEnter() {
 		}
 
 		s = s.substr(0, max(s.size(), static_cast<tstring::size_type>(1)) - 1);
+		token = Util::toString(Util::rand());
 	}
 	
 	if(s.empty())
@@ -508,7 +509,7 @@ void SearchFrame::onEnter() {
 		searchStartTime = GET_TICK();
 		// more 5 seconds for transfering results
 		searchEndTime = searchStartTime + SearchManager::getInstance()->search(clients, Text::fromT(s), llsize, 
-			(SearchManager::TypeModes)ftype, mode, "manual", (void*)this) + 5000;
+			(SearchManager::TypeModes)ftype, mode, token, (void*)this) + 5000;
 
 		waiting = true;
 	}
@@ -529,6 +530,12 @@ void SearchFrame::on(SearchManagerListener::SR, const SearchResultPtr& aResult) 
 			return;
 		}
 
+		if(!aResult->getToken().empty() && token != aResult->getToken()) {
+			droppedResults++;
+			PostMessage(WM_SPEAKER, FILTER_RESULT);
+			return;
+		}
+		
 		if(isHash) {
 			if(aResult->getType() != SearchResult::TYPE_FILE || TTHValue(Text::fromT(search[0])) != aResult->getTTH()) {
 				droppedResults++;
@@ -1685,5 +1692,5 @@ void SearchFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/) throw() 
 
 /**
  * @file
- * $Id: SearchFrm.cpp 397 2008-07-04 14:58:44Z BigMuscle $
+ * $Id: SearchFrm.cpp 398 2008-07-05 20:54:25Z BigMuscle $
  */

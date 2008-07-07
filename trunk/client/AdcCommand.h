@@ -195,6 +195,7 @@ public:
 				C(SND);
 				C(SID);
 				C(CMD);
+				C(PSR);
 			default: 
 				dcdebug("Unknown ADC command: %.50s\n", aLine.c_str());
 				break;
@@ -214,5 +215,5 @@ public:
 
 /**
 * @file
-* $Id: AdcCommand.h 373 2008-02-06 17:23:49Z bigmuscle $
+* $Id: AdcCommand.h 399 2008-07-06 19:48:02Z BigMuscle $
 */

@@ -45,7 +45,7 @@ public:
 	END_MSG_MAP()
 
 	LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
-		SetDlgItemText(IDC_VERSION, _T("RSX++ v") _T(VERSIONSTRING) _T(" (c) Copyright 2007-2008 adrian_007\nBased on: StrongDC++ 2.13 (c) Copyright 2001-2008 Big Muscle\n"));
+		SetDlgItemText(IDC_VERSION, _T("RSX++ v") _T(VERSIONSTRING) _T(" (c) Copyright 2007-2008 adrian_007\nBased on: StrongDC++ 2.2 (c) Copyright 2001-2008 Big Muscle\n"));
 		CEdit ctrlThanks(GetDlgItem(IDC_THANKS));
 		ctrlThanks.FmtLines(TRUE);
 		ctrlThanks.AppendText(thanks, TRUE);
@@ -89,7 +89,7 @@ public:
 
 private:
 	CHyperLink url;
-	AboutDlg(const AboutDlg&) { dcassert(0); }
+	AboutDlg(const AboutDlg&) { }
 
 	void on(TimerManagerListener::Second /*type*/, uint64_t /*aTick*/) throw() {
 		TCHAR buf[128];

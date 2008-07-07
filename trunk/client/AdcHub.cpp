@@ -200,6 +200,16 @@ void AdcHub::handle(AdcCommand::INF, AdcCommand& c) throw() {
 		setAutoReconnect(true);
 		setMyIdentity(u->getIdentity());
 		updateCounts(false);
+		//RSX++ // threaded checks
+		if(isOp()) {
+			if(!getCheckedAtConnect() && getCheckMyInfo()) {
+				users.startMyINFOCheck(this);
+			}
+			if(getCheckOnConnect()) {
+				startChecking(Util::emptyStringT);
+			}
+		}
+		//END
 	}
 
 	if(u->getIdentity().isHub()) {
@@ -208,16 +218,6 @@ void AdcHub::handle(AdcCommand::INF, AdcCommand& c) throw() {
 	} else {
 		fire(ClientListener::UserUpdated(), this, *u);
 	}
-	//RSX++ // threaded checks
-	if(isOp()) {
-		if(!getCheckedAtConnect() && getCheckMyInfo()) {
-			users.startMyINFOCheck(this);
-		}
-		if(getCheckOnConnect()) {
-			users.startCheck(this, getCheckClients(), getCheckFilelists(), true);
-		}
-	}
-	//END
 }
 
 void AdcHub::handle(AdcCommand::SUP, AdcCommand& c) throw() {
@@ -530,6 +530,15 @@ void AdcHub::handle(AdcCommand::RES, AdcCommand& c) throw() {
 		return;
 	}
 	SearchManager::getInstance()->onRES(c, ou->getUser());
+}
+
+void AdcHub::handle(AdcCommand::PSR, AdcCommand& c) throw() {
+	OnlineUser* ou = findUser(c.getFrom());
+	if(!ou) {
+		dcdebug("Invalid user in AdcHub::onPSR\n");
+		return;
+	}
+	SearchManager::getInstance()->onPSR(c, ou->getUser());
 }
 
 void AdcHub::handle(AdcCommand::GET, AdcCommand& c) throw() {
@@ -847,5 +856,5 @@ void AdcHub::on(Second s, uint64_t aTick) throw() {
 
 /**
  * @file
- * $Id: AdcHub.cpp 386 2008-05-10 19:29:01Z BigMuscle $
+ * $Id: AdcHub.cpp 399 2008-07-06 19:48:02Z BigMuscle $
  */

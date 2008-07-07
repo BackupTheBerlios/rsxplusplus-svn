@@ -43,13 +43,13 @@
 #include "PluginsManager.h"
 #include "RawManager.h"
 #include "ScriptManager.h"
-#include "DetectionManager.h"
 ////////////////////////////////////////////////////////////
 #include "IgnoreManager.h"
 
 #include "StringTokenizer.h"
 
 #include "DebugManager.h"
+#include "DetectionManager.h"
 #include "ClientProfileManager.h"
 #include "WebServerManager.h"
 #include "../windows/PopupManager.h"
@@ -99,11 +99,11 @@ void startup(void (*f)(void*, const tstring&), void* p) {
 	FinishedManager::newInstance();
 	ADLSearchManager::newInstance();
 	DebugManager::newInstance();
+	DetectionManager::newInstance();	
 	ClientProfileManager::newInstance();	
 	PopupManager::newInstance();
 	//RSX++ //instances
 	HTTPDownloadManager::newInstance();
-	DetectionManager::newInstance();
 	IgnoreManager::newInstance();
 	ScriptManager::newInstance();
 	UpdateManager::newInstance();
@@ -129,7 +129,6 @@ void startup(void (*f)(void*, const tstring&), void* p) {
 	CryptoManager::getInstance()->loadCertificates();
 	ClientProfileManager::getInstance()->load();
 	DetectionManager::getInstance()->load();
-
 	WebServerManager::newInstance();
 
 	if(f != NULL)
@@ -144,7 +143,6 @@ void startup(void (*f)(void*, const tstring&), void* p) {
 
 	//RSX++
 	RsxUtil::init();
-	//RSX++ // update external ip at startup
 	if(RSXBOOLSETTING(IPUPDATE))
 		IpManager::getInstance()->UpdateExternalIp();
 	//END
@@ -169,11 +167,12 @@ void shutdown() {
 	IpManager::deleteInstance();
 	IgnoreManager::deleteInstance();
 	AutoSearchManager::deleteInstance();
-	DetectionManager::deleteInstance();
 	HTTPDownloadManager::deleteInstance();
 	ResourceLoader::deleteInstance();
 	//END
+	DebugManager::deleteInstance();
 	WebServerManager::deleteInstance();
+	DetectionManager::deleteInstance();	
 	ClientProfileManager::deleteInstance();	
 	PopupManager::deleteInstance();
 	ADLSearchManager::deleteInstance();
@@ -193,7 +192,6 @@ void shutdown() {
 	SettingsManager::deleteInstance();
 	RSXSettingsManager::deleteInstance(); //RSX++
 	TimerManager::deleteInstance();
-	DebugManager::deleteInstance();
 	ResourceManager::deleteInstance();
 
 #ifdef _WIN32	
@@ -205,5 +203,5 @@ void shutdown() {
 
 /**
  * @file
- * $Id: DCPlusPlus.cpp 385 2008-04-26 13:05:09Z BigMuscle $
+ * $Id: DCPlusPlus.cpp 399 2008-07-06 19:48:02Z BigMuscle $
  */

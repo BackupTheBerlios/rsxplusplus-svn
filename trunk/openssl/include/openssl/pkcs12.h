@@ -108,6 +108,8 @@ PKCS12_MAC_DATA *mac;
 PKCS7 *authsafes;
 } PKCS12;
 
+PREDECLARE_STACK_OF(PKCS12_SAFEBAG)
+
 typedef struct {
 ASN1_OBJECT *type;
 union {

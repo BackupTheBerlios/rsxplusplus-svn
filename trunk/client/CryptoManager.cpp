@@ -438,7 +438,7 @@ string CryptoManager::makeKey(const string& aLock) {
 	return keySubst(&temp[0], aLock.length(), extra);
 }
 
-void CryptoManager::locking_function(int mode, int n, const char *file, int line)
+void __cdecl CryptoManager::locking_function(int mode, int n, const char */*file*/, int /*line*/)
 {
     if (mode & CRYPTO_LOCK) {
         cs[n].enter();

@@ -1,6 +1,6 @@
 /* crypto/crypto.h */
 /* ====================================================================
- * Copyright (c) 1998-2006 The OpenSSL Project.  All rights reserved.
+ * Copyright (c) 1998-2003 The OpenSSL Project.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -282,10 +282,9 @@ typedef struct bio_st BIO_dummy;
 
 struct crypto_ex_data_st
 	{
-	STACK_OF(void) *sk;
+	STACK *sk;
 	int dummy; /* gcc is screwing up this data structure :-( */
 	};
-DECLARE_STACK_OF(void)
 
 /* This stuff is basically class callback functions
  * The current classes are SSL_CTX, SSL, SSL_SESSION, and a few more */
@@ -411,11 +410,11 @@ void CRYPTO_cleanup_all_ex_data(void);
 
 int CRYPTO_get_new_lockid(char *name);
 
-int _cdecl CRYPTO_num_locks(void); /* return CRYPTO_NUM_LOCKS (shared libs!) */
+int __cdecl CRYPTO_num_locks(void); /* return CRYPTO_NUM_LOCKS (shared libs!) */
 void CRYPTO_lock(int mode, int type,const char *file,int line);
-void _cdecl CRYPTO_set_locking_callback(void (*func)(int mode,int type,
+void __cdecl CRYPTO_set_locking_callback(void (__cdecl *func)(int mode,int type,
 					      const char *file,int line));
-void (*CRYPTO_get_locking_callback(void))(int mode,int type,const char *file,
+void (__cdecl *CRYPTO_get_locking_callback(void))(int mode,int type,const char *file,
 		int line);
 void CRYPTO_set_add_lock_callback(int (*func)(int *num,int mount,int type,
 					      const char *file, int line));
@@ -424,10 +423,6 @@ int (*CRYPTO_get_add_lock_callback(void))(int *num,int mount,int type,
 void CRYPTO_set_id_callback(unsigned long (*func)(void));
 unsigned long (*CRYPTO_get_id_callback(void))(void);
 unsigned long CRYPTO_thread_id(void);
-void CRYPTO_set_idptr_callback(void *(*func)(void));
-void *(*CRYPTO_get_idptr_callback(void))(void);
-void *CRYPTO_thread_idptr(void);
-
 const char *CRYPTO_get_lock_name(int type);
 int CRYPTO_add_lock(int *pointer,int amount,int type, const char *file,
 		    int line);

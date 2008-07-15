@@ -1,3 +1,6 @@
+** SVN 92
+ ** ok, now fixed, really...
+
 ** SVN 91
  ** fix release build
 

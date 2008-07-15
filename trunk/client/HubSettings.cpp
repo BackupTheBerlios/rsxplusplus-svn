@@ -10,7 +10,6 @@ HubSettings::~HubSettings() throw() {
 }
 
 void HubSettings::set(const char* name, const string& val) {
-	dcdebug("\t\tHubSettings::set (%s, %s)\n", name, val.c_str());
 	FastLock l(cs);
 	if(val.empty())
 		settings.erase(*(uint32_t*)name);

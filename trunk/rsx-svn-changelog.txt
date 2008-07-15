@@ -1,3 +1,6 @@
+** SVN 91
+ ** fix release build
+
 ** SVN 90
  ** dump folder for all configuration
  ** added chat message on started check (on connect)

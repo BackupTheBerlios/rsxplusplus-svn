@@ -72,13 +72,6 @@ LRESULT MyinfoProfileDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM 
 	ctrlRegExpCombo.AddString(CTSTRING(CONNECTION));
 	ctrlRegExpCombo.SetCurSel(0);
 
-	SetDlgItemText(IDC_CLIPBOARD_ONE,	Text::toT(RSXSETTING(CLIPBOARD_NAME_ONE)).c_str());
-	SetDlgItemText(IDC_CLIPBOARD_TWO,	Text::toT(RSXSETTING(CLIPBOARD_NAME_TWO)).c_str());
-	SetDlgItemText(IDC_CLIPBOARD_THREE, Text::toT(RSXSETTING(CLIPBOARD_NAME_THREE)).c_str());
-	SetDlgItemText(IDC_CLIPBOARD_FOUR,	Text::toT(RSXSETTING(CLIPBOARD_NAME_FOUR)).c_str());
-	SetDlgItemText(IDC_CLIPBOARD_FIVE,	Text::toT(RSXSETTING(CLIPBOARD_NAME_FIVE)).c_str());
-	SetDlgItemText(IDC_CLIPBOARD_SIX,	Text::toT(RSXSETTING(CLIPBOARD_NAME_SIX)).c_str());
-
 	params = ClientProfileManager::getInstance()->getParams();
 
 	CUpDownCtrl spin;
@@ -279,14 +272,6 @@ LRESULT MyinfoProfileDlg::onMatch(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 	return 0;
 }
 
-LRESULT MyinfoProfileDlg::onClip(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
-	switch(wID){
-		case IDC_CLIPBOARD_ONE:		WinUtil::setClipboard(Text::toT(RSXSETTING(CLIPBOARD_TEXT_ONE)));		break;
-		case IDC_CLIPBOARD_TWO:		WinUtil::setClipboard(Text::toT(RSXSETTING(CLIPBOARD_TEXT_TWO)));		break;
-		case IDC_CLIPBOARD_THREE:	WinUtil::setClipboard(Text::toT(RSXSETTING(CLIPBOARD_TEXT_THREE)));		break;
-		case IDC_CLIPBOARD_FOUR:	WinUtil::setClipboard(Text::toT(RSXSETTING(CLIPBOARD_TEXT_FOUR)));		break;
-		case IDC_CLIPBOARD_FIVE:	WinUtil::setClipboard(Text::toT(RSXSETTING(CLIPBOARD_TEXT_FIVE)));		break;
-		case IDC_CLIPBOARD_SIX:		WinUtil::setClipboard(Text::toT(RSXSETTING(CLIPBOARD_TEXT_SIX)));		break;
-	}
+LRESULT MyinfoProfileDlg::onClip(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
 	return 0;
 }

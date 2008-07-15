@@ -337,8 +337,13 @@ void PrivateFrame::onEnter()
 				addLine(_T("*** ") + WinUtil::commands + _T(", /getlist, /clear, /grant, /close, /favorite, /winamp"), WinUtil::m_ChatTextSystem);
 			} else {
 				if(replyTo->isOnline()) {
-					if(!dropMessage)
-						sendMessage(tstring(m));
+					if(!dropMessage) {
+						if (BOOLSETTING(SEND_UNKNOWN_COMMANDS)) {
+							sendMessage(tstring(m));
+						} else {
+							addClientLine(TSTRING(UNKNOWN_COMMAND) + m);
+						}
+					}
 				} else {
 					ctrlStatus.SetText(0, CTSTRING(USER_WENT_OFFLINE));
 					resetText = false;
@@ -589,6 +594,7 @@ void PrivateFrame::updateTitle() {
 		}
 		isoffline = false;
 	} else {
+		ctrlClient.setClient(NULL);
 		setIconState();
 		//setTabColor(RGB(255, 0, 0));
 		tstring status = _T(" *** ") + TSTRING(USER_WENT_OFFLINE);
@@ -598,7 +604,6 @@ void PrivateFrame::updateTitle() {
 			addClientLine(status);
 		}
 		isoffline = true;
-		ctrlClient.setClient(NULL);
 	}
 	SetWindowText((WinUtil::getNicks(replyTo) + _T(" - ") + hubs.first).c_str());
 }
@@ -795,5 +800,5 @@ string PrivateFrame::getCustomAway() const {
 
 /**
  * @file
- * $Id: PrivateFrame.cpp 399 2008-07-06 19:48:02Z BigMuscle $
+ * $Id: PrivateFrame.cpp 403 2008-07-10 21:27:57Z BigMuscle $
  */

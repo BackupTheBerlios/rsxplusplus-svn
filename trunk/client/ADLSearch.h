@@ -53,8 +53,7 @@ public:
 	// Constructor
 	ADLSearch() : searchString("<Enter string>"), isActive(true), isAutoQueue(false), sourceType(OnlyFile), 
 		minFileSize(-1), maxFileSize(-1), typeFileSize(SizeBytes), destDir("ADLSearch"), ddIndex(0),
-		isForbidden(false), isRegExp(false), adlsPoints(0), isCaseSensitive(true), overRidePoints(false), adlsRaw(0), 
-		fromFavs(true) { }
+		isForbidden(false), adlsPoints(0), isCaseSensitive(true), overRidePoints(false), adlsRaw(0), fromFavs(true) { }
 
 	// Prepare search
 	void Prepare(StringMap& params) {
@@ -81,11 +80,10 @@ public:
 
 	// Active search
 	bool isActive;
-
+	
 	// Forbidden file
-	//RSX++
 	bool isForbidden;
-	bool isRegExp;
+	//RSX++
 	bool overRidePoints;
 	int adlsRaw;
 	int adlsPoints;
@@ -206,7 +204,7 @@ public:
 	unsigned long ddIndex;
 
 	// Search for file match 
-	bool MatchesFile(const string& f, const string& fp, int64_t size, /*RSX++*/const TTHValue& root /*END*/) {
+	bool MatchesFile(const string& f, const string& fp, int64_t size, /*//RSX++*/const TTHValue& root /*END*/) {
 		// Check status
 		if(!isActive) {
 			return false;
@@ -232,10 +230,8 @@ public:
 		switch(sourceType) {
 		default:
 		case OnlyDirectory:	return false;
-		//RSX++
-		case OnlyFile:		return  isRegExp ? SearchAllRegexp(f) : SearchAll(f);
-		case FullPath:		return  isRegExp ? SearchAllRegexp(fp) : SearchAll(fp);
-		//END
+		case OnlyFile:		return SearchAll(f);
+		case FullPath:		return SearchAll(fp);
 		}
 	}
 
@@ -250,8 +246,7 @@ public:
 		}
 
 		// Do search
-		return isRegExp ? SearchAllRegexp(d) : SearchAll(d); //RSX++
-
+		return SearchAll(d);
 	}
 
 private:
@@ -259,11 +254,12 @@ private:
 	// Substring searches
 	StringSearch::List stringSearchList;
 	bool SearchAll(const string& s) {
-		//try {
-		//	const boost::regex reg(searchString, boost::regex_constants::icase);
-		//	return boost::regex_search(s.begin(), s.end(), reg);
-		//} catch(...) {
-		//}
+		try {
+			boost::regex reg(searchString, boost::regex_constants::icase);
+			return boost::regex_search(s.begin(), s.end(), reg);
+		} catch(...) {
+		}
+		
 		// Match all substrings
 		for(StringSearch::List::const_iterator i = stringSearchList.begin(); i != stringSearchList.end(); ++i) {
 			if(!i->match(s)) {
@@ -273,10 +269,6 @@ private:
 		return (stringSearchList.size() != 0);
 	}
 	//RSX++
-	bool SearchAllRegexp(const string& s) {
-		return RegexUtil::match(s, searchString, isCaseSensitive);
-	}
-
 	bool SearchAllTTH(const TTHValue& root) {
 		if(!(&root)) { return false; }
 		return TTHValue(root).toBase32() == searchString;
@@ -372,5 +364,5 @@ private:
 
 /**
  * @file
- * $Id: ADLSearch.h 399 2008-07-06 19:48:02Z BigMuscle $
+ * $Id: ADLSearch.h 403 2008-07-10 21:27:57Z BigMuscle $
   */

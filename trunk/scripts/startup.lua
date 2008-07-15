@@ -1411,18 +1411,3 @@ end
 
 -- do you need the timer?
 --DC():RunTimer(1)
-
---dofile( DC():GetAppPath() .. "scripts\\bier.lua" )
---dofile( DC():GetAppPath() .. "scripts\\slots.lua" )
-dofile( DC():GetAppPath() .. "scripts\\uptime.lua" )
---dofile( DC():GetAppPath() .. "scripts\\onjoin.lua" )
---dofile( DC():GetAppPath() .. "scripts\\monologue.lua" )
---dofile( DC():GetAppPath() .. "scripts\\p2pblock.lua" )
---dofile( DC():GetAppPath() .. "scripts\\quiet_login.lua" )
---dofile( DC():GetAppPath() .. "scripts\\log.lua" )
---dofile( DC():GetAppPath() .. "scripts\\kickfilter.lua" )
-dofile( DC():GetAppPath() .. "scripts\\adccommands.lua" )
-
--- RSX++ Scripts
-dofile( DC():GetAppPath() .. "scripts\\players.lua" )
-dofile( DC():GetAppPath() .. "scripts\\linky.lua" )

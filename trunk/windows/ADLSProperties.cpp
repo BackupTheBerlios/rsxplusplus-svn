@@ -84,7 +84,7 @@ LRESULT ADLSProperties::OnInitDialog(UINT, WPARAM, LPARAM, BOOL&)
 	::SendMessage(GetDlgItem(IDC_SIZE_TYPE),			CB_SETCURSEL,	search->typeFileSize, 0L);
 	::SendMessage(GetDlgItem(IDC_AUTOQUEUE),			BM_SETCHECK,	search->isAutoQueue ? 1 : 0, 0L);
 	::SendMessage(GetDlgItem(IDC_IS_FORBIDDEN),			BM_SETCHECK,	search->isForbidden ? 1 : 0, 0L);
-	::SendMessage(GetDlgItem(IDC_IS_REGEXP),			BM_SETCHECK,	search->isRegExp ? 1 : 0, 0L);
+//	::SendMessage(GetDlgItem(IDC_IS_REGEXP),			BM_SETCHECK,	search->isRegExp ? 1 : 0, 0L);
 	::SendMessage(GetDlgItem(IDC_OVER_RIDE_POINTS),		BM_SETCHECK,	search->overRidePoints ? 1 : 0, 0L);
 	::SendMessage(GetDlgItem(IDC_IS_CASE_SENSITIVE),	BM_SETCHECK,	search->isCaseSensitive ? 1 : 0, 0L);
 
@@ -127,7 +127,7 @@ LRESULT ADLSProperties::OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCt
 		search->isActive =			(::SendMessage(GetDlgItem(IDC_IS_ACTIVE), BM_GETCHECK, 0, 0L) != 0);
 		search->isAutoQueue =		(::SendMessage(GetDlgItem(IDC_AUTOQUEUE), BM_GETCHECK, 0, 0L) != 0);
 		search->isForbidden =		(::SendMessage(GetDlgItem(IDC_IS_FORBIDDEN), BM_GETCHECK, 0, 0L) != 0);
-		search->isRegExp =			(::SendMessage(GetDlgItem(IDC_IS_REGEXP), BM_GETCHECK, 0, 0L) != 0);
+//		search->isRegExp =			(::SendMessage(GetDlgItem(IDC_IS_REGEXP), BM_GETCHECK, 0, 0L) != 0);
 		search->isCaseSensitive =	(::SendMessage(GetDlgItem(IDC_IS_CASE_SENSITIVE), BM_GETCHECK, 0, 0L) != 0);
 		search->overRidePoints =	(::SendMessage(GetDlgItem(IDC_OVER_RIDE_POINTS), BM_GETCHECK, 0, 0L) != 0);
 		if(search->isForbidden) {

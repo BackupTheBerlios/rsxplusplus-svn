@@ -354,7 +354,16 @@ int LuaManager::RunTimer(lua_State* L) {
 lua_State* ScriptInstance::L = 0;		//filled in by scriptmanager.
 CriticalSection ScriptInstance::cs;
 
-ScriptManager::ScriptManager() : isRunning(false), timerEnabled(false) {
+ScriptManager::ScriptManager() : timerEnabled(false) {
+	RSXSettingsManager::getInstance()->addListener(this);
+	StringList files = File::findFiles(Util::getDataPath() + "scripts" PATH_SEPARATOR_STR, "*.lua");
+	for(StringIter i = files.begin(); i != files.end(); ++i) {
+		string fname = Util::getFileName(*i);
+		if(fname == "startup.lua")
+			scripts.push_front(make_pair(true, fname));
+		else
+			scripts.push_back(make_pair(true, fname));
+	}
 }
 
 void ScriptManager::load() {
@@ -394,6 +403,12 @@ void ScriptManager::load() {
 	ClientManager::getInstance()->addListener(this);
 }
 
+void ScriptManager::loadScripts() {
+	for(ScriptsList::const_iterator i = scripts.begin(); i != scripts.end(); ++i)
+		if(i->first)
+			EvaluateFile(i->second);
+}
+
 void ScriptInstance::EvaluateChunk(const string& chunk) {
 	Lock l(cs);
 	lua_dostring(L, chunk.c_str());
@@ -405,11 +420,10 @@ void ScriptInstance::EvaluateFile(const string& fn) {
 	if(!Util::fileExists(Util::getDataPath() + "scripts\\" + fn))
 		return;
 	lua_dofile(L, (Util::getDataPath() + "scripts\\" + fn).c_str());
-	ScriptManager::getInstance()->isRunning = true;
 }
 
 void ScriptManager::SendDebugMessage(const string &mess) {
-	if(isRunning)
+	if(RSXBOOLSETTING(SHOW_LUA_ERROR_MESSAGE))
 		LogManager::getInstance()->message(mess);
 }
 
@@ -480,6 +494,31 @@ bool ScriptInstance::MakeCallRaw(const string& table, const string& method, int 
 		lua_settop(L, 0);
 	}
 	return false;
+}
+
+void ScriptManager::on(RSXSettingsManagerListener::Load, SimpleXML& aXml) {
+	if(aXml.findChild("ScriptsList")) {
+		aXml.stepIn();
+		while(aXml.findChild("Script")) {
+			for(ScriptsList::iterator j = scripts.begin(); j != scripts.end(); ++j) {
+				if(j->second == aXml.getChildAttrib("FileName"))
+					j->first = aXml.getBoolChildAttrib("Active");
+			}
+		}
+		aXml.stepOut();
+	}
+}
+
+void ScriptManager::on(RSXSettingsManagerListener::Save, SimpleXML& aXml) {
+	aXml.addTag("ScriptsList");
+	aXml.stepIn();
+
+	for(ScriptsList::const_iterator i = scripts.begin(); i != scripts.end(); ++i) {
+		aXml.addTag("Script");
+		aXml.addChildAttrib("Active", i->first);
+		aXml.addChildAttrib("FileName", i->second);
+	}
+	aXml.stepOut();
 }
 
 } // namespace dcpp

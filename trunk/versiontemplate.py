@@ -17,6 +17,8 @@ class SVNReport:
 	def walkrevision(self,root):
 
 		for item in os.listdir(root):
+			if item == "stlport" or item == "wtl":
+				continue
 			itempath = os.path.join(root, item)
 			if os.path.isdir(itempath):
 				if item == ".svn":

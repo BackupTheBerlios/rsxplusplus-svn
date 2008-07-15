@@ -67,6 +67,7 @@
 #include "../client/PluginsManager.h"
 #include "UpdateDialog.h"
 #include "PluginsListDlg.h"
+#include "ScriptsList.h"
 //END
 
 MainFrame* MainFrame::anyMF = NULL;
@@ -91,11 +92,11 @@ MainFrame::~MainFrame() {
 	images.Destroy();
 	largeImages.Destroy();
 	largeImagesHot.Destroy();
-
+	//RSX++
 	RL_DeleteObject(toolbarImg);
 	RL_DeleteObject(toolbar20Img);
 	RL_DeleteObject(toolbar20HotImg);
-
+	//END
 	WinUtil::uninit();
 }
 
@@ -190,7 +191,9 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	SetWindowText(RsxUtil::getWndTitle().c_str());
 	//RSX++
 	PluginsManager::getInstance()->startPlugins();
+	ScriptManager::getInstance()->loadScripts();
 	UpdateManager::getInstance()->addListener(this);
+	//END
 
 	// Load images
 	// create command bar window
@@ -238,17 +241,15 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	SetMenu(NULL);
 
 	tbarcreated = false;
-	ptbarcreated = false;
+	ptbarcreated = false; //RSX++
 	HWND hWndToolBar = createToolbar();
 	HWND hWndQuickSearchBar = createQuickSearchBar();
-	//RSX++
-	HWND hWndPluginToolBar = createPluginsToolbar();
-	//END
+	HWND hWndPluginToolBar = createPluginsToolbar(); //RSX++
 
 	CreateSimpleReBar(ATL_SIMPLE_REBAR_NOBORDER_STYLE);
 	AddSimpleReBarBand(hWndPluginToolBar, NULL, FALSE, 0, TRUE); //RSX++
 	AddSimpleReBarBand(hWndCmdBar);
-	AddSimpleReBarBand(hWndToolBar, NULL, TRUE, 0, TRUE);
+	AddSimpleReBarBand(hWndToolBar, NULL, TRUE);
 	AddSimpleReBarBand(hWndQuickSearchBar, NULL, FALSE, 200, TRUE);
 	CreateSimpleStatusBar();
 	
@@ -1381,6 +1382,12 @@ LRESULT MainFrame::OnViewPluginToolBar(WORD /*wNotifyCode*/, WORD /*wID*/, HWND 
 
 LRESULT MainFrame::onViewPluginsList(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
 	PluginsListDlg dlg;
+	dlg.DoModal();
+	return 0;
+}
+
+LRESULT MainFrame::onViewScriptsList(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+	ScriptsListDlg dlg;
 	dlg.DoModal();
 	return 0;
 }

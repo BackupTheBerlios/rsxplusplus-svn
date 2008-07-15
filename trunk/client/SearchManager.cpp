@@ -68,6 +68,7 @@ void SearchManager::listen() throw(SocketException) {
 
 	socket = new Socket();
 	socket->create(Socket::TYPE_UDP);
+	socket->setBlocking(true);
 	port = socket->bind(static_cast<uint16_t>(SETTING(UDP_PORT)), SETTING(BIND_ADDRESS));
 
 	start();
@@ -491,5 +492,5 @@ AdcCommand SearchManager::toPSR(bool wantResponse, const string& myNick, const s
 
 /**
  * @file
- * $Id: SearchManager.cpp 399 2008-07-06 19:48:02Z BigMuscle $
+ * $Id: SearchManager.cpp 404 2008-07-13 17:08:09Z BigMuscle $
  */

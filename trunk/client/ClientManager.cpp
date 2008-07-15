@@ -575,9 +575,9 @@ void ClientManager::on(Connected, const Client* c) throw() {
 	fire(ClientManagerListener::ClientConnected(), c);
 }
 
-void ClientManager::on(UserUpdated, const Client*, const OnlineUser& user) throw() {
-	updateNick(user);
-	fire(ClientManagerListener::UserUpdated(), user);
+void ClientManager::on(UserUpdated, const Client*, const OnlineUserPtr& user) throw() {
+	updateNick(*user);
+	fire(ClientManagerListener::UserUpdated(), *user);
 }
 
 void ClientManager::on(UsersUpdated, const Client*, const OnlineUserList& l) throw() {
@@ -841,7 +841,7 @@ void ClientManager::checkCheating(const UserPtr& p, DirectoryListing* dl) {
 	if(ou) {
 		ou->setFileListComplete();
 		ou->getIdentity().setFileListQueued(Util::emptyString);
-		ou->getClient().updated(*ou);
+		ou->getClient().updated(ou);
 		if(!report.empty()) {
 			ou->getClient().cheatMessage(report);
 		}
@@ -868,7 +868,7 @@ void ClientManager::kickFromAutosearch(const UserPtr& p, int action, const strin
 		sendAction(*ou, action);
 	}
 	if(ou) {
-		ou->getClient().updated(*ou);
+		ou->getClient().updated(ou);
 		if(!report.empty())
 			ou->getClient().cheatMessage(report);
 	}
@@ -953,7 +953,7 @@ void ClientManager::setCheating(const UserPtr& p, const string& _ccResponse, con
 		sendAction(*ou, _actionId);
 	}
 	if(ou) {
-		ou->getClient().updated(*ou);
+		ou->getClient().updated(ou);
 		if(!report.empty())
 			ou->getClient().cheatMessage(report);
 	}
@@ -987,7 +987,7 @@ void ClientManager::setListSize(const UserPtr& p, int64_t aFileLength, bool adc)
 		}
 	}
 	if(ou) {
-		ou->getClient().updated(*ou);
+		ou->getClient().updated(ou);
 		if(!report.empty())
 			ou->getClient().cheatMessage(report);
 	}
@@ -1117,5 +1117,5 @@ void ClientManager::sendAction(OnlineUser& ou, const int aAction) {
 
 /**
  * @file
- * $Id: ClientManager.cpp 394 2008-06-28 22:28:44Z BigMuscle $
+ * $Id: ClientManager.cpp 405 2008-07-14 11:41:15Z BigMuscle $
  */

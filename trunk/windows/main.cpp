@@ -422,8 +422,6 @@ static int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 		return 0;
 	}
 
-	ScriptManager::getInstance()->EvaluateFile("startup.lua"); //RSX++ // Lua
-
 	if(BOOLSETTING(MINIMIZE_ON_STARTUP)) {
 		wndMain.ShowWindow(SW_SHOWMINIMIZED);
 	} else {

@@ -165,6 +165,7 @@ private:
 		COLUMN_FILE,
 		COLUMN_SIZE,
 		COLUMN_PATH,
+		COLUMN_CIPHER,
 		COLUMN_IP,
 		COLUMN_RATIO,
 		COLUMN_LAST
@@ -209,6 +210,7 @@ private:
 		tstring ip;
 		tstring statusString;
 		tstring target;
+		tstring cipher;
 
 		void update(const UpdateInfo& ui);
 
@@ -235,6 +237,7 @@ private:
 				case COLUMN_PATH: return Util::getFilePath(target);
 				case COLUMN_IP: return ip;
 				case COLUMN_RATIO: return (status == STATUS_RUNNING) ? Util::toStringW(getRatio()) : Util::emptyStringT;
+				case COLUMN_CIPHER: return cipher;
 				default: return Util::emptyStringT;
 			}
 		}
@@ -266,7 +269,8 @@ private:
 			MASK_TIMELEFT		= 0x40,
 			MASK_IP				= 0x80,
 			MASK_STATUS_STRING	= 0x100,
-			MASK_SEGMENT		= 0x200
+			MASK_SEGMENT		= 0x200,
+			MASK_CIPHER			= 0x400
 		};
 
 		bool operator==(const ItemInfo& ii) const { return download == ii.download && user == ii.user; }
@@ -303,6 +307,8 @@ private:
 		tstring target;
 		void setIP(const tstring& aIP, uint8_t aFlagImage) { IP = aIP; flagImage = aFlagImage, updateMask |= MASK_IP; }
 		tstring IP;
+		void setCipher(const tstring& aCipher) { cipher = aCipher; updateMask |= MASK_CIPHER; }
+		tstring cipher;		
 
 	private:
 		QueueItem* queueItem;
@@ -334,6 +340,7 @@ private:
 	void on(ConnectionManagerListener::Removed, const ConnectionQueueItem* aCqi) throw();
 	void on(ConnectionManagerListener::StatusChanged, const ConnectionQueueItem* aCqi) throw();
 
+	void on(DownloadManagerListener::Requesting, const Download* aDownload) throw();	
 	void on(DownloadManagerListener::Complete, const Download* aDownload, bool isTree) throw() { onTransferComplete(aDownload, false, Util::getFileName(aDownload->getPath()), isTree);}
 	void on(DownloadManagerListener::Failed, const Download* aDownload, const string& aReason) throw();
 	void on(DownloadManagerListener::Starting, const Download* aDownload) throw();
@@ -351,7 +358,8 @@ private:
 	void on(SettingsManagerListener::Save, SimpleXML& /*xml*/) throw();
 
 	void onTransferComplete(const Transfer* aTransfer, bool isUpload, const string& aFileName, bool isTree);
-
+	void starting(UpdateInfo* ui, const Transfer* t);
+	
 	void CollapseAll();
 	void ExpandAll();
 
@@ -363,5 +371,5 @@ private:
 
 /**
  * @file
- * $Id: TransferView.h 386 2008-05-10 19:29:01Z BigMuscle $
+ * $Id: TransferView.h 403 2008-07-10 21:27:57Z BigMuscle $
  */

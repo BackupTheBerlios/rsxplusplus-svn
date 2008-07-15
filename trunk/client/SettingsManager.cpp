@@ -102,7 +102,7 @@ const string SettingsManager::settingTags[] =
 	"AutoUpdateIP", "MaxHashSpeed", "GetUserCountry", "DisableCZDiacritic",
 	"DebugCommands", "UseAutoPriorityByDefault", "UseOldSharingUI", "ShowDescriptionSpeed",
 	"FavShowJoins", "LogStatusMessages", "PMLogLines", "SearchAlternateColour", "SoundsDisabled",
-	"ReportFoundAlternates", "CheckNewUsers", "GarbageIn", "GarbageOut", 
+	"ReportFoundAlternates", "CheckNewUsers",
 	"SearchTime", "DontBeginSegment", "DontBeginSegmentSpeed", "PopunderPm", "PopunderFilelist",
 	"DropMultiSourceOnly", "DisplayCheatsInMainChat", "MagnetAsk", "MagnetAction", "MagnetRegister",
 	"DisconnectRaw", "TimeoutRaw", "FakeShareRaw", "ListLenMismatch", "FileListTooSmall", "FileListUnavailable",
@@ -378,8 +378,6 @@ SettingsManager::SettingsManager()
 
 	setDefault(SOUNDS_DISABLED, false);
 	setDefault(CHECK_NEW_USERS, false);
-	setDefault(GARBAGE_COMMAND_INCOMING, false);
-	setDefault(GARBAGE_COMMAND_OUTGOING, false);
 	setDefault(UPLOADQUEUEFRAME_SHOW_TREE, true);	
 	setDefault(DONT_BEGIN_SEGMENT, true);
 	setDefault(DONT_BEGIN_SEGMENT_SPEED, 512);
@@ -782,5 +780,5 @@ const string& SettingsManager::getString(const string& sname) const {
 
 /**
  * @file
- * $Id: SettingsManager.cpp 399 2008-07-06 19:48:02Z BigMuscle $
+ * $Id: SettingsManager.cpp 404 2008-07-13 17:08:09Z BigMuscle $
  */

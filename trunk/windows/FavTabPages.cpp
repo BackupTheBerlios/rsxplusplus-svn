@@ -86,7 +86,7 @@ LRESULT CFavTabOp::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 	::CheckDlgButton(*this, IDC_CHECK_ON_CONNECT, hub->getCheckOnConnect()	? BST_CHECKED : BST_UNCHECKED);
 	::CheckDlgButton(*this, IDC_CHECK_CLIENTS, hub->getCheckClients()		? BST_CHECKED : BST_UNCHECKED);
 	::CheckDlgButton(*this, IDC_CHECK_FILELISTS, hub->getCheckFilelists()	? BST_CHECKED : BST_UNCHECKED);
-	::CheckDlgButton(*this, IDC_CHECK_MYINFO, hub->getCheckMyInfo()			? BST_CHECKED : BST_UNCHECKED);
+	::CheckDlgButton(*this, IDC_CHECK_MYINFO, hub->getCheckUserInfo()		? BST_CHECKED : BST_UNCHECKED);
 	SetDlgItemText(IDC_CHECK_PROTECTED_USER, Text::toT(hub->getUserProtected()).c_str());
 	SetDlgItemText(IDC_FAV_MIN_USERS_LIMIT, Util::toStringW(hub->getUsersLimit()).c_str());
 
@@ -108,7 +108,7 @@ void CFavTabOp::prepareClose() {
 	hub->setCheckFilelists(RsxUtil::toBool(btn.GetCheck()));
 
 	btn = ::GetDlgItem(m_hWnd, IDC_CHECK_MYINFO);
-	hub->setCheckMyInfo(RsxUtil::toBool(btn.GetCheck()));
+	hub->setCheckUserInfo(RsxUtil::toBool(btn.GetCheck()));
 
 	TCHAR buf[512];
 	GetDlgItemText(IDC_FAV_MIN_USERS_LIMIT, buf, 128);

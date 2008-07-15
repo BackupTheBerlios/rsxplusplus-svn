@@ -28,13 +28,11 @@
 namespace dcpp {
 RawManager::RawManager() : lastAction(0) {
 	loadActionRaws(); 
-	TimerManager::getInstance()->addListener(this);
 	RSXSettingsManager::getInstance()->addListener(this);
 }
 
 RawManager::~RawManager() {
 	saveActionRaws();
-	TimerManager::getInstance()->removeListener(this);
 	RSXSettingsManager::getInstance()->removeListener(this);
 	for(Action::List::const_iterator i = action.begin(); i != action.end(); ++i) {
 		delete i->second;
@@ -114,7 +112,7 @@ int RawManager::addAction(int actionId, const string& name, bool actif) throw(Ex
 	if(name.empty())
 		throw Exception(STRING(NO_NAME_SPECIFIED));
 
-	Lock l(act);
+	Lock l(cs);
 	for(Action::List::const_iterator i = action.begin(); i != action.end(); ++i) {
 		if(i->second->getName() == name)
 			throw Exception(STRING(ACTION_EXISTS));
@@ -139,7 +137,7 @@ void RawManager::renameAction(const string& oName, const string& nName) throw(Ex
 	if(oName.empty() || nName.empty())
 		throw Exception(STRING(NO_NAME_SPECIFIED));
 
-	Lock l(act);
+	Lock l(cs);
 	for(Action::List::const_iterator i = action.begin(); i != action.end(); ++i) {
 		if(i->second->getName() == nName)
 			throw Exception(STRING(ACTION_EXISTS));
@@ -151,7 +149,7 @@ void RawManager::renameAction(const string& oName, const string& nName) throw(Ex
 }
 
 void RawManager::setActifAction(int id, bool actif) {
-	Lock l(act);
+	Lock l(cs);
 	Action::List::iterator i = action.find(id);
 	if(i == action.end())
 		return;
@@ -159,7 +157,7 @@ void RawManager::setActifAction(int id, bool actif) {
 }
 
 bool RawManager::getActifActionId(int actionId) {
-	Lock l(act);
+	Lock l(cs);
 	for(Action::List::const_iterator i = action.begin(); i != action.end(); ++i) {
 		if(i->second->getActionId() == actionId) {
 			return i->second->getActif();
@@ -169,7 +167,7 @@ bool RawManager::getActifActionId(int actionId) {
 }
 
 void RawManager::removeAction(int id) {
-	Lock l(act);
+	Lock l(cs);
 	Action::List::iterator i = action.find(id);
 	if(i == action.end())
 		return;
@@ -178,7 +176,7 @@ void RawManager::removeAction(int id) {
 }
 
 int RawManager::getValidAction(int actionId) {
-	Lock l(act);
+	Lock l(cs);
 	for(Action::List::const_iterator i = action.begin(); i != action.end(); ++i) {
 		if(i->second->getActionId() == actionId)
 			return i->second->getActionId();
@@ -187,7 +185,7 @@ int RawManager::getValidAction(int actionId) {
 }
 
 int RawManager::getActionId(int id) {
-	Lock l(act);
+	Lock l(cs);
 	Action::List::const_iterator i = action.find(id);
 	if(i == action.end())
 		return 0;
@@ -195,7 +193,7 @@ int RawManager::getActionId(int id) {
 }
 
 tstring RawManager::getNameActionId(int actionId) {
-	Lock l(act);
+	Lock l(cs);
 	for(Action::List::const_iterator i = action.begin(); i != action.end(); ++i) {
 		if(i->second->getActionId() == actionId)
 			return Text::toT(i->second->getName());
@@ -204,7 +202,7 @@ tstring RawManager::getNameActionId(int actionId) {
 }
 
 string RawManager::getRawCommand(int pos, int rawPos) {
-	Lock l(act);
+	Lock l(cs);
 	Action::List::const_iterator i = action.find(pos);
 	if(i == action.end())
 		return Util::emptyString;
@@ -216,7 +214,7 @@ string RawManager::getRawCommand(int pos, int rawPos) {
 }
 
 Action::RawsList RawManager::getRawList(int id) {
-	Lock l(act);
+	Lock l(cs);
 	Action::RawsList list;
 	Action::List::const_iterator i = action.find(id);
 	if(i != action.end()) {
@@ -226,7 +224,7 @@ Action::RawsList RawManager::getRawList(int id) {
 }
 
 Action::RawsList RawManager::getRawListActionId(int actionId) {
-	Lock l(act);
+	Lock l(cs);
 	Action::RawsList list;
 	for(Action::List::const_iterator i = action.begin(); i != action.end(); ++i) {
 		if(i->second->getActionId() == actionId) {
@@ -241,7 +239,7 @@ void RawManager::addRaw(int actionId, int rawId, const string& name, const strin
 	if(name.empty())
 		return;
 
-	Lock l(act);
+	Lock l(cs);
 	for(Action::List::const_iterator i = action.begin(); i != action.end(); ++i) {
 		if(i->second->getActionId() == actionId) {
 			for(Action::RawsList::const_iterator j = i->second->raw.begin(); j != i->second->raw.end(); ++j) {
@@ -267,7 +265,7 @@ Action::Raw RawManager::addRaw(int id, const string& name, const string& raw, in
 	if(name.empty())
 		throw Exception(STRING(NO_NAME_SPECIFIED));
 
-	Lock l(act);
+	Lock l(cs);
 	Action::List::const_iterator i = action.find(id);
 	if(i != action.end()) {
 		for(Action::RawsList::const_iterator j = i->second->raw.begin(); j != i->second->raw.end(); ++j) {
@@ -293,7 +291,7 @@ void RawManager::changeRaw(int id, const string& oName, const string& nName, con
 	if(oName.empty() || nName.empty())
 		throw Exception(STRING(NO_NAME_SPECIFIED));
 
-	Lock l(act);
+	Lock l(cs);
 	Action::List::const_iterator i = action.find(id);
 	if(i != action.end()) {
 		if(oName != nName) {
@@ -316,7 +314,7 @@ void RawManager::changeRaw(int id, const string& oName, const string& nName, con
 }
 
 void RawManager::getRawItem(int id, int idRaw, Action::Raw& ra, bool favHub/* = false*/) {
-	Lock l(act);
+	Lock l(cs);
 	Action::List::const_iterator i = action.find(id);
 	if(i == action.end())
 		return;
@@ -336,7 +334,7 @@ void RawManager::getRawItem(int id, int idRaw, Action::Raw& ra, bool favHub/* = 
 }
 
 void RawManager::setActifRaw(int id, int idRaw, bool actif) {
-	Lock l(act);
+	Lock l(cs);
 	Action::List::const_iterator i = action.find(id);
 	if(i == action.end())
 		return;
@@ -349,7 +347,7 @@ void RawManager::setActifRaw(int id, int idRaw, bool actif) {
 }
 
 void RawManager::removeRaw(int id, int idRaw) {
-	Lock l(act);
+	Lock l(cs);
 	Action::List::const_iterator i = action.find(id);
 	if(i == action.end())
 		return;
@@ -362,8 +360,8 @@ void RawManager::removeRaw(int id, int idRaw) {
 }
 
 bool RawManager::moveRaw(int id, int idRaw, int pos) {
-	dcassert(pos == -1 || pos == 1);
-	Lock l(act);
+	//dcassert(pos == -1 || pos == 1);
+	Lock l(cs);
 	Action::List::const_iterator i = action.find(id);
 	if(i == action.end())
 		return false;
@@ -377,26 +375,21 @@ bool RawManager::moveRaw(int id, int idRaw, int pos) {
 	return false;
 }
 
-void RawManager::on(TimerManagerListener::Second, uint64_t aTick) throw() {
-	for(ListRaw::iterator i = raw.begin(); i != raw.end(); ++i) {
-		if(aTick >= i->first) {
-			if(i->second.client) {
-				if(i->second.lua) {
-					ScriptManager::getInstance()->onRaw(i->second.rawName, i->second.raw, i->second.client);
-				} else {
-					i->second.client->insertRaw(i->second.raw);
-				}
-			}
-			raw.erase(i);
-		}
-	}
-}
-
 void RawManager::on(RSXSettingsManagerListener::Load, SimpleXML& xml) throw() {
 	if(xml.findChild("ADLSPoints")) {
 		xml.stepIn();
 		while(xml.findChild("PointsSetting")) {
-			addADLPoints(xml.getIntChildAttrib("Points"), xml.getIntChildAttrib("Action"), xml.getBoolChildAttrib("DisplayCheat"));
+			int _points = xml.getIntChildAttrib("Points");
+			if(_points <= 0)
+				continue;
+
+			Lock l(cs);
+			ADLPoints::iterator i = points.find(_points);
+			if(i != points.end())
+				continue;
+			int _action = xml.getIntChildAttrib("Action");
+			bool _display = xml.getBoolChildAttrib("DisplayCheat");
+			points.insert(make_pair(_points, make_pair(_action, _display)));
 		}
 		xml.stepOut();
 	}
@@ -413,6 +406,16 @@ void RawManager::on(RSXSettingsManagerListener::Save, SimpleXML& xml) throw() {
 	}
 	xml.stepOut();
 }
+
+void RawManager::calcADLAction(int aPoints, int& a, bool& d) {
+	Lock l(cs);
+	ADLPoints::const_iterator i = points.upper_bound(aPoints);
+	if(i != points.end()) {
+		a = i->second.first;
+		d = i->second.second;
+	}
+}
+
 //Raw Selector class
 void RawSelector::createList() {
 	Action::List lst = RawManager::getInstance()->getActionList();

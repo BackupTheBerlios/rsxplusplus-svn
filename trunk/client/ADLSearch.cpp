@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (C) 2001-2007 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -80,9 +80,6 @@ void ADLSearchManager::Load()
 						search.isForbidden = (Util::toInt(xml.getChildData()) != 0);
 					}
 					//RSX++
-					if(xml.findChild("IsRegExp")) {
-						search.isRegExp = (Util::toInt(xml.getChildData()) != 0);
-					}
 					if(xml.findChild("OverRidePoints")) {
 						search.overRidePoints = (Util::toInt(xml.getChildData()) != 0);
 					}
@@ -178,9 +175,6 @@ void ADLSearchManager::Save()
 			xml.addChildAttrib(type, string("int"));
 			//RSX++
 			xml.addTag("IsForbidden", search.isForbidden);
-			xml.addChildAttrib(type, string("int"));
-
-			xml.addTag("IsRegExp", search.isRegExp);
 			xml.addChildAttrib(type, string("int"));
 
 			xml.addTag("OverRidePoints", search.overRidePoints);
@@ -409,5 +403,5 @@ void ADLSearchManager::matchRecurse(DestDirList &aDestList, DirectoryListing::Di
 
 /**
  * @file
- * $Id: ADLSearch.cpp 399 2008-07-06 19:48:02Z BigMuscle $
+ * $Id: ADLSearch.cpp 403 2008-07-10 21:27:57Z BigMuscle $
  */

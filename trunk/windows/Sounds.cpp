@@ -31,6 +31,7 @@ PropPage::TextItem Sounds::texts[] = {
 	{ IDC_CZDC_PM_SOUND, ResourceManager::SETCZDC_PRIVATE_SOUND },
 	{ IDC_BROWSE, ResourceManager::BROWSE },	
 	{ IDC_PLAY, ResourceManager::PLAY },
+	{ IDC_NONE, ResourceManager::NONE },
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
 
@@ -141,6 +142,6 @@ LRESULT Sounds::onPlay(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOO
 }
 /**
  * @file
- * $Id: Sounds.cpp 373 2008-02-06 17:23:49Z bigmuscle $
+ * $Id: Sounds.cpp 403 2008-07-10 21:27:57Z BigMuscle $
  */
 

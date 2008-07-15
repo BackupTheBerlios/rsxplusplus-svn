@@ -51,8 +51,6 @@ AdvancedPage::ListItem AdvancedPage::listItems[] = {
 	{ SettingsManager::ADD_FINISHED_INSTANTLY, ResourceManager::ADD_FINISHED_INSTANTLY },
 	{ SettingsManager::USE_CTRL_FOR_LINE_HISTORY, ResourceManager::SETTINGS_USE_CTRL_FOR_LINE_HISTORY },
 	{ SettingsManager::DEBUG_COMMANDS, ResourceManager::SETTINGS_DEBUG_COMMANDS },
-	{ SettingsManager::GARBAGE_COMMAND_INCOMING, ResourceManager::GARBAGE_INCOMING },
-	{ SettingsManager::GARBAGE_COMMAND_OUTGOING, ResourceManager::GARBAGE_OUTGOING },
 	{ SettingsManager::WEBSERVER, ResourceManager::SETTINGS_WEBSERVER }, 
 	{ SettingsManager::DONT_ANNOUNCE_NEW_VERSIONS, ResourceManager::SETTINGS_DISPLAY_DC_UPDATE },
 	{ SettingsManager::FILTER_ENTER, ResourceManager::SETTINGS_FILTER_ENTER },
@@ -76,5 +74,5 @@ void AdvancedPage::write() {
 
 /**
  * @file
- * $Id: AdvancedPage.cpp 399 2008-07-06 19:48:02Z BigMuscle $
+ * $Id: AdvancedPage.cpp 404 2008-07-13 17:08:09Z BigMuscle $
  */

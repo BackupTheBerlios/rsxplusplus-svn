@@ -19,8 +19,8 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(SolutionDir)vc7\$(ConfigurationName)\$(ProjectName)"
-			IntermediateDirectory="$(SolutionDir)vc7\$(ConfigurationName)\$(ProjectName)"
+			OutputDirectory="$(SolutionDir)vc_dump\$(PlatformName)\$(ConfigurationName)\$(ProjectName)"
+			IntermediateDirectory="$(SolutionDir)vc_dump\$(PlatformName)\$(ConfigurationName)\$(ProjectName)"
 			ConfigurationType="1"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
@@ -231,8 +231,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="$(SolutionDir)vc7\$(ConfigurationName)\$(ProjectName)"
-			IntermediateDirectory="$(SolutionDir)vc7\$(ConfigurationName)\$(ProjectName)"
+			OutputDirectory="$(SolutionDir)vc_dump\$(PlatformName)\$(ConfigurationName)\$(ProjectName)"
+			IntermediateDirectory="$(SolutionDir)vc_dump\$(PlatformName)\$(ConfigurationName)\$(ProjectName)"
 			ConfigurationType="1"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
@@ -483,8 +483,8 @@
 		</Configuration>
 		<Configuration
 			Name="SvnRelease|Win32"
-			OutputDirectory="$(SolutionDir)vc7\$(ConfigurationName)\$(ProjectName)"
-			IntermediateDirectory="$(SolutionDir)vc7\$(ConfigurationName)\$(ProjectName)"
+			OutputDirectory="$(SolutionDir)vc_dump\$(PlatformName)\$(ConfigurationName)\$(ProjectName)"
+			IntermediateDirectory="$(SolutionDir)vc_dump\$(PlatformName)\$(ConfigurationName)\$(ProjectName)"
 			ConfigurationType="1"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
@@ -1356,6 +1356,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\windows\ScriptsList.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\windows\SDCPage.cpp"
 				>
 			</File>
@@ -1838,6 +1842,10 @@
 			</File>
 			<File
 				RelativePath=".\windows\RSX-Page.h"
+				>
+			</File>
+			<File
+				RelativePath=".\windows\ScriptsList.h"
 				>
 			</File>
 			<File

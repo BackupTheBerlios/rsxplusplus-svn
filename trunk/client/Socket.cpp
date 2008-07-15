@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2001-2007 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -76,7 +76,7 @@ void Socket::create(uint8_t aType /* = TYPE_TCP */) throw(SocketException) {
 		dcasserta(0);
 	}
 	type = aType;
-	setBlocking(true);
+	setBlocking(false);
 }
 
 void Socket::accept(const Socket& listeningSocket) throw(SocketException) {
@@ -100,7 +100,7 @@ void Socket::accept(const Socket& listeningSocket) throw(SocketException) {
 
 	setIp(inet_ntoa(sock_addr.sin_addr));
 	connected = true;
-	setBlocking(true);
+	setBlocking(false);
 }
 
 
@@ -168,9 +168,6 @@ void Socket::socksConnect(const string& aAddr, uint16_t aPort, uint32_t timeout)
 		throw SocketException(STRING(SOCKS_FAILED));
 	}
 
-	bool oldblock = getBlocking();
-	setBlocking(false);
-
 	uint64_t start = GET_TICK();
 
 	connect(SETTING(SOCKS_SERVER), static_cast<uint16_t>(SETTING(SOCKS_PORT)));
@@ -221,9 +218,6 @@ void Socket::socksConnect(const string& aAddr, uint16_t aPort, uint32_t timeout)
 	memzero(&sock_addr, sizeof(sock_addr));
 	sock_addr.s_addr = *((unsigned long*)&connStr[4]);
 	setIp(inet_ntoa(sock_addr));
-
-	if(oldblock)
-		setBlocking(oldblock);
 }
 
 void Socket::socksAuth(uint64_t timeout) throw(SocketException) {
@@ -539,6 +533,15 @@ int Socket::wait(uint64_t millis, int waitFor) throw(SocketException) {
 	return waitFor;
 }
 
+bool Socket::waitConnected(uint64_t millis) {
+	return wait(millis, Socket::WAIT_CONNECT) == WAIT_CONNECT;
+}
+
+bool Socket::waitAccepted(uint64_t millis) {
+	// Normal sockets are always connected after a call to accept
+	return true;
+}
+
 string Socket::resolve(const string& aDns) {
 	sockaddr_in sock_addr;
 
@@ -657,5 +660,5 @@ string Socket::getRemoteHost(const string& aIp) {
 
 /**
  * @file
- * $Id: Socket.cpp 399 2008-07-06 19:48:02Z BigMuscle $
+ * $Id: Socket.cpp 404 2008-07-13 17:08:09Z BigMuscle $
  */

@@ -26,6 +26,9 @@ class Exception : public std::exception
 public:
 	Exception() { }
 	Exception(const string& aError) throw() : error(aError) { dcdrun(if(error.size()>0)) dcdebug("Thrown: %s\n", error.c_str()); }
+	
+	virtual const char* what() const throw() { return getError().c_str(); }
+	
 	virtual ~Exception() throw() { }
 	virtual const string& getError() const throw() { return error; }
 protected:
@@ -57,5 +60,5 @@ public:\
 
 /**
  * @file
- * $Id: Exception.h 389 2008-06-08 10:51:15Z BigMuscle $
+ * $Id: Exception.h 403 2008-07-10 21:27:57Z BigMuscle $
  */

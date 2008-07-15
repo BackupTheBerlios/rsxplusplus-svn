@@ -134,7 +134,7 @@ LRESULT HubFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 	ctrlClient.LimitText(0);
 	ctrlClient.SetFont(WinUtil::font);
 	clientContainer.SubclassWindow(ctrlClient.m_hWnd);
-
+	
 	ctrlClient.SetAutoURLDetect(false);
 	ctrlClient.SetEventMask(ctrlClient.GetEventMask() | ENM_LINK);
 	ctrlClient.setClient(client);
@@ -195,7 +195,7 @@ LRESULT HubFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 		int fmt = (j == OnlineUser::COLUMN_SHARED || j == OnlineUser::COLUMN_EXACT_SHARED || j == OnlineUser::COLUMN_SLOTS) ? LVCFMT_RIGHT : LVCFMT_LEFT;
 		ctrlUsers.InsertColumn(j, CTSTRING_I(columnNames[j]), fmt, columnSizes[j], j);
 	}
-
+	
 	ctrlUsers.setColumnOrderArray(OnlineUser::COLUMN_LAST, columnIndexes);
 
 	if(fhe) {
@@ -354,7 +354,7 @@ void HubFrame::onEnter() {
 				removeFavoriteHub();
 			} else if(stricmp(cmd.c_str(), _T("getlist")) == 0){
 				if( !param.empty() ){
-					OnlineUser* ui = client->findUser(Text::fromT(param));
+					OnlineUserPtr ui = client->findUser(Text::fromT(param));
 					if(ui) {
 						ui->getList();
 					}
@@ -415,7 +415,7 @@ void HubFrame::onEnter() {
 				string::size_type j = param.find(_T(' '));
 				if(j != string::npos) {
 					tstring nick = param.substr(0, j);
-					const OnlineUser* ui = client->findUser(Text::fromT(nick));
+					const OnlineUserPtr ui = client->findUser(Text::fromT(nick));
 
 					if(ui) {
 						if(param.size() > j + 1)
@@ -424,7 +424,7 @@ void HubFrame::onEnter() {
 							PrivateFrame::openWindow(ui->getUser(), client);
 					}
 				} else if(!param.empty()) {
-					const OnlineUser* ui = client->findUser(Text::fromT(param));
+					const OnlineUserPtr ui = client->findUser(Text::fromT(param));
 					if(ui) {
 						PrivateFrame::openWindow(ui->getUser(), client);
 					}
@@ -442,7 +442,7 @@ void HubFrame::onEnter() {
 				if(!detectorMsg.empty())
 					addClientLine(detectorMsg, WinUtil::m_ChatTextSystem);
 			} else if((stricmp(cmd.c_str(), _T("hubrefresh")) == 0) || (stricmp(cmd.c_str(), _T("hr")) == 0)) {
-					const FavoriteHubEntry::List& fh = FavoriteManager::getInstance()->getFavoriteHubs();
+					/*const FavoriteHubEntry::List& fh = FavoriteManager::getInstance()->getFavoriteHubs();
 					for(FavoriteHubEntry::List::const_iterator i = fh.begin(); i != fh.end(); ++i) {
 						if((*i)->getServer().compare(Text::fromT(server)) == 0) {
 							client->setCurrentNick((*i)->getNick());
@@ -461,24 +461,29 @@ void HubFrame::onEnter() {
 							addClientLine(_T("The properties of the hub were updated"), WinUtil::m_ChatTextSystem);
 							ClientManager::getInstance()->infoUpdated();
 						}
-					}
+					}*/
 			} else if((stricmp(cmd.c_str(), _T("hubsetting")) == 0) || (stricmp(cmd.c_str(), _T("hs")) == 0)) {
 				string tmp = "Hub Settings:"; 
-				tmp += "\r\n-]> My Nick: \t\t\t" +						client->getCurrentNick();
-				tmp += "\r\n-]> My Description: \t\t" +					client->getCurrentDescription();
-				tmp += "\r\n-]> My Email: \t\t" +						client->getCurrentEmail();
-				tmp += "\r\n-]> Emulation: \t\t" +						client->getStealth() ? "Enable" : "Disable";
-				tmp += "\r\n-]> Filter: \t\t" +							client->getUseFilter() ? "Enable" : "Disable";
-				tmp += "\r\n-]> Highlights:\t\t" +						client->getUseHL() ? "Enable" : "Disable";
+				tmp += "\n-]> My Nick: \t\t\t" +						client->getCurrentNick();
+				tmp += "\n-]> My Email: \t\t\t" +						client->getCurrentEmail();
+				tmp += "\n-]> My Description: \t\t\t" +					client->getCurrentDescription();
+				tmp += "\n-]> Emulation: \t\t\t" +						(client->getStealth() ? static_cast<const string>("Enabled") : static_cast<const string>("Disabled"));
+				tmp += "\n-]> Filter: \t\t\t\t" +						(client->getUseFilter() ? static_cast<const string>("Enabled") : static_cast<const string>("Disabled"));
+				tmp += "\n-]> Highlights:\t\t\t" +						(client->getUseHL() ? static_cast<const string>("Enabled") : static_cast<const string>("Disabled"));
 				if(client->isOp()) {
-					tmp += "\r\n\r\n-]> Detector settings:";
-					tmp += "\r\n-]> Check on connect: \t\t" +			Text::fromT(WinUtil::toYesNo(client->getCheckOnConnect()));
-					tmp += "\r\n-]> Check clients: \t\t" +				Text::fromT(WinUtil::toYesNo(client->getCheckClients()));
-					tmp += "\r\n-]> Check filelists: \t\t" +			Text::fromT(WinUtil::toYesNo(client->getCheckFilelists()));
-					tmp += "\r\n-]> Check $MyInfo: \t\t" +				Text::fromT(WinUtil::toYesNo(client->getCheckMyInfo()));
-					tmp += "\r\n-]> Check Fake Share: \t\t" +			Text::fromT(WinUtil::toYesNo(client->getCheckClients()));
-					tmp += "\r\n-]> Protected Users(RegEx): \t" +		client->getUserProtected();
+					tmp += "\n\n-]> Detector settings:";
+					tmp += "\n-]> Check on connect: \t\t" +				Text::fromT(WinUtil::toYesNo(client->getCheckOnConnect()));
+					tmp += "\n-]> Check clients: \t\t\t" +				Text::fromT(WinUtil::toYesNo(client->getCheckClients()));
+					tmp += "\n-]> Check filelists: \t\t\t" +			Text::fromT(WinUtil::toYesNo(client->getCheckFilelists()));
+					tmp += "\n-]> Check $MyInfo: \t\t\t" +				Text::fromT(WinUtil::toYesNo(client->getCheckMyInfo()));
+					tmp += "\n-]> Protected Users(RegEx): \t\t" +		client->getUserProtected();
 				}
+				tmp += "\n\n Hub Setting Fields:";
+				const HubSettings::SettingsMap& s = client->getSettings();
+				for(HubSettings::SettingsMap::const_iterator i = s.begin(); i != s.end(); ++i) {
+					tmp += "\n-]> Field: " + string((const char*)&i->first, 4) + "\t\t\tValue: " + i->second;
+				}
+				tmp += "\n";
 				addLine(Text::toT(tmp));
 			} else if((stricmp(cmd.c_str(), _T("hubsstats")) == 0)) {
 				addLine(ClientManager::getInstance()->getHubsLoadInfo());
@@ -534,16 +539,16 @@ void HubFrame::addAsFavorite() {
 		}
 		aEntry.setConnect(false);
 		//RSX++
-		aEntry.setCheckOnConnect(false);
-		aEntry.setCheckClients(false);
-		aEntry.setCheckFilelists(false);
-		aEntry.setCheckMyInfo(false);
-		aEntry.setHideShare(false);
-		aEntry.setUseFilter(false);
-		aEntry.setUserProtected(Util::emptyString);
-		aEntry.setFavEmail(client->getCurrentEmail());
-		aEntry.setAutosearch(client->getUseAutosearch());
-		aEntry.setUseHL(client->getUseHL());
+		//aEntry.setCheckOnConnect(false);
+		//aEntry.setCheckClients(false);
+		//aEntry.setCheckFilelists(false);
+		//aEntry.setCheckMyInfo(false);
+		//aEntry.setHideShare(false);
+		//aEntry.setUseFilter(false);
+		//aEntry.setUserProtected(Util::emptyString);
+		//aEntry.setFavEmail(client->getCurrentEmail());
+		//aEntry.setAutosearch(client->getUseAutosearch());
+		//aEntry.setUseHL(client->getUseHL());
 		//END
 		FavoriteManager::getInstance()->addFavorite(aEntry);
 		addClientLine(TSTRING(FAVORITE_HUB_ADDED), WinUtil::m_ChatTextSystem );
@@ -586,7 +591,7 @@ LRESULT HubFrame::onCopyUserInfo(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*
 
 	int sel = -1;
 	while((sel = ctrlUsers.GetNextItem(sel, LVNI_SELECTED)) != -1) {
-		const OnlineUser* ou = ctrlUsers.getItemData(sel);
+		const OnlineUserPtr ou = ctrlUsers.getItemData(sel);
 	
 		if(!sCopy.empty())
 			sCopy += _T("\r\n");
@@ -656,14 +661,14 @@ bool HubFrame::updateUser(const UserTask& u) {
 
 		if(!u.onlineUser->isHidden()) {
 			u.onlineUser->inc();
-			ctrlUsers.insertItem(u.onlineUser, UserInfoBase::getImage(u.onlineUser->getIdentity()));
+			ctrlUsers.insertItem(u.onlineUser.get(), UserInfoBase::getImage(u.onlineUser->getIdentity(), client));
 		}
 
 		if(!filter.empty())
 			updateUserList(u.onlineUser);
 		return true;
 	} else {
-		int pos = ctrlUsers.findItem(u.onlineUser);
+		int pos = ctrlUsers.findItem(u.onlineUser.get());
 
 		if(pos != -1) {
 			TCHAR buf[255];
@@ -675,7 +680,7 @@ bool HubFrame::updateUser(const UserTask& u) {
 				u.onlineUser->dec();				
 			} else {
 				ctrlUsers.updateItem(pos);
-				ctrlUsers.SetItem(pos, 0, LVIF_IMAGE, NULL, UserInfoBase::getImage(u.onlineUser->getIdentity()), 0, 0, NULL);
+				ctrlUsers.SetItem(pos, 0, LVIF_IMAGE, NULL, UserInfoBase::getImage(u.onlineUser->getIdentity(), client), 0, 0, NULL);
 			}
 		}
 
@@ -685,11 +690,11 @@ bool HubFrame::updateUser(const UserTask& u) {
 	}
 }
 
-void HubFrame::removeUser(OnlineUser* aUser) {
+void HubFrame::removeUser(const OnlineUserPtr& aUser) {
 	if(!showUsers) return;
 	
 	if(!aUser->isHidden()) {
-		int i = ctrlUsers.findItem(aUser);
+		int i = ctrlUsers.findItem(aUser.get());
 		if(i != -1) {
 			ctrlUsers.DeleteItem(i);
 			aUser->dec();
@@ -1146,7 +1151,7 @@ LRESULT HubFrame::onLButton(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& b
 
 			// Nickname click, let's see if we can find one like it in the name list...
 			tstring nick = x.substr(start, end - start);
-			OnlineUser* ui = client->findUser(Text::fromT(nick));
+			OnlineUserPtr ui = client->findUser(Text::fromT(nick));
 			if(ui) {
 				bHandled = true;
 				if (wParam & MK_CONTROL) { // MK_CONTROL = 0x0008
@@ -1362,7 +1367,7 @@ void HubFrame::runUserCommand(::UserCommand& uc) {
 	} else {
 		int sel = -1;
 		while((sel = ctrlUsers.GetNextItem(sel, LVNI_SELECTED)) != -1) {
-			const OnlineUser* u = ctrlUsers.getItemData(sel);
+			const OnlineUserPtr u = ctrlUsers.getItemData(sel);
 			if(u->getUser()->isOnline()) {
 				StringMap tmp = ucParams;
 				u->getIdentity().getParams(tmp, "user", true);
@@ -1419,7 +1424,7 @@ void HubFrame::onTab() {
 		if(!firstPass)
 			i = 0;
 		while(firstPass || (!firstPass && i < start)) {
-			const OnlineUser* ui = ctrlUsers.getItemData(i);
+			const OnlineUserPtr ui = ctrlUsers.getItemData(i);
 			const tstring& nick = ui->getText(OnlineUser::COLUMN_NICK);
 			bool found = (strnicmp(nick, complete, complete.length()) == 0);
 			tstring::size_type x = 0;
@@ -1766,17 +1771,17 @@ void HubFrame::on(Connecting, const Client*) throw() {
 void HubFrame::on(Connected, const Client*) throw() { 
 	speak(CONNECTED);
 }
-void HubFrame::on(UserUpdated, const Client*, const OnlineUser& user) throw() {
+void HubFrame::on(UserUpdated, const Client*, const OnlineUserPtr& user) throw() {
 	speak(UPDATE_USER_JOIN, user);
 }
-void HubFrame::on(UsersUpdated, const Client*, const OnlineUser::List& aList) throw() {
-	for(OnlineUser::List::const_iterator i = aList.begin(); i != aList.end(); ++i) {
-		tasks.add(UPDATE_USER, new UserTask(*(*i)));
+void HubFrame::on(UsersUpdated, const Client*, const OnlineUserList& aList) throw() {
+	for(OnlineUserList::const_iterator i = aList.begin(); i != aList.end(); ++i) {
+		tasks.add(UPDATE_USER, new UserTask(*i));
 	}
 	updateUsers = true;
 }
 
-void HubFrame::on(ClientListener::UserRemoved, const Client*, const OnlineUser& user) throw() {
+void HubFrame::on(ClientListener::UserRemoved, const Client*, const OnlineUserPtr& user) throw() {
 	speak(REMOVE_USER, user);
 }
 
@@ -1819,7 +1824,7 @@ void HubFrame::on(Message, const Client*, const OnlineUser& from, const string& 
 }	
 
 void HubFrame::on(StatusMessage, const Client*, const string& line, int statusFlags) {
-	if(SETTING(FILTER_MESSAGES) && (statusFlags & ClientListener::FLAG_IS_SPAM)) {
+	if(statusFlags & ClientListener::FLAG_IS_SPAM) {
 		speak(KICK_MSG, Identity(NULL, 0), Text::toDOS(line));
 	} else {
 		speak(ADD_CHAT_LINE, Identity(NULL, 0), Text::toDOS(line));
@@ -1947,7 +1952,7 @@ bool HubFrame::parseFilter(FilterModes& mode, int64_t& size) {
 	return true;
 }
 
-void HubFrame::updateUserList(OnlineUser* ui) {
+void HubFrame::updateUserList(OnlineUserPtr ui) {
 	int64_t size = -1;
 	FilterModes mode = NONE;
 	
@@ -1959,21 +1964,21 @@ void HubFrame::updateUserList(OnlineUser* ui) {
 			return;
 		}
 		if(filter.empty()) {
-			if(ctrlUsers.findItem(ui) == -1) {
+			if(ctrlUsers.findItem(ui.get()) == -1) {
 				ui->inc();
-				ctrlUsers.insertItem(ui, UserInfoBase::getImage(ui->getIdentity()));
+				ctrlUsers.insertItem(ui.get(), UserInfoBase::getImage(ui->getIdentity(), client));
 			}
 		} else {
 			int sel = ctrlFilterSel.GetCurSel();
 			bool doSizeCompare = sel == OnlineUser::COLUMN_SHARED && parseFilter(mode, size);
 
 			if(matchFilter(*ui, sel, doSizeCompare, mode, size)) {
-				if(ctrlUsers.findItem(ui) == -1) {
+				if(ctrlUsers.findItem(ui.get()) == -1) {
 					ui->inc();
-					ctrlUsers.insertItem(ui, UserInfoBase::getImage(ui->getIdentity()));
+					ctrlUsers.insertItem(ui.get(), UserInfoBase::getImage(ui->getIdentity(), client));
 				}
 			} else {
-				int i = ctrlUsers.findItem(ui);
+				int i = ctrlUsers.findItem(ui.get());
 				if(i != -1) {
 					ctrlUsers.DeleteItem(i);
 					ui->dec();
@@ -1984,30 +1989,27 @@ void HubFrame::updateUserList(OnlineUser* ui) {
 		ctrlUsers.SetRedraw(FALSE);
 		clearUserList();
 
-		OnlineUser::List l;
+		OnlineUserList l;
 		client->getUserList(l);
 
 		if(filter.empty()) {
-			for(OnlineUser::Iter i = l.begin(); i != l.end(); ++i){
-				OnlineUser* ui = *i;
+			for(OnlineUserList::const_iterator i = l.begin(); i != l.end(); ++i){
+				const OnlineUserPtr& ui = *i;
 				if(!ui->isHidden()) {
 					ui->inc();
-					ctrlUsers.insertItem(ui, UserInfoBase::getImage(ui->getIdentity()));
+					ctrlUsers.insertItem(ui.get(), UserInfoBase::getImage(ui->getIdentity(), client));
 				}
-					
-				ui->dec();	
 			}
 		} else {
 			int sel = ctrlFilterSel.GetCurSel();
 			bool doSizeCompare = sel == OnlineUser::COLUMN_SHARED && parseFilter(mode, size);
 
-			for(OnlineUser::Iter i = l.begin(); i != l.end(); ++i) {
-				OnlineUser* ui = *i;
+			for(OnlineUserList::const_iterator i = l.begin(); i != l.end(); ++i) {
+				const OnlineUserPtr& ui = *i;
 				if(!ui->isHidden() && matchFilter(*ui, sel, doSizeCompare, mode, size)) {
 					ui->inc();
-					ctrlUsers.insertItem(ui, UserInfoBase::getImage(ui->getIdentity()));
+					ctrlUsers.insertItem(ui.get(), UserInfoBase::getImage(ui->getIdentity(), client));
 				}
-				ui->dec();
 			}
 		}
 		ctrlUsers.SetRedraw(TRUE);
@@ -2137,7 +2139,7 @@ bool HubFrame::PreparePopupMenu(CWindow* /*pCtrl*/, OMenu& menu ) {
 		menu.AppendMenu(MF_SEPARATOR);
 
 		if(count == 1) {
-			const OnlineUser* ou = ctrlUsers.getItemData(ctrlUsers.GetNextItem(-1, LVNI_SELECTED));
+			const OnlineUserPtr ou = ctrlUsers.getItemData(ctrlUsers.GetNextItem(-1, LVNI_SELECTED));
 			if (client->isOp() || !ou->getIdentity().isOp()) {
 				if(ignoreList.find(ou->getUser()) == ignoreList.end()) {
 					menu.AppendMenu(MF_STRING, IDC_IGNORE, CTSTRING(IGNORE_USER));
@@ -2250,7 +2252,7 @@ LRESULT HubFrame::onPublicMessage(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 
 LRESULT HubFrame::onOpenUserLog(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {	
 	StringMap params;
-	OnlineUser* ui = NULL;
+	OnlineUserPtr ui = NULL;
 
 	int i = -1;
 	if((i = ctrlUsers.GetNextItem(i, LVNI_SELECTED)) != -1) {
@@ -2341,7 +2343,7 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
 				cd->clrText = SETTING(FIREBALL_COLOR);
 			} else if(ui->getIdentity().getStatus() & Identity::SERVER) {
 				cd->clrText = SETTING(SERVER_COLOR);
-			} else if(!ui->getIdentity().isTcpActive()) {
+			} else if(!ui->getIdentity().isTcpActive(client)) {
 				cd->clrText = SETTING(PASIVE_COLOR);
 			} else {
 				cd->clrText = SETTING(NORMAL_COLOUR);
@@ -2451,5 +2453,5 @@ void HubFrame::displayCheat(const tstring& aMessage) {
 
 /**
  * @file
- * $Id: HubFrame.cpp 399 2008-07-06 19:48:02Z BigMuscle $
+ * $Id: HubFrame.cpp 406 2008-07-14 20:25:22Z BigMuscle $
  */

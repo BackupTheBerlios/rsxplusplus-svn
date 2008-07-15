@@ -74,6 +74,10 @@ QueueItem* QueueManager::FileQueue::add(const string& aTarget, int64_t aSize,
 		
 		if(!aTempTarget.empty()) {
 			qi->setTempTarget(aTempTarget);
+			if(!Util::fileExists(aTempTarget) && Util::fileExists(aTempTarget + ".antifrag")) {
+				// load old antifrag file
+				File::renameFile(aTempTarget + ".antifrag", qi->getTempTarget());
+	        }
 		}
 		
 		if(p == QueueItem::DEFAULT) {
@@ -935,31 +939,6 @@ Download* QueueManager::getDownload(UserConnection& aSource, string& aMessage) t
 		return 0;
 	}
 
-	// Check that the file we will be downloading to exists
-	if(q->getDownloadedBytes() > 0) {
-		int64_t tempSize = File::getSize(q->getTempTarget());
-		if(tempSize != q->getSize()) {
-			// <= 0.706 added ".antifrag" to temporary download files if antifrag was enabled...
-			// 0.705 added ".antifrag" even if antifrag was disabled
-			std::string antifrag = q->getTempTarget() + ".antifrag";
-			if(File::getSize(antifrag) > 0) {
-				File::renameFile(antifrag, q->getTempTarget());
-				tempSize = File::getSize(q->getTempTarget());	
-			}	
-			if(tempSize != q->getSize()) {
-				if(tempSize > 0 && tempSize < q->getSize()) {
-					// Probably started with <=0.699 or with 0.705 without antifrag enabled...
-					try {
-						File(q->getTempTarget(), File::WRITE, File::OPEN).setSize(q->getSize()); 
-					} catch(const FileException&) { }		
-				} else {
-					// Temp target gone?
-					q->resetDownloaded();
-				}
-			}
-		}
-	}
-
 	Download* d = new Download(aSource, *q);
 	
 	userQueue.addDownload(q, d);	
@@ -1039,15 +1018,7 @@ void QueueManager::setFile(Download* d) {
 		}
 		
 		string target = d->getDownloadTarget();
-		
-		if(d->getSegment().getStart() > 0) {
-			if(File::getSize(target) != qi->getSize()) {
-				// When trying the download the next time, the resume pos will be reset
-				throw QueueException("Target file is missing or wrong size");
-			}
-		} else {
-			File::ensureDirectory(target);
-		}
+		File::ensureDirectory(target);
 
 		File* f = new File(target, File::WRITE, File::OPEN | File::CREATE | File::SHARED);
 
@@ -1917,12 +1888,9 @@ bool QueueManager::handlePartialResult(const UserPtr& aUser, const TTHValue& tth
 				si = qi->getSource(aUser);
 				si->setFlag(QueueItem::Source::FLAG_PARTIAL);
 
-				if(partialSource.getUdpPort() > 0) {
-					// no worth to save partial sources without udp port
-					QueueItem::PartialSource* ps = new QueueItem::PartialSource(partialSource.getMyNick(),
-						partialSource.getHubIpPort(), partialSource.getIp(), partialSource.getUdpPort());
-					si->setPartialSource(ps);
-				}
+				QueueItem::PartialSource* ps = new QueueItem::PartialSource(partialSource.getMyNick(),
+					partialSource.getHubIpPort(), partialSource.getIp(), partialSource.getUdpPort());
+				si->setPartialSource(ps);
 
 				userQueue.add(qi, aUser);
 				dcassert(si != qi->getSources().end());
@@ -1986,7 +1954,7 @@ void QueueManager::FileQueue::findPFSSources(PFSSourceList& sl)
 
 		for(QueueItem::SourceConstIter j = sources.begin(); j != sources.end(); ++j) {
 			if(	(*j).isSet(QueueItem::Source::FLAG_PARTIAL) && (*j).getPartialSource()->getNextQueryTime() <= now &&
-				(*j).getPartialSource()->getPendingQueryCount() < 10)
+				(*j).getPartialSource()->getPendingQueryCount() < 10 && (*j).getPartialSource()->getUdpPort() > 0)
 			{
 				buffer.insert(make_pair((*j).getPartialSource()->getNextQueryTime(), make_pair(j, q)));
 			}
@@ -1994,7 +1962,8 @@ void QueueManager::FileQueue::findPFSSources(PFSSourceList& sl)
 
 		for(QueueItem::SourceConstIter j = badSources.begin(); j != badSources.end(); ++j) {
 			if(	(*j).isSet(QueueItem::Source::FLAG_TTH_INCONSISTENCY) == false && (*j).isSet(QueueItem::Source::FLAG_PARTIAL) &&
-				(*j).getPartialSource()->getNextQueryTime() <= now && (*j).getPartialSource()->getPendingQueryCount() < 10 )
+				(*j).getPartialSource()->getNextQueryTime() <= now && (*j).getPartialSource()->getPendingQueryCount() < 10 &&
+				(*j).getPartialSource()->getUdpPort() > 0)
 			{
 				buffer.insert(make_pair((*j).getPartialSource()->getNextQueryTime(), make_pair(j, q)));
 			}
@@ -2009,10 +1978,19 @@ void QueueManager::FileQueue::findPFSSources(PFSSourceList& sl)
 		sl.push_back(i->second);
 	}
 }
+//RSX++
+string QueueManager::addFileListCheck(UserPtr aUser) throw(QueueException, FileException) {
+	StringList nicks = ClientManager::getInstance()->getNicks(*aUser);
+	string nick = nicks.empty() ? Util::emptyString : Util::cleanPathChars(nicks[0]) + ".";
+	string fname = nick + aUser->getCID().toBase32();
 
+	add(Util::getListPath() + fname, -1, TTHValue(), aUser, (Flags::MaskType)(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_CHECK_FILE_LIST));
+	return fname;
+}
+//END
 } // namespace dcpp
 
 /**
  * @file
- * $Id: QueueManager.cpp 399 2008-07-06 19:48:02Z BigMuscle $
+ * $Id: QueueManager.cpp 406 2008-07-14 20:25:22Z BigMuscle $
  */

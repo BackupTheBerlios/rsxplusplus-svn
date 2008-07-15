@@ -1,10 +1,10 @@
 --// vim:ts=4:sw=4:noet
 --// p2pblock.lua -- Allow/Block p2p connections by nick
 
-dofile( DC():GetAppPath() .. "/scripts/libsimplepickle.lua" )
+dofile( DC():GetAppPath() .. "scripts/libsimplepickle.lua" )
 
 p2pblock = {}
-p2pblock.file = DC():GetAppPath() .. "/scripts/p2pblock.dat"
+p2pblock.file = DC():GetAppPath() .. "scripts/p2pblock.dat"
 
 dcpp:setListener( "ownChatOut", "p2pblock",
 	function( hub, msg, ret )

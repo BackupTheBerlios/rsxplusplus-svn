@@ -62,10 +62,9 @@ public:
 	static string validateMessage(string tmp, bool reverse);
 	void refreshUserList(bool);
 
-	void getUserList(OnlineUser::List& list) const {
+	void getUserList(OnlineUserList& list) const {
 		Lock l(cs);
 		for(NickIter i = users.begin(); i != users.end(); i++) {
-			i->second->inc();
 			list.push_back(i->second);
 		}
 	}
@@ -112,7 +111,7 @@ private:
 	//void onLine(const string& aLine) throw(); //RSX++
 
 	OnlineUser& getUser(const string& aNick);
-	OnlineUser* findUser(const string& aNick) const;
+	OnlineUserPtr findUser(const string& aNick) const;
 	void putUser(const string& aNick);
 	
 	string toUtf8(const string& str) const { return Text::toUtf8(str, *getEncoding()); }
@@ -147,5 +146,5 @@ private:
 
 /**
  * @file
- * $Id: nmdchub.h 396 2008-07-01 21:26:33Z BigMuscle $
+ * $Id: nmdchub.h 404 2008-07-13 17:08:09Z BigMuscle $
  */

@@ -71,10 +71,9 @@ private:
 	void stopMyINFOCheck() { users.stopMyINFOCheck(); }
 	//END
 
-	void getUserList(OnlineUser::List& list) const {
+	void getUserList(OnlineUserList& list) const {
 		Lock l(cs);
 		for(SIDIter i = users.begin(); i != users.end(); i++) {
-			i->second->inc();
 			list.push_back(i->second);
 		}
 	}
@@ -107,7 +106,7 @@ private:
 	OnlineUser* findUser(const CID& cid) const;
 	
 	// just a workaround
-	OnlineUser* findUser(const string& aNick) const { 
+	OnlineUserPtr AdcHub::findUser(const string& aNick) const { 
 	   Lock l(cs); 
 	   for(SIDMap::const_iterator i = users.begin(); i != users.end(); ++i) { 
 		  if(i->second->getIdentity().getNick() == aNick) { 
@@ -155,5 +154,5 @@ private:
 
 /**
  * @file
- * $Id: AdcHub.h 399 2008-07-06 19:48:02Z BigMuscle $
+ * $Id: AdcHub.h 404 2008-07-13 17:08:09Z BigMuscle $
  */

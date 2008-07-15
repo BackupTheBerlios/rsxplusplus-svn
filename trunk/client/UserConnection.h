@@ -169,6 +169,7 @@ public:
 	UserPtr& getUser() { return user; }
 	bool isSecure() const { return socket && socket->isSecure(); }
 	bool isTrusted() const { return socket && socket->isTrusted(); }
+	std::string getCipherName() const { return socket ? socket->getCipherName() : Util::emptyString; }
 
 	const string& getRemoteIp() const { if(socket) return socket->getIp(); else return Util::emptyString; }
 	Download* getDownload() { dcassert(isSet(FLAG_DOWNLOAD)); return download; }
@@ -206,14 +207,6 @@ public:
 	GETSET(string*, encoding, Encoding);
 	
 	BufferedSocket const* getSocket() { return socket; } 
-	void garbageCommand() { 
-		string tmp;
-		tmp.reserve(20);
-		for(int i = 0; i < 20; i++) {
-			tmp.append(1, (char)Util::rand('a', 'z'));
-		}
-		send("$"+tmp+"|");
-	}
 
 private:
 	int64_t chunkSize;
@@ -276,5 +269,5 @@ private:
 
 /**
  * @file
- * $Id: UserConnection.h 393 2008-06-25 18:33:20Z BigMuscle $
+ * $Id: UserConnection.h 404 2008-07-13 17:08:09Z BigMuscle $
  */

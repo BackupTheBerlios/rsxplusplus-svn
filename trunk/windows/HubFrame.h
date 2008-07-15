@@ -203,7 +203,7 @@ public:
 	void onTab();
 	void handleTab(bool reverse);
 	void runUserCommand(::UserCommand& uc);
-		
+
 	static void openWindow(const tstring& server
 		, int chatusersplit = 0, bool userliststate = true,
 		        string sColumsOrder = Util::emptyString, string sColumsWidth = Util::emptyString, string sColumsVisible = Util::emptyString);
@@ -318,10 +318,10 @@ private:
 	};
 
 	struct UserTask : public Task {
-		UserTask(const OnlineUser& ou) : onlineUser(const_cast<OnlineUser*>(&ou)) { onlineUser->inc(); }
-		~UserTask() { onlineUser->dec(); }
+		UserTask(const OnlineUserPtr& ou) : onlineUser(ou) { }
+		~UserTask() { }
 		
-		OnlineUser* onlineUser;
+		const OnlineUserPtr onlineUser;
 	};
 
 	struct MessageTask : public StringTask {
@@ -445,9 +445,9 @@ private:
 	static int columnSizes[OnlineUser::COLUMN_LAST];
 	
 	bool updateUser(const UserTask& u);
-	void removeUser(OnlineUser* aUser);
+	void removeUser(const OnlineUserPtr& aUser);
 
-	void updateUserList(OnlineUser* ui = NULL);
+	void updateUserList(OnlineUserPtr ui = NULL);
 	bool parseFilter(FilterModes& mode, int64_t& size);
 	bool matchFilter(const OnlineUser& ui, int sel, bool doSizeCompare = false, FilterModes mode = NONE, int64_t size = 0);
 
@@ -483,9 +483,9 @@ private:
 	// ClientListener
 	void on(Connecting, const Client*) throw();
 	void on(Connected, const Client*) throw();
-	void on(UserUpdated, const Client*, const OnlineUser&) throw();
-	void on(UsersUpdated, const Client*, const OnlineUser::List&) throw();
-	void on(ClientListener::UserRemoved, const Client*, const OnlineUser&) throw();
+	void on(UserUpdated, const Client*, const OnlineUserPtr&) throw();
+	void on(UsersUpdated, const Client*, const OnlineUserList&) throw();
+	void on(ClientListener::UserRemoved, const Client*, const OnlineUserPtr&) throw();
 	void on(Redirect, const Client*, const string&) throw();
 	void on(Failed, const Client*, const string&) throw();
 	void on(GetPassword, const Client*) throw();
@@ -503,7 +503,7 @@ private:
 
 	void speak(Tasks s) { tasks.add(static_cast<uint8_t>(s), 0); PostMessage(WM_SPEAKER); }
 	void speak(Tasks s, const string& msg) { tasks.add(static_cast<uint8_t>(s), new StringTask(msg)); PostMessage(WM_SPEAKER); }
-	void speak(Tasks s, const OnlineUser& u) { tasks.add(static_cast<uint8_t>(s), new UserTask(u)); updateUsers = true; }
+	void speak(Tasks s, const OnlineUserPtr& u) { tasks.add(static_cast<uint8_t>(s), new UserTask(u)); updateUsers = true; }
 	void speak(Tasks s, const Identity& from, const string& line) { tasks.add(static_cast<uint8_t>(s), new MessageTask(from, line));  PostMessage(WM_SPEAKER); }
 	void speak(Tasks s, const OnlineUser& from, const OnlineUser& to, const OnlineUser& replyTo, const string& line) { tasks.add(static_cast<uint8_t>(s), new MessageTask(from.getIdentity(), to, replyTo, line));  PostMessage(WM_SPEAKER); }
 };
@@ -512,5 +512,5 @@ private:
 
 /**
  * @file
- * $Id: HubFrame.h 394 2008-06-28 22:28:44Z BigMuscle $
+ * $Id: HubFrame.h 405 2008-07-14 11:41:15Z BigMuscle $
  */

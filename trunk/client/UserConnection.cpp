@@ -155,6 +155,7 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) throw
 			ClientManager::getInstance()->setUnknownCommand(getUser(), aLine);
 		
 		dcdebug("Unknown NMDC command: %.50s\n", aLine.c_str());
+		unsetFlag(FLAG_NMDC);
 	}
 }
 //RSX++ // Lua
@@ -287,5 +288,5 @@ void UserConnection::updateChunkSize(int64_t leafSize, int64_t lastChunk, uint64
 
 /**
  * @file
- * $Id: UserConnection.cpp 399 2008-07-06 19:48:02Z BigMuscle $
+ * $Id: UserConnection.cpp 403 2008-07-10 21:27:57Z BigMuscle $
  */

@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2001-2007 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,5 +32,5 @@
 
 /**
  * @file
- * $Id: stdinc.cpp 317 2007-08-04 14:52:24Z bigmuscle $
+ * $Id: stdinc.cpp 403 2008-07-10 21:27:57Z BigMuscle $
  */

@@ -113,9 +113,7 @@ public:
 		return filename;
 	}
 
-	void addFileListCheck(UserPtr aUser) throw(QueueException, FileException) {
-		addList(aUser, QueueItem::FLAG_CHECK_FILE_LIST);
-	}
+	string addFileListCheck(UserPtr aUser) throw(QueueException, FileException);
 
 	void removeFileListCheck(UserPtr aUser) throw(QueueException) {
 		Lock l(cs);

@@ -68,6 +68,7 @@ OnlineUser& AdcHub::getUser(const uint32_t aSID, const CID& aCID) {
 	{
 		Lock l(cs);
 		ou = users.insert(make_pair(aSID, new OnlineUser(p, *this, aSID))).first->second;
+		userCount++; //RSX++
 	}
 
 	if(aSID != AdcCommand::HUB_SID)
@@ -102,12 +103,13 @@ void AdcHub::putUser(const uint32_t aSID, bool disconnect) {
 		users.erase(i);
 
 		availableBytes -= ou->getIdentity().getBytesShared();
+		userCount--;
 	}
 
 	if(aSID != AdcCommand::HUB_SID)
 		ClientManager::getInstance()->putOffline(ou, disconnect);
 
-	fire(ClientListener::UserRemoved(), this, *ou);
+	fire(ClientListener::UserRemoved(), this, ou);
 	ou->dec();
 }
 
@@ -188,7 +190,7 @@ void AdcHub::handle(AdcCommand::INF, AdcCommand& c) throw() {
 		string report = u->getIdentity().myInfoDetect(*u);
 		if(!report.empty()) {
 			cheatMessage(report);
-			updated(*u);
+			updated(u);
 		}
 	}
 	//RSX++ // IP check
@@ -216,7 +218,7 @@ void AdcHub::handle(AdcCommand::INF, AdcCommand& c) throw() {
 		setHubIdentity(u->getIdentity());
 		fire(ClientListener::HubUpdated(), this);
 	} else {
-		fire(ClientListener::UserUpdated(), this, *u);
+		fire(ClientListener::UserUpdated(), this, u);
 	}
 }
 
@@ -620,6 +622,7 @@ void AdcHub::connect(const OnlineUser& user, string const& token, bool secure) {
 			return;
 		}
 		send(AdcCommand(AdcCommand::CMD_CTM, user.getIdentity().getSID(), AdcCommand::TYPE_DIRECT).addParam(*proto).addParam(Util::toString(port)).addParam(token));
+		ConnectionManager::iConnToMeCount++;
 	} else {
 		send(AdcCommand(AdcCommand::CMD_RCM, user.getIdentity().getSID(), AdcCommand::TYPE_DIRECT).addParam(*proto).addParam(token));
 	}
@@ -787,7 +790,7 @@ void AdcHub::info(bool /*alwaysSend*/) {
 void AdcHub::refreshUserList(bool) {
 	Lock l(cs);
 
-	OnlineUser::List v;
+	OnlineUserList v;
 	for(SIDIter i = users.begin(); i != users.end(); ++i) {
 		v.push_back(i->second);
 	}
@@ -856,5 +859,5 @@ void AdcHub::on(Second s, uint64_t aTick) throw() {
 
 /**
  * @file
- * $Id: AdcHub.cpp 399 2008-07-06 19:48:02Z BigMuscle $
+ * $Id: AdcHub.cpp 406 2008-07-14 20:25:22Z BigMuscle $
  */

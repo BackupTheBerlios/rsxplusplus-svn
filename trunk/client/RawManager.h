@@ -17,59 +17,18 @@
 #ifndef RAW_MANAGER_H
 #define RAW_MANAGER_H
 
-#include "forward.h"
 #include "CriticalSection.h"
 #include "Singleton.h"
-#include "TimerManager.h"
-#include "Util.h"
-#include "Client.h"
+#include "ActionRaw.h"
+#include "../rsx/rsx-settings/rsx-SettingsManager.h"
 
 namespace dcpp {
-class Action {
-public:
-	typedef Action* Ptr;
-	typedef unordered_map<int, Ptr> List;
-
-	Action() : lastRaw(0), actionId(0) { };
-	Action(int aActionId, const string& aName, bool aActif) throw() : actionId(aActionId), name(aName), actif(aActif) { };
-	~Action() { };
-
-	GETSET(int, actionId, ActionId);
-	GETSET(string, name, Name);
-	GETSET(bool, actif, Actif);
-
-	class Raw {
-	public:
-		Raw() : id(0), rawId(0), time(0), lua(false) { };
-
-		Raw(int aId, int aRawId, const string& aName, const string& aRaw, int aTime, bool aActif, bool aLua) 
-			throw() : id(aId), rawId(aRawId), name(aName), raw(aRaw), time(aTime), actif(aActif), lua(aLua) { };
-		Raw(const Raw& rhs) : id(rhs.id), rawId(rhs.rawId), name(rhs.name), raw(rhs.raw), time(rhs.time), actif(rhs.actif), lua(rhs.lua) { }
-		Raw& operator=(const Raw& rhs) { id = rhs.id; rawId = rhs.rawId; name = rhs.name; raw = rhs.raw;
-		time = rhs.time; actif = rhs.actif; lua = rhs.lua;
-			return *this;
-		}
-
-		GETSET(int, id, Id);
-		GETSET(int, rawId, RawId);
-		GETSET(string, name, Name);
-		GETSET(string, raw, Raw);
-		GETSET(int, time, Time);
-		GETSET(bool, actif, Actif);
-		GETSET(bool, lua, Lua);
-	};
-
-	typedef vector<Raw> RawsList;
-	RawsList raw;
-	uint16_t lastRaw;
-};
-
 class SimpleXML;
-class RawManager : public Singleton<RawManager>, public TimerManagerListener, private RSXSettingsManagerListener {
+class RawManager : public Singleton<RawManager>, private RSXSettingsManagerListener {
 public:
 	typedef std::map<int, pair<int, bool> > ADLPoints;
 
-	Action::List& getActionList() { Lock l(act); return action; }
+	Action::List& getActionList() { Lock l(cs); return action; }
 	Action::RawsList getRawList(int id);
 	Action::RawsList getRawListActionId(int actionId);
 	Action::Raw addRaw(int id, const string& name, const string& raw, int time, bool lua) throw(Exception);
@@ -90,79 +49,45 @@ public:
 	void loadActionRaws();
 	void saveActionRaws();
 
-	void addRaw(uint64_t time, const string& aRaw, Client* c, const string& aRawName = Util::emptyString, bool aLua = false) { 
-		raw.insert(make_pair(time, RawSendItem(c, aRaw, aRawName, aLua)));
-	}
-
 	bool moveRaw(int id, int idRaw, int pos);
 	bool getActifActionId(int actionId);
 	tstring getNameActionId(int actionId);
 	string getRawCommand(int pos, int rawPos);
 
 	//custom points system
-	void calcADLAction(int aPoints, int& a, bool& d) {
-		Lock l(adlp);
-		if(!points.empty()) {
-			for(ADLPoints::const_iterator i = points.begin(); i != points.end(); ++i) {
-				if(aPoints >= i->first) {
-					a = i->second.first;
-					d = i->second.second;
-				}
-			}
-		}
-	}
+	void calcADLAction(int aPoints, int& a, bool& d);
+	void remADLPoints(int) { }
 
-	void remADLPoints(int aPoints) {
-		Lock l(adlp);
-		ADLPoints::iterator i = points.find(aPoints);
-		if(i != points.end())
-			points.erase(i);
-	}
-
-	bool addADLPoints(int aPoints, int aAction, bool aDisp) {
-		Lock l(adlp);
+	bool addADLPoints(int, int, bool) {/*
+		if(aPoints >= 0)
+			return false;
+		Lock l(cs);
 		ADLPoints::iterator i = points.find(aPoints);
 		if(i != points.end()) {
 			return false;
 		}
 		points.insert(make_pair(aPoints, make_pair(aAction, aDisp)));
-		return true;
+		return true;*/
+		return false;
 	}
 
-	ADLPoints& getADLPoints() { Lock l(act); return points; }
+	ADLPoints& getADLPoints() { Lock l(cs); return points; }
 
 private:
+	friend class Singleton<RawManager>;
+
 	RawManager();
 	~RawManager();
 
-	class RawSendItem {
-	public:
-		RawSendItem(Client* c, const string& r, const string& rn, bool l) :
-		  client(c), raw(r), rawName(rn), lua(l) { };
-		~RawSendItem() { };
-		Client* client;
-		string raw;
-		string rawName;
-		bool lua;
-	};
-
-	friend class Singleton<RawManager>;
 	void loadActionRaws(SimpleXML& aXml);
-
-	Action::List action;
-	CriticalSection act, adlp;
-	uint16_t lastAction;
-
-	typedef std::map<uint64_t, RawSendItem> ListRaw;
-	ListRaw raw;
-	
-	ADLPoints points;
 
 	void on(RSXSettingsManagerListener::Load, SimpleXML& xml) throw();
 	void on(RSXSettingsManagerListener::Save, SimpleXML& xml) throw();
 
-	// TimerManagerListener
-	void on(TimerManagerListener::Second, uint64_t aTick) throw();
+	Action::List action;
+	ADLPoints points;
+	CriticalSection cs;
+	uint16_t lastAction;
 };
 
 class RawSelector {

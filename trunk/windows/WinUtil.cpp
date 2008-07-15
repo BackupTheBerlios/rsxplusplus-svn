@@ -445,7 +445,8 @@ void WinUtil::init(HWND hWnd) {
 	view.AppendMenu(MF_STRING, IDC_CDMDEBUG_WINDOW, CTSTRING(MENU_CDMDEBUG_MESSAGES));
 	view.AppendMenu(MF_STRING, IDC_NOTEPAD, CTSTRING(MENU_NOTEPAD));
 	view.AppendMenu(MF_STRING, IDC_HASH_PROGRESS, CTSTRING(MENU_HASH_PROGRESS));
-	view.AppendMenu(MF_STRING, IDC_VIEW_PLUGINS_LIST, _T("Plugins List"));
+	view.AppendMenu(MF_STRING, IDC_VIEW_PLUGINS_LIST, _T("Plugins List")); //RSX++
+	view.AppendMenu(MF_STRING, IDC_VIEW_SCRIPTS_LIST, _T("Scripts List")); //RSX++
 	view.AppendMenu(MF_SEPARATOR);
 	view.AppendMenu(MF_STRING, ID_VIEW_TOOLBAR, CTSTRING(MENU_TOOLBAR));
 	view.AppendMenu(MF_STRING, ID_VIEW_STATUS_BAR, CTSTRING(MENU_STATUS_BAR));
@@ -944,9 +945,9 @@ bool WinUtil::getUCParams(HWND parent, const UserCommand& uc, StringMap& sm) thr
 }
 
 #ifdef SVNBUILD
-#define LINE2 _T("-- <RSX++ ") _T(VERSIONSTRING) _T(" SVN:") _T(BOOST_STRINGIZE(SVN_REVISION)) _T(">")
+#define LINE2 _T("-- <RSX++ ") _T(VERSIONSTRING) _T(" SVN:") _T(BOOST_STRINGIZE(SVN_REVISION)) _T("> ") _T(__HOMESITE)
 #else
-#define LINE2 _T("-- <RSX++ ") _T(VERSIONSTRING) _T(" / ") _T(DCVERSIONSTRING) _T(">")
+#define LINE2 _T("-- <RSX++ ") _T(VERSIONSTRING) _T(" / ") _T(DCVERSIONSTRING) _T("> ") _T(__HOMESITE)
 #endif
 TCHAR *msgs[] = { _T("\r\n-- I'm a happy RSX++ user. You could be happy too.\r\n") LINE2,
 _T("\r\n-- CZ-...what? Nope...never heard of it...\r\n") LINE2,
@@ -954,7 +955,7 @@ _T("\r\n-- Evolution of species: Ape --> Man\r\n-- Evolution of science: \"The E
 _T("\r\n-- I share, therefore I am.\r\n") LINE2,
 _T("\r\n-- I came, I searched, I found...\r\n") LINE2,
 _T("\r\n-- I came, I shared, I sent...\r\n") LINE2,
-_T("\r\n-- I can add multiple users to the same file and download from them simultaneously :)\r\n") LINE2,
+_T("\r\n-- I can add multiple users to the same file and download from them simultaneously :)\r\n") LINE2/*,
 _T("\r\n-- Ja jsem byl prvni klient, ktery nemuze ztratit slot pri segmentovem stahovani :-P\r\n") LINE2,
 _T("\r\n-- Ja jsem byl prvni klient, ktery umi seskupovat prenosy se stejnym nazvem souboru :-P\r\n") LINE2,
 _T("\r\n-- Umim stahovat segmentove bez poskozeni souboru :-))\r\n") LINE2,
@@ -962,10 +963,10 @@ _T("\r\n-- Dokazu seskupovat vysledky hledani se stejnym TTH pod jednu polozku ;
 _T("\r\n-- Nedovolim stahovat soubory bez TTH a predejdu tak poskozeni souboru :-)\r\n") LINE2,
 _T("\r\n-- Kontroluji data behem prenosu a zarucim spravnou integritu dat :)\r\n") LINE2,
 _T("\r\n-- Nekdo ma a nekdo nema....ja mam (ale nedam :-)) )\r\n") LINE2,
-_T("\r\n-- Muzu omezit rychlost sveho downloadu, aby mi zbyla linka pro brouzdani na webu :-D\r\n") LINE2
+_T("\r\n-- Muzu omezit rychlost sveho downloadu, aby mi zbyla linka pro brouzdani na webu :-D\r\n") LINE2*/
 };
 
-#define MSGS 15
+#define MSGS 7
 
 tstring WinUtil::commands = /* thanks to Kulmegil for english version */
 _T("\n------------------------------------------------------------------------------------------------------------------------------------------------------------\n")
@@ -1007,7 +1008,8 @@ _T("/hubsstats\t\t\t\tshow connected hubs statistics\n")
 _T("/ignorelist\t\t\t\t\tshow ignorelist\n")
 _T("/clear /c\t\t\t\t\tclear chat\n\n")
 
-_T("/stats\t\t\t\t\tspam some client & system info (send message only when OP)\n")
+_T("/stats\t\t\t\t\tspam some client & system info (show on chat)\n")
+_T("/pstats\t\t\t\t\tspam some client & system info (send to chat)\n")
 _T("/rsx++\t\t\t\t\tspam some info about RSX++\n\n")
 
 _T("/shutdown\t\t\t\tactivate/deactivate shutdown sequence\n")
@@ -1025,7 +1027,7 @@ _T("/lua <code>	\t\t\tinterpret specified chunk of lua code\n")
 _T("/luafile <file> \t\t\t\tload and interpret specified file\n")
 
 _T("------------------------------------------------------------------------------------------------------------------------------------------------------------\n")
-_T("\tFor more help please head to RSX++ Forums (Help -> Forums)\n")
+_T("\tFor more help please head to RSX++ Forums or Wiki (Help -> Forums / Wiki)\n")
 _T("------------------------------------------------------------------------------------------------------------------------------------------------------------\n\n");
 
 bool WinUtil::checkCommand(tstring& cmd, tstring& param, tstring& message, tstring& status, bool& thirdPerson) {
@@ -1072,7 +1074,7 @@ bool WinUtil::checkCommand(tstring& cmd, tstring& param, tstring& message, tstri
 		} else {
 			status = TSTRING(SPECIFY_SEARCH_STRING);
 		}
-	} else if(stricmp(cmd.c_str(), _T("strongdc++")) == 0) {
+	} else if(stricmp(cmd.c_str(), _T("rsx++")) == 0) {
 		message = msgs[GET_TICK() % MSGS];
 	} else if(stricmp(cmd.c_str(), _T("away")) == 0) {
 		if(Util::getAway() && param.empty()) {

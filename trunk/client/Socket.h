@@ -23,6 +23,7 @@
 #include "Exception.h"
 
 #include <errno.h>
+
 #ifdef _WIN32
 // Berkely constants converted to the windows equivs...
 #define EADDRNOTAVAIL WSAEADDRNOTAVAIL
@@ -77,8 +78,8 @@ public:
 		TYPE_UDP
 	};
 
-	Socket() throw(SocketException) : sock(INVALID_SOCKET), connected(false), blocking(true) { }
-	Socket(const string& aIp, uint16_t aPort) throw(SocketException) : sock(INVALID_SOCKET), connected(false), blocking(true) { connect(aIp, aPort); }
+	Socket() throw(SocketException) : sock(INVALID_SOCKET), connected(false) { }
+	Socket(const string& aIp, uint16_t aPort) throw(SocketException) : sock(INVALID_SOCKET), connected(false) { connect(aIp, aPort); }
 	virtual ~Socket() throw() { Socket::disconnect(); }
 
 	/**
@@ -109,6 +110,9 @@ public:
 	virtual void shutdown() throw();
 	virtual void close() throw();
 	void disconnect() throw();
+
+	virtual bool waitConnected(uint64_t millis);
+	virtual bool waitAccepted(uint64_t millis);
 
 	/**
 	 * Reads zero to aBufLen characters from this socket, 
@@ -146,7 +150,6 @@ public:
 	void setBlocking(bool block) throw() {
 		u_long b = block ? 0 : 1;
 		ioctlsocket(sock, FIONBIO, &b);
-		blocking = block;
 	}
 #else
 	void setBlocking(bool block) throw() {
@@ -156,10 +159,8 @@ public:
 		} else {
 			fcntl(sock, F_SETFL, flags | O_NONBLOCK);
 		}
-		blocking = block;
 	}
 #endif
-	bool getBlocking() const throw() { return blocking; }
 
 	string getLocalIp() const throw();
 
@@ -176,6 +177,7 @@ public:
 
 	virtual bool isSecure() const throw() { return false; }
 	virtual bool isTrusted() const throw() { return false; }
+	virtual std::string getCipherName() const throw() { return Util::emptyString; }
 
 	/** When socks settings are updated, this has to be called... */
 	static void socksUpdated();
@@ -187,7 +189,6 @@ public:
 protected:
 	uint8_t type;
 	bool connected;
-	bool blocking;
 
 	class Stats {
 	public:
@@ -208,13 +209,13 @@ private:
 
 #ifdef _WIN32
 	static int getLastError() {  return ::WSAGetLastError(); }
-	static socket_t checksocket(socket_t ret) { 
+	static socket_t checksocket(socket_t ret) {
 		if(ret == SOCKET_ERROR) { 
 			throw SocketException(getLastError()); 
 		} 
 		return ret;
 	}
-	static socket_t check(socket_t ret, bool blockOk = false) { 
+	static socket_t check(socket_t ret, bool blockOk = false) {
 		if(ret == SOCKET_ERROR) {
 			int error = getLastError();
 			if(blockOk && error == WSAEWOULDBLOCK) {
@@ -254,5 +255,5 @@ private:
 
 /**
  * @file
- * $Id: Socket.h 398 2008-07-05 20:54:25Z BigMuscle $
+ * $Id: Socket.h 404 2008-07-13 17:08:09Z BigMuscle $
  */

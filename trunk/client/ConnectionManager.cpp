@@ -213,8 +213,8 @@ void ConnectionManager::on(TimerManagerListener::Minute, uint64_t aTick) throw()
 	}
 }
 
-static const uint32_t FLOOD_TRIGGER = 20000;
-static const uint32_t FLOOD_ADD = 2000;
+static const uint32_t FLOOD_TRIGGER = 10000;
+static const uint32_t FLOOD_ADD = 1000;
 
 ConnectionManager::Server::Server(bool secure_, uint16_t aPort, const string& ip /* = "0.0.0.0" */) : port(0), secure(secure_), die(false) {
 	sock.create();
@@ -428,8 +428,6 @@ void ConnectionManager::on(UserConnectionListener::Connected, UserConnection* aS
 	}
 
 	dcassert(aSource->getState() == UserConnection::STATE_CONNECT);
-	if (SETTING(GARBAGE_COMMAND_OUTGOING) && !aSource->isSet(UserConnection::FLAG_STEALTH))
-		aSource->garbageCommand();
 	if(aSource->isSet(UserConnection::FLAG_NMDC)) {
 		aSource->myNick(aSource->getToken());
 		aSource->lock(CryptoManager::getInstance()->getLock(), CryptoManager::getInstance()->getPk());
@@ -489,7 +487,7 @@ void ConnectionManager::on(UserConnectionListener::MyNick, UserConnection* aSour
 		// Make sure we know who it is, i e that he/she is connected...
 
 		aSource->setUser(ClientManager::getInstance()->findUser(cid));
-		if(!aSource->getUser() || !ClientManager::getInstance()->isOnline(aSource->getUser())) {
+		if(!aSource->getUser() || !aSource->getUser()->isOnline()) {
 			dcdebug("CM::onMyNick Incoming connection from unknown user %s\n", nick.c_str());
 			putConnection(aSource);
 			return;
@@ -507,8 +505,6 @@ void ConnectionManager::on(UserConnectionListener::MyNick, UserConnection* aSour
 		aSource->setFlag(UserConnection::FLAG_OP);
 
 	if( aSource->isSet(UserConnection::FLAG_INCOMING) ) {
-		if(SETTING(GARBAGE_COMMAND_INCOMING) && !aSource->isSet(UserConnection::FLAG_STEALTH))
-			aSource->garbageCommand();
 		aSource->myNick(aSource->getToken()); 
 		aSource->lock(CryptoManager::getInstance()->getLock(), CryptoManager::getInstance()->getPk());
 	}
@@ -814,5 +810,5 @@ void ConnectionManager::on(UserConnectionListener::Supports, UserConnection* con
 
 /**
  * @file
- * $Id: ConnectionManager.cpp 399 2008-07-06 19:48:02Z BigMuscle $
+ * $Id: ConnectionManager.cpp 405 2008-07-14 11:41:15Z BigMuscle $
  */

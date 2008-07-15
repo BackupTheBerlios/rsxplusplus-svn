@@ -428,20 +428,27 @@ void FavoriteManager::save() {
 			xml.addChildAttrib("IP", (*i)->getIP());
 			xml.addChildAttrib("SearchInterval", Util::toString((*i)->getSearchInterval()));
 			//RSX++
-			xml.addChildAttrib("Email", (*i)->getFavEmail());
+			//xml.addChildAttrib("Email", (*i)->getCurrentEmail());
 			xml.addChildAttrib("AwayMsg", (*i)->getAwayMsg());
-			xml.addChildAttrib("UserProtected", (*i)->getUserProtected());
-			xml.addChildAttrib("CheckOnConnect", (*i)->getCheckOnConnect());
-			xml.addChildAttrib("CheckClients", (*i)->getCheckClients());
-			xml.addChildAttrib("CheckFilelists", (*i)->getCheckFilelists());
-			xml.addChildAttrib("CheckMyInfo", (*i)->getCheckMyInfo());
-			xml.addChildAttrib("HideShare", (*i)->getHideShare());
-			xml.addChildAttrib("UseFilter", (*i)->getUseFilter());
-			xml.addChildAttrib("UseAutosearch", (*i)->getAutosearch());
-			xml.addChildAttrib("UseHighLight", (*i)->getUseHL());
+			//xml.addChildAttrib("UserProtected", (*i)->getUserProtected());
+			//xml.addChildAttrib("CheckOnConnect", (*i)->getCheckOnConnect());
+			//xml.addChildAttrib("CheckClients", (*i)->getCheckClients());
+			//xml.addChildAttrib("CheckFilelists", (*i)->getCheckFilelists());
+			//xml.addChildAttrib("CheckMyInfo", (*i)->getCheckMyInfo());
+			//xml.addChildAttrib("HideShare", (*i)->getHideShare());
+			//xml.addChildAttrib("UseFilter", (*i)->getUseFilter());
+			//xml.addChildAttrib("UseAutosearch", (*i)->getAutosearch());
+			//xml.addChildAttrib("UseHighLight", (*i)->getUseHL());
 			xml.addChildAttrib("UsersLimitToUseActions", (*i)->getUsersLimit());
 			xml.addChildAttrib("GroupID", (*i)->getGroupId());
+			//RSX++
 			xml.stepIn();
+			const HubSettings::SettingsMap& s = (*i)->getSettings();
+			for(HubSettings::SettingsMap::const_iterator st = s.begin(); st != s.end(); ++st) {
+				xml.addTag("Setting");
+				xml.addChildAttrib("Field", string((const char*)&st->first, 4));
+				xml.addChildAttrib("Value", st->second);
+			}
 			for(FavoriteHubEntry::Action::List::const_iterator a = (*i)->action.begin(); a != (*i)->action.end(); ++a) {
 				if(RawManager::getInstance()->getValidAction(a->first)) {
 					string raw = Util::emptyString;
@@ -453,7 +460,7 @@ void FavoriteManager::save() {
 					if(!raw.empty() || a->second->getActif()) {
 						xml.addTag("Action");
 						xml.addChildAttrib("ID", a->first);
-						xml.addChildAttrib("Actif", Util::toString(a->second->getActif()));
+						xml.addChildAttrib("Active", Util::toString(a->second->getActif()));
 						xml.addChildAttrib("Raw", raw);
 					}
 				}
@@ -741,28 +748,36 @@ void FavoriteManager::load(SimpleXML& aXml) {
 			e->setHeaderWidths(aXml.getChildAttrib("HubFrameWidths", SETTING(HUBFRAME_WIDTHS)));
 			e->setHeaderVisible(aXml.getChildAttrib("HubFrameVisible", SETTING(HUBFRAME_VISIBLE)));
 			//RSX++
-			e->setFavEmail(aXml.getChildAttrib("Email"));
+			//e->setFavEmail(aXml.getChildAttrib("Email"));
 			e->setAwayMsg(aXml.getChildAttrib("AwayMsg"));
-			e->setUserProtected(aXml.getChildAttrib("UserProtected"));		
-			e->setCheckOnConnect(aXml.getBoolChildAttrib("CheckOnConnect"));
-			e->setCheckClients(aXml.getBoolChildAttrib("CheckClients"));
-			e->setCheckFilelists(aXml.getBoolChildAttrib("CheckFilelists"));
-			e->setCheckMyInfo(aXml.getBoolChildAttrib("CheckMyInfo"));
-			e->setHideShare(aXml.getBoolChildAttrib("HideShare"));
-			e->setUseFilter(aXml.getBoolChildAttrib("UseFilter"));
-			e->setAutosearch(aXml.getBoolChildAttrib("UseAutosearch"));
-			e->setUseHL(aXml.getBoolChildAttrib("UseHighLight"));
+			//e->setUserProtected(aXml.getChildAttrib("UserProtected"));		
+			//e->setCheckOnConnect(aXml.getBoolChildAttrib("CheckOnConnect"));
+			//e->setCheckClients(aXml.getBoolChildAttrib("CheckClients"));
+			//e->setCheckFilelists(aXml.getBoolChildAttrib("CheckFilelists"));
+			//e->setCheckMyInfo(aXml.getBoolChildAttrib("CheckMyInfo"));
+			//e->setHideShare(aXml.getBoolChildAttrib("HideShare"));
+			//e->setUseFilter(aXml.getBoolChildAttrib("UseFilter"));
+			//e->setAutosearch(aXml.getBoolChildAttrib("UseAutosearch"));
+			//e->setUseHL(aXml.getBoolChildAttrib("UseHighLight"));
 			e->setUsersLimit(aXml.getIntChildAttrib("UsersLimitToUseActions"));
 			e->setGroupId(aXml.getIntChildAttrib("GroupID"));
 			//END
 			e->setMode(Util::toInt(aXml.getChildAttrib("Mode")));
 			e->setIP(aXml.getChildAttrib("IP"));
 			e->setSearchInterval(Util::toUInt32(aXml.getChildAttrib("SearchInterval")));
-			//RSX++ //Raw Manager
+			//RSX++
 			aXml.stepIn();
+			while(aXml.findChild("Setting")) {
+				string field = aXml.getChildAttrib("Field");
+				string value = aXml.getChildAttrib("Value");
+				if(!field.empty() && !value.empty()) {
+					e->set(field.c_str(), value);
+				}
+			}
+			aXml.resetCurrentChild();
 			while(aXml.findChild("Action")) {
 				int actionId(aXml.getIntChildAttrib("ID"));
-				bool actif(aXml.getBoolChildAttrib("Actif"));
+				bool actif(aXml.getBoolChildAttrib("Active"));
 				string raw(aXml.getChildAttrib("Raw"));
 				if(RawManager::getInstance()->getValidAction(actionId))
 					e->action.insert(make_pair(actionId, new FavoriteHubEntry::Action(actif, raw)));

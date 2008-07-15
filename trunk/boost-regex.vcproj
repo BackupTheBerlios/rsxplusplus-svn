@@ -19,8 +19,8 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(SolutionDir)vc7\$(PlatformName)\$(ConfigurationName)\$(ProjectName)"
-			IntermediateDirectory="$(SolutionDir)vc7\$(PlatformName)\$(ConfigurationName)\$(ProjectName)"
+			OutputDirectory="$(SolutionDir)vc_dump\$(PlatformName)\$(ConfigurationName)\$(ProjectName)"
+			IntermediateDirectory="$(SolutionDir)vc_dump\$(PlatformName)\$(ConfigurationName)\$(ProjectName)"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
@@ -159,8 +159,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="$(SolutionDir)vc7\$(ConfigurationName)\$(ProjectName)"
-			IntermediateDirectory="$(SolutionDir)vc7\$(ConfigurationName)\$(ProjectName)"
+			OutputDirectory="$(SolutionDir)vc_dump\$(PlatformName)\$(ConfigurationName)\$(ProjectName)"
+			IntermediateDirectory="$(SolutionDir)vc_dump\$(PlatformName)\$(ConfigurationName)\$(ProjectName)"
 			ConfigurationType="4"
 			CharacterSet="1"
 			WholeProgramOptimization="1"

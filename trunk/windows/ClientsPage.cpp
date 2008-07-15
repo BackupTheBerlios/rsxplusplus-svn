@@ -38,10 +38,10 @@ LRESULT ClientsPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 		const DetectionEntry& de = *i;
 		addEntry(de, ctrlProfiles.GetItemCount());
 	}
-//RSX++
+
 	SetDlgItemText(IDC_PROFILE_COUNT, Text::toT(STRING(PROFILE_COUNT) + ": " + Util::toString(ctrlProfiles.GetItemCount())).c_str());
 	SetDlgItemText(IDC_PROFILE_VERSION, Text::toT(STRING(PROFILE_VERSION) + ": " + DetectionManager::getInstance()->getProfileVersion()).c_str());
-//END
+	SetDlgItemText(IDC_PROFILE_MESSAGE, Text::toT(STRING(PROFILE_MESSAGE) + ": " + DetectionManager::getInstance()->getProfileMessage()).c_str());
 	return TRUE;
 }
 
@@ -221,7 +221,9 @@ void ClientsPage::reload() {
 		const DetectionEntry& de = *i;
 		addEntry(de, ctrlProfiles.GetItemCount());
 	}
+	SetDlgItemText(IDC_PROFILE_COUNT, Text::toT(STRING(PROFILE_COUNT) + ": " + Util::toString(ctrlProfiles.GetItemCount())).c_str());
 	SetDlgItemText(IDC_PROFILE_VERSION, Text::toT(STRING(PROFILE_VERSION) + ": " + DetectionManager::getInstance()->getProfileVersion()).c_str());
+	SetDlgItemText(IDC_PROFILE_MESSAGE, Text::toT(STRING(PROFILE_MESSAGE) + ": " + DetectionManager::getInstance()->getProfileMessage()).c_str());
 	ctrlProfiles.SetRedraw(TRUE);
 }
 
@@ -277,5 +279,5 @@ LRESULT ClientsPage::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled
 // iDC++
 /**
  * @file
- * $Id: ClientsPage.cpp 298 2007-07-06 13:59:59Z bigmuscle $
+ * $Id: ClientsPage.cpp 399 2008-07-06 19:48:02Z BigMuscle $
  */

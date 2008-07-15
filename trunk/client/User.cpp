@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2007 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -164,6 +164,14 @@ string Identity::getConnection() const {
 	}
 }
 
+bool Identity::isTcpActive(const Client* c) const {
+	if(c != NULL && user == ClientManager::getInstance()->getMe()) {
+		return c->isActive();
+	} else {
+		return user->isSet(User::NMDC) ? !user->isSet(User::PASSIVE) : !getIp().empty();
+	}
+}
+
 void FavoriteUser::update(const OnlineUser& info) { 
 	setNick(info.getIdentity().getNick()); 
 	setUrl(info.getClient().getHubUrl()); 
@@ -213,51 +221,52 @@ string Identity::setCheat(const Client& c, const string& aCheatDescription, bool
 }
 //END
 string Identity::getReport() const {
-	string report = "\r\n *** User Info:";
-	report += "\r\n-]> Description:	" +				getDescription();
-	report += "\r\n-]> Email:		" +				getEmail();
-	report += "\r\n-]> Connection:	" +				getConnection();
-	report += "\r\n-]> User CID:	" +				isEmpty(getUser()->getCID().toBase32());
-	if(!getUser()->isSet(User::NMDC))
-		report += "\r\n-]> User SID:	" +			isEmpty(getSIDString()) + " (" + get("SI") + ")";
-	report += "\r\n-]> IP:		" +					getIp() + (getIp().empty() ? Util::emptyString : (" (" + Util::getIpCountry(getIp()) + ")"));
-	report += "\r\n-]> Host:		" +				isEmpty(get("HT"));
-	report += "\r\n-]> ISP:		" +					getISP();
+	string report = "\n *** User Info:";
+	report += "\n-]> Description:		" +			getDescription();
+	report += "\n-]> Email:			" +				getEmail();
+	report += "\n-]> Connection:		" +			getConnection();
+	report += "\n-]> User CID:		" +				isEmpty(getUser()->getCID().toBase32());
+	if(!getUser()->isSet(User::NMDC) && getUser() != ClientManager::getInstance()->getMe()) {
+		report += "\n-]> User SID:		" +			getSIDString() + " (" + get("SI") + ")";
+	}
+	report += "\n-]> IP:			" +				getIp() + (getIp().empty() ? Util::emptyString : (" (" + Util::getIpCountry(getIp()) + ")"));
+	report += "\n-]> Host:			" +				isEmpty(get("HT"));
+	report += "\n-]> ISP:			" +				getISP();
 	if(!get("SL").empty())
-		report += "\r\n-]> Slots:		" +			(get("SL")) + (get("SC").empty() ? Util::emptyString : " (" + get("SC") + ")");
+		report += "\n-]> Slots:			" +			(get("SL")) + (get("SC").empty() ? Util::emptyString : " (" + get("SC") + ")");
 	else
-		report += "\r\n-]> Slots:		N/A";
-	report += "\r\n-]> Logged in:	" +				get("LT") + " (" + Text::fromT(Util::formatSeconds((GET_TICK() - loggedIn) / 1000)) + ')';
+		report += "\n-]> Slots:			N/A";
+	report += "\n-]> Logged in:		" +				get("LT") + " (" + Text::fromT(Util::formatSeconds((GET_TICK() - loggedIn) / 1000)) + ')';
 
-	report += "\r\n\r\n *** Client Info:";
-	report += "\r\n-]> Client:		" +				(getClientType().empty() ? static_cast<const string>("N/A") : getClientType() + "\t[" + Util::formatTime("%d-%m %H:%M:%S", Util::toInt64(get("TC"))) + ']');
-	report += "\r\n-]> Client $MyINFO:	" +			isEmpty(get("MT"));
-	report += "\r\n-]> Lock:		" +				isEmpty(get("LO"));
-	report += "\r\n-]> Pk:		" +					isEmpty(get("PK"));
-	report += "\r\n-]> Tag:		" +					isEmpty(getTag());
-	report += "\r\n-]> Supports:	" +				isEmpty(get("SU"));
-	report += "\r\n-]> Status:	" +					Util::formatStatus(getStatus());
-	report += "\r\n-]> TestSUR:	" +					isEmpty(get("TS"));
-	report += "\r\n-]> Disconnects:	" +				isEmpty(get("FD"));
-	report += "\r\n-]> Timeouts:	" +				isEmpty(get("TO"));
-	report += "\r\n-]> Commands:	" +				isEmpty(get("UC"));
-	report += "\r\n-]> Cheat status:	" +			isEmpty(get("CS"));
-	report += "\r\n-]> Comment:	" +					isEmpty(get("CM"));
+	report += "\n\n *** Client Info:";
+	report += "\n-]> Client:			" +			(getClientType().empty() ? static_cast<const string>("N/A") : getClientType() + "\t[Check Time:" + Util::formatTime("%d-%m %H:%M:%S", Util::toInt64(get("TC"))) + ']');
+	report += "\n-]> Client $MyINFO:		" +		isEmpty(get("MT"));
+	report += "\n-]> Lock:			" +				isEmpty(get("LO"));
+	report += "\n-]> Pk:			" +				isEmpty(get("PK"));
+	report += "\n-]> Tag:			" +				isEmpty(getTag());
+	report += "\n-]> Supports:		" +				isEmpty(get("SU"));
+	report += "\n-]> Status:		" +				Util::formatStatus(getStatus());
+	report += "\n-]> TestSUR:		" +				isEmpty(get("TS"));
+	report += "\n-]> Disconnects:		" +			isEmpty(get("FD"));
+	report += "\n-]> Timeouts:		" +				isEmpty(get("TO"));
+	report += "\n-]> Commands:		" +				isEmpty(get("UC"));
+	report += "\n-]> Cheat status:		" +			isEmpty(get("CS"));
+	report += "\n-]> Comment:		" +				isEmpty(get("CM"));
 
-	report += "\r\n\r\n *** FileList\\Share Info";
-	report += "\r\n-]> XML Generator:	" +			isEmpty(get("FG"));
-	report += "\r\n-]> FileList CID:	" +			isEmpty(get("FI"));
-	report += "\r\n-]> FileList Base:	" +			isEmpty(get("FB"));
+	report += "\n\n *** FileList\\Share Info";
+	report += "\n-]> XML Generator:		" +			isEmpty(get("FG"));
+	report += "\n-]> FileList CID:		" +			isEmpty(get("FI"));
+	report += "\n-]> FileList Base:		" +			isEmpty(get("FB"));
 
 	int64_t listSize = Util::toInt64(get("LS")), listLen = Util::toInt64(get("LL"));
-	report += "\r\n-]> Filelist size:	" +			((listSize != -1) ? (string)(Util::formatBytes(listSize) + "  (" + Text::fromT(Util::formatExactSize(listSize)) + " )") : "N/A");
+	report += "\n-]> Filelist size:		" +			((listSize != -1) ? (string)(Util::formatBytes(listSize) + "  (" + Text::fromT(Util::formatExactSize(listSize)) + " )") : "N/A");
 	
-	report += "\r\n-]> ListLen:	" +					(listLen != -1 ? (string)(Util::formatBytes(listLen) + "  (" + Text::fromT(Util::formatExactSize(listLen)) + " )") : "N/A");
-	report += "\r\n-]> Stated Share:	" +			Util::formatBytes(getBytesShared()) + "  (" + Text::fromT(Util::formatExactSize(getBytesShared())) + " )";
+	report += "\n-]> ListLen:		" +				(listLen != -1 ? (string)(Util::formatBytes(listLen) + "  (" + Text::fromT(Util::formatExactSize(listLen)) + " )") : "N/A");
+	report += "\n-]> Stated Share:		" +			Util::formatBytes(getBytesShared()) + "  (" + Text::fromT(Util::formatExactSize(getBytesShared())) + " )";
 
-	int64_t realBytes =  (!get("RS").empty()) ?		Util::toInt64(get("RS")) : -1;
-	report += "\r\n-]> Real Share:	" +				((realBytes > -1) ? (string)(Util::formatBytes(realBytes) + "  (" + Text::fromT(Util::formatExactSize(realBytes)) + " )\t[" + Util::formatTime("%d-%m %H:%M", Util::toInt64(getFileListChecked())) + ']') : "N/A");
-	report += "\r\n-]> Shared files:	" +			isEmpty(get("SF"));
+	int64_t realBytes =  (!get("RS").empty()) ?	Util::toInt64(get("RS")) : -1;
+	report += "\n-]> Real Share:		" +			((realBytes > -1) ? (string)(Util::formatBytes(realBytes) + "  (" + Text::fromT(Util::formatExactSize(realBytes)) + " )\t[Check Time:" + Util::formatTime("%d-%m %H:%M", Util::toInt64(getFileListChecked())) + ']') : "N/A");
+	report += "\n-]> Shared files:		" +			isEmpty(get("SF"));
 
 	return report;
 }
@@ -621,7 +630,7 @@ void Identity::checkIP(OnlineUser& ou) {
 						ClientManager::getInstance()->sendAction(ou, (*j)->getAction());
 						if(!report.empty())
 							ou.getClient().cheatMessage(report);
-						ou.getClient().updated(ou);
+						ou.getClient().updated(&ou);
 						break;
 					}
 					case 2: {
@@ -644,7 +653,7 @@ string Identity::checkFilelistGenerator(OnlineUser& ou) {
 			string report = ou.setCheat("rmDC++ in StrongDC++ %[userVE] emulation mode" , true, false, RSXBOOLSETTING(SHOW_RMDC_RAW));
 			setClientType("rmDC++");
 			logDetect(true);
-			ou.getClient().updated(ou);
+			ou.getClient().updated(&ou);
 			ClientManager::getInstance()->sendAction(ou, RSXSETTING(RMDC_RAW));
 			return report;
 		}
@@ -655,7 +664,7 @@ string Identity::checkFilelistGenerator(OnlineUser& ou) {
 			if(get("FI").empty() || get("FB").empty()) {
 				string report = ou.setCheat("DC++ emulation", true, false, RSXBOOLSETTING(SHOW_DCPP_EMULATION_RAW));
 				logDetect(true);
-				ou.getClient().updated(ou);
+				ou.getClient().updated(&ou);
 				ClientManager::getInstance()->sendAction(ou, RSXSETTING(DCPP_EMULATION_RAW));
 				return report;
 			}
@@ -663,7 +672,7 @@ string Identity::checkFilelistGenerator(OnlineUser& ou) {
 			if(!get("FI").empty() || !get("FB").empty()) {
 				string report = ou.setCheat("DC++ emulation", true, false, RSXBOOLSETTING(SHOW_DCPP_EMULATION_RAW));
 				logDetect(true);
-				ou.getClient().updated(ou);
+				ou.getClient().updated(&ou);
 				ClientManager::getInstance()->sendAction(ou, RSXSETTING(DCPP_EMULATION_RAW));
 				return report;
 			}
@@ -675,7 +684,7 @@ string Identity::checkFilelistGenerator(OnlineUser& ou) {
 		if(!get("VE").empty() && (get("VE") != getFilelistGeneratorVer())) {
 			string report = ou.setCheat("Filelist Version mis-match", false, true, RSXBOOLSETTING(SHOW_FILELIST_VERSION_MISMATCH));
 			logDetect(true);
-			ou.getClient().updated(ou);
+			ou.getClient().updated(&ou);
 			ClientManager::getInstance()->sendAction(ou, RSXSETTING(FILELIST_VERSION_MISMATCH));
 			return report;
 		}
@@ -852,7 +861,7 @@ tstring OnlineUser::getText(uint8_t col) const {
 		}
 		case COLUMN_EMAIL: return Text::toT(identity.getEmail());
 		case COLUMN_VERSION: return Text::toT(identity.getVersion());
-		case COLUMN_MODE: return identity.isTcpActive() ? _T("A") : _T("P");
+		case COLUMN_MODE: return identity.isTcpActive(&client) ? _T("A") : _T("P");
 		case COLUMN_HUBS: {
 			const tstring hn = Text::toT(identity.get("HN"));
 			const tstring hr = Text::toT(identity.get("HR"));
@@ -918,5 +927,5 @@ bool OnlineUser::update(int sortCol, const tstring& oldText) {
 
 /**
  * @file
- * $Id: User.cpp 397 2008-07-04 14:58:44Z BigMuscle $
+ * $Id: User.cpp 406 2008-07-14 20:25:22Z BigMuscle $
  */

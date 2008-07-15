@@ -31,10 +31,6 @@ const string RSXSettingsManager::settingTags[] =
 	// Strings
 	"ProtectedUsers", 
 	"UpdateProfiles", "UpdateIpWatch", "UpdateMyInfoProfilesUrl",
-	
-	"ClipboardNameOne", "ClipboardNameTwo", "ClipboardNameThree", "ClipboardNameFour", "ClipboardNameFive", "ClipboardNameSix", 
-	"ClipboardTextOne", "ClipboardTextTwo", "ClipboardTextThree", "ClipboardTextFour", "ClipboardTextFive", "ClipboardTextSix",
-
 	"HighPrioFiles", "LowPrioFiles", "ShareSkiplist", "DownloadSkiplist", "ProfileVerUrl",
 	"BetaPass", "BetaUser",
 	"SENTRY", 
@@ -73,7 +69,7 @@ const string RSXSettingsManager::settingTags[] =
 	"AutosearchRecheckTime", "UseHighLight", "GetUpdateProfile", "UseFiltersOnNewHubs", "UseHighlightsOnNewHubs", "ProtectPMUser",
 	"UseSlowDownloadKick", "IpInChat", "CountryInChat",
 	"ShowClientNewVer", "ShowMyInfoNewVer", "ShowIpWatchNewVer", "UseWildcardsToProtect",
-	"UpdateProfileCheats", "UpdateProfileComments",
+	"UpdateProfileCheats", "UpdateProfileComments", "ShowLuaErrorMessage",
 	"SENTRY",
 	// Int64
 	"TotalDetects", "TotalFailedDetects", "TotalRawCommandsSent",
@@ -183,19 +179,6 @@ RSXSettingsManager::RSXSettingsManager()
 
 	//strings
 	setDefault(PROTECTED_USERS,				Util::emptyString);
-	setDefault(CLIPBOARD_NAME_ONE,			"Tag");
-	setDefault(CLIPBOARD_NAME_TWO,			"Lock");
-	setDefault(CLIPBOARD_NAME_THREE,		"Pk");
-	setDefault(CLIPBOARD_NAME_FOUR,			"Supports");
-	setDefault(CLIPBOARD_NAME_FIVE,			"TestSUR");
-	setDefault(CLIPBOARD_NAME_SIX,			"CD");
-	setDefault(CLIPBOARD_TEXT_ONE,			"^<\\+\\+ V:%[version],M:([AP5]){1},H:([0-9]){1,3}/([0-9]){1,3}/([0-9]){1,3}(,S:([0-9]){1,3}|,S:([0-9]){1,3},O:([0-9]){1,10})>$");
-	setDefault(CLIPBOARD_TEXT_TWO,			"^EXTENDEDPROTOCOLABCABCABCABCABCABC$");
-	setDefault(CLIPBOARD_TEXT_THREE,		"^DCPLUSPLUS%[version]ABCABC$");
-	setDefault(CLIPBOARD_TEXT_FOUR,			"BZList MiniSlots XmlBZList GetTestZBlock GetZBlock ADCGet TTHL ZLIG CHUNK ");
-	setDefault(CLIPBOARD_TEXT_FIVE,			"File Not Available");
-	setDefault(CLIPBOARD_TEXT_SIX,			"Your client is not allowed in this hub.");
-
 	setDefault(HIGH_PRIO_FILES,				"*.sfv;*.nfo;*sample*;*cover*;*.pls;*.m3u");
 	setDefault(LOW_PRIO_FILES,				"");
 	setDefault(SKIPLIST_SHARE,				"*.ioFTPD;*.checked;*.raidenftpd.acl;*.SimSfvChk.log;*.message;Descript.ion;*.upChk.log;thumbs.db;*.crc;*.temp;Desktop.ini");
@@ -214,6 +197,7 @@ RSXSettingsManager::RSXSettingsManager()
 	setDefault(DEFAULT_PRIO,				3); //normal prio
 	setDefault(UPDATE_PROFILE_CHEATS,		true);
 	setDefault(UPDATE_PROFILE_COMMENTS,		true);
+	setDefault(SHOW_LUA_ERROR_MESSAGE,		true);
 }
 
 void RSXSettingsManager::load(string const& aFileName) {

@@ -49,6 +49,7 @@ RSXPage::ListItem RSXPage::listItems[] = {
 	{ RSXSettingsManager::FLASH_WINDOW_ON_NEW_PM, ResourceManager::FLASH_WINDOW_ON_NEW_PM },
 	{ RSXSettingsManager::IP_IN_CHAT, ResourceManager::IP_IN_CHAT },
 	{ RSXSettingsManager::COUNTRY_IN_CHAT, ResourceManager::COUNTRY_IN_CHAT },
+	{ RSXSettingsManager::SHOW_LUA_ERROR_MESSAGE, ResourceManager::SETTINGS_SHOW_LUA_ERROR_MESSAGE },
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
 

@@ -32,6 +32,8 @@
 #include "ScriptManager.h" // Lua
 #include "../rsx/rsx-settings/rsx-SettingsManager.h"
 #include "PluginAPI/ClientInterface.h"
+#include "CommandQueue.h"
+#include "HubSettings.h"
 //END
 namespace dcpp {
 //RSX++
@@ -42,7 +44,7 @@ struct ClientScriptInstance : public ScriptInstance {
 //END
 /** Yes, this should probably be called a Hub */
 class Client : public Speaker<ClientListener>, public iClient, public BufferedSocketListener, protected TimerManagerListener, 
-	/*RSX++*/ public ClientScriptInstance/*END*/ {
+	/*RSX++*/ public ClientScriptInstance, public HubSettings/*END*/ {
 public:
 	typedef list<Client*> List;
 	typedef List::const_iterator Iter;
@@ -72,8 +74,8 @@ public:
 	bool isOp() const { return getMyIdentity().isOp(); }
 
 	virtual void refreshUserList(bool) = 0;
-	virtual void getUserList(OnlineUser::List& list) const = 0;
-	virtual OnlineUser* findUser(const string& aNick) const = 0;
+	virtual void getUserList(OnlineUserList& list) const = 0;
+	virtual OnlineUserPtr findUser(const string& aNick) const = 0;
 	
 	uint16_t getPort() const { return port; }
 	const string& getAddress() const { return address; }
@@ -82,7 +84,7 @@ public:
 	string getIpPort() const { return getIp() + ':' + Util::toString(port); }
 	string getLocalIp() const;
 
-	void updated(const OnlineUser& aUser) { fire(ClientListener::UserUpdated(), this, aUser); }
+	void updated(const OnlineUserPtr& aUser) { fire(ClientListener::UserUpdated(), this, aUser); }
 	//RSX++
 	virtual tstring startChecking(const tstring& aParams) = 0;
 	virtual void stopChecking() = 0;
@@ -103,7 +105,7 @@ public:
 	void __fastcall p_setMyField(const char* name, const rString& value) { getMyIdentity().set(name, value.c_str()); }
 	rString __fastcall p_getHubUrl() { return hubUrl.c_str(); }
 	void __fastcall p_sendUserCmd(const rString& aUserCmd) { sendUserCmd(aUserCmd.c_str());  }
-	iOnlineUser* __fastcall p_getUserByNick(const rString& aNick) { OnlineUser* ou = findUser(aNick.c_str()); return ou; }
+	iOnlineUser* __fastcall p_getUserByNick(const rString& aNick) { OnlineUserPtr ou = findUser(aNick.c_str()); return ou.get(); }
 	void __fastcall p_lock() { cs.enter(); }
 	void __fastcall p_unlock() { cs.leave(); }
 	//END
@@ -157,24 +159,24 @@ public:
 	GETSET(Identity, hubIdentity, HubIdentity);
 
 	GETSET(string, defpassword, Password);
-	
+
 	GETSET(string, currentNick, CurrentNick);
 	//RSX++
-	GETSET(string, currentEmail, CurrentEmail);
-	GETSET(bool, useFilter, UseFilter);
-	GETSET(bool, useAutosearch, UseAutosearch);
-	GETSET(bool, useHL, UseHL);
-	GETSET(string, userProtected, UserProtected);
-	GETSET(bool, checkClients, CheckClients);
-	GETSET(bool, checkFilelists, CheckFilelists);
-	GETSET(bool, checkOnConnect, CheckOnConnect);
-	GETSET(bool, checkMyInfo, CheckMyInfo);
-	GETSET(bool, hideShare, HideShare);
 	GETSET(bool, checkedAtConnect, CheckedAtConnect);
 	void setCurrentDescription(const string& description) {
 		currentDescription = description;
 	}
 	string getCurrentDescription() const;
+	GS_STR(CurrentEmail, "MAIL")
+	GS_STR(UserProtected, "PROT")
+	GS_BOOL(UseFilter, "UCHF")
+	GS_BOOL(UseHL, "UCHL")
+	GS_BOOL(UseAutosearch, "AUSR")
+	GS_BOOL(CheckClients, "DECC")
+	GS_BOOL(CheckFilelists, "DEFL")
+	GS_BOOL(CheckOnConnect, "DEOC")
+	GS_BOOL(CheckMyInfo, "DEUI")
+	GS_BOOL(HideShare, "HIDS")
 	//END
 	GETSET(string, favIp, FavIp);
 	
@@ -234,12 +236,12 @@ protected:
 	virtual void on(Line, const string& aLine) throw();
 	virtual void on(Failed, const string&) throw();
 	//RSX++
-	GETSET(uint16_t, usersLimit, UsersLimit);
-	void insertRaw(const string& aRawCmd);
+	GETSET(uint32_t, usersLimit, UsersLimit);
+	uint32_t userCount;
 	//END
 private:
 	//RSX++
-	void putSender(bool clear = false);
+	CommandQueue cmdQueue;
 	string currentDescription;
 	//END
 
@@ -269,5 +271,5 @@ private:
 
 /**
  * @file
- * $Id: Client.h 397 2008-07-04 14:58:44Z BigMuscle $
+ * $Id: Client.h 405 2008-07-14 11:41:15Z BigMuscle $
  */

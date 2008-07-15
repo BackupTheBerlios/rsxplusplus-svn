@@ -706,6 +706,7 @@
 #define IDC_RAW_LUA                     1314
 #define IDC_ENABLE                      1314
 #define IDC_SETTINGS_CONFIRM_OPTIONS    1315
+#define IDC_PROFILE_MESSAGE             1315
 #define IDC_ADD_ACTION                  1315
 #define IDC_SPIN1                       1315
 #define IDC_CHECK_FAKE_SHARE            1315
@@ -975,10 +976,12 @@
 #define IDC_BUTTON1                     1511
 #define IDC_DETECTION_ITEM_CHANGE       1511
 #define IDC_ID_EDIT                     1511
+#define IDCOK                           1511
 #define IDC_CHECK_DELAY                 1512
 #define IDC_REGEX_TESTER                1513
 #define IDC_LEVEL                       1514
 #define IDC_INFMAP_TYPE                 1515
+#define IDC_SCRIPTS_LIST                1516
 #define IDC_USERLIST_COLORS             1517
 #define IDC_TABCOLOR_LIST               1522
 #define IDC_SELECT_TAB_COLOR            1523
@@ -1011,12 +1014,12 @@
 #define IDC_HELP_GEOIPFILE              2227
 #define IDC_CHECK_ON_CONNECT            2227
 #define IDC_EMOMENU                     2228
+#define IDD_FILTER_PAGE                 2275
+#define IDD_ADD_FILTER_PAGE             2276
 #define IDC_SETTINGS_AUTO_SLOTS         3023
 #define IDC_AUTO_SLOTS                  3024
 #define IDC_AUTO_SLOTS_SPIN             3025
 #define IDC_PAUSE                       3140
-#define IDD_FILTER_PAGE                 2275
-#define IDD_ADD_FILTER_PAGE             2276
 #define IDC_DOWNLOAD_TARGET             5000
 #define IDC_DOWNLOAD_TARGET_DIR         5500
 #define IDC_SELECT_WINDOW               6000
@@ -1095,6 +1098,7 @@
 #define IDC_COPY_DESCRIPTION            10053
 #define IDD_FAV_TAB_CUSTOM              10053
 #define IDC_COPY_EMAIL_ADDRESS          10054
+#define IDD_SCRIPTS_LIST                10054
 #define IDC_AUTOSCROLL_CHAT             10055
 #define IDC_WHOIS_IP                    10056
 #define IDC_BAN_IP                      10057
@@ -1126,6 +1130,7 @@
 #define IDC_SEGMENTED_ONLY              10095
 #define ID_VIEW_PLUGIN_TOOLBAR          10096
 #define IDC_VIEW_PLUGINS_LIST           10097
+#define IDC_VIEW_SCRIPTS_LIST			10098
 #define IDC_PROGRESS_TEXT_COLOR_DOWN    10102
 #define IDC_PROGRESS_TEXT_COLOR_UP      10103
 #define IDC_CZDC_PM_SOUND               10107
@@ -1247,7 +1252,7 @@
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        352
 #define _APS_NEXT_COMMAND_VALUE         32808
-#define _APS_NEXT_CONTROL_VALUE         1516
+#define _APS_NEXT_CONTROL_VALUE         1517
 #define _APS_NEXT_SYMED_VALUE           134
 #endif
 #endif

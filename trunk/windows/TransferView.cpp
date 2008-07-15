@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2006 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,12 +34,12 @@
 
 #include "BarShader.h"
 
-int TransferView::columnIndexes[] = { COLUMN_USER, COLUMN_HUB, COLUMN_STATUS, COLUMN_TIMELEFT, COLUMN_SPEED, COLUMN_FILE, COLUMN_SIZE, COLUMN_PATH, COLUMN_IP, COLUMN_RATIO };
-int TransferView::columnSizes[] = { 150, 150, 250, 75, 75, 175, 100, 200, 150, 50 };
+int TransferView::columnIndexes[] = { COLUMN_USER, COLUMN_HUB, COLUMN_STATUS, COLUMN_TIMELEFT, COLUMN_SPEED, COLUMN_FILE, COLUMN_SIZE, COLUMN_PATH, COLUMN_CIPHER, COLUMN_IP, COLUMN_RATIO };
+int TransferView::columnSizes[] = { 150, 150, 250, 75, 75, 175, 100, 200, 100, 150, 50 };
 
 static ResourceManager::Strings columnNames[] = { ResourceManager::USER, ResourceManager::HUB_SEGMENTS, ResourceManager::STATUS,
-ResourceManager::TIME_LEFT, ResourceManager::SPEED, ResourceManager::FILENAME, ResourceManager::SIZE, ResourceManager::PATH,
-ResourceManager::IP_BARE, ResourceManager::RATIO};
+	ResourceManager::TIME_LEFT, ResourceManager::SPEED, ResourceManager::FILENAME, ResourceManager::SIZE, ResourceManager::PATH,
+	ResourceManager::CIPHER, ResourceManager::IP_BARE, ResourceManager::RATIO};
 
 TransferView::~TransferView() {
 	arrows.Destroy();
@@ -831,6 +831,9 @@ void TransferView::ItemInfo::update(const UpdateInfo& ui) {
 		flagImage = ui.flagImage;
 		ip = ui.IP;
 	}
+	if(ui.updateMask & UpdateInfo::MASK_CIPHER) {
+		cipher = ui.cipher;
+	}	
 	if(ui.updateMask & UpdateInfo::MASK_SEGMENT) {
 		running = ui.running;
 	}
@@ -863,6 +866,9 @@ void TransferView::updateItem(int ii, uint32_t updateMask) {
 	if(updateMask & UpdateInfo::MASK_SEGMENT) {
 		ctrlTransfers.updateItem(ii, COLUMN_HUB);
 	}
+	if(updateMask & UpdateInfo::MASK_CIPHER) {
+		ctrlTransfers.updateItem(ii, COLUMN_CIPHER);
+	}	
 }
 
 void TransferView::on(ConnectionManagerListener::Added, const ConnectionQueueItem* aCqi) {
@@ -912,24 +918,58 @@ void TransferView::on(ConnectionManagerListener::Failed, const ConnectionQueueIt
 	speak(UPDATE_ITEM, ui);
 }
 
-void TransferView::on(DownloadManagerListener::Starting, const Download* aDownload) {
-	UpdateInfo* ui = new UpdateInfo(aDownload->getUser(), true);
-	ui->setStatus(ItemInfo::STATUS_RUNNING);
-	ui->setPos(aDownload->getPos());
-	ui->setActual(aDownload->getActual());
-	ui->setSize(aDownload->getSize());
-	ui->setTarget(Text::toT(aDownload->getPath()));
-	ui->setStatusString(TSTRING(DOWNLOAD_STARTING));
+static tstring getFile(const Transfer* t) {
+	tstring file;
 
-	string ip = aDownload->getUserConnection().getRemoteIp();
+	if(t->getType() == Transfer::TYPE_TREE) {
+		file = _T("TTH: ") + Text::toT(Util::getFileName(t->getPath()));
+	} else if(t->getType() == Transfer::TYPE_FULL_LIST || t->getType() == Transfer::TYPE_PARTIAL_LIST) {
+		file = TSTRING(FILE_LIST);
+	} else if(t->getType() == Transfer::TYPE_TESTSUR) {
+		file = _T("TestSUR");
+	} else {
+		file = Text::toT(Util::getFileName(t->getPath()));
+	}
+	return file;
+}
+
+void TransferView::starting(UpdateInfo* ui, const Transfer* t) {
+	ui->setPos(t->getPos());
+	ui->setTarget(Text::toT(t->getPath()));
+	const UserConnection& uc = t->getUserConnection();
+	ui->setCipher(Text::toT(uc.getCipherName()));
+	string ip = uc.getRemoteIp();
 	string country = Util::getIpCountry(ip);
 	if(country.empty()) {
 		ui->setIP(Text::toT(ip), 0);
 	} else {
 		ui->setIP(Text::toT(country + " (" + ip + ")"), WinUtil::getFlagImage(country.c_str()));
 	}
+}
+
+void TransferView::on(DownloadManagerListener::Requesting, const Download* d) throw() {
+	UpdateInfo* ui = new UpdateInfo(d->getUser(), true);
+	
+	starting(ui, d);
+	
+	ui->setActual(d->getActual());
+	ui->setSize(d->getSize());
+	ui->setStatus(ItemInfo::STATUS_WAITING);
+	ui->setStatusString(TSTRING(REQUESTING) + _T(" ") + getFile(d) + _T("..."));
+
+	speak(UPDATE_ITEM, ui);
+}
+
+void TransferView::on(DownloadManagerListener::Starting, const Download* aDownload) {
+	UpdateInfo* ui = new UpdateInfo(aDownload->getUser(), true);
+	
+	ui->setStatusString(TSTRING(DOWNLOAD_STARTING));
+	ui->setTarget(Text::toT(aDownload->getPath()));
+	
 	if(aDownload->getType() == Transfer::TYPE_TREE) {
 		ui->setStatus(ItemInfo::TREE_DOWNLOAD);
+	} else {
+		ui->setStatus(ItemInfo::STATUS_RUNNING);
 	}
 
 	speak(UPDATE_ITEM, ui);
@@ -988,6 +1028,8 @@ void TransferView::on(DownloadManagerListener::Failed, const Download* aDownload
 	UpdateInfo* ui = new UpdateInfo(aDownload->getUser(), true, true);
 	ui->setStatus(ItemInfo::STATUS_WAITING);
 	ui->setPos(0);
+	ui->setSize(aDownload->getSize());
+	ui->setTarget(Text::toT(aDownload->getPath()));
 
 	tstring tmpReason = Text::toT(aReason);
 	if(aDownload->isSet(Download::FLAG_SLOWUSER)) {
@@ -997,17 +1039,7 @@ void TransferView::on(DownloadManagerListener::Failed, const Download* aDownload
 	}
 
 	ui->setStatusString(tmpReason);
-	
-	ui->setSize(aDownload->getSize());
-	ui->setTarget(Text::toT(aDownload->getPath()));
 
-	string ip = aDownload->getUserConnection().getRemoteIp();
-	string country = Util::getIpCountry(ip);
-	if(country.empty()) {
-		ui->setIP(Text::toT(ip), 0);
-	} else {
-		ui->setIP(Text::toT(country + " (" + ip + ")"), WinUtil::getFlagImage(country.c_str()));
-	}
 	if(BOOLSETTING(POPUP_DOWNLOAD_FAILED)) {
 		MainFrame::getMainFrame()->ShowBalloonTip(
 			TSTRING(FILE) + _T(": ") + Util::getFileName(ui->target) + _T("\n")+
@@ -1030,22 +1062,14 @@ void TransferView::on(DownloadManagerListener::Status, const UserConnection* uc,
 void TransferView::on(UploadManagerListener::Starting, const Upload* aUpload) {
 	UpdateInfo* ui = new UpdateInfo(aUpload->getUser(), false);
 
+	starting(ui, aUpload);
+	
 	ui->setStatus(ItemInfo::STATUS_RUNNING);
-	ui->setPos(aUpload->getPos());
 	ui->setActual(aUpload->getStartPos() + aUpload->getActual());
 	ui->setSize(aUpload->getType() == Transfer::TYPE_TREE ? aUpload->getSize() : aUpload->getFileSize());
-	ui->setTarget(Text::toT(aUpload->getPath()));
 
 	if(!aUpload->isSet(Upload::FLAG_RESUMED)) {
 		ui->setStatusString(TSTRING(UPLOAD_STARTING));
-	}
-
-	string ip = aUpload->getUserConnection().getRemoteIp();
-	string country = Util::getIpCountry(ip);
-	if(country.empty()) {
-		ui->setIP(Text::toT(ip), 0);
-	} else {
-		ui->setIP(Text::toT(country + " (" + ip + ")"), WinUtil::getFlagImage(country.c_str()));
 	}
 
 	speak(UPDATE_ITEM, ui);
@@ -1072,9 +1096,6 @@ void TransferView::on(UploadManagerListener::Tick, const UploadList& ul) {
 		if(u->isSet(Upload::FLAG_PARTIAL)) {
 			statusString += _T("[P]");
 		}
-		if(u->isSet(Upload::FLAG_CHUNKED)) {
-			statusString += _T("[C]");
-		}
 		if(u->getUserConnection().isSecure()) {
 			if(u->getUserConnection().isTrusted()) {
 				statusString += _T("[S]");
@@ -1085,6 +1106,9 @@ void TransferView::on(UploadManagerListener::Tick, const UploadList& ul) {
 		if(u->isSet(Upload::FLAG_ZUPLOAD)) {
 			statusString += _T("[Z]");
 		}
+		if(u->isSet(Upload::FLAG_CHUNKED)) {
+			statusString += _T("[C]");
+		}		
 		if(!statusString.empty()) {
 			statusString += _T(" ");
 		}			
@@ -1379,5 +1403,5 @@ void TransferView::on(QueueManagerListener::Removed, const QueueItem* qi) throw(
 
 /**
  * @file
- * $Id: TransferView.cpp 398 2008-07-05 20:54:25Z BigMuscle $
+ * $Id: TransferView.cpp 406 2008-07-14 20:25:22Z BigMuscle $
  */

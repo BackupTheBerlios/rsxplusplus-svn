@@ -26,6 +26,7 @@
 #include "TimerManager.h"
 #include "ClientManagerListener.h"
 #include "CriticalSection.h"
+#include "../rsx/rsx-settings/rsx-SettingsManager.h"
 
 #include <lunar.h>
 
@@ -126,29 +127,41 @@ public:
 };
 
 class ScriptManager : public ScriptInstance, public Singleton<ScriptManager>, public Speaker<ScriptManagerListener>,
-		private ClientManagerListener, private TimerManagerListener {
-	Socket s;
-	friend class Singleton<ScriptManager>;
-	ScriptManager();
-	~ScriptManager() throw() { 
-		lua_close(L); 
-		if(timerEnabled)
-			TimerManager::getInstance()->removeListener(this);
-	}
+		private ClientManagerListener, private TimerManagerListener, private RSXSettingsManagerListener {
 public:
+	typedef deque<pair<bool, string> > ScriptsList;
+
 	void load();
+	void loadScripts();
+
 	void SendDebugMessage(const string& s);
 	void onRaw(const string& aRawName, const string& aRaw, const Client* aClient) throw();
 
 	GETSET(bool, timerEnabled, TimerEnabled);
-	bool isRunning;
+
+	ScriptsList& getScriptsList() { return scripts; }
 private:
+	friend class Singleton<ScriptManager>;
 	friend struct LuaManager;
 	friend class ScriptInstance;
 
 	void on(ClientConnected, const Client* aClient) throw();
 	void on(ClientDisconnected, const Client* aClient) throw();
 	void on(Second, uint64_t /* ticks */);
+
+	void on(RSXSettingsManagerListener::Load, SimpleXML& xml) throw();
+	void on(RSXSettingsManagerListener::Save, SimpleXML& xml) throw();
+
+	ScriptManager();
+	~ScriptManager() throw() { 
+		lua_close(L); 
+		if(timerEnabled)
+			TimerManager::getInstance()->removeListener(this);
+		RSXSettingsManager::getInstance()->removeListener(this);
+	}
+
+	Socket s;
+	ScriptsList scripts;
 };
 }; // namespace dcpp
 

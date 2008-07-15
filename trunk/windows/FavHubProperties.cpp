@@ -52,7 +52,7 @@ LRESULT FavHubProperties::OnInitDialog(UINT, WPARAM, LPARAM, BOOL&)
 	SetDlgItemText(IDC_HUBUSERDESCR, Text::toT(entry->getUserDescription()).c_str());
 	SetDlgItemText(IDC_SERVER, Text::toT(entry->getIP()).c_str());
 	//RSX++
-	SetDlgItemText(IDC_FAV_EMAIL, Text::toT(entry->getFavEmail()).c_str());
+	SetDlgItemText(IDC_FAV_EMAIL, Text::toT(entry->getCurrentEmail()).c_str());
 	SetDlgItemText(IDC_FAV_AWAY_MSG, Text::toT(entry->getAwayMsg()).c_str());
 
 	ctrlTabs.SubclassWindow(GetDlgItem(IDC_FAV_TABS));
@@ -143,7 +143,7 @@ LRESULT FavHubProperties::OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWnd
 		entry->setUserDescription(Text::fromT(buf));
 		//RSX++
 		GetDlgItemText(IDC_FAV_EMAIL, buf, 256);
-		entry->setFavEmail(Text::fromT(buf));
+		entry->setCurrentEmail(Text::fromT(buf));
 
 		GetDlgItemText(IDC_FAV_AWAY_MSG, buf, 256);
 		entry->setAwayMsg(Text::fromT(buf));

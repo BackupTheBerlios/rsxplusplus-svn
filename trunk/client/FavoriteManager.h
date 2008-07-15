@@ -31,6 +31,7 @@
 #include "FavoriteManagerListener.h"
 #include "ClientManager.h"
 #include "StringTokenizer.h" //RSX++
+#include "HubSettings.h" //RSX++
 
 namespace dcpp {
 	
@@ -72,38 +73,40 @@ public:
 	GETSET(int, maxUsers, MaxUsers);
 };
 
-class FavoriteHubEntry {
+class FavoriteHubEntry : public HubSettings {
 public:
 	typedef FavoriteHubEntry* Ptr;
 	typedef vector<Ptr> List;
 	typedef List::const_iterator Iter;
 
-	FavoriteHubEntry() throw() : connect(false), encoding(Text::systemCharset), chatusersplit(0), stealth(false), userliststate(true), mode(0), ip(Util::emptyString), searchInterval(SETTING(MINIMUM_SEARCH_INTERVAL))
+	FavoriteHubEntry() throw() : connect(false), encoding(Text::systemCharset), chatusersplit(0), stealth(false), userliststate(true), mode(0), ip(Util::emptyString), searchInterval(SETTING(MINIMUM_SEARCH_INTERVAL)) {
 		//RSX++
-		, favEmail(Util::emptyString), awayMsg(Util::emptyString), userProtected(Util::emptyString), checkOnConnect(false),
-		checkClients(false), checkFilelists(false), checkMyInfo(false), hideShare(false),
-		useFilter(RSXBOOLSETTING(USE_FILTER_FAV)), autosearch(false), useHL(RSXBOOLSETTING(USE_HL_FAV)), usersLimit(0), groupId(0)
+		setUsersLimit(0);
+		setGroupId(0);
+		setUseFilter(RSXBOOLSETTING(USE_FILTER_FAV));
+		setUseHL(RSXBOOLSETTING(USE_HL_FAV));
 		//END
-		{ }
+	}
 	FavoriteHubEntry(const HubEntry& rhs) throw() : name(rhs.getName()), server(rhs.getServer()), encoding(Text::systemCharset), searchInterval(SETTING(MINIMUM_SEARCH_INTERVAL)),
-		description(rhs.getDescription()), connect(false), chatusersplit(0), stealth(false), userliststate(true), mode(0), ip(Util::emptyString),
+		description(rhs.getDescription()), connect(false), chatusersplit(0), stealth(false), userliststate(true), mode(0), ip(Util::emptyString) {
 		//RSX++
-		favEmail(Util::emptyString), awayMsg(Util::emptyString), userProtected(Util::emptyString), checkOnConnect(false), 
-		checkClients(false), checkFilelists(false), checkMyInfo(false), hideShare(false),
-		useFilter(RSXBOOLSETTING(USE_FILTER_FAV)), autosearch(false), useHL(RSXBOOLSETTING(USE_HL_FAV)), usersLimit(0), groupId(0)
+		setUsersLimit(0);
+		setGroupId(0);
+		setUseFilter(RSXBOOLSETTING(USE_FILTER_FAV));
+		setUseHL(RSXBOOLSETTING(USE_HL_FAV));
 		//END
-		{ }
+	}
 	FavoriteHubEntry(const FavoriteHubEntry& rhs) throw() : userdescription(rhs.userdescription), name(rhs.getName()), 
 		server(rhs.getServer()), description(rhs.getDescription()), password(rhs.getPassword()), connect(rhs.getConnect()), 
 		nick(rhs.nick), chatusersplit(rhs.chatusersplit), stealth(rhs.stealth), searchInterval(rhs.searchInterval),
-		userliststate(rhs.userliststate), mode(rhs.mode), ip(rhs.ip), encoding(rhs.getEncoding()),
+		userliststate(rhs.userliststate), mode(rhs.mode), ip(rhs.ip), encoding(rhs.getEncoding()) {
 		//RSX++
-		favEmail(rhs.favEmail), awayMsg(rhs.awayMsg), userProtected(rhs.userProtected) , checkOnConnect(rhs.checkOnConnect), 
-		checkClients(rhs.checkClients),checkFilelists(rhs.checkFilelists), checkMyInfo(rhs.checkMyInfo), hideShare(rhs.hideShare), 
-		useFilter(rhs.useFilter), autosearch(rhs.autosearch), useHL(rhs.useHL), usersLimit(rhs.usersLimit),
-		groupId(rhs.groupId)
+		updateSettings(rhs.getSettings());
+		setAwayMsg(rhs.getAwayMsg());
+		setUsersLimit(rhs.getUsersLimit());
+		setGroupId(rhs.getGroupId());
 		//END
-		{ }
+	}
 	~FavoriteHubEntry() throw() { 
 		//RSX++
 		for(FavoriteHubEntry::Action::List::const_iterator j = action.begin(); j != action.end(); ++j) {
@@ -134,21 +137,20 @@ public:
 	GETSET(bool, connect, Connect);	
 	GETSET(bool, stealth, Stealth);
 	GETSET(bool, userliststate, UserListState);		
-	
 	//RSX++
-	GETSET(string, favEmail, FavEmail);
 	GETSET(string, awayMsg, AwayMsg);
-	GETSET(string, userProtected, UserProtected);
-	GETSET(bool, checkOnConnect, CheckOnConnect);
-	GETSET(bool, checkClients, CheckClients);
-	GETSET(bool, checkFilelists, CheckFilelists);
-	GETSET(bool, checkMyInfo, CheckMyInfo);
-	GETSET(bool, hideShare, HideShare);
-	GETSET(bool, useFilter, UseFilter);
-	GETSET(bool, autosearch, Autosearch);
-	GETSET(bool, useHL, UseHL);
 	GETSET(int, usersLimit, UsersLimit);
 	GETSET(int, groupId, GroupId);
+	GS_STR(CurrentEmail, "MAIL")
+	GS_STR(UserProtected, "PROT");
+	GS_BOOL(CheckOnConnect, "DEOC");
+	GS_BOOL(CheckClients, "DECC")
+	GS_BOOL(CheckFilelists, "DEFL")
+	GS_BOOL(CheckUserInfo, "DEUI")
+	GS_BOOL(HideShare, "HIDS")
+	GS_BOOL(Autosearch, "AUSR")
+	GS_BOOL(UseFilter, "UCHF")
+	GS_BOOL(UseHL, "UCHL")
 
 	//RSX++ //Raw Manager
 	struct Action {

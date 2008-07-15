@@ -68,7 +68,7 @@ void NmdcHub::refreshUserList(bool refreshOnly) {
 	if(refreshOnly) {
 		Lock l(cs);
 
-		OnlineUser::List v;
+		OnlineUserList v;
 		for(NickIter i = users.begin(); i != users.end(); ++i) {
 			v.push_back(i->second);
 		}
@@ -103,6 +103,7 @@ OnlineUser& NmdcHub::getUser(const string& aNick) {
 		if(u->getUser() == getMyIdentity().getUser()) {
 			setMyIdentity(u->getIdentity());
 		}
+		userCount++; //RSX++
 	}
 	
 	ClientManager::getInstance()->putOnline(u);
@@ -117,7 +118,7 @@ void NmdcHub::supports(const StringList& feat) {
 	send("$Supports " + x + '|');
 }
 
-OnlineUser* NmdcHub::findUser(const string& aNick) const {
+OnlineUserPtr NmdcHub::findUser(const string& aNick) const {
 	Lock l(cs);
 	NickIter i = users.find(aNick);
 	return i == users.end() ? NULL : i->second;
@@ -134,6 +135,7 @@ void NmdcHub::putUser(const string& aNick) {
 		users.erase(i);
 
 		availableBytes -= ou->getIdentity().getBytesShared();
+		userCount--; //RSX++
 	}
 	ClientManager::getInstance()->putOffline(ou);
 	ou->dec();
@@ -237,7 +239,7 @@ void NmdcHub::onLine(const string& aLine) throw() {
 			message = message.substr(4);
 		}
 
-		OnlineUser* ou = findUser(nick);
+		OnlineUserPtr ou = findUser(nick);
 		if(ou) {
 			fire(ClientListener::Message(), this, *ou, unescape(message), thirdPerson);
 		} else {
@@ -245,7 +247,7 @@ void NmdcHub::onLine(const string& aLine) throw() {
 			// Assume that messages from unknown users come from the hub
 			o.getIdentity().setHub(true);
 			o.getIdentity().setHidden(true);
-			fire(ClientListener::UserUpdated(), this, o);
+			fire(ClientListener::UserUpdated(), this, &o);
 
 			fire(ClientListener::Message(), this, o, unescape(message), thirdPerson);
 		}
@@ -348,7 +350,7 @@ void NmdcHub::onLine(const string& aLine) throw() {
 
 		if(terms.size() > 0) {
 			if(seeker.compare(0, 4, "Hub:") == 0) {
-				OnlineUser* u = findUser(seeker.substr(4));
+				OnlineUserPtr u = findUser(seeker.substr(4));
 
 				if(u == NULL) {
 					return;
@@ -356,7 +358,7 @@ void NmdcHub::onLine(const string& aLine) throw() {
 
 				if(!u->getUser()->isSet(User::PASSIVE)) {
 					u->getUser()->setFlag(User::PASSIVE);
-					updated(*u);
+					updated(u);
 				}
 			}
 
@@ -460,20 +462,20 @@ void NmdcHub::onLine(const string& aLine) throw() {
 		if(getCheckedAtConnect() && getCheckMyInfo()) {
 			string report = u.getIdentity().myInfoDetect(u);
 			if(!report.empty()) {
-				updated(u);
+				updated(&u);
 				cheatMessage(report);
 			}
 		}
 		//END
-		fire(ClientListener::UserUpdated(), this, u);
+		fire(ClientListener::UserUpdated(), this, &u);
 	} else if(cmd == "$Quit") {
 		if(!param.empty()) {
 			const string& nick = param;
-			OnlineUser* u = findUser(nick);
+			OnlineUserPtr u = findUser(nick);
 			if(!u)
 				return;
 
-			fire(ClientListener::UserRemoved(), this, *u);
+			fire(ClientListener::UserRemoved(), this, u);
 
 			putUser(nick);
 		}
@@ -538,7 +540,7 @@ void NmdcHub::onLine(const string& aLine) throw() {
 			return;
 		}
 
-		OnlineUser* u = findUser(param.substr(0, j));
+		OnlineUserPtr u = findUser(param.substr(0, j));
 		if(u == NULL)
 			return;
 
@@ -549,7 +551,7 @@ void NmdcHub::onLine(const string& aLine) throw() {
 				u->getUser()->setFlag(User::PASSIVE);
 				// Notify the user that we're passive too...
 				revConnectToMe(*u);
-				updated(*u);
+				updated(u);
 
 				return;
 			}
@@ -675,7 +677,7 @@ void NmdcHub::onLine(const string& aLine) throw() {
 				myInfo(true);
 			}
 
-			fire(ClientListener::UserUpdated(), this, u);
+			fire(ClientListener::UserUpdated(), this, &u);
 		}
 	} else if(cmd == "$ForceMove") {
 		disconnect(false);
@@ -687,7 +689,7 @@ void NmdcHub::onLine(const string& aLine) throw() {
 		fire(ClientListener::NickTaken(), this);
 	} else if(cmd == "$UserIP") {
 		if(!param.empty()) {
-			OnlineUser::List v;
+			OnlineUserList v;
 			StringTokenizer<string> t(param, "$$");
 			StringList& l = t.getTokens();
 			for(StringIter it = l.begin(); it != l.end(); ++it) {
@@ -697,7 +699,7 @@ void NmdcHub::onLine(const string& aLine) throw() {
 				if((j+1) == it->length())
 					continue;
 
-				OnlineUser* u = findUser(it->substr(0, j));
+				OnlineUserPtr u = findUser(it->substr(0, j));
 				
 				if(!u)
 					continue;
@@ -714,7 +716,7 @@ void NmdcHub::onLine(const string& aLine) throw() {
 		}
 	} else if(cmd == "$NickList") {
 		if(!param.empty()) {
-			OnlineUser::List v;
+			OnlineUserList v;
 			StringTokenizer<string> t(param, "$$");
 			StringList& sl = t.getTokens();
 
@@ -730,7 +732,7 @@ void NmdcHub::onLine(const string& aLine) throw() {
 				// Let's assume 10 characters per nick...
 				tmp.reserve(v.size() * (11 + 10 + getMyNick().length())); 
 				string n = ' ' + fromUtf8(getMyNick()) + '|';
-				for(OnlineUser::List::const_iterator i = v.begin(); i != v.end(); ++i) {
+				for(OnlineUserList::const_iterator i = v.begin(); i != v.end(); ++i) {
 					tmp += "$GetINFO ";
 					tmp += fromUtf8((*i)->getIdentity().getNick());
 					tmp += n;
@@ -744,7 +746,7 @@ void NmdcHub::onLine(const string& aLine) throw() {
 		}
 	} else if(cmd == "$OpList") {
 		if(!param.empty()) {
-			OnlineUser::List v;
+			OnlineUserList v;
 			StringTokenizer<string> t(param, "$$");
 			StringList& sl = t.getTokens();
 			for(StringIter it = sl.begin(); it != sl.end(); ++it) {
@@ -754,6 +756,14 @@ void NmdcHub::onLine(const string& aLine) throw() {
 				ou.getIdentity().setOp(true);
 				if(ou.getUser() == getMyIdentity().getUser()) {
 					setMyIdentity(ou.getIdentity());
+					//RSX++
+					if(!getCheckedAtConnect() && getCheckMyInfo()) {
+						users.startMyINFOCheck(this);
+					}
+					if(getCheckOnConnect()) {
+						startChecking(Util::emptyStringT);
+					}
+					//END
 				}
 				v.push_back(&ou);
 			}
@@ -761,16 +771,6 @@ void NmdcHub::onLine(const string& aLine) throw() {
 			fire(ClientListener::UsersUpdated(), this, v);
 			updateCounts(false);
 
-			//RSX++
-			if(isOp()) {
-				if(!getCheckedAtConnect() && getCheckMyInfo()) {
-					users.startMyINFOCheck(this);
-				}
-				if(getCheckOnConnect()) {
-					startChecking(Util::emptyStringT);
-				}
-			}
-			//END
 			// Special...to avoid op's complaining that their count is not correctly
 			// updated when they log in (they'll be counted as registered first...)
 			myInfo(false);
@@ -801,8 +801,8 @@ void NmdcHub::onLine(const string& aLine) throw() {
 		if(fromNick.empty() || param.size() < j + 2)
 			return;
 
-        OnlineUser* replyTo = findUser(rtNick);
-		OnlineUser* from = findUser(fromNick);
+        OnlineUserPtr replyTo = findUser(rtNick);
+		OnlineUserPtr from = findUser(fromNick);
 
 		string msg = param.substr(j + 2);
 		if(replyTo == NULL || from == NULL) {
@@ -811,14 +811,14 @@ void NmdcHub::onLine(const string& aLine) throw() {
 				replyTo = &getUser(rtNick);
 				replyTo->getIdentity().setHub(true);
 				replyTo->getIdentity().setHidden(true);
-				fire(ClientListener::UserUpdated(), this, *replyTo);
+				fire(ClientListener::UserUpdated(), this, replyTo);
 			}
 			if(from == 0) {
 				// Assume it's from the hub
 				from = &getUser(fromNick);
 				from->getIdentity().setHub(true);
 				from->getIdentity().setHidden(true);
-				fire(ClientListener::UserUpdated(), this, *from);
+				fire(ClientListener::UserUpdated(), this, from);
 			}
 
 			// Update pointers just in case they've been invalidated
@@ -1026,7 +1026,7 @@ void NmdcHub::privateMessage(const OnlineUser& aUser, const string& aMessage, bo
 	send("$To: " + fromUtf8(aUser.getIdentity().getNick()) + " From: " + fromUtf8(getMyNick()) + " $" + fromUtf8(escape("<" + getMyNick() + "> " + (thirdPerson ? "/me " + aMessage : aMessage))) + "|");
 	// Emulate a returning message...
 	Lock l(cs);
-	OnlineUser* ou = findUser(getMyNick());
+	OnlineUserPtr ou = findUser(getMyNick());
 	if(ou) {
 		fire(ClientListener::PrivateMessage(), this, *ou, aUser, *ou, aMessage, thirdPerson);
 	}
@@ -1078,5 +1078,5 @@ void NmdcHub::on(Second, uint64_t aTick) throw() {
 
 /**
  * @file
- * $Id: nmdchub.cpp 401 2008-07-07 17:02:03Z BigMuscle $
+ * $Id: nmdchub.cpp 405 2008-07-14 11:41:15Z BigMuscle $
  */

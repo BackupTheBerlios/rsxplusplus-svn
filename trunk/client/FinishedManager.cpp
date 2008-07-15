@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2001-2007 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -169,5 +169,5 @@ bool FinishedManager::handlePartialRequest(const TTHValue& tth, vector<uint16_t>
 
 /**
  * @file
- * $Id: FinishedManager.cpp 393 2008-06-25 18:33:20Z BigMuscle $
+ * $Id: FinishedManager.cpp 403 2008-07-10 21:27:57Z BigMuscle $
  */

@@ -19,8 +19,8 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(SolutionDir)vc7\$(ConfigurationName)\$(ProjectName)"
-			IntermediateDirectory="$(SolutionDir)vc7\$(ConfigurationName)\$(ProjectName)"
+			OutputDirectory="$(SolutionDir)vc_dump\$(PlatformName)\$(ConfigurationName)\$(ProjectName)"
+			IntermediateDirectory="$(SolutionDir)vc_dump\$(PlatformName)\$(ConfigurationName)\$(ProjectName)"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
@@ -183,8 +183,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="$(SolutionDir)vc7\$(ConfigurationName)\$(ProjectName)"
-			IntermediateDirectory="$(SolutionDir)vc7\$(ConfigurationName)\$(ProjectName)"
+			OutputDirectory="$(SolutionDir)vc_dump\$(PlatformName)\$(ConfigurationName)\$(ProjectName)"
+			IntermediateDirectory="$(SolutionDir)vc_dump\$(PlatformName)\$(ConfigurationName)\$(ProjectName)"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
@@ -363,8 +363,8 @@
 		</Configuration>
 		<Configuration
 			Name="SvnRelease|Win32"
-			OutputDirectory="$(SolutionDir)vc7\$(ConfigurationName)\$(ProjectName)"
-			IntermediateDirectory="$(SolutionDir)vc7\$(ConfigurationName)\$(ProjectName)"
+			OutputDirectory="$(SolutionDir)vc_dump\$(PlatformName)\$(ConfigurationName)\$(ProjectName)"
+			IntermediateDirectory="$(SolutionDir)vc_dump\$(PlatformName)\$(ConfigurationName)\$(ProjectName)"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
@@ -634,6 +634,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\client\CommandQueue.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\client\ConnectionManager.cpp"
 				>
 			</File>
@@ -796,6 +800,10 @@
 						PrecompiledHeaderThrough="../client/stdinc.h"
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\client\HubSettings.cpp"
+				>
 			</File>
 			<File
 				RelativePath=".\client\IgnoreManager.cpp"
@@ -1199,6 +1207,10 @@
 			Filter="h;hpp;hxx;hm;inl"
 			>
 			<File
+				RelativePath=".\client\ActionRaw.h"
+				>
+			</File>
+			<File
 				RelativePath=".\client\AdcCommand.h"
 				>
 			</File>
@@ -1272,6 +1284,10 @@
 			</File>
 			<File
 				RelativePath=".\client\ClientProfileManager.h"
+				>
+			</File>
+			<File
+				RelativePath=".\client\CommandQueue.h"
 				>
 			</File>
 			<File
@@ -1392,6 +1408,10 @@
 			</File>
 			<File
 				RelativePath=".\rsx\HTTPDownloadManager.h"
+				>
+			</File>
+			<File
+				RelativePath=".\client\HubSettings.h"
 				>
 			</File>
 			<File

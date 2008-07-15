@@ -1,3 +1,22 @@
+** SVN 90
+ ** dump folder for all configuration
+ ** added chat message on started check (on connect)
+ ** fixed checking on connect (nmdc & adc)
+ ** removed profiles clipboard (useless...)
+ ** version template script ignore stlport and wtl dirs
+ ** added option to set active lua scripts (also scripts load routine, fixes scripts' log msg on startup as well)
+ ** added option to disable lua error messages
+ ** applied crise patch
+ ** dynamic hub settings (optimalization to store more stuff, also gonna be shared with plugins)
+ ** threaded sender suspended (most of stuff is already threaded - no point for it... also it makes prblems :P)
+ ** StrongDC++ SVN merge
+ ** when detector stops running, active items are removed from queue
+ ** changed check queue routine - need some twearks
+
+*** WARNING ***
+ since this revision some of Favorites' options might be gone
+ same thing can happen with Action & Raws
+
 ** SVN 89
  ** added option to load compressed ClientProfiles
  ** begun work on UserInfo Detector

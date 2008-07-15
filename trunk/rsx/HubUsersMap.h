@@ -30,8 +30,8 @@ class HubUsersMap : public BaseMap {
 public:
 	HubUsersMap() : clientEngine(NULL) { };
 	~HubUsersMap() throw() {
-		//stopMyINFOCheck();
-		//stopCheck();
+		stopCheck();
+		stopMyINFOCheck();
 	};
 
 	void startMyINFOCheck(Client* c) { 
@@ -58,9 +58,6 @@ public:
 		if(!c->isOp())
 			return _T("You are not an Operator on this hub");
 
-		if(!c->getCheckClients() && !c->getCheckFilelists())
-			return _T("There is nothing to check - select check type (Clients/FileLists) in Hub Properties");
-
 		bool cc = false;
 		bool cf = false;
 
@@ -70,13 +67,16 @@ public:
 		} else {
 			if(stricmp(param.c_str(), _T("clients")) == 0 || stricmp(param.c_str(), _T("c")) == 0)
 				cc = true;
-			else if(stricmp(param.c_str(), _T("filelists")) == 0 || stricmp(param.c_str(), _T("lists")) == 0 || stricmp(param.c_str(), _T("fl")) == 0)
+			else if(stricmp(param.c_str(), _T("filelists")) == 0 || stricmp(param.c_str(), _T("fl")) == 0 || stricmp(param.c_str(), _T("f")) == 0)
 				cf = true;
 			else if(stricmp(param.c_str(), _T("all")) == 0)
 				cc = cf = true;
 			else
 				return _T("Incorrect parameters!");
 		}
+		if(!cc && !cf)
+			return _T("There is nothing to check - select check type (Clients/FileLists) in Hub Properties");
+
 		if(clientEngine == NULL) {
 			clientEngine = new ThreadedCheck(this, c);
 			clientEngine->setCheckClients(cc);
@@ -99,7 +99,7 @@ public:
 	}
 	void stopMyINFOCheck() {
 		if(myInfoEngine.isRunning()) {
-			myInfoEngine.cancel();
+			myInfoEngine.stop = true;
 		}
 	}
 
@@ -120,12 +120,6 @@ private:
 	class ThreadedMyINFOCheck : public Thread {
 	public:
 		ThreadedMyINFOCheck() : client(NULL), stop(true) { };
-		~ThreadedMyINFOCheck() { cancel(); }
-
-		void cancel() { 
-			stop = true;
-			//join();
-		}
 
 		bool isRunning() const { return !stop; }
 
@@ -136,7 +130,6 @@ private:
 			}
 		}
 
-	private:
 		CriticalSection cs;
 		int run() {
 			stop = false;
@@ -144,25 +137,24 @@ private:
 			if(client && client->isConnected()) {
 				client->setCheckedAtConnect(true);
 
-				OnlineUser::List ul;
+				OnlineUserList ul;
 				client->getUserList(ul);
 
 				Lock l(cs);
-				for(OnlineUser::List::const_iterator i = ul.begin(); i != ul.end(); ++i) {
+				for(OnlineUserList::const_iterator i = ul.begin(); i != ul.end(); ++i) {
 					if(stop) {
-						// don't let to not execute it
-						(*i)->dec();
-						continue;
+						break;
 					}
-					OnlineUser* ou = *i;
-					if(ou->isCheckable()) {
-						string report = ou->getIdentity().myInfoDetect(*ou);
-						if(!report.empty()) {
-							ou->getClient().cheatMessage(report);
-							ou->getClient().updated(*ou);
+					{
+						OnlineUserPtr ou = *i;
+						if(ou->isCheckable()) {
+							string report = ou->getIdentity().myInfoDetect(*ou);
+							if(!report.empty()) {
+								ou->getClient().cheatMessage(report);
+								ou->getClient().updated(ou);
+							}
 						}
 					}
-					ou->dec();
 					sleep(1);
 				}
 			}
@@ -179,9 +171,31 @@ private:
 		ThreadedCheck(HubUsersMap* _u, Client* _c) : client(_c), users(_u), 
 			keepChecking(false), canCheckFilelist(false), inThread(false), checkOnConnect(false) { };
 		~ThreadedCheck() {
+			StringList items;
+			OnlineUserList ul;
+			client->getUserList(ul);
+			for(OnlineUserList::const_iterator i = ul.begin(); i != ul.end(); ++i) {
+				const Identity& id = (*i)->getIdentity();
+				if(id.isClientQueued()) {
+					string path = Util::getConfigPath() + "TestSURs\\" + id.getTestSURQueued();
+					items.push_back(path);
+				}
+				if(id.isFileListQueued()) {
+					string path = Util::getListPath() + id.getFileListQueued();
+					items.push_back(path);
+				}
+			}
+
+			for(StringIter j = items.begin(); j != items.end(); ++j) {
+				try {
+					QueueManager::getInstance()->remove(*j);
+				} catch(...) {
+					//
+				}
+			}
 			keepChecking = inThread = false;
-			client = NULL;
 			join();
+			client = NULL;
 		}
 
 		inline bool isChecking() { 
@@ -197,7 +211,6 @@ private:
 			}
 		}
 
-	private:
 		CriticalSection cs;
 
 		enum Actions {
@@ -218,7 +231,7 @@ private:
 					ou->getIdentity().setTestSURChecked(Util::toString(GET_TIME()));
 					ou->getIdentity().setFileListChecked(Util::toString(GET_TIME()));
 					string report = ou->setCheat("No ADC 1.0/0.10 support", true, false, false);
-					client->updated(*ou);
+					client->updated(ou);
 					client->cheatMessage(report);
 					return BREAK;
 				}
@@ -250,7 +263,14 @@ private:
 			keepChecking = true;
 			setThreadPriority(Thread::LOW);
 
-			if(checkOnConnect) { 
+			if(checkOnConnect) {
+				if(checkClients && !checkFilelists)
+					client->p_addHubLine("*** Checking started (Clients)", 3);
+				else if(!checkClients && checkFilelists)
+					client->p_addHubLine("*** Checking started (FileLists)", 3);
+				else if(checkClients && checkFilelists)
+					client->p_addHubLine("*** Checking started (Clients & FileLists)", 3);
+
 				Thread::sleep(RSXSETTING(CHECK_DELAY) + 1000);
 				checkOnConnect = false;
 				client->setCheckOnConnect(false);
@@ -283,7 +303,7 @@ private:
 						QueueManager::getInstance()->unlockQueue();
 					}
 
-					OnlineUser* ou = NULL;
+					OnlineUserPtr ou = NULL;
 					int action = 0;
 					{
 						Lock l(client->cs);
@@ -294,7 +314,6 @@ private:
 							if(action & CONTINUE)
 								continue;
 							if(action & BREAK) {
-								i->second->inc();
 								ou = i->second;
 								break;
 							}
@@ -312,8 +331,9 @@ private:
 							}
 						} else if(action & ADD_FILELIST_CHECK) {
 							try {
-								QueueManager::getInstance()->addFileListCheck(ou->getUser());
-								ou->getIdentity().setFileListQueued("1");
+								string fname = QueueManager::getInstance()->addFileListCheck(ou->getUser());
+								if(!fname.empty())
+									ou->getIdentity().setFileListQueued(fname);
 							} catch(...) {
 								//
 							}
@@ -322,11 +342,7 @@ private:
 							if(!Util::fileExists(path)) {
 								ou->getIdentity().setTestSURQueued(Util::emptyString);
 							}
-//							if(!QueueManager::getInstance()->isFileInQueue(ou->getIdentity().getTestSURQueued())) {
-//								ou->getIdentity().setTestSURQueued(Util::emptyString);
-//							}
 						}
-						ou->dec();
 					}
 
 					if(!canCheckFilelist) {

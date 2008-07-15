@@ -23,6 +23,7 @@
 
 #ifndef _DEBUG
 # define _SECURE_SCL  0
+# define BOOST_DISABLE_ASSERTS 1
 #endif
 
 // This enables stlport's debug mode (and slows it down to a crawl...)
@@ -117,13 +118,9 @@ typedef unsigned __int64 uint64_t;
 # undef memzero
 # define memcpy memcpy2
 # define memset memset2
-//RSX++
-#else
-//@todo fix conversions in future
-#pragma warning(disable:4267)
-#pragma warning(disable:4244)
 #endif
-
+//RSX++
+#define todo_message(x) message(__FILE__ "(" BOOST_STRINGIZE(__LINE__) ") \t\t\t@todo: " x)
 #define EXIMP __declspec(dllexport)
 #include "PluginAPI/rString.h"
 //END
@@ -187,5 +184,5 @@ using namespace std::tr1;
 
 /**
  * @file
- * $Id: stdinc.h 399 2008-07-06 19:48:02Z BigMuscle $
+ * $Id: stdinc.h 403 2008-07-10 21:27:57Z BigMuscle $
  */

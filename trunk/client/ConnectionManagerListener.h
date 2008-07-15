@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2007 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -47,5 +47,5 @@ public:
 
 /**
 * @file
-* $Id: ConnectionManagerListener.h 373 2008-02-06 17:23:49Z bigmuscle $
+* $Id: ConnectionManagerListener.h 403 2008-07-10 21:27:57Z BigMuscle $
 */

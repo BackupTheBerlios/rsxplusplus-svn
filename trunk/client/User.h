@@ -99,7 +99,7 @@ public:
 	Identity(const UserPtr& ptr, uint32_t aSID) : user(ptr) { setSID(aSID); resetCounters(); }
 	Identity(const Identity& rhs) { *this = rhs; } // Use operator= since we have to lock before reading...
 	Identity& operator=(const Identity& rhs) { FastLock l(cs); user = rhs.user; info = rhs.info; return *this; }
-	~Identity() { FastLock l(cs); }
+	~Identity() { }
 
 #define GS(n, x) string get##n() const { return get(x); } void set##n(const string& v) { set(x, v); }
 	GS(Nick, "NI")
@@ -123,7 +123,7 @@ public:
 	
 	void setConnection(const string& name) { set("US", name); }
 	string getConnection() const;
-	
+
 	void setStatus(const string& st) { set("ST", st); }
 	StatusFlags getStatus() const { return static_cast<StatusFlags>(Util::toInt(get("ST"))); }
 
@@ -139,7 +139,7 @@ public:
 	bool isHidden() const { return isSet("HI"); }
 	bool isBot() const { return isClientType(CT_BOT) || isSet("BO"); }
 	bool isAway() const { return (getStatus() & AWAY) || isSet("AW"); }
-	bool isTcpActive() const { return (!user->isSet(User::NMDC) && !getIp().empty()) || !user->isSet(User::PASSIVE); }
+	bool isTcpActive(const Client* = NULL) const;
 	bool isUdpActive() const { return !getIp().empty() && !getUdpPort().empty(); }
 	//RSX++
 	bool isClientChecked() const { return isSet("TC"); }
@@ -254,8 +254,8 @@ public:
 		COLUMN_LAST
 	};
 
-	typedef vector<OnlineUser*> List;
-	typedef List::const_iterator Iter;
+	//typedef vector<OnlineUser*> List;
+	//typedef List::const_iterator Iter;
 
 	OnlineUser(const UserPtr& ptr, Client& client_, uint32_t sid_);
 	~OnlineUser() { }
@@ -263,15 +263,15 @@ public:
 	operator UserPtr&() { return getUser(); }
 	operator const UserPtr&() const { return getUser(); }
 
-	inline UserPtr& getUser() { return getIdentity().getUser(); }
-	inline const UserPtr& getUser() const { return getIdentity().getUser(); }
-	inline Identity& getIdentity() { return identity; }
+	UserPtr& getUser() { return getIdentity().getUser(); }
+	const UserPtr& getUser() const { return getIdentity().getUser(); }
+	Identity& getIdentity() { return identity; }
 	Client& getClient() { return client; }
 	const Client& getClient() const { return client; }
 
 	/* UserInfo */
 	bool update(int sortCol, const tstring& oldText = Util::emptyStringT);
-	uint8_t imageIndex() const { return UserInfoBase::getImage(identity); }
+	uint8_t imageIndex() const { return UserInfoBase::getImage(identity, &client); }
 	static int compareItems(const OnlineUser* a, const OnlineUser* b, uint8_t col);
 	bool isHidden() const { return identity.isHidden(); }
 	
@@ -346,5 +346,5 @@ private:
 
 /**
  * @file
- * $Id: User.h 398 2008-07-05 20:54:25Z BigMuscle $
+ * $Id: User.h 406 2008-07-14 20:25:22Z BigMuscle $
  */

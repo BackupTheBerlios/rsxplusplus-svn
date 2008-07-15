@@ -1,20 +1,31 @@
+/*
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
 #include "stdafx.h"
-#include "../client/DCPlusPlus.h"
-#include "../client/SettingsManager.h"
 #include "Resource.h"
 
-#include "ParamsPage.h"
-#include "ParamDlg.h"
-
-#include "../rsx/rsx-settings/rsx-SettingsManager.h"
+#include "../client/DCPlusPlus.h"
+#include "../client/SettingsManager.h"
 #include "../client/DetectionManager.h"
 #include "../client/version.h"
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[] = __FILE__;
-#endif
+#include "../rsx/rsx-settings/rsx-SettingsManager.h"
+
+#include "ParamsPage.h"
+#include "ParamDlg.h"
 
 #define BUFLEN 1024
 
@@ -25,38 +36,16 @@ PropPage::TextItem ParamsPage::texts[] = {
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
 
-PropPage::Item ParamsPage::items[] = {
-	{ IDC_NAME_ONE,		RSXSettingsManager::CLIPBOARD_NAME_ONE,		PropPage::T_STR_RSX },
-	{ IDC_NAME_TWO,		RSXSettingsManager::CLIPBOARD_NAME_TWO,		PropPage::T_STR_RSX },
-	{ IDC_NAME_THREE,	RSXSettingsManager::CLIPBOARD_NAME_THREE,	PropPage::T_STR_RSX },
-	{ IDC_NAME_FOUR,	RSXSettingsManager::CLIPBOARD_NAME_FOUR,	PropPage::T_STR_RSX },
-	{ IDC_NAME_FIVE,	RSXSettingsManager::CLIPBOARD_NAME_FIVE,	PropPage::T_STR_RSX },
-	{ IDC_NAME_SIX,		RSXSettingsManager::CLIPBOARD_NAME_SIX,		PropPage::T_STR_RSX },
-	{ IDC_TEXT_ONE,		RSXSettingsManager::CLIPBOARD_TEXT_ONE,		PropPage::T_STR_RSX },
-	{ IDC_TEXT_TWO,		RSXSettingsManager::CLIPBOARD_TEXT_TWO,		PropPage::T_STR_RSX },
-	{ IDC_TEXT_THREE,	RSXSettingsManager::CLIPBOARD_TEXT_THREE,	PropPage::T_STR_RSX },
-	{ IDC_TEXT_FOUR,	RSXSettingsManager::CLIPBOARD_TEXT_FOUR,	PropPage::T_STR_RSX },
-	{ IDC_TEXT_FIVE,	RSXSettingsManager::CLIPBOARD_TEXT_FIVE,	PropPage::T_STR_RSX },
-	{ IDC_TEXT_SIX,		RSXSettingsManager::CLIPBOARD_TEXT_SIX,		PropPage::T_STR_RSX},
-	{ 0, 0, PropPage::T_END }
-};
-
-LRESULT ParamsPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
-{
+LRESULT ParamsPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
 	PropPage::translate((HWND)(*this), texts);
-	PropPage::read((HWND)*this, items);
 
 	CRect rc;
-
 	ctrlParams.Attach(GetDlgItem(IDC_PARAM_ITEMS));
 	ctrlParams.GetClientRect(rc);
 
 	ctrlParams.InsertColumn(0, CTSTRING(SETTINGS_NAME), LVCFMT_LEFT, rc.Width() / 3, 0);
 	ctrlParams.InsertColumn(1, CTSTRING(REGEXP), LVCFMT_LEFT, (rc.Width() / 3) * 2, 1);
-
 	ctrlParams.SetExtendedListViewStyle(LVS_EX_FULLROWSELECT);
-
-	// Do specialized reading here
 
 	const StringMap& pm = DetectionManager::getInstance()->getParams();
 	TStringList cols;
@@ -66,13 +55,11 @@ LRESULT ParamsPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 		ctrlParams.insert(cols);
 		cols.clear();
 	}
-
 	return TRUE;
 }
 
-LRESULT ParamsPage::onAdd(WORD , WORD , HWND , BOOL& ) {
+LRESULT ParamsPage::onAdd(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
 	ParamDlg dlg;
-
 	if(dlg.DoModal() == IDOK) {
 		if(ctrlParams.find(Text::toT(dlg.name)) == -1) {
 			TStringList lst;
@@ -86,7 +73,7 @@ LRESULT ParamsPage::onAdd(WORD , WORD , HWND , BOOL& ) {
 	return 0;
 }
 
-LRESULT ParamsPage::onChange(WORD , WORD , HWND , BOOL& ) {
+LRESULT ParamsPage::onChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
 	if(ctrlParams.GetSelectedCount() == 1) {
 		int sel = ctrlParams.GetSelectedIndex();
 		TCHAR buf[BUFLEN];
@@ -130,7 +117,6 @@ void ParamsPage::write() {
 		pm[name] = regexp;
 	}
 	DetectionManager::getInstance()->save();
-	PropPage::write((HWND)*this, items);
 }
 
 LRESULT ParamsPage::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/) {
@@ -147,7 +133,6 @@ LRESULT ParamsPage::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*
 					cd->clrTextBk = RGB(245, 245, 245);
 				}
 				return CDRF_NEWFONT | CDRF_NOTIFYSUBITEMDRAW;
-			} catch(const Exception&) {
 			} catch(...) {
 			}
 		}

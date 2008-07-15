@@ -75,6 +75,7 @@ public:
 	
 	bool isSecure() const { return sock->isSecure(); }
 	bool isTrusted() const { return sock->isTrusted(); }
+	std::string getCipherName() const { return sock->getCipherName(); }
 
 	void write(const string& aData) { write(aData.data(), aData.length()); }
 	void write(const char* aBuf, size_t aLen) throw();
@@ -148,6 +149,7 @@ private:
 	int run();
 
 	void threadConnect(const string& aAddr, uint16_t aPort, bool proxy) throw(SocketException);
+	void threadAccept() throw(SocketException);
 	void threadRead() throw(SocketException);
 	void threadSendFile(InputStream* is) throw(Exception);
 	void threadSendData();
@@ -170,5 +172,5 @@ private:
 
 /**
  * @file
- * $Id: BufferedSocket.h 385 2008-04-26 13:05:09Z BigMuscle $
+ * $Id: BufferedSocket.h 404 2008-07-13 17:08:09Z BigMuscle $
  */

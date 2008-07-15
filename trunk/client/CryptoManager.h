@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2007 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -52,6 +52,8 @@ public:
 	bool checkCertificate() throw();
 
 	bool TLSOk() const throw();
+	
+	static void locking_function(int mode, int n, const char *file, int line);
 private:
 
 	friend class Singleton<CryptoManager>;
@@ -70,6 +72,8 @@ private:
 
 	const string lock;
 	const string pk;
+	
+	static CriticalSection* cs;
 
 	string keySubst(const uint8_t* aKey, size_t len, size_t n);
 	bool isExtra(uint8_t b) const {
@@ -83,5 +87,5 @@ private:
 
 /**
  * @file
- * $Id: CryptoManager.h 393 2008-06-25 18:33:20Z BigMuscle $
+ * $Id: CryptoManager.h 404 2008-07-13 17:08:09Z BigMuscle $
  */

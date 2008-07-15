@@ -220,8 +220,10 @@ private:
 
 	// ClientManagerListener
 	void on(ClientManagerListener::UserUpdated, const OnlineUser& aUser) throw() {
-		if(aUser.getUser() == replyTo)
+		if(aUser.getUser() == replyTo) {
+			ctrlClient.setClient(const_cast<Client*>(&aUser.getClient()));
 			PostMessage(WM_SPEAKER, USER_UPDATED);
+		}
 	}
 	void on(ClientManagerListener::UserConnected, const UserPtr& aUser) throw() {
 		if(aUser == replyTo)
@@ -238,5 +240,5 @@ private:
 
 /**
  * @file
- * $Id: PrivateFrame.h 390 2008-06-16 19:41:42Z BigMuscle $
+ * $Id: PrivateFrame.h 406 2008-07-14 20:25:22Z BigMuscle $
  */

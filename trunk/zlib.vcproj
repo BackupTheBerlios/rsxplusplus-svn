@@ -224,7 +224,7 @@
 				WarningLevel="0"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="3"
-				CallingConvention="1"
+				CallingConvention="0"
 				DisableSpecificWarnings="4996"
 			/>
 			<Tool
@@ -309,7 +309,7 @@
 				WarningLevel="0"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="3"
-				CallingConvention="1"
+				CallingConvention="0"
 				DisableSpecificWarnings="4996"
 			/>
 			<Tool

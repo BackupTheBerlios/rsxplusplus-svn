@@ -16,27 +16,42 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef PLUGIN_H
-#define PLUGIN_H
+#include "stdafx.h"
+#include "resource.h"
 
-#include "Singleton.h"
-#include <PluginInterface.h>
+#include <PluginInformation.h>
+#include <ClientInterface.h>
+#include <UserInterface.h>
 
-class Plugin : public iPlugin, public Singleton<Plugin> {
-public:
-	Plugin();
-	~Plugin();
+#include "Plugin.h"
+#include "version.h"
 
-	bool __cdecl onOutgoingMessage(iClient*, const rString&);
-	void __cdecl onToolBarClick();
+bool __stdcall DllMain(HANDLE /*hInst*/, DWORD /*reason*/, LPVOID /*reserved*/) {
+	return TRUE;
+}
 
-private:
-	HWND r_hwnd;
-	friend class Singleton<Plugin>;
-};
-#endif
+//obligatory functions!
+extern "C" {
+	__declspec(dllexport) iPlugin* __cdecl pluginLoad() {
+		Plugin::newInstance();
+		return Plugin::getInstance();
+	}
+
+	__declspec(dllexport) void __cdecl pluginUnload() {
+		Plugin::deleteInstance();
+	}
+
+	__declspec(dllexport) void __cdecl pluginInfo(PluginInformation& p) {
+		p.pId = PLUGIN_ID;
+		p.pName = L"SnapWindow";
+		p.pDesc = L"Make Window Snap ;)";
+		p.pVersion = L"1.00";
+		p.pAuthor = L"adrian_007";
+		p.pApiVersion = 1201;
+	}
+}
 
 /**
  * @file
- * $Id: Plugin.h 42 2007-10-31 18:27:40Z adrian_007 $
+ * $Id: main.cpp 42 2007-10-31 18:27:40Z adrian_007 $
  */

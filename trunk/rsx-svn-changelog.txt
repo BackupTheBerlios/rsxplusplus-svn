@@ -1,3 +1,15 @@
+** SVN 93
+ ** some fixes in detector start/stop commands
+ ** hub settings are updated on close when hub is in favorites
+ ** added options in hub settings to show ip/country code in chat
+ ** updated and extended plugin api
+ ** added plugin SnapWindow
+ ** updated icons and added some new to menus (thx I.nfraR.ed)
+ ** fixed plugin toolbar icons when there were plugins w/o icon
+ ** fixed memory leak related with plugins toolbar
+ ** updated testapi
+ ** adedd plugin SnapWindow (docking)
+
 ** SVN 92
  ** ok, now fixed, really...
 

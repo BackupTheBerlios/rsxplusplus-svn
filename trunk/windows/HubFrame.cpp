@@ -1241,7 +1241,7 @@ void HubFrame::addLine(const Identity& i, const tstring& aLine, CHARFORMAT2& cf,
 		LOG(LogManager::CHAT, params);
 	}
 	//@todo fav setting
-	tstring extraInfo = RsxUtil::formatAdditionalInfo(i.getIp(), RSXBOOLSETTING(IP_IN_CHAT), RSXBOOLSETTING(COUNTRY_IN_CHAT));
+	tstring extraInfo = RsxUtil::formatAdditionalInfo(i.getIp(), client->getShowIpOnChat(), client->getShowCountryCodeOnChat());
 	if(timeStamps) {
 		ctrlClient.AppendText(i, Text::toT(client->getCurrentNick()), Text::toT("[" + Util::getShortTimeString() + "] "), aLine + _T('\n'), cf, bUseEmo, useHL, extraInfo);
 	} else {
@@ -2436,6 +2436,7 @@ void HubFrame::on(AddClientLine, const Client*, const string& aMsg, int mType) t
 		case 3: addLine(Text::toT(aMsg), WinUtil::m_ChatTextSystem); break;
 		case 4: addLine(Text::toT(aMsg), WinUtil::m_ChatTextLog); break;
 		case 5: displayCheat(Text::toT(aMsg)); break;
+		case 6: addClientLine(Text::toT(aMsg)); break;
 		default: addLine(Text::toT(aMsg));
 	}
 }

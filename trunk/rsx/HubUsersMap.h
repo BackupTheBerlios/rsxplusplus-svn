@@ -40,23 +40,13 @@ public:
 		}
 	}
 
-	void startCheck(Client* c, bool cc, bool cf, bool cOnConnect = false) throw() {
-		if(clientEngine == NULL) {
-			clientEngine = new ThreadedCheck(this, c);
-			clientEngine->setCheckClients(cc);
-			clientEngine->setCheckFilelists(cf);
-			if(cOnConnect) {
-				clientEngine->setCheckOnConnect(true);
-			} else {
-				clientEngine->setKeepChecking(true);
-			}
-			clientEngine->startCheck();
-		}
-	}
-
 	tstring startChecking(Client* c, const tstring& param) throw() {
 		if(!c->isOp())
 			return _T("You are not an Operator on this hub");
+		if(clientEngine != NULL) {
+			stopCheck();
+			return _T("Checking stopped");
+		}
 
 		bool cc = false;
 		bool cf = false;
@@ -91,12 +81,10 @@ public:
 				return _T("Checking started (FileLists)");
 			else if(cc && cf)
 				return _T("Checking started (Clients & FileLists)");
-		} else {
-			stopCheck();
-			return _T("Checking stopped");
 		}
 		return Util::emptyStringT;
 	}
+
 	void stopMyINFOCheck() {
 		if(myInfoEngine.isRunning()) {
 			myInfoEngine.stop = true;
@@ -115,7 +103,6 @@ public:
 	}
 
 private:
-
 	//myinfo check engine
 	class ThreadedMyINFOCheck : public Thread {
 	public:
@@ -171,6 +158,8 @@ private:
 		ThreadedCheck(HubUsersMap* _u, Client* _c) : client(_c), users(_u), 
 			keepChecking(false), canCheckFilelist(false), inThread(false), checkOnConnect(false) { };
 		~ThreadedCheck() {
+			keepChecking = inThread = false;
+
 			StringList items;
 			OnlineUserList ul;
 			client->getUserList(ul);
@@ -193,12 +182,11 @@ private:
 					//
 				}
 			}
-			keepChecking = inThread = false;
 			join();
 			client = NULL;
 		}
 
-		inline bool isChecking() { 
+		bool isChecking() const { 
 			return inThread && keepChecking; 
 		}
 

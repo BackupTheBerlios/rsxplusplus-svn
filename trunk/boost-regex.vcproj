@@ -127,6 +127,7 @@
 				RuntimeLibrary="1"
 				EnableFunctionLevelLinking="true"
 				DebugInformationFormat="3"
+				CallingConvention="0"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -198,7 +199,7 @@
 				DefaultCharIsUnsigned="true"
 				RuntimeTypeInfo="false"
 				DebugInformationFormat="3"
-				CallingConvention="1"
+				CallingConvention="0"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -271,7 +272,7 @@
 				DefaultCharIsUnsigned="true"
 				RuntimeTypeInfo="false"
 				DebugInformationFormat="3"
-				CallingConvention="1"
+				CallingConvention="0"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"

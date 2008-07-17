@@ -28,25 +28,37 @@ class rString;
 class iClient {
 public:
 	/** send message to hub **/
-	virtual void __fastcall p_hubMessage(const dcpp::rString& aMsg) = 0;
+	virtual void __cdecl p_hubMessage(const dcpp::rString& aMsg, bool thirdPerson = false) = 0;
+
 	/** add message to chat window (visible only for user) **/
-	virtual void __fastcall p_addHubLine(const dcpp::rString& aMsg, int mType = 0) = 0;
+	virtual void __cdecl p_addHubLine(const dcpp::rString& aMsg, int mType = 0) = 0;
+
 	/** send raw message to hub **/
-	virtual void __fastcall p_sendUserCmd(const dcpp::rString& aUserCmd) = 0;
+	virtual void __cdecl p_sendUserCmd(const dcpp::rString& aUserCmd) = 0;
+
 	/** get/set ADC-like field value from hub identity class **/
-	virtual dcpp::rString __fastcall p_getField(const char* name) = 0;
-	virtual void __fastcall p_setField(const char* name, const dcpp::rString& value) = 0;
+	virtual dcpp::rString __cdecl p_getField(const char* name) = 0;
+	virtual void __cdecl p_setField(const char* name, const dcpp::rString& value) = 0;
+
 	/** get ADC-like field value from user identity class in this hub **/
-	virtual dcpp::rString __fastcall p_getMyField(const char* name) = 0;
-	virtual void __fastcall p_setMyField(const char* name, const dcpp::rString& value) = 0;
+	virtual dcpp::rString __cdecl p_getMyField(const char* name) = 0;
+	virtual void __cdecl p_setMyField(const char* name, const dcpp::rString& value) = 0;
+
+	/** get Hub Setting, setting name is 4-letter **/
+	virtual dcpp::rString __cdecl p_getHubSetting(const char* name) = 0;
+	virtual void __cdecl p_setHubSetting(const char* name, const dcpp::rString& value) = 0;
+
 	/** get exact hub address **/
-	virtual dcpp::rString __fastcall p_getHubUrl() = 0;
+	virtual dcpp::rString __cdecl p_getHubUrl() = 0;
+
 	/** get pointer to iOnlineUser interface class by nick **/
-	virtual dcpp::iOnlineUser* __fastcall p_getUserByNick(const dcpp::rString& aNick) = 0;
+	virtual dcpp::iOnlineUser* __cdecl p_getUserByNick(const dcpp::rString& aNick) = 0;
+
 	/** lock client using CriticalSection **/
-	virtual void __fastcall p_lock() = 0;
+	virtual void __cdecl p_lock() = 0;
+
 	/** unlock client **/
-	virtual void __fastcall p_unlock() = 0;
+	virtual void __cdecl p_unlock() = 0;
 };
 } // namespace dcpp
 

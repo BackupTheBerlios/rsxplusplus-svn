@@ -46,7 +46,7 @@
 namespace dcpp {
 
 PluginInfo::PluginInfo(HINSTANCE _h, PLUGIN_LOAD loader, PLUGIN_UNLOAD unloader, PluginInformation& _pi) : handle(_h), 
-	load(loader), unload(unloader), _interface(NULL)
+	load(loader), unload(unloader), _interface(NULL), icon(0)
 {
 	setName(_pi.pName);
 	setVersion(_pi.pVersion);
@@ -54,11 +54,13 @@ PluginInfo::PluginInfo(HINSTANCE _h, PLUGIN_LOAD loader, PLUGIN_UNLOAD unloader,
 	setAuthor(_pi.pAuthor);
 	setId(_pi.pId);
 	setIcon(_pi.pIconResourceId);
+	dcdebug("Plugin %s loaded. Information: [Version: %s][ID: %i][BitmapID: %i]\n", name.c_str(), version.c_str(), id, icon);
 }
 
 PluginInfo::~PluginInfo() {
 	unloadPlugin();
 	// release handlers here...
+	::FreeLibrary(handle);
 }
 
 void PluginInfo::loadPlugin() {
@@ -100,10 +102,7 @@ PluginsManager::PluginsManager() {
 
 PluginsManager::~PluginsManager() {
 	//make some cleanup
-	Lock l(cs);
-	stopPlugins();
-	for_each(active.begin(), active.end(), DeleteFunction());
-	active.clear();
+	unloadPlugins(true);
 }
 
 void PluginsManager::loadPlugins() {
@@ -113,6 +112,17 @@ void PluginsManager::loadPlugins() {
 		loadPlugin((*i));
 	}
 	libs.clear();
+}
+
+void PluginsManager::unloadPlugins(bool withStopFuncCall) {
+	Lock l(cs);
+	if(withStopFuncCall) {
+		for(Plugins::const_iterator i = active.begin(); i != active.end(); ++i) {
+			(*i)->unloadPlugin();
+		}
+	}
+	for_each(active.begin(), active.end(), DeleteFunction());
+	active.clear();
 }
 
 void PluginsManager::loadPlugin(const string& pPath) {
@@ -128,11 +138,13 @@ void PluginsManager::loadPlugin(const string& pPath) {
 	PluginInfo::PLUGIN_INFORMATION plugInfo = (PluginInfo::PLUGIN_INFORMATION)::GetProcAddress(h, "pluginInfo");
 
 	if(plugInfo != NULL && loadFunc != NULL && unloadFunc != NULL) {
-		PluginInformation pi = { 0 };
+		PluginInformation pi;
+		memzero(&pi, sizeof(pi));
+
 		plugInfo(pi);
 		if(pi.pApiVersion == API_VERSION) {
 			if(!isLoaded(pi.pId)) {
-				//ok, we've got a valid - not yet started - plugin... ;)
+				//ok, we've got a valid (not started yet) plugin... ;)
 				active.push_back(new PluginInfo(h, loadFunc, unloadFunc, pi));
 				return;
 			} else { LogManager::getInstance()->message(boost::str(boost::format("Plugin already loaded! (%1%)") % Util::getFileName(pPath))); }

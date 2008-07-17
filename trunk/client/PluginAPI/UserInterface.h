@@ -28,18 +28,27 @@ class rString;
 class iOnlineUser {
 public:
 	/** get/set ADC-like field value from/in user's identity class **/
-	virtual dcpp::rString __fastcall p_get(const char* name) = 0;
-	virtual void __fastcall p_set(const char* name, const dcpp::rString& value) = 0;
+	virtual dcpp::rString __cdecl p_get(const char* name) const  = 0;
+	virtual void __cdecl p_set(const char* name, const dcpp::rString& value) = 0;
+
+	/** get Client type (Op/Bot/Hub/Registered etc) **/
+	virtual bool __cdecl p_isClientType(int mode) const = 0;
+
+	/** check if user is TCP Active/Passive **/
+	virtual bool __cdecl p_isTcpActive() const = 0;
+
 	/** send private message to user **/
-	virtual void __fastcall p_sendPM(const dcpp::rString& aMsg) = 0;
+	virtual void __cdecl p_sendPM(const dcpp::rString& aMsg, bool thirdPerson = false) = 0;
+
 	/** get pointer to iClient interface class where user is online **/
-	virtual dcpp::iClient* __fastcall p_getUserClient() = 0;
-	
+	virtual dcpp::iClient* __cdecl p_getUserClient() = 0;
+
 	/** Smart Pointer Ref Counter, be careful with it **/
 	/** increment reference **/
-	virtual void __fastcall p_inc() = 0;
+	virtual void __cdecl p_inc() = 0;
+
 	/** decrement reference **/
-	virtual void __fastcall p_dec() = 0;
+	virtual void __cdecl p_dec() = 0;
 };
 } // namespace dcpp
 

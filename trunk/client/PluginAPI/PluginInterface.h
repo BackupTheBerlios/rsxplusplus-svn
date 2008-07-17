@@ -21,6 +21,7 @@
 
 namespace dcpp {
 // plugin interface, called on event in core
+// override needed functions only
 
 class iClient;
 class iOnlineUser;
@@ -28,20 +29,20 @@ class rString;
 
 class iPlugin {
 public:
-	virtual bool __fastcall onIncomingMessage(iClient*, const rString&)	{ return false; }
-	virtual bool __fastcall onOutgoingMessage(iClient*, const rString&)	{ return false; }
+	virtual bool __cdecl onIncomingMessage(iClient*, const rString&)	{ return false; }
+	virtual bool __cdecl onOutgoingMessage(iClient*, const rString&)	{ return false; }
 
-	virtual bool __fastcall onIncomingPM(iOnlineUser*, const rString&)	{ return false; }
-	virtual bool __fastcall onOutgoingPM(iOnlineUser*, const rString&)	{ return false; }
+	virtual bool __cdecl onIncomingPM(iOnlineUser*, const rString&)		{ return false; }
+	virtual bool __cdecl onOutgoingPM(iOnlineUser*, const rString&)		{ return false; }
 
-	virtual bool __fastcall onHubConnected(iClient*)					{ return false; }
-	virtual void __fastcall onHubDisconnected(iClient*)					{ return; }
+	virtual bool __cdecl onHubConnected(iClient*)						{ return false; }
+	virtual void __cdecl onHubDisconnected(iClient*)					{ return; }
 
-	virtual void __fastcall onUserConnected(iOnlineUser*)				{ return; }
-	virtual void __fastcall onUserDisconnected(iOnlineUser*)			{ return; }
+	virtual void __cdecl onUserConnected(iOnlineUser*)					{ return; }
+	virtual void __cdecl onUserDisconnected(iOnlineUser*)				{ return; }
 
-	virtual void __fastcall onToolBarClick()							{ return; }
-	virtual void __fastcall onSettingLoad()								{ return; }
+	virtual void __cdecl onToolBarClick()								{ return; }
+	virtual void __cdecl onSettingLoad()								{ return; }
 };
 } // namespace dcpp
 

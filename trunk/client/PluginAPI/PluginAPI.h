@@ -20,23 +20,24 @@
 #define RSXPLUSPLUS_PLUGIN_API
 
 #ifndef EXIMP
-#define EXIMP
+#define EXIMP __declspec(dllimport)
 #endif//EXIMP
 
 namespace dcpp {
 // set of functions to interact with core
 class PluginAPI {
 public:
-	//hub line style
+	// hub line style
 	enum {
 		STYLE_GENERAL = 0,
 		STYLE_MYOWN,
 		SYYLE_SERVER,
 		STYLE_SYSTEM,
 		STYLE_LOG,
-		STYLE_CHEAT
+		STYLE_CHEAT,
+		STYLE_STATUS
 	};
-	//tooltip icon style
+	// tooltip icon style
 	enum {
 		TT_NONE = 0x00000000,
 		TT_INFO = 0x00000001,
@@ -44,36 +45,35 @@ public:
 		TT_ERROR = 0x00000003,
 		TT_NOSOUND = 0x00000010
 	};
-	//versions
+	// versions
 	enum {
 		CLIENT_PROFILE = 0,
 		MYINFO_PROFILE,
 		IP_WATCH_PROFILE,
 		AUTOSEARCH_PROFILE,
-		ADLS_PROFILE,
 		RSX_VERSION,
 		RSX_REVISION
 	};
 
-	EXIMP static void __fastcall logMessage(const rString& aMsg);
+	EXIMP static void		__cdecl logMessage(const rString& aMsg);
 
-	EXIMP static rString __fastcall getDataPath();
-	EXIMP static rString __fastcall getVersion(int type);
-	EXIMP static void __fastcall getMainWnd(HWND& h);
+	EXIMP static rString	__cdecl getDataPath();
+	EXIMP static rString	__cdecl getVersion(int type);
+	EXIMP static void		__cdecl getMainWnd(HWND& h);
 
-	EXIMP static rString __fastcall getSetting(int id, const rString& aName);
-	EXIMP static void __fastcall setSetting(int id, const rString& aName, const rString& aVal);
+	EXIMP static rString	__cdecl getSetting(int id, const rString& aName);
+	EXIMP static void		__cdecl setSetting(int id, const rString& aName, const rString& aVal);
 
-	EXIMP static rString __fastcall getClientSetting(const rString& aName, bool rsxmng = false);
-	EXIMP static int __fastcall getClientSettingInt(const rString& aName, bool rsxmng = false);
+	EXIMP static rString	__cdecl getClientSetting(const rString& aName, bool rsxmng = false);
+	EXIMP static int		__cdecl getClientSettingInt(const rString& aName, bool rsxmng = false);
 
-	EXIMP static void __fastcall OpenHub(const rString& aHubUrl);
-	EXIMP static void __fastcall CloseHub(const rString& aUrl);
+	EXIMP static void		__cdecl OpenHub(const rString& aHubUrl);
+	EXIMP static void		__cdecl CloseHub(const rString& aUrl);
 
-	EXIMP static void __fastcall showToolTip(const rString& pTitle, const rString& pMsg, int pIcon);
+	EXIMP static void		__cdecl showToolTip(const rString& pTitle, const rString& pMsg, int pIcon);
 
-	EXIMP static bool __fastcall RegExMatch(const rString& strToMatch, const rString& regEx, const char* opt = "");
-	EXIMP static bool __fastcall WildcardMatch(const rString& strToMatch, const rString& pattern, char delim, bool useSet);
+	EXIMP static bool		__cdecl RegexMatch(const rString& strToMatch, const rString& regEx);
+	EXIMP static bool		__cdecl WildcardMatch(const rString& strToMatch, const rString& pattern, char delim, bool useSet);
 };
 } // namespace dcpp
 

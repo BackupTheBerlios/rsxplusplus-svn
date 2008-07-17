@@ -16,10 +16,10 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#include "stdafx.h"
+#include "stdinc.h"
 #include "resource.h"
+
 #include <PluginInformation.h>
-#include <APIFunctions.h>
 #include <ClientInterface.h>
 #include <UserInterface.h>
 
@@ -30,42 +30,24 @@ bool __stdcall DllMain(HANDLE /*hInst*/, DWORD /*reason*/, LPVOID /*reserved*/) 
 	return TRUE;
 }
 
-static void eToolBarClick() {
-	Plugin::getInstance()->onToolbarClick();
-}
-static bool eOutgoingMessage(dcpp::iClient* c, const rsxpp::String& s) {
-	return Plugin::getInstance()->onOutgoingMessage(c, s);
-}
-static bool eOutgoingPM(dcpp::iOnlineUser* u, const rsxpp::String& s) {
-	return Plugin::getInstance()->onOutgoingPM(u, s);
-}
-static bool eIncomingPM(dcpp::iOnlineUser* u, const rsxpp::String& s) {
-	return Plugin::getInstance()->onIncommingPM(u, s);
-}
-
-//obligatory functions!
 extern "C" {
-	__declspec(dllexport) void __cdecl pluginLoad() {
+	__declspec(dllexport) iPlugin* __cdecl pluginLoad() {
 		Plugin::newInstance();
+		return Plugin::getInstance();
 	}
 
 	__declspec(dllexport) void __cdecl pluginUnload() {
 		Plugin::deleteInstance();
 	}
 
-	__declspec(dllexport) void __cdecl pluginInfo(PluginInformation& p, APIFunctions::Functions& f) {
+	__declspec(dllexport) void __cdecl pluginInfo(PluginInformation& p) {
 		p.pId = PLUGIN_ID;
 		p.pName = L"TestAPI";
-		p.pDesc = L"some funky description";
-		p.pVersion = L"3.00";
+		p.pDesc = L"Plugin Description... should be short";
+		p.pVersion = L"2.00";
 		p.pAuthor = L"adrian_007";
 		p.pApiVersion = 1201;
 		p.pIconResourceId = IDB_BITMAP;
-
-		f.OnToolBarClick = eToolBarClick;
-		f.OnOutgoingMessage = eOutgoingMessage;
-		f.OnOutgoingPM = eOutgoingPM;
-		f.OnIncomingPM = eIncomingPM;
 	}
 }
 

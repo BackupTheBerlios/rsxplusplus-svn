@@ -808,8 +808,20 @@ string Identity::checkSlotsCount(OnlineUser& ou, int realSlots) {
 	return report;
 }
 // iOnlineUser functions
-void OnlineUser::p_sendPM(const rString& aMsg) {
-	ClientManager::getInstance()->privateMessage(identity.getUser(), aMsg.c_str(), false);
+void OnlineUser::p_sendPM(const rString& aMsg, bool thirdPerson /*= false*/) {
+	ClientManager::getInstance()->privateMessage(identity.getUser(), aMsg.c_str(), thirdPerson);
+}
+
+bool OnlineUser::p_isClientType(int mode) const {
+	if(mode == Identity::CT_OP)
+		return identity.isOp();
+	else if(mode == Identity::CT_BOT)
+		return identity.isBot();
+	else if(mode == Identity::CT_HUB)
+		return identity.isHub();
+
+	int type = Util::toInt(identity.get("CT"));
+	return (type & mode) == mode;
 }
 
 iClient* OnlineUser::p_getUserClient() { 

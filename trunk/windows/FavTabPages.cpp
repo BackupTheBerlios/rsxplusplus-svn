@@ -131,6 +131,10 @@ LRESULT CCustomTab::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 	::CheckDlgButton(*this, IDC_USE_FILTER_FAV, hub->getUseFilter()			? BST_CHECKED : BST_UNCHECKED);
 	::CheckDlgButton(*this, IDC_USE_HIGHLIGHT_FAV, hub->getUseHL()			? BST_CHECKED : BST_UNCHECKED);
 	::CheckDlgButton(*this, IDC_CHECK_AUTOSEARCH, hub->getAutosearch()		? BST_CHECKED : BST_UNCHECKED);
+
+	CheckDlgButton(IDC_SHOW_IP, hub->getShowIpOnChat() ? BST_CHECKED : BST_UNCHECKED);
+	CheckDlgButton(IDC_SHOW_CC, hub->getShowCountryCodeOnChat() ? BST_CHECKED : BST_UNCHECKED);
+
 	return 0;
 }
 
@@ -149,6 +153,10 @@ void CCustomTab::prepareClose() {
 
 	btn = ::GetDlgItem(m_hWnd, IDC_USE_HIGHLIGHT_FAV);
 	hub->setUseHL(RsxUtil::toBool(btn.GetCheck()));
+	hub->setShowCountryCodeOnChat(IsDlgButtonChecked(IDC_SHOW_CC) == BST_CHECKED);
+	hub->setShowIpOnChat(IsDlgButtonChecked(IDC_SHOW_IP) == BST_CHECKED);
+//IsDlgButtonChecked(IDC_STEALTH) == BST_CHECKED
+//CheckDlgButton(IDC_STEALTH, curEntry.checkMismatch ? BST_CHECKED : BST_UNCHECKED)
 
 	tstring buf;
 	int len = ::GetWindowTextLength(GetDlgItem(IDC_FAV_SEARCH_INTERVAL_BOX)) + 1;

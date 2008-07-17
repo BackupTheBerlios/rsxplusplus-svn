@@ -236,6 +236,29 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	m_CmdBar.m_arrCommand.Add(ID_WINDOW_RESTORE_ALL);
 	m_CmdBar.m_arrCommand.Add(ID_GET_TTH);	
 	m_CmdBar.m_arrCommand.Add(IDC_UPDATE);	
+	//RSX++
+	m_CmdBar.m_arrCommand.Add(IDC_HASH_PROGRESS);
+	m_CmdBar.m_arrCommand.Add(IDC_VIEW_PLUGINS_LIST);
+	m_CmdBar.m_arrCommand.Add(IDC_VIEW_SCRIPTS_LIST);
+	m_CmdBar.m_arrCommand.Add(IDC_OPEN_MY_LIST);
+	m_CmdBar.m_arrCommand.Add(IDC_MATCH_ALL);
+	m_CmdBar.m_arrCommand.Add(IDC_REFRESH_FILE_LIST);
+	m_CmdBar.m_arrCommand.Add(IDC_OPEN_DOWNLOADS);
+	m_CmdBar.m_arrCommand.Add(ID_FILE_QUICK_CONNECT);
+	m_CmdBar.m_arrCommand.Add(ID_WINDOW_ARRANGE);
+	m_CmdBar.m_arrCommand.Add(IDC_CLOSE_DISCONNECTED);
+	m_CmdBar.m_arrCommand.Add(IDC_CLOSE_ALL_PM);
+	m_CmdBar.m_arrCommand.Add(IDC_CLOSE_ALL_OFFLINE_PM);
+	m_CmdBar.m_arrCommand.Add(IDC_CLOSE_ALL_DIR_LIST);
+	m_CmdBar.m_arrCommand.Add(IDC_CLOSE_ALL_SEARCH_FRAME);
+	m_CmdBar.m_arrCommand.Add(IDC_RECONNECT_DISCONNECTED);
+	m_CmdBar.m_arrCommand.Add(ID_APP_ABOUT);
+	m_CmdBar.m_arrCommand.Add(IDC_HELP_HOMEPAGE);
+	m_CmdBar.m_arrCommand.Add(IDC_HELP_GEOIPFILE);
+	m_CmdBar.m_arrCommand.Add(IDC_HELP_FAQ);
+	m_CmdBar.m_arrCommand.Add(IDC_HELP_DISCUSS);
+	m_CmdBar.m_arrCommand.Add(ID_APP_EXIT);
+	//END
 
 	// remove old menu
 	SetMenu(NULL);
@@ -667,15 +690,26 @@ HWND MainFrame::createPluginsToolbar() {
 	ctrlPluginToolbar.SetButtonStructSize();
 	int n = 0;
 	const PluginsManager::Plugins& p = PluginsManager::getInstance()->getPlugins();
-	for(PluginsManager::Plugins::const_iterator i = p.begin(); i != p.end(); ++i, n++) {
+	for(PluginsManager::Plugins::const_iterator i = p.begin(); i != p.end(); ++i) {
 		if((*i)->getIcon() > 0) {
 			HBITMAP b = (HBITMAP)::LoadImage((*i)->getHandle(), MAKEINTRESOURCE((*i)->getIcon()), IMAGE_BITMAP, 12, 12, LR_SHARED);
+			if(b == NULL)
+				continue;
+
 			ctrlPluginToolbar.AddBitmap(1, b);
+
+			TBBUTTON nTB;
+			memzero(&nTB, sizeof(TBBUTTON));
+			nTB.iBitmap = n;
+			nTB.idCommand = (*i)->getId();
+			nTB.fsState = TBSTATE_ENABLED;
+			nTB.fsStyle = TBSTYLE_AUTOSIZE | TBSTYLE_BUTTON;
+
 			tstring pToolTip = (*i)->getName() + _T(" v") + (*i)->getVersion();
-			pToolTip += _T("\n") + (*i)->getDescription();
-			pToolTip += _T("\n") + (*i)->getAuthor();
-			int nStringId = ctrlPluginToolbar.AddStrings(pToolTip.c_str());
-			ctrlPluginToolbar.InsertButton(n, (*i)->getId(), TBSTYLE_AUTOSIZE | TBSTYLE_BUTTON, TBSTATE_ENABLED, n, nStringId, NULL);
+			nTB.iString = ctrlPluginToolbar.AddStrings(pToolTip.c_str());
+
+			ctrlPluginToolbar.AddButtons(1, &nTB);
+			n++;
 		}
 	}
 	ctrlPluginToolbar.AutoSize();
@@ -1366,11 +1400,10 @@ LRESULT MainFrame::OnViewQuickSearchBar(WORD /*wNotifyCode*/, WORD /*wID*/, HWND
 	return 0;
 }
 //RSX++
-LRESULT MainFrame::OnViewPluginToolBar(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
-	createPluginsToolbar();
-	BOOL bVisible = !::IsWindowVisible(ctrlPluginToolbar.m_hWnd);
-	if(ctrlPluginToolbar.GetButtonCount() == 0 && !bVisible)
-		bVisible = FALSE;
+LRESULT MainFrame::OnViewPluginToolBar(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+	static BOOL bVisible = TRUE;	// initially visible
+	bVisible = !bVisible;
 	CReBarCtrl rebar = m_hWndToolBar;
 	int nBandIndex = rebar.IdToIndex(ATL_IDW_BAND_FIRST); // plugin toolbar is 1st added band
 	rebar.ShowBand(nBandIndex, bVisible);

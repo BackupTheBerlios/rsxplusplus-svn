@@ -1217,8 +1217,17 @@ void FavoriteManager::setActifRaw(FavoriteHubEntry* entry, int actionId, int raw
 		act->raw.push_back(FavoriteHubEntry::Action::Raw(rawId));
 	}
 }
+//RSX++ // update hub settings
+void FavoriteManager::updateHubSettings(const string& aServer, const HubSettings::SettingsMap& s) {
+	Lock l(cs);
+	FavoriteHubEntry* hub = getFavoriteHubEntry(aServer);
+	if(hub) {
+		hub->updateSettings(s);
+	}
+}
 //RSX++ //get away msg
 string FavoriteManager::getAwayMessage(const string& aServer) {
+	Lock l(cs);
 	FavoriteHubEntry* hub = getFavoriteHubEntry(aServer);
 	if(hub) {
 		return hub->getAwayMsg().empty() ? Util::getAwayMessage() : hub->getAwayMsg();

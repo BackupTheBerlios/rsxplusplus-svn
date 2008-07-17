@@ -151,6 +151,8 @@ public:
 	GS_BOOL(Autosearch, "AUSR")
 	GS_BOOL(UseFilter, "UCHF")
 	GS_BOOL(UseHL, "UCHL")
+	GS_BOOL(ShowIpOnChat, "SWIP")
+	GS_BOOL(ShowCountryCodeOnChat, "SWCC")
 
 	//RSX++ //Raw Manager
 	struct Action {
@@ -409,6 +411,9 @@ public:
 		if(filters.size() > index)
 			filters.erase(filters.begin() + index);
 	}
+
+	//RSX++ // update hub settings
+	void updateHubSettings(const string& aServer, const HubSettings::SettingsMap& s);
 	//RSX++ //away msg string
 	string getAwayMessage(const string& aServer);
 	//RSX++ //FavHubGroups

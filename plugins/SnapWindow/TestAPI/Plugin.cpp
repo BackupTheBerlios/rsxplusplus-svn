@@ -16,47 +16,34 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#include "stdinc.h"
+#include "stdafx.h"
 
 #include <ClientInterface.h>
 #include <UserInterface.h>
 
 #include "Plugin.h"
-#include "resource.h"
 #include "version.h"
 
-Plugin::Plugin() {
-	// get a handle to window
-	PluginAPI::getMainWnd(r_hwnd);
+CSnapWindow snapHandler;
+WNDPROC lpfnOldWndProc;
 
-	PluginAPI::logMessage("*** TestAPI v2 loaded");
-	PluginAPI::setSetting(PLUGIN_ID, "testapi_setting", "variable");
+LRESULT CALLBACK SubClassFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
+	switch(message) {
+		case WM_MOVING:
+			return snapHandler.OnSnapMoving(hwnd, message, wParam, lParam);
+		case WM_ENTERSIZEMOVE:
+			return snapHandler.OnSnapEnterSizeMove(hwnd, message, wParam, lParam);
+	}
+	return CallWindowProc(lpfnOldWndProc, hwnd, message, wParam, lParam);
+}
+
+Plugin::Plugin() {
+	PluginAPI::getMainWnd(r_hwnd);
+	lpfnOldWndProc = (WNDPROC)SetWindowLong(r_hwnd, GWL_WNDPROC, (LONG)SubClassFunc);
 }
 
 Plugin::~Plugin() {
-	PluginAPI::logMessage("*** TestAPI v2 unloaded");
-}
-
-bool Plugin::onOutgoingMessage(iClient* c, const rString& aMsg) {
-	if(aMsg[0] == '/') {
-		string msg(aMsg);
-		if(msg == "/testapi") {
-			c->p_addHubLine("Test Message in StatusBar :)", PluginAPI::STYLE_STATUS);
-			string mynick = c->p_getMyField("NI").c_str();
-			string message = "*** User " + mynick + " - too many same numbers in share....";
-			c->p_addHubLine(message.c_str(), PluginAPI::STYLE_CHEAT);
-			return true;
-		} else if(msg == "/testapi send") {
-			c->p_hubMessage("RSX++ PluginAPI Test Message");
-			return true;
-		}
-	}
-	return false;
-}
-
-void Plugin::onToolBarClick() {
-	rString setting = PluginAPI::getSetting(PLUGIN_ID, "testapi_setting");
-	MessageBoxA(r_hwnd, setting.c_str(), "TestAPI::onToolBarClick()", MB_ICONINFORMATION);
+	SetWindowLong(r_hwnd, GWL_WNDPROC, (DWORD)lpfnOldWndProc);
 }
 
 /**

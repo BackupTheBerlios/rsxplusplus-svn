@@ -322,12 +322,14 @@ public:
 	bool getChecked(bool filelist = false, bool checkComplete = true);
 
 	/** iOnlineUser functions **/
-	rString __fastcall p_get(const char* name) { return getIdentity().get(name).c_str(); }
-	void __fastcall p_set(const char* name, const rString& value) { getIdentity().set(name, value.c_str()); }
-	void __fastcall p_sendPM(const rString& aMsg);
-	iClient* __fastcall p_getUserClient();
-	void __fastcall p_inc() { inc(); }
-	void __fastcall p_dec() { dec(); }
+	rString __cdecl p_get(const char* name) const { return getIdentity().get(name).c_str(); }
+	void __cdecl p_set(const char* name, const rString& value) { getIdentity().set(name, value.c_str()); }
+	bool __cdecl p_isClientType(int mode) const;
+	bool __cdecl p_isTcpActive() const { return identity.isTcpActive(); }
+	void __cdecl p_sendPM(const rString& aMsg, bool thirdPerson = false);
+	iClient* __cdecl p_getUserClient();
+	void __cdecl p_inc() { inc(); }
+	void __cdecl p_dec() { dec(); }
 	//END
 
 	GETSET(Identity, identity, Identity);

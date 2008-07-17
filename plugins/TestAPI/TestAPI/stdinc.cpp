@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2008 adrian_007, adrian-007 on o2 point pl
+ * Copyright (C) 2007 adrian_007, adrian-007 on o2 point pl
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,33 +16,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef RSXPLUSPLUS_RSTRING
-#define RSXPLUSPLUS_RSTRING
-
-#ifndef EXIMP
-#define EXIMP __declspec(dllimport)
-#endif//EXIMP
-
-namespace dcpp {
-// scoped stringholder
-class EXIMP rString {
-public:
-	rString(const char* str);
-	rString() : buf(0) { };
-	~rString();
-
-	__cdecl operator char* () { return buf; }
-	__cdecl operator const char*() const { return buf; }
-	const char * __cdecl c_str() const { return buf; }
-	bool __cdecl empty() const;
-private:
-	char* buf;
-};
-} // namespace dcpp
-
-#endif // RSXPLUSPLUS_RSTRING
+#include "stdinc.h"
 
 /**
  * @file
- * $Id: rString.h 47 2008-01-27 18:26:07Z adrian_007 $
+ * $Id: stdinc.cpp 42 2007-10-31 18:27:40Z adrian_007 $
  */

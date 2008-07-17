@@ -97,17 +97,19 @@ public:
 	bool isActionActive(const int aAction) const;
 
 	/** iClient functions **/
-	void __fastcall p_hubMessage(const rString& aMsg) { hubMessage(aMsg.c_str()); }
-	void __fastcall p_addHubLine(const rString& aMsg, int mType = 0) { addHubLine(aMsg.c_str(), mType); }
-	rString __fastcall p_getField(const char* name) { return getHubIdentity().get(name).c_str(); }
-	void __fastcall p_setField(const char* name, const rString& value) { getHubIdentity().set(name, value.c_str()); }
-	rString __fastcall p_getMyField(const char* name) { return getMyIdentity().get(name).c_str(); }
-	void __fastcall p_setMyField(const char* name, const rString& value) { getMyIdentity().set(name, value.c_str()); }
-	rString __fastcall p_getHubUrl() { return hubUrl.c_str(); }
-	void __fastcall p_sendUserCmd(const rString& aUserCmd) { sendUserCmd(aUserCmd.c_str());  }
-	iOnlineUser* __fastcall p_getUserByNick(const rString& aNick) { OnlineUserPtr ou = findUser(aNick.c_str()); return ou.get(); }
-	void __fastcall p_lock() { cs.enter(); }
-	void __fastcall p_unlock() { cs.leave(); }
+	void __cdecl p_hubMessage(const rString& aMsg, bool thirdPerson = false) { hubMessage(aMsg.c_str(), thirdPerson); }
+	void __cdecl p_addHubLine(const rString& aMsg, int mType = 0) { addHubLine(aMsg.c_str(), mType); }
+	rString __cdecl p_getField(const char* name) { return getHubIdentity().get(name).c_str(); }
+	void __cdecl p_setField(const char* name, const rString& value) { getHubIdentity().set(name, value.c_str()); }
+	rString __cdecl p_getMyField(const char* name) { return getMyIdentity().get(name).c_str(); }
+	void __cdecl p_setMyField(const char* name, const rString& value) { getMyIdentity().set(name, value.c_str()); }
+	dcpp::rString __cdecl p_getHubSetting(const char* name) { return get(name).c_str(); }
+	void __cdecl p_setHubSetting(const char* name, const dcpp::rString& value) { set(name, value.c_str()); }
+	rString __cdecl p_getHubUrl() { return hubUrl.c_str(); }
+	void __cdecl p_sendUserCmd(const rString& aUserCmd) { sendUserCmd(aUserCmd.c_str());  }
+	iOnlineUser* __cdecl p_getUserByNick(const rString& aNick) { OnlineUserPtr ou = findUser(aNick.c_str()); return ou.get(); }
+	void __cdecl p_lock() { cs.enter(); }
+	void __cdecl p_unlock() { cs.leave(); }
 	//END
 
 	static int getTotalCounts() {
@@ -167,16 +169,18 @@ public:
 		currentDescription = description;
 	}
 	string getCurrentDescription() const;
-	GS_STR(CurrentEmail, "MAIL")
-	GS_STR(UserProtected, "PROT")
-	GS_BOOL(UseFilter, "UCHF")
-	GS_BOOL(UseHL, "UCHL")
-	GS_BOOL(UseAutosearch, "AUSR")
-	GS_BOOL(CheckClients, "DECC")
-	GS_BOOL(CheckFilelists, "DEFL")
-	GS_BOOL(CheckOnConnect, "DEOC")
-	GS_BOOL(CheckMyInfo, "DEUI")
-	GS_BOOL(HideShare, "HIDS")
+	GS_STR(CurrentEmail,			"MAIL")
+	GS_STR(UserProtected,			"PROT")
+	GS_BOOL(UseFilter,				"UCHF")
+	GS_BOOL(UseHL,					"UCHL")
+	GS_BOOL(UseAutosearch,			"AUSR")
+	GS_BOOL(CheckClients,			"DECC")
+	GS_BOOL(CheckFilelists,			"DEFL")
+	GS_BOOL(CheckOnConnect,			"DEOC")
+	GS_BOOL(CheckMyInfo,			"DEUI")
+	GS_BOOL(HideShare,				"HIDS")
+	GS_BOOL(ShowIpOnChat,			"SWIP")
+	GS_BOOL(ShowCountryCodeOnChat,	"SWCC")
 	//END
 	GETSET(string, favIp, FavIp);
 	

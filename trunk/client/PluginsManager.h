@@ -40,6 +40,7 @@ public:
 	~PluginsManager();
 
 	void loadPlugins();
+	void unloadPlugins(bool withStopFuncCall);
 
 	void startPlugins();
 	void stopPlugins();

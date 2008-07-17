@@ -80,22 +80,13 @@ void PluginAPI::showToolTip(const rString& pTitle, const rString& pMsg, int pIco
 
 rString PluginAPI::getVersion(int type) {
 	switch(type) {
-		case CLIENT_PROFILE:
-			return ClientProfileManager::getInstance()->getProfileVersion().c_str();
-		case MYINFO_PROFILE:
-			return ClientProfileManager::getInstance()->getMyinfoProfileVersion().c_str();
-		case IP_WATCH_PROFILE:
-			return IpManager::getInstance()->getIpWatchVersion().c_str();
-		case AUTOSEARCH_PROFILE:
-			return AutoSearchManager::getInstance()->getVersion().c_str();
-		case ADLS_PROFILE:
-			return "1.00";
-		case RSX_VERSION:
-			return VERSIONSTRING;
-		case RSX_REVISION:
-			return "0";
-		default:
-			return "0.00";
+		case CLIENT_PROFILE:		return DetectionManager::getInstance()->getProfileVersion().c_str();
+		case MYINFO_PROFILE:		return ClientProfileManager::getInstance()->getMyinfoProfileVersion().c_str();
+		case IP_WATCH_PROFILE:		return IpManager::getInstance()->getIpWatchVersion().c_str();
+		case AUTOSEARCH_PROFILE:	return AutoSearchManager::getInstance()->getVersion().c_str();
+		case RSX_VERSION:			return VERSIONSTRING;
+		case RSX_REVISION:			return BOOST_STRINGIZE(SVN_REVISION);
+		default:					return "";
 	}
 }
 
@@ -119,7 +110,7 @@ int PluginAPI::getClientSettingInt(const rString& aName, bool rsxmng) {
 	}
 }
 
-bool PluginAPI::RegExMatch(const rString& strToMatch, const rString& regEx, const char* /*opt*/) {
+bool PluginAPI::RegexMatch(const rString& strToMatch, const rString& regEx) {
 	return RegexUtil::match(strToMatch.c_str(), regEx.c_str());
 }
 

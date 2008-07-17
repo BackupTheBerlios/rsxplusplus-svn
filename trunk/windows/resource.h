@@ -655,6 +655,7 @@
 #define IDC_BAD_CLIENT                  1307
 #define IDC_USE_REGEXP_OR_WILD          1307
 #define IDC_CHECK_MISMATCH              1307
+#define IDC_SHOW_CC                     1307
 #define IDC_SETTINGS_KB3                1308
 #define IDC_HASH_SPIN                   1308
 #define IDC_SLEEP_TIME_S                1308
@@ -705,6 +706,7 @@
 #define IDC_DISPLAY_CHEAT               1314
 #define IDC_RAW_LUA                     1314
 #define IDC_ENABLE                      1314
+#define IDC_SHOW_IP                     1314
 #define IDC_SETTINGS_CONFIRM_OPTIONS    1315
 #define IDC_PROFILE_MESSAGE             1315
 #define IDC_ADD_ACTION                  1315
@@ -1130,7 +1132,7 @@
 #define IDC_SEGMENTED_ONLY              10095
 #define ID_VIEW_PLUGIN_TOOLBAR          10096
 #define IDC_VIEW_PLUGINS_LIST           10097
-#define IDC_VIEW_SCRIPTS_LIST			10098
+#define IDC_VIEW_SCRIPTS_LIST           10098
 #define IDC_PROGRESS_TEXT_COLOR_DOWN    10102
 #define IDC_PROGRESS_TEXT_COLOR_UP      10103
 #define IDC_CZDC_PM_SOUND               10107

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2008 adrian_007, adrian-007 on o2 point pl
+ * Copyright (C) 2001-2007 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,33 +16,44 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef RSXPLUSPLUS_RSTRING
-#define RSXPLUSPLUS_RSTRING
+#if !defined(SINGLETON_H)
+#define SINGLETON_H
 
-#ifndef EXIMP
-#define EXIMP __declspec(dllimport)
-#endif//EXIMP
-
-namespace dcpp {
-// scoped stringholder
-class EXIMP rString {
+template<typename T>
+class Singleton {
 public:
-	rString(const char* str);
-	rString() : buf(0) { };
-	~rString();
+	Singleton() { }
+	virtual ~Singleton() { }
 
-	__cdecl operator char* () { return buf; }
-	__cdecl operator const char*() const { return buf; }
-	const char * __cdecl c_str() const { return buf; }
-	bool __cdecl empty() const;
+	static T* getInstance() {
+		return instance;
+	}
+	
+	static void newInstance() {
+		if(instance)
+			delete instance;
+		
+		instance = new T();
+	}
+	
+	static void deleteInstance() {
+		if(instance)
+			delete instance;
+		instance = NULL;
+	}
+protected:
+	static T* instance;
 private:
-	char* buf;
-};
-} // namespace dcpp
+	Singleton(const Singleton&);
+	Singleton& operator=(const Singleton&);
 
-#endif // RSXPLUSPLUS_RSTRING
+};
+
+template<class T> T* Singleton<T>::instance = NULL;
+
+#endif // !defined(SINGLETON_H)
 
 /**
  * @file
- * $Id: rString.h 47 2008-01-27 18:26:07Z adrian_007 $
+ * $Id: Singleton.h 317 2007-08-04 14:52:24Z bigmuscle $
  */

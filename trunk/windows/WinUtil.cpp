@@ -68,11 +68,6 @@ OMenu WinUtil::grantMenu;
 CImageList WinUtil::fileImages;
 CImageList WinUtil::userImages;
 CImageList WinUtil::flagImages;
-//RSX++
-ExCImage::Ptr WinUtil::fileImg;
-ExCImage::Ptr WinUtil::flagsImg; 
-ExCImage::Ptr WinUtil::usersImg;
-//END
 int WinUtil::dirIconIndex = 0;
 int WinUtil::dirMaskedIndex = 0;
 TStringList WinUtil::lastDirs;
@@ -390,15 +385,11 @@ static LRESULT CALLBACK KeyboardProc(int code, WPARAM wParam, LPARAM lParam) {
 
 void WinUtil::reLoadImages() {
 	userImages.Destroy();
-	RL_DeleteObject(usersImg);
 
-	userImages.Create(16, 16, ILC_COLOR32 | ILC_MASK, 16, 16);
 	if(SETTING(USERLIST_IMAGE) == "") {
-		usersImg = RL_LoadFromResource(IDP_USERS);
-		userImages.Add(*usersImg);
+		ResourceLoader::LoadImageList(IDP_USERS, userImages, 16, 16);
 	} else {
-		usersImg = RL_Load(Text::toT(SETTING(USERLIST_IMAGE)).c_str());
-		userImages.Add(*usersImg, usersImg->GetPixel(0, 0));
+		ResourceLoader::LoadImageList(Text::toT(SETTING(USERLIST_IMAGE)).c_str(), userImages, 16, 16);
 	}
 }
 
@@ -515,38 +506,23 @@ void WinUtil::init(HWND hWnd) {
 		fileImages.AddIcon(ic);
 		::DestroyIcon(fi.hIcon);
 	} else {
-		//RSX++
-		fileImg = RL_LoadFromResource(IDP_FOLDERS);
-		fileImages.Create(16, 16, ILC_COLOR32 | ILC_MASK, 0, 3);
-		fileImages.Add(*fileImg);
-		//END
+		ResourceLoader::LoadImageList(IDP_FOLDERS, fileImages, 16, 16);
 	}
 #endif
 
-	//RSX++
-	fileImg = RL_LoadFromResource(IDP_FOLDERS);
-	fileImages.Create(16, 16, ILC_COLOR32 | ILC_MASK, 0, 3);
-	fileImages.Add(*fileImg);
-	//END
+	ResourceLoader::LoadImageList(IDP_FOLDERS, fileImages, 16, 16);
 	dirIconIndex = fileImageCount++;
 	dirMaskedIndex = fileImageCount++;
 
 	fileImageCount++;
 
-	//RSX++
-	flagsImg = RL_LoadFromResource(IDP_FLAGS);
-	flagImages.Create(25, 15, ILC_COLOR32 | ILC_MASK, 0, 8);
-	flagImages.Add(*flagsImg);
+	ResourceLoader::LoadImageList(IDP_FLAGS, flagImages, 25, 15);
 
-	userImages.Create(16, 16, ILC_COLOR32 | ILC_MASK, 0, 9);
 	if(SETTING(USERLIST_IMAGE) == "") {
-		usersImg = RL_LoadFromResource(IDP_USERS);
-		userImages.Add(*usersImg);
+		ResourceLoader::LoadImageList(IDP_USERS, userImages, 16, 16);
 	} else {
-		usersImg = RL_Load(Text::toT(SETTING(USERLIST_IMAGE)).c_str());
-		userImages.Add(*usersImg, usersImg->GetPixel(0, 0));
+		ResourceLoader::LoadImageList(Text::toT(SETTING(USERLIST_IMAGE)).c_str(), userImages, 16, 16);
 	}
-	//END
 	
 	LOGFONT lf, lf2;
 	::GetObject((HFONT)GetStockObject(DEFAULT_GUI_FONT), sizeof(lf), &lf);
@@ -718,11 +694,7 @@ void WinUtil::uninit() {
 	::DeleteObject(boldFont);
 	::DeleteObject(smallBoldFont);
 	::DeleteObject(bgBrush);
-	//RSX++
-	RL_DeleteObject(fileImg);
-	RL_DeleteObject(flagsImg);
-	RL_DeleteObject(usersImg);
-	//END
+
 	mainMenu.DestroyMenu();
 	grantMenu.DestroyMenu();
 

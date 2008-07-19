@@ -26,7 +26,7 @@
 
 #include "resource.h"
 #include "OMenu.h"
-#include "ExCImage.h" //RSX++
+#include "ResourceLoader.h" //RSX++
 
 class ChatCtrl;
 
@@ -261,11 +261,7 @@ public:
 	static int fileImageCount;
 	static CImageList userImages;
 	static CImageList flagImages;
-	//RSX++
-	static ExCImage::Ptr fileImg;
-	static ExCImage::Ptr flagsImg; 
-	static ExCImage::Ptr usersImg;
-	//END
+
 	struct TextItem {
 		WORD itemID;
 		ResourceManager::Strings translatedString;

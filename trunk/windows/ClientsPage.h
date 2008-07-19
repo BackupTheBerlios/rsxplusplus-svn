@@ -15,8 +15,9 @@ class ClientsPage : public CPropertyPage<IDD_CLIENTS_PAGE>, public PropPage
 public:
 	enum { WM_PROFILE = WM_APP + 53 };
 
-	ClientsPage(SettingsManager *s) : PropPage(s) {
-		title = _tcsdup((TSTRING(SETTINGS_RSX) + _T('\\') + TSTRING(SETTINGS_FAKEDETECT) + _T('\\') + TSTRING(SETTINGS_CLIENTS)).c_str());
+	ClientsPage(SettingsManager *s, bool isUI) : PropPage(s), isUserInfo(isUI) {
+		title = _tcsdup((TSTRING(SETTINGS_RSX) + _T('\\') + TSTRING(SETTINGS_FAKEDETECT) + _T('\\') + 
+			(isUI ? _T("User Info") : TSTRING(SETTINGS_CLIENTS))).c_str());
 		SetTitle(title);
 		m_psp.dwFlags |= PSP_RTLREADING;
 	};
@@ -64,6 +65,7 @@ public:
 	void write();
 	
 private:
+	bool isUserInfo;
 	ExListViewCtrl ctrlProfiles;
 
 	static TextItem texts[];

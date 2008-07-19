@@ -92,8 +92,7 @@ LRESULT GeneralPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 	PropPage::read((HWND)(*this), items);
 	//rsx++
 	ctrlConnectionType.Attach(GetDlgItem(IDC_CONNECTIONTYPE));
-	//ConnTypes.CreateFromImage(IDB_USERS, 16, 0, CLR_DEFAULT, IMAGE_BITMAP, LR_CREATEDIBSECTION | LR_SHARED);
-	RL_CreateImageList(icons, ConnTypes, IDP_USERS, 16);
+	ResourceLoader::LoadImageList(IDP_USERS, ConnTypes, 16, 16);
     ctrlConnectionType.SetImageList(ConnTypes);	
 
 	ctrlDownloadSpeed.Attach(GetDlgItem(IDC_DOWN_COMBO));

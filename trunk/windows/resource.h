@@ -91,7 +91,6 @@
 #define IDD_TOOLBARPAGE                 259
 #define IDD_DOWNLOADDIR                 260
 #define IDD_FAVORITE_DIRSPAGE           261
-#define IDD_CLIENT_PROFILE              263
 #define IDD_CLIENTS_PAGE                264
 #define IDR_CDM                         270
 #define IDD_UPDATE                      274
@@ -127,13 +126,10 @@
 #define IDD_RAW_PAGE                    317
 #define IDD_RAW_DLG                     318
 #define IDR_PEERGUARDIAN                318
-#define IDD_MYINFO_PAGE                 319
-#define IDD_MYINFO_PROFILE              320
 #define IDD_FAKE_SHARES                 322
 #define IDC_FAV_GROUPS                  324
 #define IDD_FAV_TAB_RAW                 324
 #define IDD_PLUGINS_LIST                326
-#define IDD_DETECTION_LIST_PAGE         327
 #define IDD_DETECTION_ENTRY             328
 #define IDD_ADD_STRING_PAIR             329
 #define IDP_RSX_SPLASH                  332
@@ -944,7 +940,6 @@
 #define IDC_UPDATE                      1462
 #define IDC_PROGRESS_MODE               1468
 #define IDC_LIST1                       1469
-#define IDC_DETECTION_LIST              1469
 #define IDC_FILELISTDP_SELECTOR         1470
 #define IDC_COMPILE_TIME                1472
 #define IDC_IPW_MODE                    1474
@@ -963,11 +958,8 @@
 #define IDC_PARAMS                      1491
 #define IDC_DETECT_ID                   1499
 #define IDC_PERCENT_FAKE_SHARE_TOLERATED 1504
-#define IDC_DETECTION_LIST_ADD          1504
 #define IDC_TIMEOUTS_NO                 1505
-#define IDC_DETECTION_LIST_EDIT         1505
 #define IDC_DISCONNECTS_NO              1506
-#define IDC_DETECTION_LIST_REMOVE       1506
 #define IDC_DETECTION_ITEM_NAME         1507
 #define IDC_ADD_STRING_PAIR_FIRST       1508
 #define IDC_MAX_TESTSURS                1509

@@ -194,7 +194,7 @@ private:
 	int menuItems;
 	OMenu emoMenu;
 	CButton ctrlEmoticons;
-	ExCImage::Ptr hEmoticonBmp;
+	ExCImage hEmoticonBmp;
 
 	//RSX++
 	CButton ctrlSoundActive;

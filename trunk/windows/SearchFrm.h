@@ -27,7 +27,7 @@
 #include "TypedListViewCtrl.h"
 #include "ChatCtrl.h"
 #include "WinUtil.h"
-#include "ExCImage.h" //RSX++
+#include "ResourceLoader.h" //RSX++
 
 #include "../client/Client.h"
 #include "../client/SearchManager.h"
@@ -143,9 +143,7 @@ public:
 
 	~SearchFrame() {
 		images.Destroy();
-		ResourceLoader::Destroy(imagesImg); //RSX++
 		searchTypes.Destroy();
-		ResourceLoader::Destroy(typesImg); //RSX++
 	}
 
 	LRESULT onChar(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled);
@@ -500,8 +498,8 @@ private:
 		QUEUE_STATS
 	};
 	//RSX++
-	ExCImage* typesImg;
-	ExCImage* imagesImg;
+	CImageList typesImg;
+	CImageList imagesImg;
 	//END
 	tstring initialString;
 	int64_t initialSize;

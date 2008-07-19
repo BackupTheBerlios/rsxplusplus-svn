@@ -25,7 +25,7 @@
 
 #include <atlcrack.h>
 #include "PropPage.h"
-#include "ExCImage.h" //RSX++
+#include "ResourceLoader.h" //RSX++
 
 class GeneralPage : public CPropertyPage<IDD_GENERALPAGE>, public PropPage
 {
@@ -38,7 +38,6 @@ public:
 
 	BEGIN_MSG_MAP_EX(GeneralPage)
 		MESSAGE_HANDLER(WM_INITDIALOG, onInitDialog)
-		MESSAGE_HANDLER(WM_CLOSE, onClose)
 		COMMAND_HANDLER(IDC_NICK, EN_CHANGE, onTextChanged)
 		COMMAND_HANDLER(IDC_EMAIL, EN_CHANGE, onTextChanged)
 		COMMAND_HANDLER(IDC_DESCRIPTION, EN_CHANGE, onTextChanged)
@@ -47,10 +46,6 @@ public:
 	END_MSG_MAP()
 
 	LRESULT onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
-	LRESULT onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
-		RL_DeleteObject(icons);
-		return 0;
-	}
 	LRESULT onGetIP(WORD /* wNotifyCode */, WORD /* wID */, HWND /* hWndCtl */, BOOL& /* bHandled */);
 	LRESULT onTextChanged(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT onClickedRadioButton(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
@@ -67,7 +62,6 @@ private:
 	CEdit desc;
 	//rsx++
 	CImageList ConnTypes;
-	ExCImage::Ptr icons;
 	CComboBoxEx ctrlConnectionType;
 	CComboBox ctrlDownloadSpeed, ctrlUploadSpeed;
 	void fixControls();

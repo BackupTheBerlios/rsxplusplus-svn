@@ -21,6 +21,7 @@
 
 #include "../client/FastAlloc.h"
 #include "../client/Util.h"
+#include "ResourceLoader.h"
 
 #if _MSC_VER > 1000
 #pragma once
@@ -44,7 +45,7 @@ public:
 private:
 	tstring		m_EmotionText;
 	string		m_EmotionBmpPath;
-	HBITMAP		m_EmotionBmp;
+	ExCImage	m_EmotionBmp;
 };
 
 // CAGEmotionSetup

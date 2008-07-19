@@ -22,6 +22,7 @@
 #include "ExListViewCtrl.h"
 
 #include "../client/RawManager.h"
+#include "../client/ClientProfileManager.h"
 
 class FileListDetectorPage : public CPropertyPage<IDD_FILELIST_DETECTOR_PAGE>, public PropPage {
 public:

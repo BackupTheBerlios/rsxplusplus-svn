@@ -33,7 +33,7 @@ LRESULT ClientsPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 	ctrlProfiles.SetExtendedListViewStyle(LVS_EX_INFOTIP | LVS_EX_FULLROWSELECT);
 
 	// Do specialized reading here
-	const DetectionManager::DetectionItems& lst = DetectionManager::getInstance()->getProfiles();
+	const DetectionManager::DetectionItems& lst = DetectionManager::getInstance()->getProfiles(isUserInfo);
 	for(DetectionManager::DetectionItems::const_iterator i = lst.begin(); i != lst.end(); ++i) {
 		const DetectionEntry& de = *i;
 		addEntry(de, ctrlProfiles.GetItemCount());
@@ -47,7 +47,7 @@ LRESULT ClientsPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 
 LRESULT ClientsPage::onAddClient(WORD , WORD , HWND , BOOL& ) {
 	DetectionEntry de;
-	DetectionEntryDlg dlg(de);
+	DetectionEntryDlg dlg(de, isUserInfo);
 
 	if(dlg.DoModal() == IDOK) {
 		addEntry(de, ctrlProfiles.GetItemCount());
@@ -87,13 +87,13 @@ LRESULT ClientsPage::onChangeClient(WORD , WORD , HWND , BOOL& ) {
 		int sel = ctrlProfiles.GetSelectedIndex();
 		DetectionEntry de;
 
-		if(DetectionManager::getInstance()->getDetectionItem(ctrlProfiles.GetItemData(sel), de)) {
-			DetectionEntryDlg dlg(de);
+		if(DetectionManager::getInstance()->getDetectionItem(ctrlProfiles.GetItemData(sel), de, isUserInfo)) {
+			DetectionEntryDlg dlg(de, isUserInfo);
 			dlg.DoModal();
 
 			ctrlProfiles.SetRedraw(FALSE);
 			ctrlProfiles.DeleteAllItems();
-			const DetectionManager::DetectionItems& lst = DetectionManager::getInstance()->getProfiles();
+			const DetectionManager::DetectionItems& lst = DetectionManager::getInstance()->getProfiles(isUserInfo);
 			for(DetectionManager::DetectionItems::const_iterator i = lst.begin(); i != lst.end(); ++i) {
 				addEntry(*i, ctrlProfiles.GetItemCount());
 			}
@@ -108,7 +108,7 @@ LRESULT ClientsPage::onChangeClient(WORD , WORD , HWND , BOOL& ) {
 LRESULT ClientsPage::onRemoveClient(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
 	if(ctrlProfiles.GetSelectedCount() == 1) {
 		int i = ctrlProfiles.GetNextItem(-1, LVNI_SELECTED);
-		DetectionManager::getInstance()->removeDetectionItem(ctrlProfiles.GetItemData(i));
+		DetectionManager::getInstance()->removeDetectionItem(ctrlProfiles.GetItemData(i), isUserInfo);
 		ctrlProfiles.DeleteItem(i);
 	}
 	return 0;
@@ -118,11 +118,11 @@ LRESULT ClientsPage::onMoveClientUp(WORD , WORD , HWND , BOOL& ) {
 	int i = ctrlProfiles.GetSelectedIndex();
 	if(i != -1 && i != 0) {
 		int n = ctrlProfiles.GetItemData(i);
-		DetectionManager::getInstance()->moveDetectionItem(n, -1);
+		DetectionManager::getInstance()->moveDetectionItem(n, -1, isUserInfo);
 		ctrlProfiles.SetRedraw(FALSE);
 		ctrlProfiles.DeleteItem(i);
 		DetectionEntry de;
-		DetectionManager::getInstance()->getDetectionItem(n, de);
+		DetectionManager::getInstance()->getDetectionItem(n, de, isUserInfo);
 		addEntry(de, i-1);
 		ctrlProfiles.SelectItem(i-1);
 		ctrlProfiles.EnsureVisible(i-1, FALSE);
@@ -135,11 +135,11 @@ LRESULT ClientsPage::onMoveClientDown(WORD , WORD , HWND , BOOL& ) {
 	int i = ctrlProfiles.GetSelectedIndex();
 	if(i != -1 && i != (ctrlProfiles.GetItemCount()-1) ) {
 		int n = ctrlProfiles.GetItemData(i);
-		DetectionManager::getInstance()->moveDetectionItem(n, 1);
+		DetectionManager::getInstance()->moveDetectionItem(n, 1, isUserInfo);
 		ctrlProfiles.SetRedraw(FALSE);
 		ctrlProfiles.DeleteItem(i);
 		DetectionEntry de;
-		DetectionManager::getInstance()->getDetectionItem(n, de);
+		DetectionManager::getInstance()->getDetectionItem(n, de, isUserInfo);
 		addEntry(de, i+1);
 		ctrlProfiles.SelectItem(i+1);
 		ctrlProfiles.EnsureVisible(i+1, FALSE);
@@ -159,7 +159,7 @@ LRESULT ClientsPage::onInfoTip(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
 		NMLVGETINFOTIP* lpnmtdi = (NMLVGETINFOTIP*) pnmh;
 
 		DetectionEntry de;
-		DetectionManager::getInstance()->getDetectionItem(ctrlProfiles.GetItemData(item), de);
+		DetectionManager::getInstance()->getDetectionItem(ctrlProfiles.GetItemData(item), de, isUserInfo);
 		tstring infoTip = Text::toT(STRING(NAME) + ": " + de.name +
 			"\r\n" + STRING(COMMENT) + ": " + de.comment +
 			"\r\n" + STRING(CHEATING_DESCRIPTION) + ": " + de.cheat +
@@ -188,19 +188,19 @@ LRESULT ClientsPage::onContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lPar
 				DetectionEntry de;
 				
 				int x = ctrlProfiles.GetSelectedIndex();
-				DetectionManager::getInstance()->getDetectionItem(ctrlProfiles.GetItemData(x), de);
+				DetectionManager::getInstance()->getDetectionItem(ctrlProfiles.GetItemData(x), de, isUserInfo);
 				dlg.name = de.name;
 				dlg.cheatingDescription = de.cheat;
 				dlg.raw = de.rawToSend;
 				if(dlg.DoModal() == IDOK) {
 					int i = -1;
 					while((i = ctrlProfiles.GetNextItem(i, LVNI_SELECTED)) != -1) {
-						DetectionManager::getInstance()->getDetectionItem(ctrlProfiles.GetItemData(i), de);
+						DetectionManager::getInstance()->getDetectionItem(ctrlProfiles.GetItemData(i), de, isUserInfo);
 						if (i == x) {
 							de.cheat = dlg.cheatingDescription;
 						}
 						de.rawToSend = dlg.raw;
-						DetectionManager::getInstance()->updateDetectionItem(ctrlProfiles.GetItemData(i), de);
+						DetectionManager::getInstance()->updateDetectionItem(ctrlProfiles.GetItemData(i), de, isUserInfo);
 						ctrlProfiles.SetItemText(i, 2, RawManager::getInstance()->getNameActionId(de.rawToSend).c_str());
 					}
 				}
@@ -215,8 +215,8 @@ LRESULT ClientsPage::onContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lPar
 void ClientsPage::reload() {
 	ctrlProfiles.SetRedraw(FALSE);
 	ctrlProfiles.DeleteAllItems();
-	DetectionManager::getInstance()->reload();
-	const DetectionManager::DetectionItems& lst = DetectionManager::getInstance()->getProfiles();
+	DetectionManager::getInstance()->reload(isUserInfo);
+	const DetectionManager::DetectionItems& lst = DetectionManager::getInstance()->getProfiles(isUserInfo);
 	for(DetectionManager::DetectionItems::const_iterator i = lst.begin(); i != lst.end(); ++i) {
 		const DetectionEntry& de = *i;
 		addEntry(de, ctrlProfiles.GetItemCount());
@@ -252,7 +252,7 @@ LRESULT ClientsPage::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled
 		{
 			try	{
 				DetectionEntry de;
-				DetectionManager::getInstance()->getDetectionItem(ctrlProfiles.GetItemData(cd->nmcd.dwItemSpec), de);
+				DetectionManager::getInstance()->getDetectionItem(ctrlProfiles.GetItemData(cd->nmcd.dwItemSpec), de, isUserInfo);
 				if (de.rawToSend) {
 					cd->clrText = SETTING(BAD_CLIENT_COLOUR);
 				} else if (!de.cheat.empty()) {

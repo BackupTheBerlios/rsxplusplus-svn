@@ -51,7 +51,6 @@
 #include "CertificatesPage.h"
 //RSX++
 #include "RawPage.h"
-#include "MyinfoPage.h"
 #include "RSX-Page.h"
 #include "RSX-Advanced.h"
 #include "ParamsPage.h"
@@ -91,9 +90,9 @@ PropertiesDlg::PropertiesDlg(HWND parent, SettingsManager *s) : TreePropertyShee
 	pages[n++] = new RSXPage(s);
 	pages[n++] = new FilterPage(s);
 	pages[n++] = new FakeDetect(s);
-	pages[n++] = new ClientsPage(s);
+	pages[n++] = new ClientsPage(s, false);
 	pages[n++] = new ParamsPage(s);
-	pages[n++] = new MyinfoPage(s);
+	pages[n++] = new ClientsPage(s, true);
 	pages[n++] = new FileListDetectorPage(s);
 	pages[n++] = new IpWatchPage(s);
 	pages[n++] = new AutosearchPage(s);

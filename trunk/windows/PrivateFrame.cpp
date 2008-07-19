@@ -77,8 +77,8 @@ LRESULT PrivateFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 	//END
 	ctrlEmoticons.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | BS_FLAT | BS_BITMAP | BS_CENTER, 0, IDC_EMOT);
 
-	hEmoticonBmp = RL_LoadFromResourceInst(IDP_EMOTICON);
-  	ctrlEmoticons.SetBitmap(*hEmoticonBmp);
+	hEmoticonBmp.LoadFromResource(IDP_EMOTICON, _T("PNG"), _Module.get_m_hInst());
+  	ctrlEmoticons.SetBitmap(hEmoticonBmp);
 
 	PostMessage(WM_SPEAKER, USER_UPDATED);
 	created = true;
@@ -371,7 +371,6 @@ void PrivateFrame::sendMessage(const tstring& msg, bool thirdPerson) {
 
 LRESULT PrivateFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled) {
 	if(!closed) {
-		RL_DeleteObject(hEmoticonBmp);
 		ClientManager::getInstance()->removeListener(this);
 		SettingsManager::getInstance()->removeListener(this);
 		closed = true;

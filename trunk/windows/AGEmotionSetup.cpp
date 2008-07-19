@@ -27,7 +27,12 @@
 CAGEmotion::CAGEmotion(const tstring& strEmotionText, const string& strEmotionBmpPath) : 
 	m_EmotionText(strEmotionText), m_EmotionBmpPath(strEmotionBmpPath)
 {
-	m_EmotionBmp = (HBITMAP) ::LoadImage(0, Text::toT(strEmotionBmpPath).c_str(), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_CREATEDIBSECTION);
+	// TODO: Properly fix bitmap loading
+	if(Util::getFileExt(strEmotionBmpPath) == ".bmp") {
+		m_EmotionBmp.Attach((HBITMAP) ::LoadImage(0, Text::toT(strEmotionBmpPath).c_str(), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_CREATEDIBSECTION));
+	} else {
+		m_EmotionBmp.Load(Text::toT(strEmotionBmpPath).c_str());
+	}
 	if(!m_EmotionBmp)
 		return;
 	

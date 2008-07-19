@@ -42,7 +42,7 @@
 
 #include "MainFrm.h"
 #include "PopupManager.h"
-#include "ExCImage.h"
+#include "ResourceLoader.h"
 
 #include <delayimp.h>
 CAppModule _Module;

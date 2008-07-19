@@ -53,7 +53,6 @@
 #include "ClientProfileManager.h"
 #include "WebServerManager.h"
 #include "../windows/PopupManager.h"
-#include "../windows/ExCImage.h"
 
 /*
 #ifdef _STLP_DEBUG
@@ -110,7 +109,6 @@ void startup(void (*f)(void*, const tstring&), void* p) {
 	AutoSearchManager::newInstance();
 	IpManager::newInstance();
 	PluginsManager::newInstance();
-	ResourceLoader::newInstance();
 	//END
 
 	SettingsManager::getInstance()->load();
@@ -168,7 +166,6 @@ void shutdown() {
 	IgnoreManager::deleteInstance();
 	AutoSearchManager::deleteInstance();
 	HTTPDownloadManager::deleteInstance();
-	ResourceLoader::deleteInstance();
 	//END
 	DebugManager::deleteInstance();
 	WebServerManager::deleteInstance();

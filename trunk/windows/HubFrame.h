@@ -40,7 +40,7 @@
 
 #include "WinUtil.h"
 #include "UCHandler.h"
-#include "ExCImage.h" //RSX++
+#include "ResourceLoader.h" //RSX++
 
 #define EDIT_MESSAGE_MAP 10		// This could be any number, really...
 #define FILTER_MESSAGE_MAP 8
@@ -423,7 +423,7 @@ private:
 	
 	tstring filter;
 
-	ExCImage::Ptr hEmoticonBmp;
+	ExCImage hEmoticonBmp;
 	bool closed;
 	bool showUsers;
 

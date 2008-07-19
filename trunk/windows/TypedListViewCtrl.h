@@ -26,7 +26,7 @@
 #include "../Client/SettingsManager.h"
 #include "../client/FavoriteManager.h"
 #include "ListViewArrows.h"
-#include "ExCImage.h" //RSX++
+#include "ResourceLoader.h" //RSX++
 
 class ColumnInfo {
 public:
@@ -627,7 +627,7 @@ class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 public:
 
 	TypedTreeListViewCtrl() { }
-	~TypedTreeListViewCtrl() { states.Destroy(); RL_DeleteObject(statesImg); /*//RSX++*/}
+	~TypedTreeListViewCtrl() { states.Destroy(); }
 
 	typedef TypedTreeListViewCtrl<T, ctrlId, key, hashFunc, equalKey> thisClass;
 	typedef TypedListViewCtrl<T, ctrlId> baseClass;
@@ -647,11 +647,7 @@ public:
 
 
 	LRESULT onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled) {
-		//RSX++
-		statesImg = RL_LoadFromResource(IDP_STATE);
-		states.Create(16, 16, ILC_COLOR32 | ILC_MASK, 0, 2);
-		states.Add(*statesImg);
-		//END
+		ResourceLoader::LoadImageList(IDP_STATE, states, 16, 16); //RSX++
 		SetImageList(states, LVSIL_STATE); 
 
 		bHandled = FALSE;
@@ -951,7 +947,7 @@ public:
 
 private:
 	CImageList states;
-	ExCImage::Ptr statesImg; //RSX++
+	CImageList statesImg; //RSX++
 	bool uniqueParent;
 
 	static int CALLBACK compareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort) {

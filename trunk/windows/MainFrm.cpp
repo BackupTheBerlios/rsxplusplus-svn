@@ -92,11 +92,7 @@ MainFrame::~MainFrame() {
 	images.Destroy();
 	largeImages.Destroy();
 	largeImagesHot.Destroy();
-	//RSX++
-	RL_DeleteObject(toolbarImg);
-	RL_DeleteObject(toolbar20Img);
-	RL_DeleteObject(toolbar20HotImg);
-	//END
+
 	WinUtil::uninit();
 }
 
@@ -206,9 +202,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	// attach menu
 	m_CmdBar.AttachMenu(m_hMenu);
 	// load command bar images
-	toolbarImg = RL_LoadFromResource(IDP_TOOLBAR); //RSX++
-	images.Create(16, 16, ILC_COLOR32 | ILC_MASK, 0, 16);
-	images.Add(*toolbarImg);
+	ResourceLoader::LoadImageList(IDP_TOOLBAR, images, 16, 16);
 	m_CmdBar.m_hImageList = images;
 
 	m_CmdBar.m_arrCommand.Add(ID_FILE_CONNECT);
@@ -615,23 +609,15 @@ void MainFrame::stopUPnP() {
 HWND MainFrame::createToolbar() {
 	if(!tbarcreated) {
 		if(SETTING(TOOLBARIMAGE) == "") {
-			toolbar20Img = RL_LoadFromResource(IDP_TOOLBAR20);
-			largeImages.Create(20, 20, ILC_COLOR32 | ILC_MASK, 0, 20);
-			largeImages.Add(*toolbar20Img);
+			ResourceLoader::LoadImageList(IDP_TOOLBAR20, largeImages, 20, 20);
 		} else {
-			toolbar20Img = RL_Load(Text::toT(SETTING(TOOLBARIMAGE)).c_str());
-			largeImages.Create(20, 20, ILC_COLOR32 | ILC_MASK, 0, 0);
-			largeImages.Add(*toolbar20Img, toolbar20Img->GetPixel(0, 0));
+			ResourceLoader::LoadImageList(Text::toT(SETTING(TOOLBARIMAGE)).c_str(), largeImages, 20, 20);
 		}
 
 		if(SETTING(TOOLBARHOTIMAGE) == "") {
-			toolbar20HotImg = RL_LoadFromResource(IDP_TOOLBAR20_HOT);
-			largeImagesHot.Create(20, 20, ILC_COLOR32 | ILC_MASK, 0, 20);
-			largeImagesHot.Add(*toolbar20HotImg);
+			ResourceLoader::LoadImageList(IDP_TOOLBAR20_HOT, largeImagesHot, 20, 20);
 		} else {
-			toolbar20HotImg = RL_Load(Text::toT(SETTING(TOOLBARHOTIMAGE)).c_str());
-			largeImagesHot.Create(20, 20, ILC_COLOR32 | ILC_MASK, 0, 0);
-			largeImagesHot.Add(*toolbar20HotImg, toolbar20HotImg->GetPixel(0, 0));
+			ResourceLoader::LoadImageList(Text::toT(SETTING(TOOLBARHOTIMAGE)).c_str(), largeImagesHot, 20, 20);
 		}
 
 		ctrlToolbar.Create(m_hWnd, NULL, NULL, ATL_SIMPLE_CMDBAR_PANE_STYLE | TBSTYLE_FLAT | TBSTYLE_TOOLTIPS | TBSTYLE_LIST, 0, ATL_IDW_TOOLBAR);

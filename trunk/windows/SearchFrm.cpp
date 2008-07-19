@@ -89,11 +89,7 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 
 	ctrlFiletype.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | 
 		WS_HSCROLL | WS_VSCROLL | CBS_DROPDOWNLIST | CBS_HASSTRINGS | CBS_OWNERDRAWFIXED, WS_EX_CLIENTEDGE, IDC_FILETYPES);
-	//RSX++
-	typesImg = RL_LoadFromResource(IDP_SEARCH_TYPES);
-	searchTypes.Create(16, 16, ILC_COLOR32 | ILC_MASK, 0, 0);
-	searchTypes.Add(*typesImg);
-	//END
+	ResourceLoader::LoadImageList(IDP_SEARCH_TYPES, searchTypes, 16, 16);
 	fileTypeContainer.SubclassWindow(ctrlFiletype.m_hWnd);
 
 	if (BOOLSETTING(USE_SYSTEM_ICONS)) {
@@ -110,9 +106,7 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 		imagesImg = NULL;
 		ctrlResults.SetImageList(WinUtil::fileImages, LVSIL_SMALL);
 	} else {
-		imagesImg = RL_LoadFromResource(IDP_SPEEDS);
-		images.Create(16, 16, ILC_COLOR32 | ILC_MASK, 0, 3);
-		images.Add(*imagesImg);
+		ResourceLoader::LoadImageList(IDP_SPEEDS, images, 16, 16);
 		ctrlResults.SetImageList(images, LVSIL_SMALL);
 	}
 

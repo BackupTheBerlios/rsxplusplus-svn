@@ -1262,14 +1262,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\windows\MyinfoPage.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\windows\MyinfoProfileDlg.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\windows\NetworkPage.cpp"
 				>
 			</File>
@@ -1731,14 +1723,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\windows\MyinfoPage.h"
-				>
-			</File>
-			<File
-				RelativePath=".\windows\MyinfoProfileDlg.h"
-				>
-			</File>
-			<File
 				RelativePath=".\windows\NetworkPage.h"
 				>
 			</File>
@@ -1883,11 +1867,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\stdafx.h"
+				RelativePath=".\windows\stdafx.h"
 				>
 			</File>
 			<File
-				RelativePath=".\windows\stdafx.h"
+				RelativePath=".\stdafx.h"
 				>
 			</File>
 			<File

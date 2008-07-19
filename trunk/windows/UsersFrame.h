@@ -26,7 +26,7 @@
 #include "FlatTabCtrl.h"
 #include "TypedListViewCtrl.h"
 #include "WinUtil.h"
-#include "ExCImage.h" //RSX++
+#include "ResourceLoader.h" //RSX++
 
 #include "../client/FavoriteManager.h"
 #include "../client/File.h"
@@ -36,7 +36,7 @@ class UsersFrame : public MDITabChildWindowImpl<UsersFrame, RGB(0, 0, 0), IDR_US
 public:
 	
 	UsersFrame() : closed(false), startup(true) { }
-	~UsersFrame() { images.Destroy(); RL_DeleteObject(imagesImg); /*//RSX++*/}
+	~UsersFrame() { images.Destroy(); }
 
 	DECLARE_FRAME_WND_CLASS_EX(_T("UsersFrame"), IDR_USERS, 0, COLOR_3DFACE);
 		
@@ -126,7 +126,6 @@ private:
 		
 	TypedListViewCtrl<UserInfo, IDC_USERS> ctrlUsers;
 	CImageList images;	
-	ExCImage::Ptr imagesImg; //RSX++
 
 	bool closed;
 	

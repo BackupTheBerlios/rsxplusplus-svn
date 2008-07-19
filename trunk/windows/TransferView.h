@@ -39,7 +39,6 @@
 #include "WinUtil.h"
 #include "resource.h"
 #include "SearchFrm.h"
-#include "ExCImage.h" //RSX++
 
 class TransferView : public CWindowImpl<TransferView>, private DownloadManagerListener, 
 	private UploadManagerListener, private ConnectionManagerListener, private QueueManagerListener,
@@ -184,7 +183,8 @@ private:
 			STATUS_RUNNING,
 			STATUS_WAITING,
 			// special statuses
-			TREE_DOWNLOAD
+			TREE_DOWNLOAD,
+			STATUS_REQUESTING
 		};
 
 		ItemInfo(const UserPtr& u, bool aDownload);
@@ -320,15 +320,9 @@ private:
 	static int columnIndexes[];
 	static int columnSizes[];
 
-	CImageList arrows;
-	//RSX++
-	CImageList speedImages;
-	CImageList speedImagesBW;
-	ExCImage::Ptr arrowImg;
-	ExCImage::Ptr speedImg;
-	ExCImage::Ptr speedBWImg;
+	CImageList arrows, speedImages, speedImagesBW;
+
 	HICON user;
-	//END
 
 	TaskQueue tasks;
 
@@ -371,5 +365,5 @@ private:
 
 /**
  * @file
- * $Id: TransferView.h 403 2008-07-10 21:27:57Z BigMuscle $
+ * $Id: TransferView.h 408 2008-07-15 20:27:55Z BigMuscle $
  */

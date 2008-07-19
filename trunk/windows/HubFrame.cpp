@@ -146,10 +146,9 @@ LRESULT HubFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 	ctrlMessage.SetFont(WinUtil::font);
 	ctrlMessage.SetLimitText(9999);
 
-	hEmoticonBmp = RL_LoadFromResourceInst(IDP_EMOTICON);
-
 	ctrlEmoticons.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | BS_FLAT | BS_BITMAP | BS_CENTER, 0, IDC_EMOT);
-	ctrlEmoticons.SetBitmap(*hEmoticonBmp);
+	hEmoticonBmp.LoadFromResource(IDP_EMOTICON, _T("PNG"), _Module.get_m_hInst());
+  	ctrlEmoticons.SetBitmap(hEmoticonBmp);
 
 	ctrlFilter.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | 
 		ES_AUTOHSCROLL, WS_EX_CLIENTEDGE);
@@ -1016,7 +1015,6 @@ LRESULT HubFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, B
 			r->setShared(Util::toString(client->getAvailable()));
 			FavoriteManager::getInstance()->updateRecent(r);
 		}
-		RL_DeleteObject(hEmoticonBmp);
 
 		SettingsManager::getInstance()->removeListener(this);
 		TimerManager::getInstance()->removeListener(this);

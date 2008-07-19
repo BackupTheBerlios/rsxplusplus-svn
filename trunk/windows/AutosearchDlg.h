@@ -21,7 +21,7 @@
 #pragma once
 #endif // _MSC_VER > 1000
 #include <atlcrack.h>
-#include "ExCImage.h"
+#include "ResourceLoader.h"
 
 #include "../client/Util.h"
 #include "../client/ClientProfileManager.h"
@@ -61,7 +61,6 @@ private:
 //	enum { BUF_LEN = 1024 };
 	void fixControls();
 	CImageList ftImage;
-	ExCImage::Ptr icons;
 
 	CEdit ctrlSearch, ctrlCheatingDescription;
 	CRawCombo cRaw;

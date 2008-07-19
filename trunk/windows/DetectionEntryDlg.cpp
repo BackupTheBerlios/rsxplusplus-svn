@@ -180,13 +180,13 @@ LRESULT DetectionEntryDlg::onRemove(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
 LRESULT DetectionEntryDlg::onNext(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
 	updateVars();
 	try {
-		DetectionManager::getInstance()->updateDetectionItem(origId, curEntry);
+		DetectionManager::getInstance()->updateDetectionItem(origId, curEntry, isUserInfo);
 	} catch(const Exception& e) {
 		::MessageBox(m_hWnd, Text::toT(e.getError()).c_str(), _T(APPNAME) _T(" ") _T(VERSIONSTRING), MB_ICONSTOP | MB_OK);
 		return 0;
 	}
 
-	if(DetectionManager::getInstance()->getNextDetectionItem(curEntry.Id, ((wID == IDC_NEXT) ? 1 : -1), curEntry) && idChanged) {
+	if(DetectionManager::getInstance()->getNextDetectionItem(curEntry.Id, ((wID == IDC_NEXT) ? 1 : -1), curEntry) && idChanged, isUserInfo) {
 		idChanged = false;
 		::EnableWindow(GetDlgItem(IDC_DETECT_ID), false);
 		::EnableWindow(GetDlgItem(IDC_ID_EDIT), true);
@@ -239,9 +239,9 @@ LRESULT DetectionEntryDlg::OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWn
 		updateVars();
 		try {
 			if(origId < 1) {
-				DetectionManager::getInstance()->addDetectionItem(curEntry);
+				DetectionManager::getInstance()->addDetectionItem(curEntry, isUserInfo);
 			} else {
-				DetectionManager::getInstance()->updateDetectionItem(origId, curEntry);
+				DetectionManager::getInstance()->updateDetectionItem(origId, curEntry, isUserInfo);
 			}
 		} catch(const Exception& e) {
 			::MessageBox(m_hWnd, Text::toT(e.getError()).c_str(), _T(APPNAME) _T(" ") _T(VERSIONSTRING), MB_ICONSTOP | MB_OK);

@@ -55,7 +55,7 @@ LRESULT AutosearchPageDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 
 	ATTACH(IDC_AS_FILETYPE, ctrlFileType);
 
-	RL_CreateImageList(icons, ftImage, IDP_SEARCH_TYPES, 16);
+	ResourceLoader::LoadImageList(IDP_SEARCH_TYPES, ftImage, 16, 16);
 	ctrlFileType.SetImageList(ftImage);
 
 	int q = 0;
@@ -100,7 +100,6 @@ LRESULT AutosearchPageDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 }
 
 LRESULT AutosearchPageDlg::OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
-	RL_DeleteObject(icons);
 	if(wID == IDOK) {
 		TCHAR buf[512];
 		if (ctrlSearch.GetWindowTextLength() == 0) {

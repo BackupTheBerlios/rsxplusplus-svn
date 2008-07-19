@@ -33,6 +33,7 @@
 #include "MainFrm.h"
 
 #include "BarShader.h"
+#include "ResourceLoader.h"
 
 int TransferView::columnIndexes[] = { COLUMN_USER, COLUMN_HUB, COLUMN_STATUS, COLUMN_TIMELEFT, COLUMN_SPEED, COLUMN_FILE, COLUMN_SIZE, COLUMN_PATH, COLUMN_CIPHER, COLUMN_IP, COLUMN_RATIO };
 int TransferView::columnSizes[] = { 150, 150, 250, 75, 75, 175, 100, 200, 100, 150, 50 };
@@ -42,36 +43,20 @@ static ResourceManager::Strings columnNames[] = { ResourceManager::USER, Resourc
 	ResourceManager::CIPHER, ResourceManager::IP_BARE, ResourceManager::RATIO};
 
 TransferView::~TransferView() {
-	arrows.Destroy();
-	//RSX++
-	arrows.Destroy();
-	RL_DeleteObject(arrowImg);
+	OperaColors::ClearCache();
 
+	arrows.Destroy();
 	speedImages.Destroy();
-	RL_DeleteObject(speedImg);
-
 	speedImagesBW.Destroy();
-	RL_DeleteObject(speedBWImg);
 
 	DestroyIcon(user);
-	//END
-	OperaColors::ClearCache();
 }
 
 LRESULT TransferView::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
 	//RSX++
-	arrowImg = RL_LoadFromResource(IDP_ARROWS);
-	arrows.Create(16, 16, ILC_COLOR32 | ILC_MASK, 0, 3);
-	arrows.Add(*arrowImg);
-
-	speedImg = RL_LoadFromResource(IDP_TSPEEDS);
-	speedImages.Create(16, 16, ILC_COLOR32 | ILC_MASK, 0, 5);
-	speedImages.Add(*speedImg);
-
-	speedBWImg = RL_LoadFromResource(IDP_TSPEEDSBW);
-	speedImagesBW.Create(16, 16, ILC_COLOR32 | ILC_MASK, 0, 5);
-	speedImagesBW.Add(*speedBWImg);
-
+	ResourceLoader::LoadImageList(IDP_ARROWS, arrows, 16, 16);
+	ResourceLoader::LoadImageList(IDP_TSPEEDS, speedImages, 16, 16);
+	ResourceLoader::LoadImageList(IDP_TSPEEDSBW, speedImagesBW, 16, 16);
 	user = (HICON)LoadImage((HINSTANCE)::GetWindowLongPtr(::GetParent(m_hWnd), GWLP_HINSTANCE), MAKEINTRESOURCE(IDR_TUSER), IMAGE_ICON, 16, 16, LR_DEFAULTSIZE);
 	//END
 	ctrlTransfers.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | 
@@ -423,13 +408,13 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 						const string& path = Text::fromT(ii->target);
 						// Draw icon - Nasty way to do the filelist icon, but couldn't get other ways to work well, TODO: do separating filelists from other transfers the proper way...
 						if(!path.empty() && (path.find(Util::getListPath()) != string::npos || path.find(Util::getConfigPath()) != string::npos)) {
-							DrawIconEx(dc, rc.left + 4, rc.top + 1, user, 16, 16, NULL, NULL, DI_NORMAL | DI_COMPAT);
+							DrawIconEx(dc, rc.left + 4, rc.top + ((rc.Height() - 16)/2), user, 16, 16, NULL, NULL, DI_NORMAL | DI_COMPAT);
 						} else if(ii->status == ItemInfo::STATUS_RUNNING) {
 							RECT rc2 = rc;
 							rc2.left += 4;
-							rc2.top += 3;
+							rc2.top += ((rc.Height() - 12)/2);
 							rc2.right = rc2.left + 16;
-							rc2.bottom = rc2.top + 12;
+							rc2.bottom = rc2.top + 16;
 
 							int64_t speedkb = ii->speed / 1000;
 							int64_t speedmark;
@@ -716,13 +701,18 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 					ItemInfo* parent = ii->parent ? ii->parent : ii;
 
 					/* parent item must be updated with correct info about whole file */
-					if(	(ui->status == ItemInfo::STATUS_RUNNING) &&	(parent->hits == -1))
+					if(	(ui->status == ItemInfo::STATUS_RUNNING || ui->status == ItemInfo::STATUS_REQUESTING) && (parent->hits == -1))
 					{
 						ui->updateMask &= ~UpdateInfo::MASK_POS;
 						ui->updateMask &= ~UpdateInfo::MASK_ACTUAL;
 						ui->updateMask &= ~UpdateInfo::MASK_SIZE;
 						ui->updateMask &= ~UpdateInfo::MASK_STATUS_STRING;
 						ui->updateMask &= ~UpdateInfo::MASK_TIMELEFT;
+					}
+					
+					if(ui->status == ItemInfo::STATUS_REQUESTING)
+					{
+						ui->updateMask &= ~UpdateInfo::MASK_STATUS;
 					}
 
 					/* if target has changed, regroup the item */
@@ -954,7 +944,6 @@ void TransferView::on(DownloadManagerListener::Requesting, const Download* d) th
 	
 	ui->setActual(d->getActual());
 	ui->setSize(d->getSize());
-	ui->setStatus(ItemInfo::STATUS_WAITING);
 	ui->setStatusString(TSTRING(REQUESTING) + _T(" ") + getFile(d) + _T("..."));
 
 	speak(UPDATE_ITEM, ui);
@@ -1365,7 +1354,7 @@ void TransferView::on(QueueManagerListener::Finished, const QueueItem* qi, const
 
 	ui->setStatus(ItemInfo::STATUS_WAITING);	
 	ui->setPos(0);
-	ui->setStatusString( TSTRING(DOWNLOAD_FINISHED_IDLE));
+	ui->setStatusString(isCheck ? _T("Check complete, idle") : TSTRING(DOWNLOAD_FINISHED_IDLE));
 
 	speak(UPDATE_ITEM, ui);
 
@@ -1403,5 +1392,5 @@ void TransferView::on(QueueManagerListener::Removed, const QueueItem* qi) throw(
 
 /**
  * @file
- * $Id: TransferView.cpp 406 2008-07-14 20:25:22Z BigMuscle $
+ * $Id: TransferView.cpp 409 2008-07-15 20:53:00Z BigMuscle $
  */

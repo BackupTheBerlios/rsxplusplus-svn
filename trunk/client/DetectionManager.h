@@ -61,30 +61,17 @@ public:
 	bool moveDetectionItem(const uint32_t aId, int pos, bool isUserInfo = false);
 	void setItemEnabled(const uint32_t aId, bool enabled, bool isUserInfo = false) throw();
 
-	const DetectionItems& getProfiles() throw() {
+	const DetectionItems& getProfiles(bool isUserInfo = false) throw() {
 		Lock l(cs);
-		return det;
+		return isUserInfo ? ui_det : det;
 	}
 
-	const DetectionItems& getProfiles(StringMap& p) throw() {
+	const DetectionItems& getProfiles(StringMap& p, bool isUserInfo = false) throw() {
 		Lock l(cs);
 		// don't override other params
 		for(StringMapIter i = params.begin(); i != params.end(); ++i)
 			p[i->first] = i->second;
-		return det;
-	}
-
-	const DetectionItems& getUserInfoProfiles() throw() {
-		Lock l(cs);
-		return ui_det;
-	}
-
-	const DetectionItems& getUserInfoProfiles(StringMap& p) throw() {
-		Lock l(cs);
-		// don't override other params
-		for(StringMapIter i = params.begin(); i != params.end(); ++i)
-			p[i->first] = i->second;
-		return ui_det;
+		return isUserInfo ? ui_det : det;
 	}
 
 	StringMap& getParams() throw() {

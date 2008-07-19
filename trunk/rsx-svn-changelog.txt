@@ -1,3 +1,7 @@
+** SVN 94
+ ** updates from ApexDC++
+ ** User Info Detector almost done
+
 ** SVN 93
  ** some fixes in detector start/stop commands
  ** hub settings are updated on close when hub is in favorites

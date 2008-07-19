@@ -39,7 +39,7 @@
 //RSX++
 #include "../rsx/rsx-settings/rsx-SettingsManager.h"
 #include "../rsx/UpdateManagerListener.h"
-#include "ExCImage.h"
+#include "ResourceLoader.h"
 //END
 #include "PopupManager.h"
 
@@ -458,9 +458,9 @@ private:
 	//RSX++
 	string profileVerInfo;
 	CToolBarCtrl ctrlPluginToolbar;
-	ExCImage::Ptr toolbarImg;
-	ExCImage::Ptr toolbar20Img;
-	ExCImage::Ptr toolbar20HotImg;
+	CImageList toolbarImg;
+	CImageList toolbar20Img;
+	CImageList toolbar20HotImg;
 	//END
 
 	bool tbarcreated, ptbarcreated;

@@ -1,4 +1,4 @@
-/* Copyright (C) 2007-2008 iceman50
+/* Copyright (C) 2006-2008 Crise, crise@mail.berlios.de
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,13 +15,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* Crise:
- *  Derives from ATL's CImage now, for the sake of easy usage 
- *  and not having to worry about transparency...
- */
-
-#if !defined(EX_CIMAGE_H)
-#define EX_CIMAGE_H
+#ifndef RESOURCE_LOADER_H
+#define RESOURCE_LOADER_H
 
 #if _MSC_VER > 1000
 #pragma once
@@ -36,12 +31,9 @@
 #include "../client/FastAlloc.h"
 #include <atlimage.h>
 
-class ExCImage : public FastAlloc<ExCImage>, public CImage, public intrusive_ptr_base
+class ExCImage : public FastAlloc<ExCImage>, public intrusive_ptr_base, public CImage
 {
 public:
-	typedef ExCImage* Ptr;
-	typedef unordered_map<unsigned int, Ptr> CahceList;
-
 	ExCImage() throw() { m_hBuffer = NULL; }
 
 	ExCImage(LPCTSTR pszFileName) throw() {
@@ -106,82 +98,38 @@ inline bool ExCImage::LoadFromResource(UINT id, LPCTSTR pType, HMODULE hInst) th
 	return (res == S_OK);
 }
 
-/* Crise:
- *  Idea here is to load each *internal* resource only once
- *  Good, bad... useless?
- */
-
-class ResourceLoader : public Singleton<ResourceLoader>
+class ResourceLoader
 {
 public:
-	~ResourceLoader() {
-		ClearCache();
-		ExCImage::ReleaseGDIPlus();
-	}
 
-	ExCImage::Ptr Load(LPCTSTR pszFileName) {
-		ExCImage* img = NULL;
+	static void LoadImageList(LPCTSTR pszFileName, CImageList& aImgLst, int cx, int cy) {
+		if(cx <= 0 || cy <= 0) return;
+		ExCImage img;
+
 		try {
-			img = new ExCImage(pszFileName);
-			img->inc();
-		} catch(const Exception& e) {
-			dcdebug("ResourceLoader::Load(): %s", e.getError().c_str());
+			img.Load(pszFileName);
+			aImgLst.Create(cx, cy, ILC_COLOR32 | ILC_MASK, (img.GetWidth()/cy), 0);
+			aImgLst.Add(img, img.GetPixel(0, 0));
+			img.Destroy();
+		} catch(...) {
+			dcdebug("ResourceLoader::LoadImageList(): %s\n", pszFileName);
 		}
-
-		return img;
 	}
 
-	ExCImage::Ptr LoadFromResource(UINT id, LPCTSTR pType = RT_RCDATA, HMODULE hInst = NULL) {
-		// If exists in cache use that one...
-		ExCImage::CahceList::const_iterator i;
-		if((i = resCache.find(id)) != resCache.end()) {
-			i->second->inc();
-			return i->second;
-		}
+	static void LoadImageList(UINT id, CImageList& aImgLst, int cx, int cy) {
+		if(cx <= 0 || cy <= 0) return;
+		ExCImage img;
 
-		// We are still here so we have new resource to handle...
-		ExCImage* img = NULL;
 		try {
-			img = new ExCImage(id, pType, hInst);
-			img->inc();
-
-			resCache[id] = img;
-			img->inc();
-		} catch(const Exception& e) {
-			dcdebug("ResourceLoader::LoadFromResource(): %s", e.getError().c_str());
-		}
-
-		return img;
-	}
-
-	static void Destroy(ExCImage::Ptr &aImg) {
-		if(aImg != NULL) {
-			if(aImg->unique()) {
-				aImg->dec();
-				aImg = NULL;
-			} else {
-				aImg->dec();
-			}
+			img.LoadFromResource(id, _T("PNG"));
+			aImgLst.Create(cx, cy, ILC_COLOR32 | ILC_MASK, (img.GetWidth()/cy), 1);
+			aImgLst.Add(img);
+			img.Destroy();
+		} catch(...) {
+			dcdebug("ResourceLoader::LoadImageList(): %u\n", id);
 		}
 	}
 
-private:
-	ExCImage::CahceList resCache;
-
-	void ClearCache() {
-		ExCImage::CahceList::iterator i = resCache.begin();
-		for(; !resCache.empty(); i = resCache.begin()) {
-			ExCImage* img = i->second;
-			resCache.erase(i);
-			Destroy(img);
-		}
-	}
 };
-#define RL_LoadFromResource(resId) ResourceLoader::getInstance()->LoadFromResource(resId, _T("PNG"))
-#define RL_LoadFromResourceInst(resId) ResourceLoader::getInstance()->LoadFromResource(resId, _T("PNG"), _Module.get_m_hInst())
-#define RL_Load(path) ResourceLoader::getInstance()->Load(path)
-#define RL_CreateImageList(img, list, id, size) img = RL_LoadFromResource(id);\
-	list.Create(size, size, ILC_COLOR32 | ILC_MASK, 0, size);\
-	list.Add(*img);
-#define RL_DeleteObject(resPtr) ResourceLoader::Destroy(resPtr)
-#endif // !defined(EX_CIMAGE_H)
+
+#endif // RESOURCE_LOADER_H

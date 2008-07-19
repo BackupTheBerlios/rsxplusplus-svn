@@ -54,7 +54,7 @@ public:
 		NOTIFY_HANDLER(IDC_PARAMS, LVN_ITEMCHANGED, onItemchangedDirectories)
 	END_MSG_MAP()
 
-	DetectionEntryDlg(DetectionEntry& de) : curEntry(de), idChanged(false), origId(de.Id) { };
+	DetectionEntryDlg(DetectionEntry& de, bool isUI) : curEntry(de), idChanged(false), origId(de.Id), isUserInfo(isUI) { };
 
 	~DetectionEntryDlg() {
 		ctrlName.Detach(); ctrlComment.Detach(); ctrlLevel.Detach();
@@ -98,7 +98,7 @@ private:
 	CRawCombo ctrlRaw;
 	CComboBox ctrlLevel, ctrlProtocol;
 	ExListViewCtrl ctrlParams;
-	bool idChanged;
+	bool idChanged, isUserInfo;
 
 	DetectionEntry::INFMap sharedMap, nmdcMap, adcMap;
 

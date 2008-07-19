@@ -113,6 +113,8 @@ void DetectionManager::ProfilesLoad() {
 				xml.stepIn();
 				while(xml.findChild("Param")) {
 					const string& name = xml.getChildAttrib("Name");
+					if(params.find(name) != params.end())
+						continue;
 					const string& pattern = xml.getChildAttrib("Pattern", xml.getChildAttrib("RegExp"));
 					if(!name.empty() && !pattern.empty())
 						params.insert(make_pair(name, pattern));
@@ -148,11 +150,218 @@ void DetectionManager::ProfilesLoad() {
 }
 
 void DetectionManager::UserInfoLoad() {
+	try {
+		SimpleXML xml;
+		xml.fromXML(File(Util::getConfigPath() + "UserInfoProfiles.xml", File::READ, File::OPEN).read());
 
+		if(xml.findChild("Profiles")) {
+			xml.stepIn();
+			if(xml.findChild("UserInfoProfilesV1")) {
+				xml.stepIn();
+				while(xml.findChild("DetectionProfile")) {
+					xml.stepIn();
+					if(xml.findChild("DetectionEntry")) {
+						uint32_t curId = Util::toUInt32(xml.getChildAttrib("ProfileID", Util::toString(++ui_lastId)));
+		                if(curId < 1) continue;
+						xml.stepIn();
+
+						DetectionEntry item;
+						lastId = std::max(curId, ui_lastId);
+						item.Id = curId;
+
+						if(xml.findChild("Name")) {
+							item.name = xml.getChildData();
+							xml.resetCurrentChild();
+						}
+						if(xml.findChild("Cheat")) {
+							item.cheat = xml.getChildData();
+							xml.resetCurrentChild();
+						}
+						if(xml.findChild("Comment")) {
+							item.comment = xml.getChildData();
+							xml.resetCurrentChild();
+						}
+						if(xml.findChild("RawToSend")) {
+							item.rawToSend = Util::toUInt32(xml.getChildData());
+							xml.resetCurrentChild();
+						}
+						if(xml.findChild("ClientFlag")) {
+							item.clientFlag = Util::toUInt32(xml.getChildData());
+							xml.resetCurrentChild();
+						}
+						if(xml.findChild("IsEnabled")) {
+							item.isEnabled = (Util::toInt(xml.getChildData()) > 0);
+							xml.resetCurrentChild();
+						}
+
+						if(xml.findChild("INFMaps")) {
+							xml.stepIn();
+							while(xml.findChild("InfField")) {
+								const string& field = xml.getChildAttrib("Field");
+								const string& pattern = xml.getChildAttrib("Pattern");
+								const string& type = xml.getChildAttrib("Protocol", "both");
+								if(field.empty() || pattern.empty())
+									continue;
+								if(type == "both")
+									item.defaultMap.push_back(make_pair(field, pattern));
+								else if(type == "nmdc")
+									item.nmdcMap.push_back(make_pair(field, pattern));
+								else if(type == "adc")
+									item.adcMap.push_back(make_pair(field, pattern));
+							}
+							xml.stepOut();
+							xml.resetCurrentChild();
+						}
+						try {
+							addDetectionItem(item, true);
+						} catch(const Exception&) {
+							//...
+						}
+						xml.stepOut();
+					}
+					xml.stepOut();
+				}
+				xml.stepOut();
+			}
+			xml.resetCurrentChild();
+			if(xml.findChild("Params")) {
+				xml.stepIn();
+				while(xml.findChild("Param")) {
+					const string& name = xml.getChildAttrib("Name");
+					if(params.find(name) != params.end())
+						continue;
+					const string& pattern = xml.getChildAttrib("Pattern", xml.getChildAttrib("RegExp"));
+					if(!name.empty() && !pattern.empty())
+						params.insert(make_pair(name, pattern));
+				}
+				xml.stepOut();
+			}
+			xml.resetCurrentChild();
+			if(xml.findChild("ProfileInfo")) {
+				xml.stepIn();
+				if(xml.findChild("DetectionProfile")) {
+					xml.stepIn();
+					if(xml.findChild("Version")) {
+						setUserInfoVersion(xml.getChildData());
+						xml.resetCurrentChild();
+					}
+					if(xml.findChild("Message")) {
+						setUserInfoMessage(xml.getChildData());
+						xml.resetCurrentChild();
+					}
+					if(xml.findChild("URL")) {
+						setUserInfoUrl(xml.getChildData());
+						xml.resetCurrentChild();
+					}
+					xml.stepOut();
+				}
+				xml.stepOut();
+			}
+			xml.stepOut();
+		}
+	} catch(const Exception& e) {
+		dcdebug("DetectionManager::load: %s\n", e.getError().c_str());
+	}
 }
 
 void DetectionManager::UserInfoSave() {
+	try {
+		SimpleXML xml;
+		xml.addTag("Profiles");
+		xml.stepIn();
 
+		xml.addTag("UserInfoProfilesV1");
+		xml.stepIn();
+
+		Lock l(cs);
+		for(DetectionItems::const_iterator i = ui_det.begin(); i != ui_det.end(); ++i) {
+			xml.addTag("DetectionProfile");
+			xml.stepIn();
+			{
+				xml.addTag("DetectionEntry");
+				xml.addChildAttrib("ProfileID", i->Id);
+				xml.stepIn();
+				{
+					xml.addTag("Name", i->name);
+					xml.addTag("Cheat", i->cheat);
+					xml.addTag("Comment", i->comment);
+					xml.addTag("RawToSend", Util::toString(i->rawToSend));
+					xml.addTag("ClientFlag", Util::toString(i->clientFlag));
+					xml.addTag("IsEnabled", i->isEnabled);
+
+					xml.addTag("INFMaps");
+					xml.stepIn();
+					{
+						const DetectionEntry::INFMap& InfMap = i->defaultMap;
+						for(DetectionEntry::INFMap::const_iterator j = InfMap.begin(); j != InfMap.end(); ++j) {
+							xml.addTag("InfField");
+							xml.addChildAttrib("Field", j->first);
+							xml.addChildAttrib("Pattern", j->second);
+							xml.addChildAttrib("Protocol", string("both"));
+						}
+					}
+					{
+						const DetectionEntry::INFMap& InfMap = i->nmdcMap;
+						for(DetectionEntry::INFMap::const_iterator j = InfMap.begin(); j != InfMap.end(); ++j) {
+							xml.addTag("InfField");
+							xml.addChildAttrib("Field", j->first);
+							xml.addChildAttrib("Pattern", j->second);
+							xml.addChildAttrib("Protocol", string("nmdc"));
+						}
+					}
+					{
+						const DetectionEntry::INFMap& InfMap = i->adcMap;
+						for(DetectionEntry::INFMap::const_iterator j = InfMap.begin(); j != InfMap.end(); ++j) {
+							xml.addTag("InfField");
+							xml.addChildAttrib("Field", j->first);
+							xml.addChildAttrib("Pattern", j->second);
+							xml.addChildAttrib("Protocol", string("adc"));
+						}
+					}
+					xml.stepOut();
+				}
+				xml.stepOut();
+			}
+			xml.stepOut();
+		}
+		xml.stepOut();
+		xml.addTag("Params");
+		xml.stepIn();
+		{
+			for(StringMap::const_iterator j = params.begin(); j != params.end(); ++j) {
+				xml.addTag("Param");
+				xml.addChildAttrib("Name", j->first);
+				xml.addChildAttrib("Pattern", j->second);
+			}
+		}
+		xml.stepOut();
+		xml.addTag("ProfileInfo");
+		xml.stepIn();
+		{
+			xml.addTag("DetectionProfile");
+			xml.stepIn();
+			{
+				xml.addTag("Version", getUserInfoVersion());
+				xml.addTag("Message", getUserInfoMessage());
+				xml.addTag("URL", getUserInfoUrl());
+			}
+			xml.stepOut();
+		}
+		xml.stepOut();
+		xml.stepOut();
+
+		string fname = Util::getConfigPath() + "UserInfoProfiles.xml";
+
+		File f(fname + ".tmp", File::WRITE, File::CREATE | File::TRUNCATE);
+		f.write(SimpleXML::utf8Header);
+		f.write(xml.toXML());
+		f.close();
+		File::deleteFile(fname);
+		File::renameFile(fname + ".tmp", fname);
+
+	} catch(const Exception& e) {
+		dcdebug("DetectionManager::save: %s\n", e.getError().c_str());
+	}
 }
 
 const DetectionManager::DetectionItems& DetectionManager::reload(bool isUserInfo /*= false*/) {
@@ -428,10 +637,10 @@ void DetectionManager::addDetectionItem(DetectionEntry& e, bool isUserInfo /*=fa
 	if(list.size() >= 2147483647)
 		throw Exception("No more items can be added!");
 
-	validateItem(e, true);
+	validateItem(e, true, isUserInfo);
 
 	if(e.Id == 0) {
-		e.Id = ++lastId;
+		e.Id = isUserInfo ? ++ui_lastId : ++lastId;
 
 		// This should only happen if lastId (aka. unsigned int) goes over it's capacity ie. virtually never :P
 		while(e.Id == 0) {
@@ -506,7 +715,7 @@ void DetectionManager::removeDetectionItem(const uint32_t id, bool isUserInfo /*
 void DetectionManager::updateDetectionItem(const uint32_t aOrigId, const DetectionEntry& e, bool isUserInfo /*=false*/) throw(Exception) {
 	Lock l(cs);
 	DetectionItems& list = isUserInfo ? ui_det : det;
-	validateItem(e, e.Id != aOrigId);
+	validateItem(e, e.Id != aOrigId, isUserInfo);
 	for(DetectionItems::iterator i = list.begin(); i != list.end(); ++i) {
 		if(i->Id == aOrigId) {
 			*i = e;

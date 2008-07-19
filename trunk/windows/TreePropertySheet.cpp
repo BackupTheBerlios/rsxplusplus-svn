@@ -35,10 +35,7 @@ int TreePropertySheet::PropSheetProc(HWND hwndDlg, UINT uMsg, LPARAM lParam) {
 LRESULT TreePropertySheet::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /* bHandled */) {
 	if(ResourceManager::getInstance()->isRTL())
 		SetWindowLongPtr(GWL_EXSTYLE, GetWindowLongPtr(GWL_EXSTYLE) | WS_EX_LAYOUTRTL);
-	treeImg = RL_LoadFromResource(IDP_O_SETTINGS_DLG);
-	tree_icons.Create(16, 16, ILC_COLOR32 | ILC_MASK, 0, 23);
-	tree_icons.Add(*treeImg);
-	//END
+	ResourceLoader::LoadImageList(IDP_O_SETTINGS_DLG, tree_icons, 16, 16); //RSX++
 	hideTab();
 	addTree();
 	fillTree();

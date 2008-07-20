@@ -1,0 +1,157 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// Polish resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_PLK)
+#ifdef _WIN32
+LANGUAGE LANG_POLISH, SUBLANG_DEFAULT
+#pragma code_page(1250)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 2,0,0,0
+ PRODUCTVERSION 2,0,0,0
+ FILEFLAGSMASK 0x17L
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x2L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "041504b0"
+        BEGIN
+            VALUE "FileDescription", "RSX++ Media Players Plugin"
+            VALUE "FileVersion", "2, 0, 0, 0"
+            VALUE "InternalName", "MediaPlayers"
+            VALUE "LegalCopyright", "Copyright (C) 2007-2008"
+            VALUE "OriginalFilename", "MediaPlayers.dll"
+            VALUE "ProductName", "Media Players Plugin"
+            VALUE "ProductVersion", "2, 0, 0, 0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x415, 1200
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDB_BITMAP              BITMAP                  "res\\StrongDC.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_MAIN_DLG DIALOGEX 15, 15, 340, 98
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Media Players"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,230,77,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,283,77,50,14
+    EDITTEXT        IDC_WINAMP,98,7,235,15,ES_MULTILINE | ES_AUTOHSCROLL | WS_VSCROLL
+    EDITTEXT        IDC_WMP,98,23,235,14,ES_MULTILINE | ES_AUTOHSCROLL | WS_VSCROLL
+    EDITTEXT        IDC_ITUNES,98,39,235,14,ES_MULTILINE | ES_AUTOHSCROLL | WS_VSCROLL
+    EDITTEXT        IDC_MPC,98,55,235,14,ES_MULTILINE | ES_AUTOHSCROLL | WS_VSCROLL
+    RTEXT           "Winamp",IDC_STATIC,7,10,83,8
+    RTEXT           "Windows Media Player",IDC_STATIC,7,26,83,8
+    RTEXT           "iTunes",IDC_STATIC,7,42,83,8
+    RTEXT           "Media Player Classic",IDC_STATIC,7,58,83,8
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_MAIN_DLG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 333
+        VERTGUIDE, 90
+        VERTGUIDE, 98
+        VERTGUIDE, 333
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 91
+        HORZGUIDE, 14
+        HORZGUIDE, 30
+        HORZGUIDE, 46
+        HORZGUIDE, 62
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+#endif    // Polish resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

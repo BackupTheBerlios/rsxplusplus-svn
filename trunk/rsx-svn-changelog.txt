@@ -1,3 +1,7 @@
+** SVN 95
+ ** added MediaPlayers plugin
+ ** User Info Detector done
+
 ** SVN 94
  ** updates from ApexDC++
  ** User Info Detector almost done

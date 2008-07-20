@@ -330,7 +330,7 @@ string Identity::updateClientType(OnlineUser& ou) {
 		for(DetectionEntry::INFMap::const_iterator j = INFList.begin(); j != INFList.end(); ++j) {
 			string aPattern = Util::formatRegExp(j->second, params);
 			string aField = getDetectionField(j->first);
-			DETECTION_DEBUG("Pattern: " + aPattern + " Field: " + aField);
+			DETECTION_DEBUG("\t\tPattern: " + aPattern + " Field: " + aField);
 			if(!RegexUtil::match(aField, aPattern)) {
 				_continue = true;
 				break;
@@ -339,11 +339,11 @@ string Identity::updateClientType(OnlineUser& ou) {
 		if(_continue)
 			continue;
 
-		DETECTION_DEBUG("**** Client found: " + entry.name + " time taken: " + Util::toString(GET_TICK()-tick) + " milliseconds\r\n");
+		DETECTION_DEBUG("**** Client found: " + entry.name + " time taken: " + Util::toString(GET_TICK()-tick) + " ms ****\r\n");
 
 		setClientType(entry.name);
 		set("CM", entry.comment);
-		set("BC", entry.cheat.empty() ? Util::emptyString : "1");
+		//set("BC", entry.cheat.empty() ? Util::emptyString : "1");
 		logDetect(true);
 
 		if(entry.checkMismatch && getUser()->isSet(User::NMDC) &&  (params["VE"] != params["PKVE"])) { 
@@ -414,65 +414,58 @@ string Identity::getPkVersion() const {
 	return Util::emptyString;
 }
 
-string Identity::myInfoDetect(OnlineUser& /*ou*/) {
-/*	StringMap params = DetectionManager::getInstance()->getParams();
-	const MyinfoProfile::List& lst = ClientProfileManager::getInstance()->getMyinfoProfiles();
-	
-	//empty status = adc user, here status is empty till user change it
-	string fixed_status = getStatus().empty() ? "0" : getStatus(); 
+string Identity::myInfoDetect(OnlineUser& ou) {
 	checkTagState(ou);
 
-	for(MyinfoProfile::List::const_iterator i = lst.begin(); i != lst.end(); ++i) {
-		const MyinfoProfile& cq = *i;	
+	uint64_t tick = GET_TICK();
 
-		string version, extraVersion, formattedTagExp, verTagExp;
-		string tagExp = cq.getTag();
+	StringMap params;
+	getDetectionParams(params); // get identity fields and escape them, then get the rest and leave as-is
+	const DetectionManager::DetectionItems& profiles = DetectionManager::getInstance()->getProfiles(params, true);
 
-		verTagExp = Util::formatRegExp(cq.getTag(), params);
+	for(DetectionManager::DetectionItems::const_iterator i = profiles.begin(); i != profiles.end(); ++i) {
+		const DetectionEntry& entry = *i;
+		if(!entry.isEnabled)
+			continue;
+		DetectionEntry::INFMap INFList;
+		if(!entry.defaultMap.empty()) {
+			// fields to check for both, adc and nmdc
+			INFList = entry.defaultMap;
+		} 
 
-		formattedTagExp = verTagExp;
-		string::size_type j = formattedTagExp.find("%[version]");
-		if(j != string::npos) {
-			formattedTagExp.replace(j, 10, ".*");
+		if(getUser()->isSet(User::NMDC) && !entry.nmdcMap.empty()) {
+			INFList.insert(INFList.end(), entry.nmdcMap.begin(), entry.nmdcMap.end());
+		} else if(!entry.adcMap.empty()) {
+			INFList.insert(INFList.end(), entry.adcMap.begin(), entry.adcMap.end());
 		}
-		
-		string extTagExp = cq.getExtendedTag();
-		string formattedExtTagExp = extTagExp;
-		j = extTagExp.find("%[version2]");
-		if(j != string::npos) {
-			formattedExtTagExp.replace(j, 11, ".*");
+
+		if(INFList.empty())
+			continue;
+
+		bool _continue = false;
+
+		for(DetectionEntry::INFMap::const_iterator j = INFList.begin(); j != INFList.end(); ++j) {
+			string aPattern = Util::formatRegExp(j->second, params);
+			string aField = getDetectionField(j->first);
+			if(!RegexUtil::match(aField, aPattern)) {
+				_continue = true;
+				break;
+			}
 		}
+		if(_continue)
+			continue;
 
-		if(!RegexUtil::match(getTag(), formattedTagExp))								{ continue; }
-		if(!RegexUtil::match(getDescription(), formattedExtTagExp))						{ continue; }
-		if(!RegexUtil::match(getConnection(), cq.getConnection()))						{ continue; }
-		if(!RegexUtil::match(fixed_status, cq.getStatus()))								{ continue; }
-		if(!RegexUtil::match(get("SS"), cq.getShared()))								{ continue; } 
-		if(!RegexUtil::match(getNick(), cq.getNick()))									{ continue; } 
-		if(!RegexUtil::match(getEmail(), cq.getEmail()))								{ continue; } 
-
-		if(verTagExp.find("%[version]") != string::npos) {
-			version = RegexUtil::getVersion(verTagExp, getTag());
-		}
-		if(extTagExp.find("%[version2]") != string::npos) {
-			extraVersion = RegexUtil::getVersion(extTagExp, getDescription());
-		}
-		if(!(cq.getVersion().empty()) && !RegexUtil::match(version, cq.getVersion()))	{ continue; }
-
-		if(cq.getUseExtraVersion())
-			setMyInfoType((cq.getName() + " " + extraVersion)); 
-		else 
-			setMyInfoType((cq.getName() + " " + version));
-
-		set("CM", cq.getComment());
+		setMyInfoType(entry.name);
+		set("CM", entry.comment);
 
 		string report = Util::emptyString;
-		if(!cq.getCheatingDescription().empty()) {
-			report = ou.setCheat(cq.getCheatingDescription(), true, false, ou.getClient().isActionActive(cq.getRawToSend()));
+		if(!entry.cheat.empty()) {
+			report = ou.setCheat(entry.cheat, true, false, ou.getClient().isActionActive(entry.rawToSend));
 		}
-		ClientManager::getInstance()->sendAction(ou, cq.getRawToSend());
+
+		ClientManager::getInstance()->sendAction(ou, entry.rawToSend);
 		return report;
-	}*/
+	}
 	return Util::emptyString;
 }
 //RSX++ //Protected users

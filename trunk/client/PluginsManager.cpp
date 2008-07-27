@@ -34,8 +34,8 @@
 #include "SimpleXML.h"
 #include "version.h"
 
-// revision: 1.2.0.1
-#define API_VERSION 1201
+// revision: 1.2.1.1
+#define API_VERSION 1211
 
 // @todo
 // add download function from url
@@ -54,7 +54,6 @@ PluginInfo::PluginInfo(HINSTANCE _h, PLUGIN_LOAD loader, PLUGIN_UNLOAD unloader,
 	setAuthor(_pi.pAuthor);
 	setId(_pi.pId);
 	setIcon(_pi.pIconResourceId);
-	dcdebug("Plugin %s loaded. Information: [Version: %s][ID: %i][BitmapID: %i]\n", name.c_str(), version.c_str(), id, icon);
 }
 
 PluginInfo::~PluginInfo() {
@@ -269,6 +268,26 @@ void PluginsManager::onUserDisconnected(iOnlineUser* user) {
 	for(Plugins::const_iterator i = active.begin(); i != active.end(); ++i) {
 		(*i)->getInterface()->onUserDisconnected(user);
 	}
+}
+
+bool PluginsManager::onUserConnectionIn(iUserConnection* conn, const string& aLine) {
+	Lock l(cs);
+	bool ret = false;
+	for(Plugins::const_iterator i = active.begin(); i != active.end(); ++i) {
+		if((*i)->getInterface()->onUserConnectionIn(conn, aLine.c_str()))
+			ret = true;
+	}
+	return ret;
+}
+
+bool PluginsManager::onUserConnectionOut(iUserConnection* conn, const string& aLine) {
+	Lock l(cs);
+	bool ret = false;
+	for(Plugins::const_iterator i = active.begin(); i != active.end(); ++i) {
+		if((*i)->getInterface()->onUserConnectionOut(conn, aLine.c_str()))
+			ret = true;
+	}
+	return ret;
 }
 
 void PluginsManager::onToolbarClick(int pluginId) {

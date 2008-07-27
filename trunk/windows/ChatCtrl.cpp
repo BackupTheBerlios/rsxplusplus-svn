@@ -946,8 +946,6 @@ LRESULT ChatCtrl::onReport(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/,
 	const OnlineUserPtr ou = client->findUser(Text::fromT(sSelectedUser));
 	if(ou)
 		client->cheatMessage(ou->getIdentity().getReport());
-	//ClientManager::getInstance()->reportUser(ou->getUser());
-
 	return 0;
 }
 
@@ -955,12 +953,13 @@ LRESULT ChatCtrl::onGetUserResponses(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*
 	const OnlineUserPtr ou = client->findUser(Text::fromT(sSelectedUser));
 	if(ou) {
 		try {
-			QueueManager::getInstance()->addTestSUR(ou->getUser(), false);
+			string fname = QueueManager::getInstance()->addClientCheck(ou->getUser());
+			if(!fname.empty())
+				ou->getIdentity().setTestSURQueued(fname);
 		} catch(const Exception& e) {
 			LogManager::getInstance()->message(e.getError());		
 		}
 	}
-
 	return 0;
 }
 
@@ -968,15 +967,51 @@ LRESULT ChatCtrl::onCheckList(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl
 	const OnlineUserPtr ou = client->findUser(Text::fromT(sSelectedUser));
 	if(ou) {
 		try {
-			QueueManager::getInstance()->addList(ou->getUser(), QueueItem::FLAG_CHECK_FILE_LIST);
+			string fname = QueueManager::getInstance()->addFileListCheck(ou->getUser());
+			if(!fname.empty())
+				ou->getIdentity().setFileListQueued(fname);
 		} catch(const Exception& e) {
 			LogManager::getInstance()->message(e.getError());		
 		}
 	}
-	
+	return 0;
+}
+//RSX++
+LRESULT ChatCtrl::onCleanUser(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+	const OnlineUserPtr ou = client->findUser(Text::fromT(sSelectedUser));
+	if(ou)
+		ou->getIdentity().cleanUser();
 	return 0;
 }
 
+LRESULT ChatCtrl::onSetProtected(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+	const OnlineUserPtr ou = client->findUser(Text::fromT(sSelectedUser));
+	if(ou)
+		ou->getUser()->setFlag(User::PROTECTED);
+	return 0;
+}
+
+LRESULT ChatCtrl::onUnsetProtected(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+	const OnlineUserPtr ou = client->findUser(Text::fromT(sSelectedUser));
+	if(ou)
+		ou->getUser()->unsetFlag(User::PROTECTED);
+	return 0;
+}
+
+LRESULT ChatCtrl::onCustomKick(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+	const OnlineUserPtr ou = client->findUser(Text::fromT(sSelectedUser));
+	if(ou)
+		ou->customKick();
+	return 0;
+}
+
+LRESULT ChatCtrl::onMultihubKick(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+	const OnlineUserPtr ou = client->findUser(Text::fromT(sSelectedUser));
+	if(ou)
+		ou->multiHubKick();
+	return 0;
+}
+//END
 void ChatCtrl::runUserCommand(UserCommand& uc) {
 	StringMap ucParams;
 

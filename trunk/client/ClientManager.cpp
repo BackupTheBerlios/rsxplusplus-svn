@@ -40,7 +40,6 @@
 //RSX++
 #include "RawManager.h"
 #include "ADLSearch.h"
-#include "ClientProfileManager.h"
 //END
 
 namespace dcpp {

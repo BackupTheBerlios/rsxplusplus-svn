@@ -75,6 +75,13 @@ public:
 		COMMAND_ID_HANDLER(IDC_REPORT, onReport)
 		COMMAND_ID_HANDLER(IDC_CHECKLIST, onCheckList)
 		COMMAND_ID_HANDLER(IDC_GET_USER_RESPONSES, onGetUserResponses)
+		//RSX++
+		COMMAND_ID_HANDLER(IDC_CLEAN_USER_D, onCleanUser)
+		COMMAND_ID_HANDLER(IDC_SET_PROTECTED_USER, onSetProtected)
+		COMMAND_ID_HANDLER(IDC_UNSET_PROTECTED_USER, onUnsetProtected)
+		COMMAND_ID_HANDLER(IDC_CUSTOM_KICK, onCustomKick)
+		COMMAND_ID_HANDLER(IDC_MULTIHUB_KICK, onMultihubKick)
+		//END
 		CHAIN_COMMANDS(ucBase)
 
 		MESSAGE_HANDLER(WM_COMMAND, onCommand)
@@ -113,6 +120,13 @@ public:
 	LRESULT onReport(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT onGetUserResponses(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT onCheckList(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+	//RSX++
+	LRESULT onCleanUser(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+	LRESULT onSetProtected(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+	LRESULT onUnsetProtected(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+	LRESULT onCustomKick(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+	LRESULT onMultihubKick(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+	//END
 
 	void setClient(Client* pClient) { client = pClient; }
 	void runUserCommand(UserCommand& uc);

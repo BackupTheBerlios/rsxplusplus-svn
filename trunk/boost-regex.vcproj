@@ -186,7 +186,7 @@
 				Optimization="3"
 				InlineFunctionExpansion="1"
 				EnableIntrinsicFunctions="true"
-				FavorSizeOrSpeed="2"
+				FavorSizeOrSpeed="1"
 				EnableFiberSafeOptimizations="true"
 				AdditionalIncludeDirectories="&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)boost&quot;"
 				PreprocessorDefinitions="BOOST_REGEX_NO_LIB"

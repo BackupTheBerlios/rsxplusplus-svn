@@ -32,6 +32,7 @@
 #include "DebugManager.h"
 #include "ClientManager.h"
 #include "ScriptManager.h" //RSX++
+#include "PluginAPI/UserConnectionInterface.h" //RSX++
 
 namespace dcpp {
 //RSX++
@@ -42,7 +43,8 @@ protected:
 };
 //END
 class UserConnection : public Speaker<UserConnectionListener>, 
-	private BufferedSocketListener, public Flags, private CommandHandler<UserConnection>,/*RSX++*/public UserConnectionScriptInstance,/*END*/
+	private BufferedSocketListener, public Flags, private CommandHandler<UserConnection>,
+	/*RSX++*/public UserConnectionScriptInstance, public iUserConnection,/*END*/
 	private boost::noncopyable
 {
 public:
@@ -209,6 +211,13 @@ public:
 	BufferedSocket const* getSocket() { return socket; } 
 
 private:
+	/* iUserConnection interface */
+	void __cdecl p_disconnect(bool graceless = false) { disconnect(graceless); }
+	rString __cdecl p_getRemoteIp() const { return getRemoteIp().c_str(); }
+	void __cdecl p_send(const rString& data) { send(data.c_str()); }
+	bool __cdecl p_isAdc() const { return !isSet(FLAG_NMDC); }
+	//END
+
 	int64_t chunkSize;
 	BufferedSocket* socket;
 	UserPtr user;

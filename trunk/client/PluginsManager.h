@@ -26,6 +26,7 @@
 #include "PluginAPI/ClientInterface.h"
 #include "PluginAPI/UserInterface.h"
 #include "PluginAPI/PluginInformation.h"
+#include "PluginAPI/UserConnectionInterface.h"
 
 #include "PluginInfo.h"
 
@@ -48,6 +49,13 @@ public:
 	void saveSettings();
 	void loadSettings();
 
+	void reloadPlugins() {
+		unloadPlugins(true);
+		saveSettings();
+		loadPlugins();
+		startPlugins();
+	}
+
 	void setSetting(int pId, const string& n, const string& v);
 	string getSetting(int pId, const string& n);
 
@@ -60,10 +68,16 @@ public:
 
 	bool onHubConnected(iClient* hub);
 	void onHubDisconnected(iClient* hub);
+
 	void onUserConnected(iOnlineUser* user);
 	void onUserDisconnected(iOnlineUser* user);
 
+	bool onUserConnectionIn(iUserConnection* conn, const string& aLine);
+	bool onUserConnectionOut(iUserConnection* conn, const string& aLine);
+
 	void onToolbarClick(int pluginId);
+	void onCustomEvent(int event);
+
 private:
 	void loadPlugin(const string& pPath);
 	bool isLoaded(int pId);

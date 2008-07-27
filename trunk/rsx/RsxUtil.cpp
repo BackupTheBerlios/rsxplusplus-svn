@@ -211,7 +211,7 @@ const string RsxUtil::getOsVersion() {
 
 string RsxUtil::getUpdateFileNames(const int number) {
 	switch(number) {
-		case 1: return "MyinfoProfiles.xml";
+		case 1: return "UserInfoProfiles.xml";
 		case 2: return "IPWatch.xml";
 		default: return "Profiles.xml";
 	}

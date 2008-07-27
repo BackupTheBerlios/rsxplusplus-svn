@@ -22,7 +22,6 @@
 #include "ExListViewCtrl.h"
 
 #include "../client/RawManager.h"
-#include "../client/ClientProfileManager.h"
 
 class FileListDetectorPage : public CPropertyPage<IDD_FILELIST_DETECTOR_PAGE>, public PropPage {
 public:
@@ -71,7 +70,7 @@ protected:
 	static TextItem texts[];
 	TCHAR* title;
 
-	void addEntry(const FileListDetectorProfile& fd, int pos);
+	//void addEntry(const FileListDetectorProfile& fd, int pos);
 	void fixControls();
 };
 

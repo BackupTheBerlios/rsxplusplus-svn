@@ -50,7 +50,6 @@
 
 #include "DebugManager.h"
 #include "DetectionManager.h"
-#include "ClientProfileManager.h"
 #include "WebServerManager.h"
 #include "../windows/PopupManager.h"
 
@@ -98,8 +97,7 @@ void startup(void (*f)(void*, const tstring&), void* p) {
 	FinishedManager::newInstance();
 	ADLSearchManager::newInstance();
 	DebugManager::newInstance();
-	DetectionManager::newInstance();	
-	ClientProfileManager::newInstance();	
+	DetectionManager::newInstance();		
 	PopupManager::newInstance();
 	//RSX++ //instances
 	HTTPDownloadManager::newInstance();
@@ -125,7 +123,6 @@ void startup(void (*f)(void*, const tstring&), void* p) {
 
 	FavoriteManager::getInstance()->load();
 	CryptoManager::getInstance()->loadCertificates();
-	ClientProfileManager::getInstance()->load();
 	DetectionManager::getInstance()->load();
 	WebServerManager::newInstance();
 
@@ -170,7 +167,6 @@ void shutdown() {
 	DebugManager::deleteInstance();
 	WebServerManager::deleteInstance();
 	DetectionManager::deleteInstance();	
-	ClientProfileManager::deleteInstance();	
 	PopupManager::deleteInstance();
 	ADLSearchManager::deleteInstance();
 	RawManager::deleteInstance(); //RSX++

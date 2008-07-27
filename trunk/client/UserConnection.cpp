@@ -19,7 +19,6 @@
 #include "stdinc.h"
 #include "DCPlusPlus.h"
 
-#include "ScriptManager.h" //RSX++ // Lua
 #include "UserConnection.h"
 #include "ClientManager.h"
 #include "ResourceManager.h"
@@ -28,7 +27,11 @@
 #include "AdcCommand.h"
 #include "Transfer.h"
 #include "DebugManager.h"
+//RSX++
 #include "Download.h"
+#include "ScriptManager.h"
+#include "PluginsManager.h"
+//END
 
 namespace dcpp {
 
@@ -160,15 +163,25 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) throw
 }
 //RSX++ // Lua
 bool UserConnectionScriptInstance::onUserConnectionMessageIn(UserConnection* aConn, const string& aLine) {
-	Lock l(cs);
-	MakeCall("dcpp", "UserDataIn", 1, aConn, aLine);
-	return GetLuaBool();
+	bool r1 = false;
+	{
+		Lock l(cs);
+		MakeCall("dcpp", "UserDataIn", 1, aConn, aLine);
+		r1 = GetLuaBool();
+	}
+	bool r2 = PluginsManager::getInstance()->onUserConnectionIn(aConn, aLine);
+	return r1 || r2;
 }
 
 bool UserConnectionScriptInstance::onUserConnectionMessageOut(UserConnection* aConn, const string& aLine) {
-	Lock l(cs);
-	MakeCall("dcpp", "UserDataOut", 1, aConn, aLine);
-	return GetLuaBool();
+	bool r1 = false;
+	{
+		Lock l(cs);
+		MakeCall("dcpp", "UserDataOut", 1, aConn, aLine);
+		r1 = GetLuaBool();
+	}
+	bool r2 = PluginsManager::getInstance()->onUserConnectionOut(aConn, aLine);
+	return r1 || r2;
 }
 //END
 void UserConnection::connect(const string& aServer, uint16_t aPort) throw(SocketException, ThreadException) { 

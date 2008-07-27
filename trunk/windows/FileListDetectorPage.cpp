@@ -16,7 +16,6 @@
 
 #include "stdafx.h"
 #include "../client/DCPlusPlus.h"
-#include "../client/ClientProfileManager.h"
 #include "../client/SettingsManager.h"
 #include "Resource.h"
 
@@ -80,17 +79,17 @@ LRESULT FileListDetectorPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPA
 	ctrlProfiles.InsertColumn(2, CTSTRING(ACTION),					LVCFMT_LEFT, (rc.Width() / 7)*2, 3);
 	ctrlProfiles.SetExtendedListViewStyle(LVS_EX_FULLROWSELECT);
 
-	FileListDetectorProfile::List& lst = ClientProfileManager::getInstance()->getFileListDetectors();
+	/*FileListDetectorProfile::List& lst = ClientProfileManager::getInstance()->getFileListDetectors();
 	for(FileListDetectorProfile::List::const_iterator i = lst.begin(); i != lst.end(); ++i) {
 		const FileListDetectorProfile& fd = *i;	
 		addEntry(fd, ctrlProfiles.GetItemCount());
-	}
+	}*/
 	fixControls();
 	return TRUE;
 }
 
 LRESULT FileListDetectorPage::onAdd(WORD , WORD , HWND , BOOL& ) {
-	FileListDetectorDlg dlg;
+	/*FileListDetectorDlg dlg;
 	dlg.currentProfileId = -1;
 	if(dlg.DoModal() == IDOK) {
 		addEntry(ClientProfileManager::getInstance()->addFileListDetector(		
@@ -100,12 +99,12 @@ LRESULT FileListDetectorPage::onAdd(WORD , WORD , HWND , BOOL& ) {
 			dlg.rawToSend, 
 			dlg.badClient 
 			), ctrlProfiles.GetItemCount());
-		}
+	}*/
 	return 0;
 }
 
 LRESULT FileListDetectorPage::onChange(WORD , WORD , HWND , BOOL& ) {
-	if(ctrlProfiles.GetSelectedCount() >= 1) {
+/*	if(ctrlProfiles.GetSelectedCount() >= 1) {
 		int sel = ctrlProfiles.GetSelectedIndex();
 
 		FileListDetectorDlg dlg;
@@ -130,23 +129,23 @@ LRESULT FileListDetectorPage::onChange(WORD , WORD , HWND , BOOL& ) {
 		}
 		ctrlProfiles.SelectItem(sel);
 		ctrlProfiles.SetRedraw(TRUE);
-	}
+	}*/
 	return 0;
 }
 
 LRESULT FileListDetectorPage::onRemove(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
-	while(ctrlProfiles.GetSelectedCount() >= 1) {
+/*	while(ctrlProfiles.GetSelectedCount() >= 1) {
 		int i = -1;
 		while((i = ctrlProfiles.GetNextItem(i, LVNI_SELECTED)) != -1) {
 			ClientProfileManager::getInstance()->removeFileListDetector(ctrlProfiles.GetItemData(i));
 			ctrlProfiles.DeleteItem(i);
 		}
-	}		
+	}		*/
 	return 0;
 }
 
 LRESULT FileListDetectorPage::onContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/) {
-	RECT rc;
+/*	RECT rc;
 	POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
 
 	if(ctrlProfiles.GetSelectedCount() >= 1) {
@@ -180,7 +179,7 @@ LRESULT FileListDetectorPage::onContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LP
 			}
 			return TRUE; 
 		}
-	}
+	}*/
 	return FALSE; 
 }
 
@@ -188,7 +187,7 @@ void FileListDetectorPage::write() {
 	//ClientProfileManager::getInstance()->saveClientProfiles();
 	PropPage::write((HWND)*this, items);
 }
-
+/*
 void FileListDetectorPage::addEntry(const FileListDetectorProfile& fd, int pos) {
 	TStringList lst;
 	lst.push_back(Text::toT(fd.getName()));
@@ -196,13 +195,13 @@ void FileListDetectorPage::addEntry(const FileListDetectorProfile& fd, int pos) 
 	lst.push_back(RawManager::getInstance()->getNameActionId(RawManager::getInstance()->getValidAction(fd.getRawToSend())));
 	ctrlProfiles.insert(pos, lst, 0, (LPARAM)fd.getId());
 }
-
+*/
 LRESULT FileListDetectorPage::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/) {
 	LPNMLVCUSTOMDRAW cd = (LPNMLVCUSTOMDRAW)pnmh;
 	switch(cd->nmcd.dwDrawStage) {
 		case CDDS_PREPAINT: return CDRF_NOTIFYITEMDRAW;
 		case CDDS_ITEMPREPAINT: {
-			try	{
+			/*try	{
 				FileListDetectorProfile fd;
 				ClientProfileManager::getInstance()->getFileListDetector(ctrlProfiles.GetItemData(cd->nmcd.dwItemSpec), fd);
 				if(fd.getRawToSend()) {
@@ -216,7 +215,7 @@ LRESULT FileListDetectorPage::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /
 				return CDRF_NEWFONT | CDRF_NOTIFYSUBITEMDRAW;
 			} catch(...) {
 				//...
-			}
+			}*/
 			return CDRF_NOTIFYSUBITEMDRAW;
 		}
 		default: return CDRF_DODEFAULT;

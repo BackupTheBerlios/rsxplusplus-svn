@@ -54,31 +54,31 @@ LRESULT FileListDetectorDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPAR
 }
 
 void FileListDetectorDlg::getProfile() {
-	ClientProfileManager::getInstance()->getFileListDetector(currentProfileId, currentProfile);
+/*	ClientProfileManager::getInstance()->getFileListDetector(currentProfileId, currentProfile);
 
 	name = currentProfile.getName();
 	detect = currentProfile.getDetect();
 	cheatingDescription = currentProfile.getCheatingDescription();
 	rawToSend = currentProfile.getRawToSend();
-	badClient = currentProfile.getBadClient();
+	badClient = currentProfile.getBadClient();*/
 }
 
 void FileListDetectorDlg::updateControls() {
-	
+/*	
 	ctrlName.SetWindowText(Text::toT(name).c_str());
 	ctrlDetect.SetWindowText(Text::toT(detect).c_str());
 	ctrlCheatingDescription.SetWindowText(Text::toT(cheatingDescription).c_str());
 	cRaw.setPos(rawToSend);
 	ctrlBadClient.SetCheck(badClient ? BST_CHECKED : BST_UNCHECKED);
 	
-	ctrlName.SetFocus();
+	ctrlName.SetFocus();*/
 }
 void FileListDetectorDlg::updateVars() {
-	TCHAR buf[1024];
+/*	TCHAR buf[1024];
 
 	GET_TEXT(IDC_FILELIST_PROFILE_NAME, name);
 	GET_TEXT(IDC_FILELIST_PROFILE_DETECT, detect);
 	GET_TEXT(IDC_FILELIST_PROFILE_CHEAT, cheatingDescription);
 	rawToSend = cRaw.getActionId();
-	badClient = ctrlBadClient.GetCheck() == BST_CHECKED;
+	badClient = ctrlBadClient.GetCheck() == BST_CHECKED;*/
 }

@@ -63,7 +63,6 @@
 #include "../rsx/UpdateManager.h"
 #include "../rsx/HTTPDownloadManager.h"
 #include "../client/ScriptManager.h" // Lua
-#include "../client/ClientProfileManager.h"
 #include "../client/PluginsManager.h"
 #include "UpdateDialog.h"
 #include "PluginsListDlg.h"
@@ -360,8 +359,6 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 
 	PostMessage(WM_SPEAKER, PARSE_COMMAND_LINE);
 
-	UpdateManager::getInstance()->runUpdate(); //RSX++
-
 	try {
 		File::ensureDirectory(SETTING(LOG_DIRECTORY));
 		//RSX++
@@ -388,6 +385,8 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 		PostMessage(WM_COMMAND, ID_FILE_SETTINGS);
 	}
 #endif
+	UpdateManager::getInstance()->runUpdate(); //RSX++
+
 	// We want to pass this one on to the splitter...hope it get's there...
 	bHandled = FALSE;
 	return 0;

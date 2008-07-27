@@ -31,7 +31,6 @@ public:
 		MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
 		MESSAGE_HANDLER(WM_CLOSE, OnClose)
 		MESSAGE_HANDLER(WM_SETFOCUS, onFocus)
-		COMMAND_ID_HANDLER(IDCLOSE, OnCloseCmd)
 		COMMAND_ID_HANDLER(IDC_UPDATE_DOWNLOAD, OnButton)
 		COMMAND_ID_HANDLER(IDC_UPDATE, OnButton)
 		COMMAND_ID_HANDLER(IDC_LOAD_BACKUP, OnButton)
@@ -53,16 +52,7 @@ public:
 		::SetFocus(GetDlgItem(IDCLOSE));
 		return FALSE;
 	}
-	LRESULT OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
-		initClose();
-		EndDialog(NULL);
-		return 0;
-	}
-	LRESULT OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
-		initClose();
-		EndDialog(wID);
-		return 0;
-	}
+	LRESULT OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 	LRESULT OnButton(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 
 	bool isNewClientVersion(bool checkSetting = false);
@@ -100,7 +90,6 @@ private:
 	void versionXML();
 	void profileXML();
 
-	void initClose();
 	void prepareFiles();
 	void fixControls();
 	void setProgress();

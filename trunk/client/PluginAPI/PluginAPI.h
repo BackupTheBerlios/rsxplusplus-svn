@@ -48,7 +48,7 @@ public:
 	// versions
 	enum {
 		CLIENT_PROFILE = 0,
-		MYINFO_PROFILE,
+		USER_INFO_PROFILE,
 		IP_WATCH_PROFILE,
 		AUTOSEARCH_PROFILE,
 		RSX_VERSION,
@@ -74,6 +74,11 @@ public:
 
 	EXIMP static bool		__cdecl RegexMatch(const rString& strToMatch, const rString& regEx);
 	EXIMP static bool		__cdecl WildcardMatch(const rString& strToMatch, const rString& pattern, char delim, bool useSet);
+
+	EXIMP static void		__cdecl AddConnectionFeature(const rString& feat, bool isAdc);
+	EXIMP static void		__cdecl RemoveConnectionFeature(const rString& feat, bool isAdc);
+	EXIMP static void		__cdecl AddHubFeature(const rString& feat, bool isAdc);
+
 };
 } // namespace dcpp
 

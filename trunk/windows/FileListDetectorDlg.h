@@ -18,7 +18,6 @@
 #define FILELIST_DETECTOR_DLG_H
 
 #include "../client/Util.h"
-#include "../client/ClientProfileManager.h"
 
 #include "CRawCombo.h"
 
@@ -33,7 +32,7 @@ public:
 	int currentProfileId;
 	bool adding;
 
-	FileListDetectorProfile currentProfile;
+//	FileListDetectorProfile currentProfile;
 
 	enum { IDD = IDD_ADD_FILELIST_PROFILE };
 
@@ -58,7 +57,7 @@ public:
 	LRESULT OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
 		if(wID == IDOK) {
 			updateVars();
-			if(adding) {
+			/*if(adding) {
 				FileListDetectorProfile::List& lst = ClientProfileManager::getInstance()->getFileListDetectors();
 				for(FileListDetectorProfile::List::const_iterator j = lst.begin(); j != lst.end(); ++j) {
 					if((*j).getName().compare(name) == 0) {
@@ -66,7 +65,7 @@ public:
 						return 0;
 					}
 				}
-			}
+			}*/
 		}
 		EndDialog(wID);
 		return 0;

@@ -68,7 +68,11 @@ public:
 			list.push_back(i->second);
 		}
 	}
-	
+	//RSX++
+	static void addFeature(const string& feat) {
+		extraSup.push_back(feat);
+	}
+	//END
 private:
 	friend class ClientManager;
 	enum SupportFlags {
@@ -88,6 +92,8 @@ private:
 	tstring startChecking(const tstring& aParams) { return users.startChecking(this, aParams); }
 	void stopChecking()	{ users.stopCheck(); }
 	void stopMyINFOCheck() { users.stopMyINFOCheck(); }
+
+	static StringList extraSup;
 	//END
 
 	string lastMyInfo;

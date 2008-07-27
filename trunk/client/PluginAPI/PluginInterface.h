@@ -25,24 +25,28 @@ namespace dcpp {
 
 class iClient;
 class iOnlineUser;
+class iUserConnection;
 class rString;
 
 class iPlugin {
 public:
-	virtual bool __cdecl onIncomingMessage(iClient*, const rString&)	{ return false; }
-	virtual bool __cdecl onOutgoingMessage(iClient*, const rString&)	{ return false; }
+	virtual bool __cdecl onIncomingMessage(iClient*, const rString&)					{ return false; }
+	virtual bool __cdecl onOutgoingMessage(iClient*, const rString&)					{ return false; }
 
-	virtual bool __cdecl onIncomingPM(iOnlineUser*, const rString&)		{ return false; }
-	virtual bool __cdecl onOutgoingPM(iOnlineUser*, const rString&)		{ return false; }
+	virtual bool __cdecl onIncomingPM(iOnlineUser*, const rString&)						{ return false; }
+	virtual bool __cdecl onOutgoingPM(iOnlineUser*, const rString&)						{ return false; }
 
-	virtual bool __cdecl onHubConnected(iClient*)						{ return false; }
-	virtual void __cdecl onHubDisconnected(iClient*)					{ return; }
+	virtual bool __cdecl onHubConnected(iClient*)										{ return false; }
+	virtual void __cdecl onHubDisconnected(iClient*)									{ return; }
 
-	virtual void __cdecl onUserConnected(iOnlineUser*)					{ return; }
-	virtual void __cdecl onUserDisconnected(iOnlineUser*)				{ return; }
+	virtual void __cdecl onUserConnected(iOnlineUser*)									{ return; }
+	virtual void __cdecl onUserDisconnected(iOnlineUser*)								{ return; }
 
-	virtual void __cdecl onToolBarClick()								{ return; }
-	virtual void __cdecl onSettingLoad()								{ return; }
+	virtual bool __cdecl onUserConnectionIn(iUserConnection*, const rString&)			{ return false; }
+	virtual bool __cdecl onUserConnectionOut(iUserConnection*, const rString&)			{ return false; }
+
+	virtual void __cdecl onToolBarClick()												{ return; }
+	virtual void __cdecl onSettingLoad()												{ return; }
 };
 } // namespace dcpp
 

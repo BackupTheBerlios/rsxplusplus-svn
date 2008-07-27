@@ -23,8 +23,10 @@
 
 #include "../client/Text.h"
 #include "../client/LogManager.h"
-#include "../client/ClientProfileManager.h"
 #include "../client/DetectionManager.h"
+#include "../client/ConnectionManager.h"
+#include "../client/AdcHub.h"
+#include "../client/NmdcHub.h"
 
 #include "../rsx/Wildcards.h"
 #include "../rsx/RegexUtil.h"
@@ -81,7 +83,7 @@ void PluginAPI::showToolTip(const rString& pTitle, const rString& pMsg, int pIco
 rString PluginAPI::getVersion(int type) {
 	switch(type) {
 		case CLIENT_PROFILE:		return DetectionManager::getInstance()->getProfileVersion().c_str();
-		case MYINFO_PROFILE:		return ClientProfileManager::getInstance()->getMyinfoProfileVersion().c_str();
+		case USER_INFO_PROFILE:		return DetectionManager::getInstance()->getUserInfoVersion().c_str();
 		case IP_WATCH_PROFILE:		return IpManager::getInstance()->getIpWatchVersion().c_str();
 		case AUTOSEARCH_PROFILE:	return AutoSearchManager::getInstance()->getVersion().c_str();
 		case RSX_VERSION:			return VERSIONSTRING;
@@ -124,6 +126,22 @@ void PluginAPI::OpenHub(const rString& aHubUrl) {
 
 void PluginAPI::CloseHub(const rString& aHubUrl) {
 	HubFrame::closeHub(Text::toT(aHubUrl.c_str()));
+}
+
+void PluginAPI::AddConnectionFeature(const rString& feat, bool isAdc) {
+	ConnectionManager::getInstance()->addFeature(feat.c_str(), isAdc);
+}
+
+void PluginAPI::RemoveConnectionFeature(const rString& feat, bool isAdc) {
+	ConnectionManager::getInstance()->remFeature(feat.c_str(), isAdc);
+}
+
+void PluginAPI::AddHubFeature(const rString& feat, bool isAdc) {
+	if(isAdc) {
+		AdcHub::addFeature(feat.c_str());
+	} else {
+		NmdcHub::addFeature(feat.c_str());
+	}
 }
 
 } // namespace dcpp

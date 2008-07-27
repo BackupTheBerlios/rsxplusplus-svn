@@ -121,6 +121,19 @@ public:
 	uint16_t getPort() const { return server ? static_cast<uint16_t>(server->getPort()) : 0; }
 	uint16_t getSecurePort() const { return secureServer ? static_cast<uint16_t>(secureServer->getPort()) : 0; }
 	static uint16_t iConnToMeCount;	
+	//RSX++
+	void addFeature(const string& feat, bool isAdc) {
+		Lock l(cs);
+		isAdc ? adcFeatures.push_back("AD" + feat) : features.push_back(feat);
+	}
+	void remFeature(const string& feat, bool isAdc) {
+		Lock l(cs);
+		StringList& list = isAdc ? adcFeatures : features;
+		StringList::iterator i = std::find(list.begin(), list.end(), isAdc ? "AD" + feat : feat);
+		if(i != list.end())
+			list.erase(i);
+	}
+	//END
 private:
 
 	class Server : public Thread {

@@ -1,3 +1,10 @@
+** SVN 96
+ ** added PluginAPI func to add Hub/Connection Support/Feature string
+ ** added new event to plugin interface - onUserConnection in/out
+ ** done profiles' update feat. + some other changes in update dlg
+ ** fixed some menu items in chat
+ TODO: sth with filelist generator check...
+
 ** SVN 95
  ** added MediaPlayers plugin
  ** User Info Detector done

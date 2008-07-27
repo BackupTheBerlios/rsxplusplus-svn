@@ -630,10 +630,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\client\ClientProfileManager.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\client\CommandQueue.cpp"
 				>
 			</File>
@@ -1280,10 +1276,6 @@
 			</File>
 			<File
 				RelativePath=".\client\ClientManagerListener.h"
-				>
-			</File>
-			<File
-				RelativePath=".\client\ClientProfileManager.h"
 				>
 			</File>
 			<File

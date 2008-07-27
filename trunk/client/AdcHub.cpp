@@ -47,6 +47,8 @@ const string AdcHub::TIGR_SUPPORT("ADTIGR");
 const string AdcHub::UCM0_SUPPORT("ADUCM0");
 const string AdcHub::BLO0_SUPPORT("ADBLO0");
 
+StringList AdcHub::extraSup; //RSX++
+
 AdcHub::AdcHub(const string& aHubURL, bool secure) : Client(aHubURL, '\n', secure), oldPassword(false), sid(0) {
 	TimerManager::getInstance()->addListener(this);
 }
@@ -776,7 +778,11 @@ void AdcHub::info(bool /*alwaysSend*/) {
 		addParam(lastInfoMap, c, "I4", "");
 		addParam(lastInfoMap, c, "U4", "");
 	}
-
+	//RSX++
+	for(StringList::const_iterator i = extraSup.begin(); i != extraSup.end(); ++i) {
+		su += *i + ',';
+	}
+	//END
 	if(!su.empty()) {
 		su.erase(su.size() - 1);
 	}

@@ -25,7 +25,7 @@
 
 #define SVNVERSION "svn409"
 
-#define SVN_REVISION $revision
+#define SVN_REVISION $WCREV$
 
 #define __HOMESITE "http://rsxplusplus.sf.net/"
 #define __WIKI "http://rsxplusplus.wiki.sourceforge.net/"

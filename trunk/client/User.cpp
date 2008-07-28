@@ -417,8 +417,6 @@ string Identity::getPkVersion() const {
 string Identity::myInfoDetect(OnlineUser& ou) {
 	checkTagState(ou);
 
-	uint64_t tick = GET_TICK();
-
 	StringMap params;
 	getDetectionParams(params); // get identity fields and escape them, then get the rest and leave as-is
 	const DetectionManager::DetectionItems& profiles = DetectionManager::getInstance()->getProfiles(params, true);
@@ -594,8 +592,6 @@ void Identity::checkIP(OnlineUser& ou) {
 					break;
 				}
 				case 1: {
-					//PME reg((*j)->getPattern(), "gi");
-					//if(reg.IsValid() && reg.match(strToMatch))
 					if(RegexUtil::match(strToMatch, (*j)->getPattern()))
 						matched = true;
 					break;

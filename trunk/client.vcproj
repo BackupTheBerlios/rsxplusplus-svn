@@ -29,6 +29,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				CommandLine="subwcrev.exe . client/versiontemplate.h client/version.h"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -111,6 +112,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				CommandLine="subwcrev.exe . client/versiontemplate.h client/version.h"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -194,7 +196,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="versiontemplate.py"
+				CommandLine="subwcrev.exe . client/versiontemplate.h client/version.h"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -285,6 +287,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				CommandLine="subwcrev.exe . client/versiontemplate.h client/version.h"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -374,7 +377,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="versiontemplate.py"
+				CommandLine="subwcrev.exe . client/versiontemplate.h client/version.h"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -465,6 +468,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				CommandLine="subwcrev.exe . client/versiontemplate.h client/version.h"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -1723,8 +1727,18 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Checking SVN revision..."
-						CommandLine="versiontemplate.py&#x0D;&#x0A;"
-						Outputs=".\client\version.h"
+						CommandLine="subwcrev.exe . client/versiontemplate.h client/version.h"
+						Outputs="$(SolutionDir)client\version.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|x64"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Checking SVN revision..."
+						CommandLine="subwcrev.exe . client/versiontemplate.h client/version.h"
+						Outputs="$(SolutionDir)client\version.h"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1733,8 +1747,18 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Checking SVN revision..."
-						CommandLine="versiontemplate.py&#x0D;&#x0A;"
-						Outputs=".\client\version.h"
+						CommandLine="subwcrev.exe . client/versiontemplate.h client/version.h"
+						Outputs="$(SolutionDir)client\version.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|x64"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Checking SVN revision..."
+						CommandLine="subwcrev.exe . client/versiontemplate.h client/version.h"
+						Outputs="$(SolutionDir)client\version.h"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1742,9 +1766,19 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
+						Description="Checking version.h ..."
+						CommandLine=""
+						Outputs="$(SolutionDir)client\version.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="SvnRelease|x64"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
 						Description="Checking SVN revision..."
-						CommandLine="versiontemplate.py&#x0D;&#x0A;"
-						Outputs=".\client\version.h"
+						CommandLine="subwcrev.exe . client/versiontemplate.h client/version.h"
+						Outputs="$(SolutionDir)client\version.h"
 					/>
 				</FileConfiguration>
 			</File>

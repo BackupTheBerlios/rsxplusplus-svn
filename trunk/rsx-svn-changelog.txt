@@ -1,3 +1,8 @@
+** SVN 98
+ ** removed svn version script, now TortoiseSVN util is used
+ ** fixed displaing cheats for adlsearch
+ ** fixed points counting, now everything should be ok
+
 ** SVN 97
  ** added option to check regex in favhub dialog
  ** fixed some translations/names

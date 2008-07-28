@@ -13,7 +13,6 @@ IF NOT EXIST "stlport" (
 )
 
 cd stlport
-echo "checking STLport library folders"
 
 IF NOT EXIST "lib32" (
 	mkdir "lib32"

@@ -384,12 +384,11 @@ void RawManager::on(RSXSettingsManagerListener::Load, SimpleXML& xml) throw() {
 				continue;
 
 			Lock l(cs);
-			ADLPoints::iterator i = points.find(_points);
+			IntMap::iterator i = points.find(_points);
 			if(i != points.end())
 				continue;
 			int _action = xml.getIntChildAttrib("Action");
-			bool _display = xml.getBoolChildAttrib("DisplayCheat");
-			points.insert(make_pair(_points, make_pair(_action, _display)));
+			points.insert(make_pair(_points, _action));
 		}
 		xml.stepOut();
 	}
@@ -398,24 +397,37 @@ void RawManager::on(RSXSettingsManagerListener::Load, SimpleXML& xml) throw() {
 void RawManager::on(RSXSettingsManagerListener::Save, SimpleXML& xml) throw() {
 	xml.addTag("ADLSPoints");
 	xml.stepIn();
-	for(ADLPoints::const_iterator i = points.begin(); i != points.end(); ++i) {
+	for(IntMap::const_iterator i = points.begin(); i != points.end(); ++i) {
 		xml.addTag("PointsSetting");
 		xml.addChildAttrib("Points", i->first);
-		xml.addChildAttrib("Action", i->second.first);
-		xml.addChildAttrib("DisplayCheat", i->second.second);
+		xml.addChildAttrib("Action", i->second);
 	}
 	xml.stepOut();
 }
 
 void RawManager::calcADLAction(int aPoints, int& a, bool& d) {
 	Lock l(cs);
-	ADLPoints::const_iterator i = points.upper_bound(aPoints);
-	if(i != points.end()) {
-		a = i->second.first;
-		d = i->second.second;
+	if(!points.empty()) {
+		IntMap::const_iterator i = points.upper_bound(aPoints);
+		if(i != points.end()) {
+			a = i->second;
+		} else {
+			// get last value
+			i == points.end();
+			i--;
+			a = i->second;
+		}
+	} else {
+		a = RSXSETTING(ADLSEARCH_DEFAULT_ACTION);
+	}
+
+	int min_p = RSXSETTING(MIN_POINTS_TO_DISPLAY_CHEAT);
+	if(min_p > 0 && RSXBOOLSETTING(SHOW_ADLSEARCH_DEFAULT_ACTION)) {
+		d = (min_p >= aPoints);
+	} else {
+		d = RSXBOOLSETTING(SHOW_ADLSEARCH_DEFAULT_ACTION);
 	}
 }
-
 //Raw Selector class
 void RawSelector::createList() {
 	Action::List lst = RawManager::getInstance()->getActionList();

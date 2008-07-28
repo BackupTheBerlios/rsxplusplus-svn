@@ -57,7 +57,8 @@ LRESULT ScriptsListDlg::onSave(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCt
 		list.push_back(make_pair(state, Text::fromT(buf)));
 	}
 	RSXSettingsManager::getInstance()->save();
-	EndDialog(0);
+	ctrlList.Detach();
+	EndDialog(IDOK);
 	return 0;
 }
 

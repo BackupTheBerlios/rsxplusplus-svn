@@ -39,29 +39,48 @@ const string RSXSettingsManager::settingTags[] =
 	"FavoriteUserIsProtectedUser", "CheckAllClientsBeforeFilelists", "UncheckClientProtectedUser",
 	"UncheckListProtectedUser", "MaxTimeouts", "MaxDisconnects", "DisplayCheatsInMainChat",
 	"ShowShareCheckedUsers", "DeleteCheckedFilelists", "UsePointsAdlSearch", "UseIpWatch",
-	"IgnoreUserRegExpOrWC", "AutoUpdateIpOnStartup", "SlowDownloadSpeed", "SlowDownloadTime", "RawSenderSleepTime",
+	"IgnoreUserRegExpOrWC", "AutoUpdateIpOnStartup", "SlowDownloadSpeed", "SlowDownloadTime",
 	"IgnorePMSpammers", "DefaultProcessPriority", "FlashWindowOnPM", "FlashWindowOnNewPM", "AutoStart",
 
-	"TimeoutRaw", "DisconnectRaw", 
-	"FakeShareRaw", "ListLenMismatch", 
-	"FilelistTooSmallOrBig", "FilelistUnavailable",
-	"NoTTHF", "VersionMisMatch", 
-	"MyInfoSpamKick", "CTMSpamKick", 
-	"ADLOutOfRange", "HashErrorRaw", 
-	"rmDCRaw", "DCPlusPlusEmulationRaw", 
-	"FilelistVersionMismatch", "SlowDownloadRaw", 
-	"PMSpamKick", "FakeSlotCount",
+	"TimeoutRaw",
+	"DisconnectRaw", 
+	"FakeShareRaw",
+	"ListLenMismatch", 
+	"FilelistTooSmallOrBig",
+	"FilelistUnavailable",
+	"NoTTHF",
+	"VersionMisMatch", 
+	"MyInfoSpamKick",
+	"CTMSpamKick", 
+	"ADLSearchDefaultAction",
+	"HashErrorRaw", 
+	"rmDCRaw",
+	"DCPlusPlusEmulationRaw", 
+	"FilelistVersionMismatch",
+	"SlowDownloadRaw", 
+	"PMSpamKick",
+	"FakeSlotCount",
 
-	"ShowTimeoutRaw", "ShowDisconnectRaw", 
-	"ShowFakeShareRaw", "ShowLisLenMismatch", 
-	"ShowFilelistTooSmallOrBig", "ShowFilelistUnavailable", 
-	"ShowNoTTHF", "ShowVersionMisMatch", 
-	"ShowMyInfoSpamKick", "ShowCTMSpamKick", 
-	"ShowADLOutOfRange", "ShowHashErrorRaw", 
-	"ShowrmDCRaw", "ShowDCPlusPlusEmulationRaw", 
-	"ShowFilelistVersionMismatch", "ShowSlowDownloadRaw", 
-	"ShowPMSpamKick", "ShowFakeSlotCount",
+	"ShowTimeoutRaw",
+	"ShowDisconnectRaw", 
+	"ShowFakeShareRaw",
+	"ShowLisLenMismatch", 
+	"ShowFilelistTooSmallOrBig",
+	"ShowFilelistUnavailable", 
+	"ShowNoTTHF",
+	"ShowVersionMisMatch", 
+	"ShowMyInfoSpamKick",
+	"ShowCTMSpamKick", 
+	"ShowADLSearchDefaultAction",
+	"ShowHashErrorRaw", 
+	"ShowrmDCRaw",
+	"ShowDCPlusPlusEmulationRaw", 
+	"ShowFilelistVersionMismatch",
+	"ShowSlowDownloadRaw", 
+	"ShowPMSpamKick",
+	"ShowFakeSlotCount",
 
+	"MinPointsToDisplayCheat",
 	"MyInfoCounter", "MyInfoTime", "CTMCounter", "CTMTime", "PMCounter", "PMTime",
 	"PercentHashed", "PercentFakeShareTolerated", "MaxFilelistSize", "MinFilelistSize", 
 
@@ -111,11 +130,11 @@ RSXSettingsManager::RSXSettingsManager()
 	setDefault(AUTOSEARCH_RECHECK_TIME,			30);
 	setDefault(SDL_SPEED,						100);
 	setDefault(SDL_TIME,						60);
-	setDefault(RAW_SENDER_SLEEP_TIME,			120);
 	setDefault(PERCENT_HASHED,					10);
 	setDefault(PERCENT_FAKE_SHARE_TOLERATED,	20);
 	setDefault(MINIMUM_FILELIST_SIZE,			10);
 	setDefault(MAXIMUM_FILELIST_SIZE,			10*1024*1024);
+	setDefault(MIN_POINTS_TO_DISPLAY_CHEAT,		0);
 
 	setDefault(USE_SEND_DELAYED_RAW,				true);
 	setDefault(FAV_USER_IS_PROTECTED_USER,			true);
@@ -149,7 +168,7 @@ RSXSettingsManager::RSXSettingsManager()
 	setDefault(VERSION_MISMATCH,			0);
 	setDefault(MYINFO_SPAM_KICK,			0);
 	setDefault(CTM_SPAM_KICK,				0);
-	setDefault(ADL_OUT_OF_RANGE,			0);
+	setDefault(ADLSEARCH_DEFAULT_ACTION,	0);
 	setDefault(HASH_ERROR_RAW,				0);
 	setDefault(RMDC_RAW,					0);
 	setDefault(DCPP_EMULATION_RAW,			0);
@@ -168,7 +187,7 @@ RSXSettingsManager::RSXSettingsManager()
 	setDefault(SHOW_VERSION_MISMATCH,			true);
 	setDefault(SHOW_MYINFO_SPAM_KICK,			true);
 	setDefault(SHOW_CTM_SPAM_KICK,				true);
-	setDefault(SHOW_ADL_OUT_OF_RANGE,			true);
+	setDefault(SHOW_ADLSEARCH_DEFAULT_ACTION,	true);
 	setDefault(SHOW_HASH_ERROR_RAW,				true);
 	setDefault(SHOW_RMDC_RAW,					true);
 	setDefault(SHOW_DCPP_EMULATION_RAW,			true);

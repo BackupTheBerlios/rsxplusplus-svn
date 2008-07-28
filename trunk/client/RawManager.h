@@ -23,11 +23,11 @@
 #include "../rsx/rsx-settings/rsx-SettingsManager.h"
 
 namespace dcpp {
+	typedef std::map<int, int> IntMap;
+
 class SimpleXML;
 class RawManager : public Singleton<RawManager>, private RSXSettingsManagerListener {
 public:
-	typedef std::map<int, pair<int, bool> > ADLPoints;
-
 	Action::List& getActionList() { Lock l(cs); return action; }
 	Action::RawsList getRawList(int id);
 	Action::RawsList getRawListActionId(int actionId);
@@ -56,23 +56,12 @@ public:
 
 	//custom points system
 	void calcADLAction(int aPoints, int& a, bool& d);
-	void remADLPoints(int) { }
 
-	bool addADLPoints(int, int, bool) {/*
-		if(aPoints >= 0)
-			return false;
+	IntMap& getADLPoints() { Lock l(cs); return points; }
+	void updateADLPoints(IntMap& p) {
 		Lock l(cs);
-		ADLPoints::iterator i = points.find(aPoints);
-		if(i != points.end()) {
-			return false;
-		}
-		points.insert(make_pair(aPoints, make_pair(aAction, aDisp)));
-		return true;*/
-		return false;
+		points = p;
 	}
-
-	ADLPoints& getADLPoints() { Lock l(cs); return points; }
-
 private:
 	friend class Singleton<RawManager>;
 
@@ -85,7 +74,7 @@ private:
 	void on(RSXSettingsManagerListener::Save, SimpleXML& xml) throw();
 
 	Action::List action;
-	ADLPoints points;
+	IntMap points;
 	CriticalSection cs;
 	uint16_t lastAction;
 };

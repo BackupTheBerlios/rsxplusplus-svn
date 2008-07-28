@@ -42,10 +42,12 @@ public:
 
 	BEGIN_MSG_MAP(CFavTabOp)
 		MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
+		COMMAND_ID_HANDLER(IDC_MATCH, onMatch)
 		//REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
 
 	LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
+	LRESULT onMatch(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 
 	void setHub(FavoriteHubEntry* _hub) { hub = _hub; }
 	void prepareClose();

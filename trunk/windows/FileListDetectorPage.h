@@ -42,6 +42,7 @@ public:
 		COMMAND_ID_HANDLER(IDC_REMOVE, onRemove)
 		COMMAND_ID_HANDLER(IDC_CHANGE, onChange)
 		COMMAND_ID_HANDLER(IDC_USE_SDL_KICK, onEnable)
+		COMMAND_ID_HANDLER(IDC_ADL_POINTS, onAdlSearchPoints)
 		NOTIFY_HANDLER(IDC_FILELIST_DETECTOR_LIST, NM_CUSTOMDRAW, onCustomDraw)
 		NOTIFY_HANDLER(IDC_FILELIST_DETECTOR_LIST, NM_DBLCLK, onDblClick)
 	END_MSG_MAP()
@@ -54,6 +55,7 @@ public:
 	LRESULT onContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/);
 	LRESULT onEnable(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT onSelChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+	LRESULT onAdlSearchPoints(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 
 	LRESULT onDblClick(int /*idCtrl*/, LPNMHDR /* pnmh */, BOOL& bHandled) {
 		return onChange(0, 0, 0, bHandled);

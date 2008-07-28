@@ -14,8 +14,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef SEARCH_FAKEPAGE_DLG_H
-#define SEARCH_FAKEPAGE_DLG_H
+#ifndef RSXPLUSPLUS_AUTOSEARCH_DLG
+#define RSXPLUSPLUS_AUTOSEARCH_DLG
 
 #if _MSC_VER > 1000
 #pragma once
@@ -24,7 +24,6 @@
 #include "ResourceLoader.h"
 
 #include "../client/Util.h"
-#include "../client/ClientProfileManager.h"
 #include "../client/ResourceManager.h"
 #include "CRawCombo.h"
 
@@ -39,7 +38,7 @@ public:
 	AutosearchPageDlg();
 	~AutosearchPageDlg();
 
-	BEGIN_MSG_MAP_EX(AutosearchPageDlg)
+	BEGIN_MSG_MAP(AutosearchPageDlg)
 		MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
 		MESSAGE_HANDLER(WM_SETFOCUS, onFocus)
 		COMMAND_ID_HANDLER(IDOK, OnCloseCmd)
@@ -58,7 +57,6 @@ public:
 	LRESULT onAction(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 
 private:
-//	enum { BUF_LEN = 1024 };
 	void fixControls();
 	CImageList ftImage;
 
@@ -68,4 +66,4 @@ private:
 	CComboBox cAction;
 	CButton cDisplay;
 };
-#endif
+#endif // RSXPLUSPLUS_AUTOSEARCH_DLG

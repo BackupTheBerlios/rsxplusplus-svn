@@ -22,12 +22,11 @@
 #include "Resource.h"
 
 #include "RSX-Advanced.h"
-#include "CommandDlg.h"
 
 #include "../rsx/rsx-settings/rsx-SettingsManager.h"
 
 #include "WinUtil.h"
-#define ATTACH(id, var) var.Attach(GetDlgItem(id))
+
 #define attach_spin(id, var ,min, max) var.Attach(GetDlgItem(id)); \
 	var.SetRange32(min, max); \
 	var.Detach();
@@ -43,7 +42,7 @@ PropPage::Item RSXAdvanced::items[] = {
 	{ IDC_MYINFO_TIME,				RSXSettingsManager::MYINFO_TIME,			PropPage::T_INT_RSX },
 	{ IDC_CTE_TIME,					RSXSettingsManager::CTM_TIME,				PropPage::T_INT_RSX },
 	{ IDC_PM_TIME,					RSXSettingsManager::PM_TIME,				PropPage::T_INT_RSX },
-	{ IDC_RAW_SENDER_SLEEP_TIME,	RSXSettingsManager::RAW_SENDER_SLEEP_TIME,	PropPage::T_INT_RSX },
+	{ IDC_PROFILE_VERSION_URL,		RSXSettingsManager::PROFILE_VER_URL,		PropPage::T_STR_RSX },
 	{ 0, 0, PropPage::T_END }
 };
 
@@ -65,13 +64,12 @@ RSXAdvanced::ListItem RSXAdvanced::listItems[] = {
 	{ RSXSettingsManager::SHOW_CLIENT_NEW_VER,					ResourceManager::SETTINGS_SHOW_CLIENT_NEW_VER },
 	{ RSXSettingsManager::SHOW_MYINFO_NEW_VER,					ResourceManager::SETTINGS_SHOW_MYINFO_NEW_VER },
 	{ RSXSettingsManager::SHOW_IPWATCH_NEW_VER,					ResourceManager::SETTINGS_SHOW_IPWATCH_NEW_VER },
-
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
 
 LRESULT RSXAdvanced::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
 	PropPage::translate((HWND)(*this), texts);
-	PropPage::read((HWND)*this, items, listItems, GetDlgItem(IDC_RSXADVANCED_BOOLEANS), true); //RSX++ // list items
+	PropPage::read((HWND)*this, items, listItems, GetDlgItem(IDC_RSXADVANCED_BOOLEANS), true);
 
 	CUpDownCtrl spin;
 	attach_spin(IDC_MYINFO_COUNTER_SPIN,			spin, 0, 99);
@@ -80,10 +78,9 @@ LRESULT RSXAdvanced::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 	attach_spin(IDC_MYINFO_TIME_SPIN,				spin, 200, 9000);
 	attach_spin(IDC_CTE_TIME_SPIN,					spin, 200, 9000);
 	attach_spin(IDC_PM_TIME_SPIN,					spin, 200, 9000);
-	attach_spin(IDC_RAW_SENDER_SLEEP_TIME_SPIN,		spin, 0, 5000);
 	return TRUE;
 }
 
 void RSXAdvanced::write() {
-	PropPage::write((HWND)*this, items, listItems, GetDlgItem(IDC_RSXADVANCED_BOOLEANS), true); //RSX++ // list items
+	PropPage::write((HWND)*this, items, listItems, GetDlgItem(IDC_RSXADVANCED_BOOLEANS), true);
 }

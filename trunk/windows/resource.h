@@ -126,7 +126,6 @@
 #define IDD_RAW_PAGE                    317
 #define IDD_RAW_DLG                     318
 #define IDR_PEERGUARDIAN                318
-#define IDD_FAKE_SHARES                 322
 #define IDC_FAV_GROUPS                  324
 #define IDD_FAV_TAB_RAW                 324
 #define IDD_PLUGINS_LIST                326
@@ -150,6 +149,7 @@
 #define IDP_USERS                       349
 #define IDP_FAVTABS                     350
 #define IDR_TOGGLE_QSEARCH              351
+#define IDD_ADL_POINTS_SETTINGS         352
 #define IDC_REFRESH                     1000
 #define IDC_NICK                        1001
 #define IDC_EMAIL                       1002
@@ -978,6 +978,7 @@
 #define IDC_SCRIPTS_LIST                1516
 #define IDC_USERLIST_COLORS             1517
 #define IDC_TABCOLOR_LIST               1522
+#define IDC_PROFILE_VERSION_URL         1522
 #define IDC_SELECT_TAB_COLOR            1523
 #define IDC_SAMPLE_TAB_COLOR            1524
 #define IDC_RESET_TAB_COLOR             1525
@@ -1094,6 +1095,7 @@
 #define IDC_COPY_EMAIL_ADDRESS          10054
 #define IDD_SCRIPTS_LIST                10054
 #define IDC_AUTOSCROLL_CHAT             10055
+#define IDD_FAV_TAB_PLUGINS             10055
 #define IDC_WHOIS_IP                    10056
 #define IDC_BAN_IP                      10057
 #define IDC_UNBAN_IP                    10058
@@ -1244,9 +1246,9 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        352
+#define _APS_NEXT_RESOURCE_VALUE        353
 #define _APS_NEXT_COMMAND_VALUE         32808
-#define _APS_NEXT_CONTROL_VALUE         1517
+#define _APS_NEXT_CONTROL_VALUE         1523
 #define _APS_NEXT_SYMED_VALUE           134
 #endif
 #endif

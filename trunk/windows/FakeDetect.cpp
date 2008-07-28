@@ -58,7 +58,7 @@ LRESULT FakeDetect::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 	ctrlList.InsertColumn(2, CTSTRING(SETTINGS_DISPLAY_CHEATS_IN_MAIN_CHAT), LVCFMT_LEFT, (rc.Width() / 3) - 60, 2);
 	ctrlList.SetExtendedListViewStyle(LVS_EX_FULLROWSELECT | LVS_EX_INFOTIP);
 
-	addItem(_T("ADLS Points (out of range)"),	RSXSettingsManager::ADL_OUT_OF_RANGE,			RSXSettingsManager::SHOW_ADL_OUT_OF_RANGE);
+	addItem(_T("ADLSearch Default Action"),		RSXSettingsManager::ADLSEARCH_DEFAULT_ACTION,	RSXSettingsManager::SHOW_ADLSEARCH_DEFAULT_ACTION);
 	addItem(TSTRING(SDL_RAW),					RSXSettingsManager::SDL_RAW,					RSXSettingsManager::SHOW_SDL_RAW);
 	addItem(TSTRING(TIMEOUT_RAW),				RSXSettingsManager::TIMEOUT_RAW,				RSXSettingsManager::SHOW_TIMEOUT_RAW);
 	addItem(TSTRING(DISCONNECT_RAW),			RSXSettingsManager::DISCONNECT_RAW,				RSXSettingsManager::SHOW_DISCONNECT_RAW);

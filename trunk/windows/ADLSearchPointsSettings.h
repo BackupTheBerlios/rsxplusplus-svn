@@ -16,30 +16,32 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef RSXPLUSPLUS_PLUGINS_LIST_DLG
-#define RSXPLUSPLUS_PLUGINS_LIST_DLG
+#ifndef RSXPLUSPLUS_ADLSEARCH_POINTS_SETTINGS_DLG
+#define RSXPLUSPLUS_ADLSEARCH_POINTS_SETTINGS_DLG
 
 #include "ExListViewCtrl.h"
 
-class PluginsListDlg : public CDialogImpl<PluginsListDlg> {
+class ADLSearchPointsSettings : public CDialogImpl<ADLSearchPointsSettings> {
 public:
-	enum { IDD = IDD_PLUGINS_LIST };
+	enum { IDD = IDD_ADL_POINTS_SETTINGS };
 
-	BEGIN_MSG_MAP(PluginsListDlg)
+	BEGIN_MSG_MAP(ADLSearchPointsSettings)
 		MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
-		MESSAGE_HANDLER(WM_CLOSE, OnClose)
+		COMMAND_ID_HANDLER(IDOK, onClose)
+		COMMAND_ID_HANDLER(IDCANCEL, onClose)
+		COMMAND_ID_HANDLER(IDC_ADD, onAdd)
+		COMMAND_ID_HANDLER(IDC_REMOVE, onRemove)
 	END_MSG_MAP()
 
 	LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
-	LRESULT OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
-		ctrlList.Detach();
-		EndDialog(NULL);
-		return 0;
-	}
+	LRESULT onAdd(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+	LRESULT onRemove(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+	LRESULT onClose(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+
 private:
 	ExListViewCtrl ctrlList;
 };
-#endif
+#endif // RSXPLUSPLUS_ADLSEARCH_POINTS_SETTINGS_DLG
 
 /**
  * @file

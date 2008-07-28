@@ -1082,6 +1082,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\windows\ADLSearchPointsSettings.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\windows\ADLSProperties.cpp"
 				>
 			</File>
@@ -1500,6 +1504,10 @@
 			</File>
 			<File
 				RelativePath=".\windows\ADLSearchPoints.h"
+				>
+			</File>
+			<File
+				RelativePath=".\windows\ADLSearchPointsSettings.h"
 				>
 			</File>
 			<File

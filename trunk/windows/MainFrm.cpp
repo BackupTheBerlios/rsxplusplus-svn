@@ -305,8 +305,8 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	UISetCheck(ID_VIEW_STATUS_BAR, 1);
 	UISetCheck(ID_VIEW_TRANSFER_VIEW, 1);
 	UISetCheck(ID_TOGGLE_QSEARCH, 1);
-	UISetCheck(ID_VIEW_PLUGIN_TOOLBAR, (ctrlPluginToolbar.GetButtonCount() > 0)); //RSX++
-	
+	UISetCheck(ID_VIEW_PLUGIN_TOOLBAR, 1); //RSX++
+
 	// load bars settings
 	WinUtil::loadReBarSettings(m_hWndToolBar);	
 

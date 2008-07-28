@@ -25,7 +25,7 @@
 #include "FileListDetectorDlg.h"
 #include "WinUtil.h"
 #include "ChangeRawCheatDlg.h"
-#include "ADLSearchPoints.h"
+#include "ADLSearchPointsSettings.h"
 
 #define BUFLEN 256
 
@@ -144,7 +144,7 @@ LRESULT FileListDetectorPage::onRemove(WORD /*wNotifyCode*/, WORD /*wID*/, HWND 
 	return 0;
 }
 
-LRESULT FileListDetectorPage::onContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/) {
+LRESULT FileListDetectorPage::onContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
 /*	RECT rc;
 	POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
 
@@ -181,6 +181,12 @@ LRESULT FileListDetectorPage::onContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LP
 		}
 	}*/
 	return FALSE; 
+}
+
+LRESULT FileListDetectorPage::onAdlSearchPoints(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+	ADLSearchPointsSettings dlg;
+	dlg.DoModal();
+	return 0;
 }
 
 void FileListDetectorPage::write() {

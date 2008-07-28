@@ -1,3 +1,10 @@
+** SVN 97
+ ** added option to check regex in favhub dialog
+ ** fixed some translations/names
+ ** adl search points system reworked
+ ** fixed some asserts in debug mode
+ ** added field for profiles version check url in settings dialog
+
 ** SVN 96
  ** added PluginAPI func to add Hub/Connection Support/Feature string
  ** added new event to plugin interface - onUserConnection in/out

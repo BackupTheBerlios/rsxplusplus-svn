@@ -3,7 +3,9 @@
 
 #include "resource.h"
 #include "../client/FavoriteManager.h"
+#include "../client/version.h"
 #include "../rsx/RsxUtil.h"
+#include "../rsx/RegexUtil.h"
 
 #include "FavTabPages.h"
 
@@ -95,6 +97,20 @@ LRESULT CFavTabOp::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 	spin.SetRange32(0, 1024*1024);
 	spin.Detach();
 	return TRUE;
+}
+
+LRESULT CFavTabOp::onMatch(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+	tstring pattern = Util::emptyStringT, nick = Util::emptyStringT;
+	int len = ::GetWindowTextLength(GetDlgItem(IDC_CHECK_PROTECTED_USER)) + 1;
+	pattern.resize(len);
+	GetDlgItemText(IDC_CHECK_PROTECTED_USER, &pattern[0], len);
+
+	len = ::GetWindowTextLength(GetDlgItem(IDC_EDIT1)) + 1;
+	nick.resize(len);
+	GetDlgItemText(IDC_EDIT1, &nick[0], len);
+
+	MessageBox(Text::toT(RegexUtil::matchExp(Text::fromT(pattern), Text::fromT(nick), true)).c_str(), _T(APPNAME) _T(" ") _T(VERSIONSTRING), MB_ICONINFORMATION);
+	return 0;
 }
 
 void CFavTabOp::prepareClose() {

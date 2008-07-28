@@ -821,8 +821,8 @@ void ClientManager::checkCheating(const UserPtr& p, DirectoryListing* dl) {
 						sendRawCommand(ou->getUser(), stringForKick);
 					}
 				} else if(totalPoints > 0) {
-					bool show = RSXBOOLSETTING(SHOW_ADL_OUT_OF_RANGE);
-					int rawToSend = RSXSETTING(ADL_OUT_OF_RANGE);
+					bool show = false;
+					int rawToSend = 0;
 					RawManager::getInstance()->calcADLAction(totalPoints, rawToSend, show);
 					report = ou->setCheat(s, false, true, show);
 					sendAction(*ou, rawToSend);

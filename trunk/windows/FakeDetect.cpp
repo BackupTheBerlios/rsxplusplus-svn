@@ -92,13 +92,21 @@ LRESULT FakeDetect::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 	return TRUE;
 }
 
-void FakeDetect::write() {
-	PropPage::write((HWND)*this, items, 0);
-
+LRESULT FakeDetect::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
 	for(int i = 0; i < ctrlList.GetItemCount(); i++) {
 		delete (DetectorItem*)ctrlList.GetItemData(i);
 	}
 	ctrlList.DeleteAllItems();
+	ctrlList.Detach();
+	return 0;
+}
+
+void FakeDetect::write() {
+	PropPage::write((HWND)*this, items, 0);
+	for(int i = 0; i < ctrlList.GetItemCount(); i++) {
+		DetectorItem* d = (DetectorItem*)ctrlList.GetItemData(i);
+		d->save();
+	}
 }
 
 void FakeDetect::addItem(const tstring& aName, int rawId, int cheatId) {

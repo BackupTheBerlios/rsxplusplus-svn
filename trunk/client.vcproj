@@ -29,7 +29,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="subwcrev.exe . client/versiontemplate.h client/version.h"
+				CommandLine=""
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -112,7 +112,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="subwcrev.exe . client/versiontemplate.h client/version.h"
+				CommandLine=""
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -196,7 +196,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="subwcrev.exe . client/versiontemplate.h client/version.h"
+				CommandLine=""
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -287,7 +287,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="subwcrev.exe . client/versiontemplate.h client/version.h"
+				CommandLine=""
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -377,7 +377,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="subwcrev.exe . client/versiontemplate.h client/version.h"
+				CommandLine=""
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -468,7 +468,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="subwcrev.exe . client/versiontemplate.h client/version.h"
+				CommandLine=""
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -1726,7 +1726,7 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						Description="Checking SVN revision..."
+						Description="*** Checking SVN Revision ***"
 						CommandLine="subwcrev.exe . client/versiontemplate.h client/version.h"
 						Outputs="$(SolutionDir)client\version.h"
 					/>
@@ -1736,7 +1736,7 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						Description="Checking SVN revision..."
+						Description="*** Checking SVN Revision ***"
 						CommandLine="subwcrev.exe . client/versiontemplate.h client/version.h"
 						Outputs="$(SolutionDir)client\version.h"
 					/>
@@ -1746,7 +1746,7 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						Description="Checking SVN revision..."
+						Description="*** Checking SVN Revision ***"
 						CommandLine="subwcrev.exe . client/versiontemplate.h client/version.h"
 						Outputs="$(SolutionDir)client\version.h"
 					/>
@@ -1756,7 +1756,7 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						Description="Checking SVN revision..."
+						Description="*** Checking SVN Revision ***"
 						CommandLine="subwcrev.exe . client/versiontemplate.h client/version.h"
 						Outputs="$(SolutionDir)client\version.h"
 					/>
@@ -1766,8 +1766,8 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						Description="Checking version.h ..."
-						CommandLine=""
+						Description="*** Checking SVN Revision ***"
+						CommandLine="subwcrev.exe . client/versiontemplate.h client/version.h"
 						Outputs="$(SolutionDir)client\version.h"
 					/>
 				</FileConfiguration>
@@ -1776,7 +1776,7 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						Description="Checking SVN revision..."
+						Description="*** Checking SVN Revision ***"
 						CommandLine="subwcrev.exe . client/versiontemplate.h client/version.h"
 						Outputs="$(SolutionDir)client\version.h"
 					/>

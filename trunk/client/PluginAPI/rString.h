@@ -44,5 +44,5 @@ private:
 
 /**
  * @file
- * $Id: rString.h 47 2008-01-27 18:26:07Z adrian_007 $
+ * $Id$
  */

@@ -683,7 +683,7 @@ void FavoriteManager::loadHighLight(SimpleXML& aXml){
 void FavoriteManager::load() {
 	
 	// Add NMDC standard op commands
-	static const char kickstr[] = 
+	/*static const char kickstr[] = 
 		"$To: %[userNI] From: %[myNI] $<%[myNI]> You are being kicked because: %[kickline:Reason]|<%[myNI]> is kicking %[userNI] because: %[kickline:Reason]|$Kick %[userNI]|";
 	addUserCommand(UserCommand::TYPE_RAW_ONCE, UserCommand::CONTEXT_CHAT | UserCommand::CONTEXT_SEARCH, UserCommand::FLAG_NOSAVE, 
 		STRING(KICK_USER), kickstr, "op");
@@ -695,6 +695,7 @@ void FavoriteManager::load() {
 		"$OpForceMove $Who:%[userNI]$Where:%[line:Target Server]$Msg:%[line:Message]|";
 	addUserCommand(UserCommand::TYPE_RAW_ONCE, UserCommand::CONTEXT_CHAT | UserCommand::CONTEXT_SEARCH, UserCommand::FLAG_NOSAVE, 
 		STRING(REDIRECT_USER), redirstr, "op");
+	*/
 
 	loadFilters(); //RSX++
 
@@ -748,17 +749,7 @@ void FavoriteManager::load(SimpleXML& aXml) {
 			e->setHeaderWidths(aXml.getChildAttrib("HubFrameWidths", SETTING(HUBFRAME_WIDTHS)));
 			e->setHeaderVisible(aXml.getChildAttrib("HubFrameVisible", SETTING(HUBFRAME_VISIBLE)));
 			//RSX++
-			//e->setFavEmail(aXml.getChildAttrib("Email"));
 			e->setAwayMsg(aXml.getChildAttrib("AwayMsg"));
-			//e->setUserProtected(aXml.getChildAttrib("UserProtected"));		
-			//e->setCheckOnConnect(aXml.getBoolChildAttrib("CheckOnConnect"));
-			//e->setCheckClients(aXml.getBoolChildAttrib("CheckClients"));
-			//e->setCheckFilelists(aXml.getBoolChildAttrib("CheckFilelists"));
-			//e->setCheckMyInfo(aXml.getBoolChildAttrib("CheckMyInfo"));
-			//e->setHideShare(aXml.getBoolChildAttrib("HideShare"));
-			//e->setUseFilter(aXml.getBoolChildAttrib("UseFilter"));
-			//e->setAutosearch(aXml.getBoolChildAttrib("UseAutosearch"));
-			//e->setUseHL(aXml.getBoolChildAttrib("UseHighLight"));
 			e->setUsersLimit(aXml.getIntChildAttrib("UsersLimitToUseActions"));
 			e->setGroupId(aXml.getIntChildAttrib("GroupID"));
 			//END

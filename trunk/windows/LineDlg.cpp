@@ -70,12 +70,9 @@ LRESULT KickDlg::OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BO
 {
 	if(wID == IDOK) {
 		{
-			tstring sText;
-			int iLen = ctrlLine.GetWindowTextLength() + 1;
-			sText.resize(iLen);
-			GetDlgItemText(IDC_LINE, &sText[0], iLen+1);
-			m_sLastMsg = sText;
-			line = sText;
+			line.resize(ctrlLine.GetWindowTextLength() + 1);
+			line.resize(GetDlgItemText(IDC_LINE, &line[0], line.size()));
+			m_sLastMsg = line;
 		}
 		int i, j;
 

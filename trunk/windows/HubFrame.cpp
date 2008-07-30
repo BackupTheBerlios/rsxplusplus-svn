@@ -2389,36 +2389,23 @@ bool HubFrame::getFilters(const Identity& i, const tstring& msg) {
 				if((*j)->getUseColor()) {
 					memzero(&cf, sizeof(CHARFORMAT2));
 					cf.cbSize = sizeof(cf);
-					cf.dwReserved = 0;
 					cf.dwMask = CFM_BACKCOLOR | CFM_COLOR | CFM_BOLD | CFM_ITALIC | CFM_UNDERLINE | CFM_STRIKEOUT;
-					//font style
-					if((*j)->getHasBgColor()) {
-						cf.crBackColor = (*j)->getBackColor();
-					} else {
-						cf.crBackColor = SETTING(TEXT_GENERAL_BACK_COLOR);
-					}
-					if((*j)->getHasFontColor()) {
-						cf.crTextColor = (*j)->getFontColor();
-					} else {
-						cf.crTextColor = SETTING(TEXT_GENERAL_FORE_COLOR);
-					}
-					if((*j)->getBoldFont()) {
+					// font style
+					cf.crBackColor = (*j)->getHasBgColor() ? (*j)->getBackColor() : SETTING(TEXT_GENERAL_BACK_COLOR);
+					cf.crTextColor = (*j)->getHasFontColor() ? (*j)->getFontColor() : SETTING(TEXT_GENERAL_FORE_COLOR);
+					if((*j)->getBoldFont())
 						cf.dwEffects |= CFE_BOLD;
-					}
-					if((*j)->getItalicFont()) {
+					if((*j)->getItalicFont())
 						cf.dwEffects |= CFE_ITALIC;
-					}
-					if((*j)->getUnderlineFont()) {
+					if((*j)->getUnderlineFont())
 						cf.dwEffects |= CFM_UNDERLINE;
-					}
-					if((*j)->getStrikeoutFont()) {
+					if((*j)->getStrikeoutFont())
 						cf.dwEffects |= CFM_STRIKEOUT;
-					}
 
-					addLine(i, msg, cf); //display...
-					return false;		//... and return false, anyway
+					addLine(i, msg, cf); // display...
+					return false;		// ... and return false, anyway
 				}
-				if(i.getNick().compare(client->getCurrentNick()) == 0) { return true; } //don't skip own msg's
+				if(i.getNick().compare(client->getCurrentNick()) == 0) { return true; } // don't skip own msgs
 				return false;
 			}
 		}

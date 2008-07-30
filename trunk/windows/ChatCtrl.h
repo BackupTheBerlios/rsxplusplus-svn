@@ -171,7 +171,7 @@ private:
 	static tstring sSelectedURL;
 
 	//RSX++
-	struct hlAction{tstring match; bool actPopup; bool actFlash; bool actSound; string soundPath;};
+	struct hlAction { tstring match; bool actPopup; bool actFlash; bool actSound; string soundPath; };
 	void handleActions(const tstring& msgAuthor);
 
 	typedef vector<hlAction> ActionsList;

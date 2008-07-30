@@ -59,7 +59,7 @@ PluginInfo::PluginInfo(HINSTANCE _h, PLUGIN_LOAD loader, PLUGIN_UNLOAD unloader,
 PluginInfo::~PluginInfo() {
 	unloadPlugin();
 	// release handlers here...
-	::FreeLibrary(handle);
+	//::FreeLibrary(handle);
 }
 
 void PluginInfo::loadPlugin() {
@@ -195,7 +195,7 @@ string PluginsManager::getSetting(int pId, const string& n) {
 			return (*i)->getSetting(n);
 		}
 	}
-	//just in case
+	// just in case
 	return Util::emptyString;
 }
 /** Events **/

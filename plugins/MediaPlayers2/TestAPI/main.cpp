@@ -47,7 +47,7 @@ extern "C" {
 		p.pDesc = L"Get info about currently playing title from Winamp/WMP/iTunes/MPC";
 		p.pVersion = L"2.00";
 		p.pAuthor = L"adrian_007";
-		p.pApiVersion = 1201;
+		p.pApiVersion = 1211;
 		p.pIconResourceId = IDB_BITMAP;
 	}
 }

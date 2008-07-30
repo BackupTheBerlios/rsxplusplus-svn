@@ -86,5 +86,5 @@ public:
 
 /**
  * @file
- * $Id: PluginAPI.h 61 2008-03-09 17:26:28Z adrian_007 $
+ * $Id$
  */

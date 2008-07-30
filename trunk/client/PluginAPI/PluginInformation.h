@@ -36,5 +36,5 @@ struct PluginInformation {
 
 /**
  * @file
- * $Id: PluginInterface.h 47 2008-01-27 18:26:07Z adrian_007 $
+ * $Id$
  */

@@ -1,3 +1,11 @@
+** SVN 99
+ ** fixed memory leak in fake detector page
+ ** code cleanup
+ ** configuration fixed a bit
+ ** fixed kickline function
+ ** removed standard op commands from user command's list
+ ** fixed empty User Command submenu (when op)
+
 ** SVN 98
  ** removed svn version script, now TortoiseSVN util is used
  ** fixed displaing cheats for adlsearch

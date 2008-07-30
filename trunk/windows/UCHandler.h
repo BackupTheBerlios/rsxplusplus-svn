@@ -83,7 +83,7 @@ public:
 		}
 		//END
 
-		if(!userCommands.empty() || isOp) {
+		if(!userCommands.empty()) {
 			subMenu.DestroyMenu();
 			subMenu.m_hMenu = NULL;
 

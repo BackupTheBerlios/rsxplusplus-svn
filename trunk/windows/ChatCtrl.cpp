@@ -358,23 +358,16 @@ void ChatCtrl::AppendTextOnly(const tstring& sMyNick, const TCHAR* sText, CHARFO
 			CHARFORMAT2 hlcf;
 
 			const HighLight::List& hll = FavoriteManager::getInstance()->getHLs();
-			for(HighLight::List::const_iterator i = hll.begin(); i != hll.end(); i++) {
+			for(HighLight::List::const_iterator i = hll.begin(); i != hll.end(); ++i) {
 				textToMatch = Text::toT((*i)->getHstring());
 				try {
 					const boost::wregex reg(Text::toT((*i)->getHstring()));
 
 					memzero(&hlcf, sizeof(CHARFORMAT2));
 					hlcf.cbSize = sizeof(hlcf);
-					hlcf.dwReserved = 0;
 					hlcf.dwMask = CFM_BACKCOLOR | CFM_COLOR | CFM_BOLD | CFM_ITALIC | CFM_UNDERLINE | CFM_STRIKEOUT;
-					if((*i)->getHasBgColor())
-						hlcf.crBackColor = (*i)->getBackColor();
-					else
-						hlcf.crBackColor = SETTING(TEXT_GENERAL_BACK_COLOR);
-					if((*i)->getHasFontColor())
-						hlcf.crTextColor = (*i)->getFontColor();
-					else
-						hlcf.crTextColor = SETTING(TEXT_GENERAL_FORE_COLOR);
+					hlcf.crBackColor = (*i)->getHasBgColor() ? (*i)->getBackColor() : SETTING(TEXT_GENERAL_BACK_COLOR);
+					hlcf.crTextColor = (*i)->getHasFontColor() ? (*i)->getFontColor() : SETTING(TEXT_GENERAL_FORE_COLOR);
 					if((*i)->getBoldFont())
 						hlcf.dwEffects |= CFE_BOLD;
 					if((*i)->getItalicFont())

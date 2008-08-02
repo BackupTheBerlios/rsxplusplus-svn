@@ -147,15 +147,19 @@ bool Identity::supports(const string& name) const {
 string Identity::getConnection() const {
 	string connection = get("US");
 	if(connection.find_first_not_of("0123456789.,") == string::npos) {
-		double us = Util::toDouble(connection);
+		int us = Util::toInt(connection);
 		if(us > 0) {
-			char buf[16];
-			snprintf(buf, sizeof(buf), "%.3g", us / 1024 / 1024);
+			if(us >= 1024*1024) {
+				return Util::toString(us / 1024 / 1024);
+			} else {
+				char buf[16];
+				snprintf(buf, sizeof(buf), "%.3g", (double)us / 1024 / 1024);
 
-			char *cp;
-			if( (cp=strchr(buf, ',')) != NULL) *cp='.';
+				char *cp;
+				if( (cp=strchr(buf, ',')) != NULL) *cp='.';
 
-			return buf;
+				return buf;
+			}
 		} else {
 			return connection;
 		}

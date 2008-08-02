@@ -149,7 +149,10 @@ void NmdcHub::putUser(const string& aNick) {
 }
 
 void NmdcHub::clearUsers() {
-	stopMyINFOCheck(); //RSX++
+	//RSX++
+	stopMyINFOCheck();
+	userCount = 0;
+	//END
 	NickMap u2;
 	
 	{

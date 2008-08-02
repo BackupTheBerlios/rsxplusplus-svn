@@ -1,3 +1,7 @@
+** SVN 100
+ ** fixed display of 1000 upload speed
+ ** fixed nmdc user counting
+
 ** SVN 99
  ** fixed memory leak in fake detector page
  ** code cleanup

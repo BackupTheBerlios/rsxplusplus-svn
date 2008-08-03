@@ -29,7 +29,7 @@ public:
 
 	bool __cdecl onOutgoingMessage(dcpp::iClient*, const dcpp::rString&);
 	bool __cdecl onOutgoingPM(dcpp::iOnlineUser*, const dcpp::rString&);
-	void __cdecl onToolBarClick();
+	void __cdecl onMainWndEvent(int type, HWND hWnd);
 
 private:
 	HWND r_hwnd;

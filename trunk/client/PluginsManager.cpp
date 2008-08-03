@@ -34,8 +34,8 @@
 #include "SimpleXML.h"
 #include "version.h"
 
-// revision: 1.2.1.1
-#define API_VERSION 1211
+// revision: 1.2.2.1
+#define API_VERSION 1221
 
 // @todo
 // add download function from url
@@ -54,6 +54,7 @@ PluginInfo::PluginInfo(HINSTANCE _h, PLUGIN_LOAD loader, PLUGIN_UNLOAD unloader,
 	setAuthor(_pi.pAuthor);
 	setId(_pi.pId);
 	setIcon(_pi.pIconResourceId);
+	setSettingsWindow(_pi.pSettingsDlgResourceId);
 }
 
 PluginInfo::~PluginInfo() {
@@ -290,12 +291,21 @@ bool PluginsManager::onUserConnectionOut(iUserConnection* conn, const string& aL
 	return ret;
 }
 
-void PluginsManager::onToolbarClick(int pluginId) {
+void PluginsManager::onToolbarClick(int pluginId, HWND btnHwnd) {
 	Lock l(cs);
 	for(Plugins::const_iterator i = active.begin(); i != active.end(); ++i) {
 		if((*i)->getId() == pluginId) {
-			(*i)->getInterface()->onToolBarClick();
+			(*i)->getInterface()->onMainWndEvent(0, btnHwnd);
 			break;
+		}
+	}
+}
+
+void PluginsManager::onSettingsDlgClose(int pId, HWND pagehWnd) {
+	Lock l(cs);
+	for(Plugins::const_iterator i = active.begin(); i != active.end(); ++i) {
+		if(pId == (*i)->getId()) {
+			(*i)->getInterface()->onMainWndEvent(2, pagehWnd);
 		}
 	}
 }
@@ -369,7 +379,7 @@ void PluginsManager::loadSettings() {
 	}
 
 	for(Plugins::const_iterator i = active.begin(); i != active.end(); ++i) {
-		(*i)->getInterface()->onSettingLoad();
+		(*i)->getInterface()->onSettingsEvent(0);
 	}
 }
 }; // namespace dcpp

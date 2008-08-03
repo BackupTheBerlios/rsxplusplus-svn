@@ -27,8 +27,8 @@ public:
 	Plugin();
 	~Plugin();
 
-	bool __cdecl onOutgoingMessage(iClient*, const rString&);
-	void __cdecl onToolBarClick();
+	bool __cdecl onOutgoingMessage(iClient*, const dcpp::rString&);
+	void __cdecl onMainWndEvent(int type, HWND hWnd);
 
 private:
 	HWND r_hwnd;

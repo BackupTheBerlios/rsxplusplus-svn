@@ -75,8 +75,8 @@ public:
 	bool onUserConnectionIn(iUserConnection* conn, const string& aLine);
 	bool onUserConnectionOut(iUserConnection* conn, const string& aLine);
 
-	void onToolbarClick(int pluginId);
-	void onCustomEvent(int event);
+	void onToolbarClick(int pluginId, HWND btnHwnd);
+	void onSettingsDlgClose(int pId, HWND pagehWnd);
 
 private:
 	void loadPlugin(const string& pPath);

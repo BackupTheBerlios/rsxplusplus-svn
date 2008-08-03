@@ -37,28 +37,41 @@
 #include "HubFrame.h"
 
 namespace dcpp {
-
-rString::rString(const char* str) {
-	int len = strlen(str);
-	buf = new char[len+1];
-	if(!buf) return;
-	strcpy(buf, str);
+namespace rStrUtil {
+	inline size_t strlen(const char* c) { return std::strlen(c); }
+	inline size_t strlen(const wchar_t* c) { return std::wcslen(c); }
+	inline char* strcpy(char* dest, const char* src) { return std::strcpy(dest, src); }
+	inline wchar_t* strcpy(wchar_t* dest, const wchar_t* src) { return wcscpy(dest, src); }
+	// dummy functions, just in case...
+	template<class T> size_t strlen(const T*) { return 0; }
+	template<class T> T* strcpy(T*, const T*) { return NULL; }
 }
 
-rString::~rString() {
+template<class T>
+rStringBase<T>::rStringBase(const T* str) {
+	if(str == 0) { buf = 0; return; }
+
+	int len = rStrUtil::strlen(str);
+	buf = new T[len+1];
+	if(!buf) return;
+	rStrUtil::strcpy(buf, str);
+}
+
+template<class T>
+rStringBase<T>::~rStringBase() {
 	if(buf) {
 		delete buf;
 		buf = 0;
 	}
 }
 
-bool rString::empty() const {
-	if(buf == NULL)
-		return true;
-	if(buf == '\0')
-		return true;
-	return false;
-}
+// basic string conversions
+rString PluginAPI::AcpToUtf8(const rString& str) {			return Text::acpToUtf8(str.c_str()).c_str(); }
+rString PluginAPI::Utf8ToAcp(const rString& str) {			return Text::utf8ToAcp(str.c_str()).c_str(); }
+rString PluginAPI::fromWideToUtf8(const rStringW& str) {	return Text::wideToUtf8(str.c_str()).c_str(); }
+rString PluginAPI::fromWideToAcp(const rStringW& str) {		return Text::wideToAcp(str.c_str()).c_str(); }
+rStringW PluginAPI::fromUtf8ToWide(const rString& str) {	return Text::utf8ToWide(str.c_str()).c_str(); }
+rStringW PluginAPI::fromAcpToWide(const rString& str) {		return Text::acpToWide(str.c_str()).c_str(); }
 
 void PluginAPI::logMessage(const rString& aMsg) {
 	LogManager::getInstance()->message(aMsg.c_str());

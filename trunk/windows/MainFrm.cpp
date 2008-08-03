@@ -704,7 +704,7 @@ HWND MainFrame::createPluginsToolbar() {
 LRESULT MainFrame::onBnClick(WORD /*wNotifyCode*/, WORD wID, HWND hWndCtl, BOOL& bHandled) {
 	//maybe not the best way, but, at least, it does the job
 	if(hWndCtl == ctrlPluginToolbar.m_hWnd) {
-		PluginsManager::getInstance()->onToolbarClick(wID);
+		PluginsManager::getInstance()->onToolbarClick(wID, hWndCtl);
 		bHandled = TRUE;
 		return 0;
 	}

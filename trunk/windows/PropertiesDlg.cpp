@@ -59,6 +59,7 @@
 #include "FileListDetectorPage.h"
 #include "AutosearchPage.h"
 #include "ClientsPage.h"
+#include "PluginsPage.h"
 //END
 
 bool PropertiesDlg::needUpdate = false;
@@ -98,6 +99,7 @@ PropertiesDlg::PropertiesDlg(HWND parent, SettingsManager *s) : TreePropertyShee
 	pages[n++] = new AutosearchPage(s);
 	pages[n++] = new RawPage(s);
 	pages[n++] = new RSXAdvanced(s);
+	pages[n++] = new PluginsPage(s);
 	//END
 
 	for(int i=0; i<numPages; i++) {

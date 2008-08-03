@@ -20,7 +20,6 @@
 #define STDAFX_H
 
 #include "../MediaPlayersLib/src/stdafx.h"
-
 #include <rString.h>
 #include <PluginAPI.h>
 

@@ -38,7 +38,7 @@ Plugin::~Plugin() {
 }
 
 bool Plugin::onOutgoingMessage(iClient* c, const rString& aMsg) {
-	if(aMsg[0] == '/') {
+	if(!aMsg.empty() && aMsg[0] == '/') {
 		string msg(aMsg);
 		if(msg == "/testapi") {
 			c->p_addHubLine("Test Message in StatusBar :)", PluginAPI::STYLE_STATUS);
@@ -54,9 +54,27 @@ bool Plugin::onOutgoingMessage(iClient* c, const rString& aMsg) {
 	return false;
 }
 
-void Plugin::onToolBarClick() {
-	rString setting = PluginAPI::getSetting(PLUGIN_ID, "testapi_setting");
-	MessageBoxA(r_hwnd, setting.c_str(), "TestAPI::onToolBarClick()", MB_ICONINFORMATION);
+void Plugin::onMainWndEvent(int type, HWND hWnd) {
+	switch(type) {
+	case 0: {
+		rString setting = PluginAPI::getSetting(PLUGIN_ID, "testapi_setting");
+		MessageBox(r_hwnd, PluginAPI::fromUtf8ToWide(setting).c_str(), L"TestAPI::onToolBarClick()", MB_ICONINFORMATION);
+		break;
+			}
+	case 1: { // settings opened
+		const rString& str = PluginAPI::getSetting(PLUGIN_ID, "testapi_setting");
+		::SetWindowText(::GetDlgItem(hWnd, IDC_EDIT1), PluginAPI::fromUtf8ToWide(str).c_str());
+		break;
+			}
+	case 2: { // settings close
+		wstring tmp;
+		int len = ::GetWindowTextLength(GetDlgItem(hWnd, IDC_EDIT1)) + 1;
+		tmp.resize(len);
+		::GetWindowText(::GetDlgItem(hWnd, IDC_EDIT1), &tmp[0], len);
+		PluginAPI::setSetting(PLUGIN_ID, "testapi_setting", PluginAPI::fromWideToUtf8(tmp.c_str()));
+		break;
+			}
+	}
 }
 
 /**

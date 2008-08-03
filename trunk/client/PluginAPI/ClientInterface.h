@@ -23,7 +23,7 @@ namespace dcpp {
 // hub interface class
 
 class iOnlineUser;
-class rString;
+//class rString;
 
 class iClient {
 public:

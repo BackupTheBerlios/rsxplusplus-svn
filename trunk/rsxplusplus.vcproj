@@ -1294,6 +1294,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\windows\PluginsPage.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\windows\PopupManager.cpp"
 				>
 			</File>
@@ -1595,6 +1599,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\windows\DlgTabCtrl.h"
+				>
+			</File>
+			<File
 				RelativePath=".\windows\DownloadPage.h"
 				>
 			</File>
@@ -1767,6 +1775,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\windows\PluginsPage.h"
+				>
+			</File>
+			<File
 				RelativePath=".\windows\PopupDlg.h"
 				>
 			</File>
@@ -1875,11 +1887,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\windows\stdafx.h"
+				RelativePath=".\stdafx.h"
 				>
 			</File>
 			<File
-				RelativePath=".\stdafx.h"
+				RelativePath=".\windows\stdafx.h"
 				>
 			</File>
 			<File

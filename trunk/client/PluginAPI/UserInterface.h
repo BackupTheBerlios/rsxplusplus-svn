@@ -23,7 +23,7 @@ namespace dcpp {
 // online user interface class
 
 class iClient;
-class rString;
+//class rString;
 
 class iOnlineUser {
 public:

@@ -20,24 +20,34 @@
 #define RSXPLUSPLUS_RSTRING
 
 #ifndef EXIMP
-#define EXIMP __declspec(dllimport)
+#define EXIMP
 #endif//EXIMP
 
 namespace dcpp {
 // scoped stringholder
-class EXIMP rString {
+template<class T>
+class rStringBase {
 public:
-	rString(const char* str);
-	rString() : buf(0) { };
-	~rString();
+	EXIMP rStringBase(const T* str);
+	EXIMP ~rStringBase();
 
-	__cdecl operator char* () { return buf; }
-	__cdecl operator const char*() const { return buf; }
-	const char * __cdecl c_str() const { return buf; }
-	bool __cdecl empty() const;
+	EXIMP __cdecl operator T* () { return buf; }
+	EXIMP __cdecl operator const T*() const { return buf; }
+	EXIMP const T * __cdecl c_str() const { return buf; }
+	EXIMP bool __cdecl empty() const { return buf == 0; }
 private:
-	char* buf;
+	T* buf;
 };
+
+typedef rStringBase<char> rString;
+typedef rStringBase<wchar_t> rStringW;
+
+#if defined(UNICODE) || defined(_UNICODE)
+typedef rStringBase<wchar_t> rStringT;
+#else
+typedef rStringBase<char> rStringT;
+#endif
+
 } // namespace dcpp
 
 #endif // RSXPLUSPLUS_RSTRING

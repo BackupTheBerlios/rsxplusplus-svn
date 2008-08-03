@@ -46,6 +46,7 @@ public:
 	GETSET(tstring, description, Description);
 	GETSET(tstring, author, Author);
 	GETSET(int, icon, Icon);
+	GETSET(int, settingsWnd, SettingsWindow);
 	GETSET(iPlugin*, _interface, Interface);
 
 private:

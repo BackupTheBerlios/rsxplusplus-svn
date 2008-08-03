@@ -86,7 +86,7 @@ dcpp::rString Plugin::parseCommand(const std::string& msg, bool& failed, bool& t
 		return ret.c_str();
 	} else {
 		failed = true;
-		return rString();
+		return rString(0);
 	}
 }
 
@@ -124,9 +124,35 @@ bool Plugin::onOutgoingPM(dcpp::iOnlineUser* to, const dcpp::rString& aMsg) {
 	return false;
 }
 
-void Plugin::onToolBarClick() {
-	MainDlg dlg;
-	dlg.DoModal(r_hwnd);
+void Plugin::onMainWndEvent(int type, HWND hWnd) {
+	switch(type) {
+	case 1: { // settings opened
+
+#define SET_TEXT(id, name) ::SetWindowText(::GetDlgItem(hWnd, id), PluginAPI::fromUtf8ToWide(PluginAPI::getSetting(PLUGIN_ID, name)).c_str());
+		SET_TEXT(IDC_WINAMP, "winamp");
+		SET_TEXT(IDC_WMP, "wmp");
+		SET_TEXT(IDC_ITUNES, "itunes");
+		SET_TEXT(IDC_MPC, "mpc");
+#undef SET_TEXT
+		break;
+			}
+	case 2: { // settings close
+#define GET_TEXT(id, name) len = ::GetWindowTextLength(::GetDlgItem(hWnd, id)) + 1;\
+	buf.resize(len);\
+	::GetWindowText(::GetDlgItem(hWnd, id), &buf[0], len);\
+	PluginAPI::setSetting(PLUGIN_ID, name, PluginAPI::fromWideToUtf8(buf.c_str()));
+
+		wstring buf;
+		int len = 0;
+
+		GET_TEXT(IDC_WINAMP, "winamp");
+		GET_TEXT(IDC_WMP, "wmp");
+		GET_TEXT(IDC_ITUNES, "itunes");
+		GET_TEXT(IDC_MPC, "mpc");
+#undef GET_TEXT
+		break;
+			}
+	}
 }
 
 /**

@@ -1,3 +1,8 @@
+** SVN 101
+ ** changed rString class to template and added wide representation of rString (rStringW)
+ ** added Plugins' place in settings dialog (tabs, now plugin only have to provide a resource dlg - good/bad?)
+ ** some other cosmetic changes
+
 ** SVN 100
  ** fixed display of 1000 upload speed
  ** fixed nmdc user counting

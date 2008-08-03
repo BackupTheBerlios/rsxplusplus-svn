@@ -29,6 +29,7 @@ struct PluginInformation {
 	wchar_t* pAuthor;
 	int pApiVersion;
 	int pIconResourceId;
+	int pSettingsDlgResourceId;
 };
 } // namespace dcpp
 

@@ -7,7 +7,6 @@
 #define IDC_WINAMP                      1001
 #define IDC_WMP                         1002
 #define IDC_ITUNES                      1003
-#define IDC_EDIT4                       1004
 #define IDC_MPC                         1004
 
 // Next default values for new objects

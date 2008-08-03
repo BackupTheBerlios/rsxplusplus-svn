@@ -153,6 +153,7 @@ void shutdown() {
 	QueueManager::getInstance()->saveQueue();
 	SettingsManager::getInstance()->save();
 	RSXSettingsManager::getInstance()->save(); //RSX++
+	PluginsManager::getInstance()->stopPlugins(); //RSX++
 
 	//RSX++
 	RsxUtil::uinit();

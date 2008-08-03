@@ -20,14 +20,14 @@
 #define RSXPLUSPLUS_PLUGIN_API
 
 #ifndef EXIMP
-#define EXIMP __declspec(dllimport)
+#define EXIMP
 #endif//EXIMP
 
 namespace dcpp {
 // set of functions to interact with core
 class PluginAPI {
 public:
-	// hub line style
+	// HubLine style
 	enum {
 		STYLE_GENERAL = 0,
 		STYLE_MYOWN,
@@ -37,7 +37,7 @@ public:
 		STYLE_CHEAT,
 		STYLE_STATUS
 	};
-	// tooltip icon style
+	// ToolTip icon style
 	enum {
 		TT_NONE = 0x00000000,
 		TT_INFO = 0x00000001,
@@ -45,7 +45,7 @@ public:
 		TT_ERROR = 0x00000003,
 		TT_NOSOUND = 0x00000010
 	};
-	// versions
+	// Versions
 	enum {
 		CLIENT_PROFILE = 0,
 		USER_INFO_PROFILE,
@@ -54,16 +54,28 @@ public:
 		RSX_VERSION,
 		RSX_REVISION
 	};
+	// Main Window Events
+	enum {
+		TOOLBAR_CLICK = 0,
+		SETTINGS_DLG_OPEN,
+		SETTINGS_DLG_CLOSE
+	};
+
+	// rString conversions
+	EXIMP static rString	__cdecl AcpToUtf8(const rString& str);
+	EXIMP static rString	__cdecl Utf8ToAcp(const rString& str);
+	EXIMP static rString	__cdecl fromWideToUtf8(const rStringW& str);
+	EXIMP static rString	__cdecl fromWideToAcp(const rStringW& str);
+	EXIMP static rStringW	__cdecl fromUtf8ToWide(const rString& str);
+	EXIMP static rStringW	__cdecl fromAcpToWide(const rString& str);
 
 	EXIMP static void		__cdecl logMessage(const rString& aMsg);
-
 	EXIMP static rString	__cdecl getDataPath();
 	EXIMP static rString	__cdecl getVersion(int type);
 	EXIMP static void		__cdecl getMainWnd(HWND& h);
 
 	EXIMP static rString	__cdecl getSetting(int id, const rString& aName);
 	EXIMP static void		__cdecl setSetting(int id, const rString& aName, const rString& aVal);
-
 	EXIMP static rString	__cdecl getClientSetting(const rString& aName, bool rsxmng = false);
 	EXIMP static int		__cdecl getClientSettingInt(const rString& aName, bool rsxmng = false);
 

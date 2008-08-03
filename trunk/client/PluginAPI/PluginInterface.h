@@ -26,7 +26,7 @@ namespace dcpp {
 class iClient;
 class iOnlineUser;
 class iUserConnection;
-class rString;
+//class rString;
 
 class iPlugin {
 public:
@@ -45,8 +45,8 @@ public:
 	virtual bool __cdecl onUserConnectionIn(iUserConnection*, const rString&)			{ return false; }
 	virtual bool __cdecl onUserConnectionOut(iUserConnection*, const rString&)			{ return false; }
 
-	virtual void __cdecl onToolBarClick()												{ return; }
-	virtual void __cdecl onSettingLoad()												{ return; }
+	virtual void __cdecl onMainWndEvent(int, HWND)										{ return; }
+	virtual void __cdecl onSettingsEvent(int)											{ return; }
 };
 } // namespace dcpp
 

@@ -20,7 +20,7 @@
 #define RSXPLUSPLUS_USER_CONNECTION_INTERFACE
 
 namespace dcpp {
-class rString;
+//class rString;
 class iUserConnection {
 public:
 	virtual void __cdecl p_disconnect(bool graceless = false) = 0;

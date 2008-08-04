@@ -1,3 +1,8 @@
+** SVN 102
+ ** updated links to AML
+ ** some translations and default settings
+ ** fixed UserConnectionInterface (lua as well) trigger
+
 ** SVN 101
  ** changed rString class to template and added wide representation of rString (rStringW)
  ** added Plugins' place in settings dialog (tabs, now plugin only have to provide a resource dlg - good/bad?)

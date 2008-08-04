@@ -58,7 +58,13 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) throw
 		return;
 
 	COMMAND_DEBUG(aLine, DebugManager::CLIENT_IN, getRemoteIp());
-	
+	//RSX++ // Lua
+	if(onUserConnectionMessageIn(this, aLine)) {
+		disconnect(true);
+		return;
+	}
+	//END
+
 	if(aLine[0] == 'C' && !isSet(FLAG_NMDC)) {
 		dispatch(aLine);
 		return;
@@ -76,12 +82,7 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) throw
 	string param;
 
 	string::size_type x;
-	//RSX++ // Lua
-	if(onUserConnectionMessageIn(this, aLine)) {
-		disconnect(true);
-		return;
-	}
-	//END
+
 	if( (x = aLine.find(' ')) == string::npos) {
 		cmd = aLine;
 	} else {

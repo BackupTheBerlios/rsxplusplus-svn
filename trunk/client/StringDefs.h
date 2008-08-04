@@ -896,10 +896,9 @@ enum Strings { // @DontAdd
 	SETTINGS_RSX, // "RSX++"
 	SETTINGS_PARAMS, // "Params"
 	SETTINGS_FILTER_PAGE, // "Filters"
-	SETTINGS_FAKESHARE, // "Fake Share Detector"
 	SETTINGS_IP_PAGE, // "IP"
-	SETTINGS_MYINFO_DETECTOR, // "User Info Detector"
-	SETTINGS_FILELIST_DETECTOR, // "Filelist Detector"
+	SETTINGS_USER_INFO_DETECTOR, // "User Info"
+	SETTINGS_FILELIST_DETECTOR, // "File List"
 	SETTINGS_AUTOSEARCH, // "Autosearch"
 	SETTINGS_ACTION_RAW, // "Action & Raw"
 
@@ -929,7 +928,7 @@ enum Strings { // @DontAdd
 	SETTINGS_NOMINAL_BANDWIDTH, // "Nominal bandwidth"
 
 	SETTINGS_SHOW_CLIENT_NEW_VER, // "Notify on new Client Profile Version"
-	SETTINGS_SHOW_MYINFO_NEW_VER,  // "Notify on new User Info Profile Version"
+	SETTINGS_SHOW_USER_INFO_NEW_VER,  // "Notify on new User Info Profile Version"
 	SETTINGS_SHOW_IPWATCH_NEW_VER,  // "Notify on new IP Watch Version"
 	SETTINGS_USE_WILDCARDS_TO_PROTECT, // "Use Wildcards to match protected users"
 	SETTINGS_UPDATE_PROFILE_CHEATS, // "Override Profile's Cheats during update"
@@ -971,7 +970,7 @@ enum Strings { // @DontAdd
 	S_MISSMATCH, // "No match."
 	REGEX_TESTER, // "RegExp tester"
 
-	CLIENT_MYINFO, // "User Info Detection"
+	CLIENT_USER_INFO, // "User Info Detection"
 
 	CP_NOW_UPDATED, // "Client profiles now updated."
 	C_PROFILE_EXIST, // "Already exists, change name please"

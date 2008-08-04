@@ -149,7 +149,7 @@ void UpdateManager::onProfileVersionXml(string content, bool isFailed) {
 					xml.stepOut();
 					xml.resetCurrentChild();
 				}
-				if(xml.findChild("MyInfoProfile")) {
+				if(xml.findChild("UserInfoProfiles")) {
 					xml.stepIn();
 					if(xml.findChild("Version")) {
 						profilesCache.myInfoProfile.first = xml.getChildData();

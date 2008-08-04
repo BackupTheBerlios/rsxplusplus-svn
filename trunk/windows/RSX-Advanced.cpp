@@ -62,7 +62,7 @@ RSXAdvanced::ListItem RSXAdvanced::listItems[] = {
 	{ RSXSettingsManager::UPDATE_PROFILE_CHEATS,				ResourceManager::SETTINGS_UPDATE_PROFILE_CHEATS },
 	{ RSXSettingsManager::UPDATE_PROFILE_COMMENTS,				ResourceManager::SETTINGS_UPDATE_PROFILE_COMMENTS },
 	{ RSXSettingsManager::SHOW_CLIENT_NEW_VER,					ResourceManager::SETTINGS_SHOW_CLIENT_NEW_VER },
-	{ RSXSettingsManager::SHOW_MYINFO_NEW_VER,					ResourceManager::SETTINGS_SHOW_MYINFO_NEW_VER },
+	{ RSXSettingsManager::SHOW_MYINFO_NEW_VER,					ResourceManager::SETTINGS_SHOW_USER_INFO_NEW_VER },
 	{ RSXSettingsManager::SHOW_IPWATCH_NEW_VER,					ResourceManager::SETTINGS_SHOW_IPWATCH_NEW_VER },
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };

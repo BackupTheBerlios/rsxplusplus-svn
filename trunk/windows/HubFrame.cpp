@@ -104,7 +104,7 @@ ResourceManager::Strings HubFrame::columnNames[] = {
 	ResourceManager::CONNECTION, 
 	ResourceManager::EMAIL, 
 	ResourceManager::CLIENTID,
-	ResourceManager::CLIENT_MYINFO,
+	ResourceManager::CLIENT_USER_INFO,
 	ResourceManager::CHEATING_DESCRIPTION, 
 	ResourceManager::VERSION, 
 	ResourceManager::MODE, 

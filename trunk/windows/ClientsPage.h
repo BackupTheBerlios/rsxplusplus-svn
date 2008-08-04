@@ -17,7 +17,7 @@ public:
 
 	ClientsPage(SettingsManager *s, bool isUI) : PropPage(s), isUserInfo(isUI) {
 		title = _tcsdup((TSTRING(SETTINGS_RSX) + _T('\\') + TSTRING(SETTINGS_FAKEDETECT) + _T('\\') + 
-			(isUI ? _T("User Info") : TSTRING(SETTINGS_CLIENTS))).c_str());
+			(isUI ? TSTRING(SETTINGS_USER_INFO_DETECTOR) : TSTRING(SETTINGS_CLIENTS))).c_str());
 		SetTitle(title);
 		m_psp.dwFlags |= PSP_RTLREADING;
 	};

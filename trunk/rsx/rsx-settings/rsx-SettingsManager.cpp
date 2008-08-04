@@ -109,10 +109,10 @@ RSXSettingsManager::RSXSettingsManager()
 		int64Settings[k] = 0;
 	}
 
-	setDefault(UPDATE_URL,			"http://rsxplusplus.sf.net/xml/");
-	setDefault(UPDATE_MYINFOS,		"http://rsxplusplus.sf.net/xml/");
-	setDefault(UPDATE_IPWATCH_URL,	"http://rsxplusplus.sf.net/xml/");
-	setDefault(PROFILE_VER_URL,		"http://rsxplusplus.sf.net/xml/");
+	setDefault(UPDATE_URL,			"http://dcaml.svn.sourceforge.net/svnroot/dcaml/");
+	setDefault(UPDATE_MYINFOS,		"http://dcaml.svn.sourceforge.net/svnroot/dcaml/");
+	setDefault(UPDATE_IPWATCH_URL,	"http://dcaml.svn.sourceforge.net/svnroot/dcaml/");
+	setDefault(PROFILE_VER_URL,		"http://dcaml.svn.sourceforge.net/svnroot/dcaml/");
 
 	setDefault(MAX_FILELISTS,					10);
 	setDefault(MAX_TESTSURS,					20);
@@ -214,8 +214,8 @@ RSXSettingsManager::RSXSettingsManager()
 	setDefault(COUNTRY_IN_CHAT,				false);
 	setDefault(USE_WILDCARDS_TO_PROTECT,	false);
 	setDefault(DEFAULT_PRIO,				3); //normal prio
-	setDefault(UPDATE_PROFILE_CHEATS,		true);
-	setDefault(UPDATE_PROFILE_COMMENTS,		true);
+	setDefault(UPDATE_PROFILE_CHEATS,		false);
+	setDefault(UPDATE_PROFILE_COMMENTS,		false);
 	setDefault(SHOW_LUA_ERROR_MESSAGE,		true);
 }
 

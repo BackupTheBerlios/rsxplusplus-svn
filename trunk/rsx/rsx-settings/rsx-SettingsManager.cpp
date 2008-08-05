@@ -32,7 +32,6 @@ const string RSXSettingsManager::settingTags[] =
 	"ProtectedUsers", 
 	"UpdateProfiles", "UpdateIpWatch", "UpdateMyInfoProfilesUrl",
 	"HighPrioFiles", "LowPrioFiles", "ShareSkiplist", "DownloadSkiplist", "ProfileVerUrl",
-	"BetaPass", "BetaUser",
 	"SENTRY", 
 	// Ints
 	"CheckDelay", "SleepTime", "MaxFilelists", "MaxTestSURs", "UseSendDelayedRaw", 
@@ -88,7 +87,7 @@ const string RSXSettingsManager::settingTags[] =
 	"AutosearchRecheckTime", "UseHighLight", "GetUpdateProfile", "UseFiltersOnNewHubs", "UseHighlightsOnNewHubs", "ProtectPMUser",
 	"UseSlowDownloadKick", "IpInChat", "CountryInChat",
 	"ShowClientNewVer", "ShowMyInfoNewVer", "ShowIpWatchNewVer", "UseWildcardsToProtect",
-	"UpdateProfileCheats", "UpdateProfileComments", "ShowLuaErrorMessage",
+	"UpdateProfileCheats", "UpdateProfileComments", "ShowLuaErrorMessage", "MaxChatBufsize",
 	"SENTRY",
 	// Int64
 	"TotalDetects", "TotalFailedDetects", "TotalRawCommandsSent",
@@ -217,6 +216,7 @@ RSXSettingsManager::RSXSettingsManager()
 	setDefault(UPDATE_PROFILE_CHEATS,		false);
 	setDefault(UPDATE_PROFILE_COMMENTS,		false);
 	setDefault(SHOW_LUA_ERROR_MESSAGE,		true);
+	setDefault(MAX_CHAT_BUFSIZE,			25000);
 }
 
 void RSXSettingsManager::load(string const& aFileName) {

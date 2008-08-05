@@ -980,9 +980,9 @@
 #define IDC_TABCOLOR_LIST               1522
 #define IDC_PROFILE_VERSION_URL         1522
 #define IDC_SELECT_TAB_COLOR            1523
-#define IDC_TAB1                        1523
 #define IDC_PLUGINS_PAGES               1523
 #define IDC_SAMPLE_TAB_COLOR            1524
+#define IDC_CHAT_BUF_SIZE               1524
 #define IDC_RESET_TAB_COLOR             1525
 #define IDC_SELECT_STYLES               1526
 #define WEBSERVER_SOCKET_MESSAGE        1543
@@ -1251,7 +1251,7 @@
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        353
 #define _APS_NEXT_COMMAND_VALUE         32808
-#define _APS_NEXT_CONTROL_VALUE         1524
+#define _APS_NEXT_CONTROL_VALUE         1525
 #define _APS_NEXT_SYMED_VALUE           134
 #endif
 #endif

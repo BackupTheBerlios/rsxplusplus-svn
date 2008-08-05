@@ -244,7 +244,7 @@ string Identity::getReport() const {
 
 	report += "\n\n *** Client Info:";
 	report += "\n-]> Client:			" +			(getClientType().empty() ? static_cast<const string>("N/A") : getClientType() + "\t[Check Time:" + Util::formatTime("%d-%m %H:%M:%S", Util::toInt64(get("TC"))) + ']');
-	report += "\n-]> Client $MyINFO:		" +		isEmpty(get("MT"));
+	report += "\n-]> User Info Type:		" +		isEmpty(get("MT"));
 	report += "\n-]> Lock:			" +				isEmpty(get("LO"));
 	report += "\n-]> Pk:			" +				isEmpty(get("PK"));
 	report += "\n-]> Tag:			" +				isEmpty(getTag());

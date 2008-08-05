@@ -1,3 +1,8 @@
+** SVN 103
+ ** some more myinfo -> user info changes
+ ** fixed loading at startup
+ ** added option to set max chat buffer size
+
 ** SVN 102
  ** updated links to AML
  ** some translations and default settings

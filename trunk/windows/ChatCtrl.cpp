@@ -57,8 +57,7 @@ ChatCtrl::~ChatCtrl() {
 }
 	
 void ChatCtrl::AdjustTextSize() {
-	if(GetWindowTextLength() > 25000) {
-		// We want to limit the buffer to 25000 characters...after that, w95 becomes sad...
+	if(GetWindowTextLength() > RSXSETTING(MAX_CHAT_BUFSIZE)) {
 		SetRedraw(FALSE);
 		SetSel(0, LineIndex(LineFromChar(2000)));
 		ReplaceSel(_T(""));

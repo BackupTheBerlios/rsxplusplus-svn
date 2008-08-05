@@ -83,9 +83,8 @@ void CommandQueue::addCommand(const OnlineUser& ou, int actionId) {
 								execCommand(item);
 							}
 							if(SETTING(LOG_RAW_CMD)) {
-								StringMap p;
-								p["rawCommand"] = formattedCmd;
-								LOG(LogManager::RAW, p);
+								params["rawCommand"] = formattedCmd;
+								LOG(LogManager::RAW, params);
 							}
 						}
 					}

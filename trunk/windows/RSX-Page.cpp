@@ -39,8 +39,10 @@ PropPage::TextItem RSXPage::texts[] = {
 
 PropPage::Item RSXPage::items[] = {
 	{ IDC_USE_REGEXP_OR_WILD,	RSXSettingsManager::IGNORE_USE_REGEXP_OR_WC,	PropPage::T_BOOL_RSX },
+	{ IDC_CHAT_BUF_SIZE,		RSXSettingsManager::MAX_CHAT_BUFSIZE,			PropPage::T_INT_RSX },
 	{ 0, 0, PropPage::T_END }
 };
+
 RSXPage::ListItem RSXPage::listItems[] = {
 	{ RSXSettingsManager::AUTO_START, ResourceManager::SETTINGS_AUTO_START },
 	{ RSXSettingsManager::USE_FILTER_FAV, ResourceManager::USE_FILTER_FAV },
@@ -72,8 +74,9 @@ LRESULT RSXPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	ctrlFavGroups.Attach(GetDlgItem(IDC_RSX_FAV_GROUPS));
 	ctrlFavGroups.InsertColumn(0, _T("Dummy"), LVCFMT_LEFT, (rc.Width() - 17), 0);
 	ctrlFavGroups.SetExtendedListViewStyle(LVS_EX_FULLROWSELECT | LVS_EX_INFOTIP);
-	StringList& lst = FavoriteManager::getInstance()->getFavGroups();
-	for(StringIter j = lst.begin(); j != lst.end(); ++j)
+
+	const StringList& lst = FavoriteManager::getInstance()->getFavGroups();
+	for(StringList::const_iterator j = lst.begin(); j != lst.end(); ++j)
 		ctrlFavGroups.insert(ctrlFavGroups.GetItemCount(), Text::toT((*j)));
 
 	ctrlPrio.Attach(GetDlgItem(IDC_STARTUP_PRIO));
@@ -97,7 +100,7 @@ void RSXPage::write() {
 	FavoriteManager::getInstance()->save();
 	
 	HKEY hk;
-	tstring app = _T("\"") + Text::toT(Util::getSystemPath()) + _T("\"");
+	tstring app = _T("\"") + Text::toT(Util::getSystemPath()) + _T("RSXPlusPlus.exe\"");
 	if(::RegOpenKeyEx(HKEY_CURRENT_USER, _T("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run"), 0, KEY_WRITE | KEY_READ, &hk) == ERROR_SUCCESS) {
 		if(RSXBOOLSETTING(AUTO_START)) {
 			::RegCreateKey(HKEY_CURRENT_USER, _T("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run"), &hk);

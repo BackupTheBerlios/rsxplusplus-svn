@@ -1,3 +1,7 @@
+** SVN 104
+ ** hello native x64 :)
+ ** some fixes for manifest file
+
 ** SVN 103
  ** some more myinfo -> user info changes
  ** fixed loading at startup

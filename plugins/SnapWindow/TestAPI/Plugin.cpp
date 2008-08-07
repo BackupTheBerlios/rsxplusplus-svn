@@ -39,11 +39,11 @@ LRESULT CALLBACK SubClassFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
 
 Plugin::Plugin() {
 	PluginAPI::getMainWnd(r_hwnd);
-	lpfnOldWndProc = (WNDPROC)SetWindowLong(r_hwnd, GWL_WNDPROC, (LONG)SubClassFunc);
+	lpfnOldWndProc = (WNDPROC)SetWindowLongPtr(r_hwnd, GWLP_WNDPROC, (LONG_PTR)SubClassFunc);
 }
 
 Plugin::~Plugin() {
-	SetWindowLong(r_hwnd, GWL_WNDPROC, (DWORD)lpfnOldWndProc);
+	SetWindowLongPtr(r_hwnd, GWLP_WNDPROC, (LONG_PTR)lpfnOldWndProc);
 }
 
 /**

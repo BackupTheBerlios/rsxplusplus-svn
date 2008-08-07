@@ -124,7 +124,7 @@ LONG __stdcall DCUnhandledExceptionFilter( LPEXCEPTION_POINTERS e )
 
 	if(File::getSize(Util::getDataPath() + "RSXPlusPlus.pdb") == -1) {
 		// No debug symbols, we're not interested...
-		::MessageBox(WinUtil::mainWnd, _T("RSX++ has crashed and you don't have RSXPlusPlus.pdb file installed. Hence, I can't find out why it crashed, so don't report this as a bug unless you find a solution..."), _T("RSX++ has crashed"), MB_OK);
+		::MessageBox(WinUtil::mainWnd, _T("RSX++ has crashed and you don't have RSXPlusPlus32.pdb/RSXPlusPlus64.pdb file installed. Hence, I can't find out why it crashed, so don't report this as a bug unless you find a solution..."), _T("RSX++ has crashed"), MB_OK);
 #ifndef _DEBUG
 		exit(1);
 #else
@@ -149,9 +149,15 @@ LONG __stdcall DCUnhandledExceptionFilter( LPEXCEPTION_POINTERS e )
 	OSVERSIONINFOEX ver;
 	WinUtil::getVersionInfo(ver);
 
-	sprintf(buf, "System Version: %d %d %d SP: %d Type: %d\r\n",
+	sprintf(buf, "System Version: %d %d %d SP: %d Type: %d %s\r\n",
 		(DWORD)ver.dwMajorVersion, (DWORD)ver.dwMinorVersion, (DWORD)ver.dwBuildNumber,
-		(DWORD)ver.wServicePackMajor, (DWORD)ver.wProductType);
+		(DWORD)ver.wServicePackMajor, (DWORD)ver.wProductType,
+#ifdef _WIN64
+		"x64"
+#else
+		"x32"
+#endif
+		);
 
 	f.write(buf, strlen(buf));
 	time_t now;
@@ -362,7 +368,7 @@ static int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 	splash.ReleaseDC(dc);
 	splash.HideCaret();
 	splash.SetWindowPos(NULL, &rc, SWP_SHOWWINDOW);
-	splash.SetWindowLongPtr(GWLP_WNDPROC, (LONG)&splashCallback);
+	splash.SetWindowLongPtr(GWLP_WNDPROC, (LONG_PTR)&splashCallback);
 	splash.CenterWindow();
 
 	sTitle = _T(VERSIONSTRING);

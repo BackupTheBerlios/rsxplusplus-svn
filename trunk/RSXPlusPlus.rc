@@ -2363,13 +2363,6 @@ BEGIN
     "C",            IDC_CONNECT,            VIRTKEY, ALT, NOINVERT
 END
 
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// RT_MANIFEST
-//
-
-1                       RT_MANIFEST             "res\\RSXPlusPlus.Manifest"
 #endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
 

@@ -3,7 +3,7 @@
 del /Q lib\*.*
 
 cd build
-call "%programfiles%\microsoft visual studio 2005\VC\bin\vcvars32.bat"
+call "W:\Program Files (x86)\microsoft visual studio 8\VC\bin\vcvars32.bat"
 call configure.bat -c msvc8
 cd lib
 nmake /fmsvc.mak clean all

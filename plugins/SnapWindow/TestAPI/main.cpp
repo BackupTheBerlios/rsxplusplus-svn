@@ -47,7 +47,7 @@ extern "C" {
 		p.pDesc = L"Make Window Snap ;)";
 		p.pVersion = L"1.00";
 		p.pAuthor = L"adrian_007";
-		p.pApiVersion = 1211;
+		p.pApiVersion = 1221;
 	}
 }
 

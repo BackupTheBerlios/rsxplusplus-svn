@@ -150,6 +150,7 @@
 #define IDP_FAVTABS                     350
 #define IDR_TOGGLE_QSEARCH              351
 #define IDD_ADL_POINTS_SETTINGS         352
+#define IDR_RT_MANIFEST1                353
 #define IDC_REFRESH                     1000
 #define IDC_NICK                        1001
 #define IDC_EMAIL                       1002
@@ -1249,7 +1250,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        353
+#define _APS_NEXT_RESOURCE_VALUE        354
 #define _APS_NEXT_COMMAND_VALUE         32808
 #define _APS_NEXT_CONTROL_VALUE         1525
 #define _APS_NEXT_SYMED_VALUE           134

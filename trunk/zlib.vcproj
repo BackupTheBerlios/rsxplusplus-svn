@@ -202,6 +202,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalOptions="/MP"
 				Optimization="3"
 				InlineFunctionExpansion="1"
 				EnableIntrinsicFunctions="true"
@@ -287,6 +288,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalOptions="/MP"
 				Optimization="3"
 				InlineFunctionExpansion="1"
 				EnableIntrinsicFunctions="true"

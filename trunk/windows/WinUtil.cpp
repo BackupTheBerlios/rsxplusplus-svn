@@ -1768,27 +1768,6 @@ uint8_t WinUtil::getFlagImage(const char* country, bool fullname) {
 }
 
 float ProcSpeedCalc() {
-#ifndef _WIN64
-#define RdTSC __asm _emit 0x0f __asm _emit 0x31
-__int64 cyclesStart = 0, cyclesStop = 0;
-unsigned __int64 nCtr = 0, nFreq = 0, nCtrStop = 0;
-    if(!QueryPerformanceFrequency((LARGE_INTEGER *) &nFreq)) return 0;
-    QueryPerformanceCounter((LARGE_INTEGER *) &nCtrStop);
-    nCtrStop += nFreq;
-    _asm {
-		RdTSC
-        mov DWORD PTR cyclesStart, eax
-        mov DWORD PTR [cyclesStart + 4], edx
-    } do {
-		QueryPerformanceCounter((LARGE_INTEGER *) &nCtr);
-    } while (nCtr < nCtrStop);
-    _asm {
-		RdTSC
-        mov DWORD PTR cyclesStop, eax
-        mov DWORD PTR [cyclesStop + 4], edx
-    }
-	return ((float)cyclesStop-(float)cyclesStart) / 1000000;
-#else
 	HKEY hKey;
 	DWORD dwSpeed;
 
@@ -1815,7 +1794,6 @@ unsigned __int64 nCtr = 0, nFreq = 0, nCtrStop = 0;
 	RegCloseKey(hKey);
 	
 	return dwSpeed;
-#endif
 }
 
 wchar_t arrayutf[42] = { L'Á', L'È', L'Ï', L'É', L'Ì', L'Í', L'¼', L'Ò', L'Ó', L'Ø', L'Š', L'', L'Ú', L'Ù', L'Ý', L'Ž', L'á', L'è', L'ï', L'é', L'ì', L'í', L'¾', L'ò', L'ó', L'ø', L'š', L'', L'ú', L'ù', L'ý', L'ž', L'Ä', L'Ë', L'Ö', L'Ü', L'ä', L'ë', L'ö', L'ü', L'£', L'³' };
@@ -1836,7 +1814,6 @@ const tstring& WinUtil::disableCzChars(tstring& message) {
 
 string WinUtil::generateStats() {
 	if(LOBYTE(LOWORD(GetVersion())) >= 5) {
-		char buf[1024];
 		PROCESS_MEMORY_COUNTERS pmc;
 		pmc.cb = sizeof(pmc);
 		typedef bool (CALLBACK* LPFUNC)(HANDLE Process, PPROCESS_MEMORY_COUNTERS ppsmemCounters, DWORD cb);
@@ -1846,22 +1823,44 @@ string WinUtil::generateStats() {
 		GetProcessTimes(GetCurrentProcess(), &tmpa, &tmpb, &kernelTimeFT, &userTimeFT);
 		int64_t kernelTime = kernelTimeFT.dwLowDateTime | (((int64_t)kernelTimeFT.dwHighDateTime) << 32);
 		int64_t userTime = userTimeFT.dwLowDateTime | (((int64_t)userTimeFT.dwHighDateTime) << 32);  
-		snprintf(buf, sizeof(buf), "-=[ %s %s  [Core: %s] ]=-\r\n-=[ Uptime: %s][ Cpu time: %s ]=-\r\n-=[ Memory usage (peak): %s (%s) ]=-\r\n-=[ Virtual memory usage (peak): %s (%s) ]=-\r\n-=[ Downloaded: %s ][ Uploaded: %s ]=-\r\n-=[ Total download: %s ][ Total upload: %s ]=-\r\n-=[ System: %s ]=-\r\n-=[ System Uptime: %s]=-\r\n-=[ CPU Name: %s ]=-\r\n-=[ CPU Clock: %i MHz ]=-\r\n-=[ Total clients detected (Successful/Failed):  %s/%s ]=-\r\n-=[ Total raw commands sent: %s ]=-", 
+
+		string ret = boost::str(boost::format("\r\n\t- %s %s [Core: %s] %s\r\n\
+\t- Uptime: %s | CPU time: %s\r\n\
+\t- Memory usage (peak): %s (%s)\r\n\
+\t- Virtual Memory usage (peak): %s (%s)\r\n\
+\t- Downloaded: %s | Uploaded: %s\r\n\
+\t- Total Download: %s | Total Upload: %s\r\n\
+\t- System: %s (Uptime: %s)\r\n\
+\t- CPU: %s\r\n\
+\t- Total clients detected (Successful/Failed): %s/%s\r\n\
+\t- Total RAW Commands sent: %s")
 #ifdef SVNBUILD
-			APPNAME, VERSIONSTRING " SVN: " BOOST_STRINGIZE(SVN_REVISION), DCVERSIONSTRING,
+			% APPNAME % VERSIONSTRING " SVN: " BOOST_STRINGIZE(SVN_REVISION) % DCVERSIONSTRING
 #else
-			APPNAME, VERSIONSTRING, DCVERSIONSTRING,
+			% APPNAME % VERSIONSTRING % DCVERSIONSTRING
 #endif
-			formatTime(Util::getUptime()).c_str(), 
-			Text::fromT(Util::formatSeconds((kernelTime + userTime) / (10I64 * 1000I64 * 1000I64))).c_str(), 
-			Util::formatBytes(pmc.WorkingSetSize).c_str(), Util::formatBytes(pmc.PeakWorkingSetSize).c_str(), 
-			Util::formatBytes(pmc.PagefileUsage).c_str(), Util::formatBytes(pmc.PeakPagefileUsage).c_str(), 
-			Util::formatBytes(Socket::getTotalDown()).c_str(), Util::formatBytes(Socket::getTotalUp()).c_str(), 
-			Util::formatBytes(SETTING(TOTAL_DOWNLOAD)).c_str(), Util::formatBytes(SETTING(TOTAL_UPLOAD)).c_str(), 
-			RsxUtil::getOsVersion().c_str(), formatTime(GET_TICK()/1000).c_str(), CPUInfo().c_str(), (int)ProcSpeedCalc(),
-			Util::toString(RSXSETTING(TOTAL_DETECTS)).c_str(), Util::toString(RSXSETTING(TOTAL_FAILED_DETECTS)).c_str(),
-			Util::toString(RSXSETTING(TOTAL_RAW_COMMANDS_SENT)).c_str());
-		return buf;
+#ifdef _WIN64
+			% "x86-64"
+#else
+			% "x86-32"
+#endif
+			% formatTime(Util::getUptime())
+			% Text::fromT(Util::formatSeconds((kernelTime + userTime) / (10I64 * 1000I64 * 1000I64)))
+			% Util::formatBytes(pmc.WorkingSetSize)
+			% Util::formatBytes(pmc.PeakWorkingSetSize)
+			% Util::formatBytes(pmc.PagefileUsage)
+			% Util::formatBytes(pmc.PeakPagefileUsage)
+			% Util::formatBytes(Socket::getTotalDown())
+			% Util::formatBytes(Socket::getTotalUp())
+			% Util::formatBytes(SETTING(TOTAL_DOWNLOAD))
+			% Util::formatBytes(SETTING(TOTAL_UPLOAD))
+			% RsxUtil::getOsVersion()
+			% formatTime(GET_TICK()/1000)
+			% CPUInfo()
+			% Util::toString(RSXSETTING(TOTAL_DETECTS))
+			% Util::toString(RSXSETTING(TOTAL_FAILED_DETECTS))
+			% Util::toString(RSXSETTING(TOTAL_RAW_COMMANDS_SENT)));
+		return ret;
 	} else {
 		return "Not supported by OS";
 	}

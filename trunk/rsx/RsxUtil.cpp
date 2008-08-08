@@ -156,42 +156,45 @@ const string RsxUtil::getOsVersion() {
 
 	if(os.empty()) {
 		if(ver.dwPlatformId != VER_PLATFORM_WIN32_NT) {
-			os = "Win9x/ME/Junk™";
+			os = "Win9x/ME/Junk";
 		} else if(ver.dwMajorVersion == 4) {
-			os = "Windows NT4™";
+			os = "Windows NT4";
 		} else if(ver.dwMajorVersion == 5) {
-			if(ver.dwMinorVersion == 0) {
-				os = "Windows 2000™";
-			} else if(ver.dwMinorVersion == 1) {
-				os = "Windows XP™";
-			} else if(ver.dwMinorVersion == 2) {
-				os = "Windows 2003™";
-			} else {
-				os = "Unknown WinNT5™";
+			switch(ver.dwMinorVersion) {
+				case 0: os = "Windows 2000"; break;
+				case 1: os = "Windows XP"; break;
+				case 2: os = "Windows 2003"; break;
+				default: os = "Unknown Windows NT5";
 			}
 		} else if(ver.dwMajorVersion == 6) {
-			os = "Windows Vista™";
+			switch(ver.dwMinorVersion) {
+				case 0: os = "Windows Vista"; break;
+				default: os = "Unknown Windows 6-family";
+			}
 		}
 		if(ver.wProductType & VER_NT_WORKSTATION) {
-			if(ver.dwMajorVersion == 4)
-				os += " Workstation 4.0";
-			else if(ver.wSuiteMask & VER_SUITE_PERSONAL)
-				os += " Home Edition";
-			else
-				os += " Professional";
+			switch(ver.dwMajorVersion) {
+				case 4: os += "Workstation 4.0"; break;
+				case 5: {
+					if(ver.wSuiteMask & VER_SUITE_PERSONAL)
+						os += " Home Edition";
+					else
+						os += " Professional";
+					break;
+				}
+				case 6: {
+					break;
+				}
+			}
 		} else if(ver.wProductType & VER_NT_SERVER) {
 				os += " Server";
 		} else if(ver.wProductType & VER_NT_DOMAIN_CONTROLLER) {
-				os += " DC";
+				os += " Domain Controller";
 		}
 
-		if(ver.wServicePackMajor != 0) {
-			os += " SP";
-			os += Util::toString(ver.wServicePackMajor);
-			if(ver.wServicePackMinor != 0) {
-				os += '.';
-				os += Util::toString(ver.wServicePackMinor);
-			}
+		tstring spver(ver.szCSDVersion);
+		if(!spver.empty()) {
+			os += " " + Text::fromT(spver);
 		}
 	}
 

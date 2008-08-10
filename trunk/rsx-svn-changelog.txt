@@ -1,3 +1,8 @@
+** SVN 106
+ ** updated icons
+ ** solution fixes
+ ** changelog updated a bit (damn i hate it)
+
 ** SVN 105
  ** stats reworked
  ** added /MP flag to speed-up compile time on multiprocessor platforms (5.17s vs 3.29s)

@@ -1,10 +1,32 @@
-** RSX++ 1.00 ** xx/xx/2008
- ** updated to latest StrongDC++
- ** replaced PCRE with boost::regex
+** RSX++ 1.00 ** 10/08/2008
+ ** updated to StrongDC++ 2.21
  ** added new detection engine to fit ADC protocol and for optimization
- ** improved MyINFO check (threaded check is back again w/o old bugs)
- ** fixed many smaller and bigger bugs
- ** fixed rare and often deadlocks
+ ** MyINFO detector replace with User Info Detector (ADC compatible)
+ ** fixed many critical bugs
+ ** fixed most of deadlocks
+ ** added test box for protected users pattern in fav dialog
+ ** added new HTTP content download manager (replaced old UpdateManager)
+ ** default icons changed (thx I.nfraR.ed)
+ ** PluginAPI strongly rebuilt, which includes
+	- added option to manage User Connections
+	- added own string class implementation (support unicode & wide char) - now plugins doesn't depend on used STL implementation
+	- added option to add dialog into settings dialog in client (see Plugins page)
+	- added option to store settings per hub (see iClient class header)
+ ** fixed Plugin Toolbar buttons order
+ ** added option to manage scripts via GUI (View -> Scripts List - avoid loading scripts inside of script)
+ ** many optimizations in random places ;)
+ ** extended /sc command (supports custom checks, e.g "/sc c", supported params: c, f, all)
+ ** added Max Chat Buffer Size setting
+ ** improved Custom ADLSearch Points System
+ ** File List Generator temporary suspended
+ ** added option to set IP/Country Code in chat per hub
+ ** when detector is manually stopped, checked items are automatically removed from queue
+ ** removed Threaded Raw Sender
+ ** initial release of 64-bit version
+
+*** WARNING ***
+ This version may not import some of favorite's hub settings! (only basic will stay)
+
 
 ** RSX++ 1.00 Beta 3 ** 23/02/2008
  ** fixed major problems with some deadlocks

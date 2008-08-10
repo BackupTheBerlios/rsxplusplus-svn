@@ -80,7 +80,7 @@
 			<Tool
 				Name="VCPreLinkEventTool"
 				Description="Deleting old pdb file..."
-				CommandLine="cmd.exe /c del &quot;$(SolutionDir)compiled\$(ProjectName)32.pdb&quot;"
+				CommandLine="cmd.exe /c del &quot;$(SolutionDir)compiled\$(ProjectName).pdb&quot;"
 			/>
 			<Tool
 				Name="VCLinkerTool"
@@ -189,12 +189,12 @@
 			<Tool
 				Name="VCPreLinkEventTool"
 				Description="Deleting old pdb file..."
-				CommandLine="cmd.exe /c del &quot;$(SolutionDir)compiled\$(ProjectName)64.pdb&quot;"
+				CommandLine="cmd.exe /c del &quot;$(SolutionDir)compiled\$(ProjectName).pdb&quot;"
 			/>
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/FIXED:NO /SAFESEH:NO"
-				AdditionalDependencies="libeay64.lib ssleay64.lib SHFolder.lib ws2_32.lib winmm.lib powrprof.lib msimg32.lib"
+				AdditionalDependencies="libeay64.lib ssleay64.lib SHFolder.lib ws2_32.lib powrprof.lib msimg32.lib winmm.lib"
 				OutputFile="$(SolutionDir)compiled/$(ProjectName).exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
@@ -309,7 +309,7 @@
 			<Tool
 				Name="VCPreLinkEventTool"
 				Description="Deleting old pdb file..."
-				CommandLine="cmd.exe /c del &quot;$(SolutionDir)compiled\$(ProjectName)32.pdb&quot;"
+				CommandLine="cmd.exe /c del &quot;$(SolutionDir)compiled\$(ProjectName).pdb&quot;"
 			/>
 			<Tool
 				Name="VCLinkerTool"
@@ -437,12 +437,12 @@
 			<Tool
 				Name="VCPreLinkEventTool"
 				Description="Deleting old pdb file..."
-				CommandLine="cmd.exe /c del &quot;$(SolutionDir)compiled\$(ProjectName)64.pdb&quot;"
+				CommandLine="cmd.exe /c del &quot;$(SolutionDir)compiled\$(ProjectName).pdb&quot;"
 			/>
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/FIXED:NO /SAFESEH:NO"
-				AdditionalDependencies="libeay64.lib ssleay64.lib SHFolder.lib ws2_32.lib powrprof.lib  msimg32.lib"
+				AdditionalDependencies="libeay64.lib ssleay64.lib SHFolder.lib ws2_32.lib powrprof.lib msimg32.lib winmm.lib"
 				OutputFile="$(SolutionDir)compiled/$(ProjectName).exe"
 				Version=""
 				LinkIncremental="1"
@@ -566,7 +566,7 @@
 			<Tool
 				Name="VCPreLinkEventTool"
 				Description="Deleting old pdb file..."
-				CommandLine="cmd.exe /c del &quot;$(SolutionDir)compiled\$(ProjectName)32.pdb&quot;"
+				CommandLine="cmd.exe /c del &quot;$(SolutionDir)compiled\$(ProjectName).pdb&quot;"
 			/>
 			<Tool
 				Name="VCLinkerTool"
@@ -695,12 +695,12 @@
 			<Tool
 				Name="VCPreLinkEventTool"
 				Description="Deleting old pdb file..."
-				CommandLine="cmd.exe /c del &quot;$(SolutionDir)compiled\$(ProjectName)64.pdb&quot;"
+				CommandLine="cmd.exe /c del &quot;$(SolutionDir)compiled\$(ProjectName).pdb&quot;"
 			/>
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/FIXED:NO /SAFESEH:NO"
-				AdditionalDependencies="libeay64.lib ssleay64.lib SHFolder.lib ws2_32.lib powrprof.lib msimg32.lib Winmm.lib"
+				AdditionalDependencies="libeay64.lib ssleay64.lib SHFolder.lib ws2_32.lib powrprof.lib msimg32.lib winmm.lib"
 				OutputFile="$(SolutionDir)compiled/$(ProjectName).exe"
 				Version=""
 				LinkIncremental="1"
@@ -1908,11 +1908,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\windows\stdafx.h"
+				RelativePath=".\stdafx.h"
 				>
 			</File>
 			<File
-				RelativePath=".\stdafx.h"
+				RelativePath=".\windows\stdafx.h"
 				>
 			</File>
 			<File

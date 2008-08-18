@@ -1,3 +1,7 @@
+** SVN 107
+ ** scripts disabled as default (enable certain scripts in scripts list dialog)
+ ** fixed message about bad tag state
+
 ** SVN 106
  ** updated icons
  ** solution fixes

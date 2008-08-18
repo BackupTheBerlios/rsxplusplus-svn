@@ -457,26 +457,27 @@ void NmdcHub::onLine(const string& aLine) throw() {
 
 		if(u.getUser() == getMyIdentity().getUser()) {
 			setMyIdentity(u.getIdentity());
-		}
-		//RSX++ // MyInfo spam
-		//@todo
-		if(u.getIdentity().isMyInfoSpamming()) {
-			if(RSXSETTING(MYINFO_SPAM_KICK)) {
-				ClientManager::getInstance()->sendAction(u, RSXSETTING(MYINFO_SPAM_KICK));
+		} else {
+			//RSX++ // MyInfo spam
+			//@todo
+			if(u.getIdentity().isMyInfoSpamming()) {
+				if(RSXSETTING(MYINFO_SPAM_KICK)) {
+					ClientManager::getInstance()->sendAction(u, RSXSETTING(MYINFO_SPAM_KICK));
+				}
+				if(RSXBOOLSETTING(SHOW_MYINFO_SPAM_KICK)) {
+					cheatMessage("*** " + u.getIdentity().getNick() + " - $MyINFO Spam detected!!");
+				}
 			}
-			if(RSXBOOLSETTING(SHOW_MYINFO_SPAM_KICK)) {
-				cheatMessage("*** " + u.getIdentity().getNick() + " - $MyINFO Spam detected!!");
+			//RSX++ // $MyINFO check
+			if(getCheckedAtConnect() && getCheckMyInfo()) {
+				string report = u.getIdentity().myInfoDetect(u);
+				if(!report.empty()) {
+					updated(&u);
+					cheatMessage(report);
+				}
 			}
+			//END
 		}
-		//RSX++ // $MyINFO check
-		if(getCheckedAtConnect() && getCheckMyInfo()) {
-			string report = u.getIdentity().myInfoDetect(u);
-			if(!report.empty()) {
-				updated(&u);
-				cheatMessage(report);
-			}
-		}
-		//END
 		fire(ClientListener::UserUpdated(), this, &u);
 	} else if(cmd == "$Quit") {
 		if(!param.empty()) {

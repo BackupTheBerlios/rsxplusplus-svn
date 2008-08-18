@@ -445,10 +445,12 @@ string Identity::myInfoDetect(OnlineUser& ou) {
 			continue;
 
 		bool _continue = false;
+		DETECTION_DEBUG("\tChecking User Info Profile: " + entry.name);
 
 		for(DetectionEntry::INFMap::const_iterator j = INFList.begin(); j != INFList.end(); ++j) {
 			string aPattern = Util::formatRegExp(j->second, params);
 			string aField = getDetectionField(j->first);
+			DETECTION_DEBUG("\t\tPattern: " + aPattern + " Field: " + aField);
 			if(!RegexUtil::match(aField, aPattern)) {
 				_continue = true;
 				break;
@@ -456,6 +458,8 @@ string Identity::myInfoDetect(OnlineUser& ou) {
 		}
 		if(_continue)
 			continue;
+
+		DETECTION_DEBUG("**** Client found: " + entry.name + " ****\r\n");
 
 		setMyInfoType(entry.name);
 		set("CM", entry.comment);
@@ -743,16 +747,20 @@ void Identity::logDetect(bool successful) {
 }
 
 void Identity::checkTagState(OnlineUser& ou) {
-	if(isTcpActive() && (getTag().find(",M:P,") != string::npos)) {
-		ou.getClient().cheatMessage("*** " + getNick() + " - Tag states passive mode, but he's using active commands"); 
-	} else if(!isTcpActive() && (getTag().find(",M:A,") != string::npos)) {
-		ou.getClient().cheatMessage("*** " + getNick() + " - Tag states active mode, but he's using passive commands"); 
+	string usrTag = getTag();
+	if(usrTag.empty()) return;
+	bool isActive = isTcpActive(&ou.getClient());
+
+	if(isActive && (usrTag.find(",M:P,") != string::npos)) {
+		ou.getClient().cheatMessage("*** " + getNick() + " - Tag states passive mode, but user is using active mode"); 
+	} else if(!isActive && (usrTag.find(",M:A,") != string::npos)) {
+		ou.getClient().cheatMessage("*** " + getNick() + " - Tag states active mode, but user is using passive mode"); 
 	}
 }
 
 void Identity::cleanUser() {
 	resetCounters();
-	setMyInfoType(Util::emptyString); //MyINFO client type
+	setMyInfoType(Util::emptyString); //UserInfo client type
 	//set("I4", Util::emptyString); //IP
 	setClientType(Util::emptyString); //Client Type
 	set("BC", Util::emptyString); //Bad Client

@@ -360,9 +360,9 @@ ScriptManager::ScriptManager() : timerEnabled(false) {
 	for(StringIter i = files.begin(); i != files.end(); ++i) {
 		string fname = Util::getFileName(*i);
 		if(fname == "startup.lua")
-			scripts.push_front(make_pair(true, fname));
+			scripts.push_front(make_pair(false, fname));
 		else
-			scripts.push_back(make_pair(true, fname));
+			scripts.push_back(make_pair(false, fname));
 	}
 }
 

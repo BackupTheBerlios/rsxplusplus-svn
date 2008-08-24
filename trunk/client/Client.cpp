@@ -60,7 +60,6 @@ Client::Client(const string& hubURL, char separator_, bool secure_) :
 Client::~Client() throw() {
 	dcassert(!sock);
 
-	FavoriteManager::getInstance()->updateHubSettings(getHubUrl(), getSettings()); //RSX++ // in case if plugin want to save sth
 	// In case we were deleted before we Failed
 	FavoriteManager::getInstance()->removeUserCommand(getHubUrl());
 	TimerManager::getInstance()->removeListener(this);

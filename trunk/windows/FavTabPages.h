@@ -75,4 +75,27 @@ private:
 	FavoriteHubEntry* hub;
 };
 
+class CFavTabSettings : public CDialogImpl<CFavTabSettings> {
+public:
+	enum { IDD = IDD_FAV_TAB_RAWSETTINGS };
+
+	CFavTabSettings() : hub(NULL) { };
+	~CFavTabSettings() { };
+
+	BEGIN_MSG_MAP(CFavTabSettings)
+		MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
+		NOTIFY_HANDLER(IDC_SETTINGS, NM_DBLCLK, onDblClick)
+		//REFLECT_NOTIFICATIONS()
+	END_MSG_MAP()
+
+	LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
+	LRESULT onDblClick(int /*idCtrl*/, LPNMHDR /* pnmh */, BOOL& /*bHandled*/);
+
+	void setHub(FavoriteHubEntry* _hub) { hub = _hub; }
+	void prepareClose();
+private:
+	FavoriteHubEntry* hub;
+	ExListViewCtrl ctrlList;
+};
+
 #endif // !defined(FAV_TAB_RAW_H)

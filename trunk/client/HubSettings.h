@@ -5,6 +5,14 @@
 #include "Util.h"
 
 namespace dcpp {
+// some macros to define function for specified types
+#define GS_BOOL(n, x) bool get##n() const { return isSet(x); } void set##n(bool v) { set(x, v ? "1" : Util::emptyString); }
+#define GS_STR(n, x) string get##n() const { return get(x); } void set##n(const string& v) { set(x, v); }
+#define GS_INT(n, x) int get##n() const { return Util::toInt(get(x)); } void set##n(int v) { set(x, Util::toString(v)); }
+#define GS_UINT32(n, x) uint32_t get##n() const { return Util::toUInt32(get(x)); } void set##n(uint32_t v) { set(x, Util::toString(v)); }
+#define GS_DOUBLE(n, x) double get##n() const { return Util::toDouble(get(x)); } void set##n(double v) { set(x, Util::toString(v)); }
+#define GS_FLOAT(n, x) float get##n() const { return Util::toFloat(get(x)); } void set##n(float v) { set(x, Util::toString(v)); }
+
 class HubSettings {
 public:
 	HubSettings() throw() { }
@@ -18,19 +26,13 @@ public:
 
 	void updateSettings(const SettingsMap& s);
 	const SettingsMap& getSettings() const;
+	SettingsMap& getSettings() { return settings; }
 
 	void clearSettings();
 private:
 	SettingsMap settings;
 	static FastCriticalSection cs;
 };
-// some macros to define function for specified types
-#define GS_BOOL(n, x) bool get##n() const { return isSet(x); } void set##n(bool v) { set(x, v ? "1" : Util::emptyString); }
-#define GS_STR(n, x) string get##n() const { return get(x); } void set##n(const string& v) { set(x, v); }
-#define GS_INT(n, x) int get##n() const { return Util::toInt(get(x)); } void set##n(int v) { set(x, Util::toString(v)); }
-#define GS_UINT32(n, x) uint32_t get##n() const { return Util::toUInt32(get(x)); } void set##n(uint32_t v) { set(x, Util::toString(v)); }
-#define GS_DOUBLE(n, x) double get##n() const { return Util::toDouble(get(x)); } void set##n(double v) { set(x, Util::toString(v)); }
-#define GS_FLOAT(n, x) float get##n() const { return Util::toFloat(get(x)); } void set##n(float v) { set(x, Util::toString(v)); }
 
 } // namespace dcpp
 #endif

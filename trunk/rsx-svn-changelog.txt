@@ -1,3 +1,8 @@
+** SVN 108
+ ** fixed old connection type save/load
+ ** fixed hub settings save
+ ** added tab to change plugin's settings from favhub dialog
+
 ** SVN 107
  ** scripts disabled as default (enable certain scripts in scripts list dialog)
  ** fixed message about bad tag state

@@ -188,6 +188,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	PluginsManager::getInstance()->startPlugins();
 	ScriptManager::getInstance()->loadScripts();
 	UpdateManager::getInstance()->addListener(this);
+	FavoriteManager::getInstance()->mergeHubSettings();
 	//END
 
 	// Load images

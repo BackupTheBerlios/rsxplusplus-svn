@@ -412,11 +412,21 @@ public:
 			filters.erase(filters.begin() + index);
 	}
 
-	//RSX++ // update hub settings
-	void updateHubSettings(const string& aServer, const HubSettings::SettingsMap& s);
-	//RSX++ //away msg string
+	//RSX++
+	static void registerHubSetting(const char* sn, const string& sv, const string& sd) {
+		StringPair p = make_pair(sv, sd);
+		defHubSettings[*(uint32_t*)sn] = p;
+	}
+	static bool isHubSetting(const char* sn) {
+		std::map<uint32_t, StringPair>::const_iterator i = defHubSettings.find(*(uint32_t*)sn);
+		return i != defHubSettings.end();
+	}
+	static const std::map<uint32_t, StringPair>& getDefHubSettings() { return defHubSettings; }
+
+	void mergeHubSettings();
+
 	string getAwayMessage(const string& aServer);
-	//RSX++ //FavHubGroups
+
 	StringList& getFavGroups() { return favGroups; }
 	bool addFavGroup(const string& gName) {
 		for(StringIter i = favGroups.begin(); i != favGroups.end(); ++i) {
@@ -511,6 +521,7 @@ private:
 	DirectoriesEx::List dirsEx;
 	HighLight::List hls;
 	StringList favGroups;
+	static std::map<uint32_t, StringPair> defHubSettings;
 	//END
 
 	mutable CriticalSection cs;

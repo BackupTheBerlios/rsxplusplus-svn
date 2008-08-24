@@ -26,7 +26,10 @@ string HubSettings::get(const char* name) const {
 bool HubSettings::isSet(const char* name) const {
 	FastLock l(cs);
 	SettingsMap::const_iterator i = settings.find(*(uint32_t*)name);
-	return i != settings.end();
+
+	if(i != settings.end())
+		return !i->second.empty();
+	return false;
 }
 
 void HubSettings::updateSettings(const SettingsMap& s) {

@@ -8,6 +8,7 @@
 #include "../rsx/RegexUtil.h"
 
 #include "FavTabPages.h"
+#include "LineDlg.h"
 
 LRESULT CFavTabRaw::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
 	CRect rc1, rc2;
@@ -179,4 +180,67 @@ void CCustomTab::prepareClose() {
 	buf.resize(len);
 	GetDlgItemText(IDC_FAV_SEARCH_INTERVAL_BOX, &buf[0], len);
 	hub->setSearchInterval(Util::toUInt32(Text::fromT(buf)));
+}
+
+LRESULT CFavTabSettings::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
+	CRect rc;
+	ctrlList.Attach(GetDlgItem(IDC_SETTINGS));
+	ctrlList.GetClientRect(rc);
+	ctrlList.InsertColumn(0, _T("Code"), LVCFMT_LEFT, 40, 0);
+	ctrlList.InsertColumn(1, _T("Name"), LVCFMT_LEFT, (rc.Width() / 2) - 40, 0);
+	ctrlList.InsertColumn(2, _T("Value"), LVCFMT_LEFT, (rc.Width() / 2) - 20, 0);
+	ctrlList.SetExtendedListViewStyle(/*LVS_EX_INFOTIP | */LVS_EX_FULLROWSELECT);
+
+	const std::map<uint32_t, StringPair>& list = FavoriteManager::getDefHubSettings();
+	const HubSettings::SettingsMap& stg = hub->getSettings();
+
+	for(HubSettings::SettingsMap::const_iterator i = stg.begin(); i != stg.end(); ++i) {
+		std::map<uint32_t, StringPair>::const_iterator j = list.find(i->first);
+		if(j != list.end() && !j->second.second.empty()) {
+			TStringList strings;
+			strings.push_back(Text::toT(string((const char*)&i->first, 4)));
+			strings.push_back(Text::toT(j->second.second));
+			strings.push_back(Text::toT(i->second));
+			int item = ctrlList.insert(ctrlList.GetItemCount(), strings, NULL, NULL);
+			ctrlList.SetItemData(item, (int)i->second.length());
+		}
+	}
+	return 0;
+}
+
+void CFavTabSettings::prepareClose() {
+	int cnt = ctrlList.GetItemCount();
+	for(int i = 0; i < cnt; ++i) {
+		int len = ctrlList.GetItemData(i);
+		tstring buf;
+		buf.resize(5);
+		ctrlList.GetItemText(i, 0, &buf[0], 5);
+		const char* code = Text::fromT(buf).c_str();
+		buf.resize(len);
+		ctrlList.GetItemText(i, 2, &buf[0], len);
+		hub->set(code, Text::fromT(buf));
+	}
+}
+
+LRESULT CFavTabSettings::onDblClick(int /*idCtrl*/, LPNMHDR /* pnmh */, BOOL& /*bHandled*/) {
+	int sel = ctrlList.GetSelectedIndex();
+	if(sel != -1) {
+		LineDlg dlg;
+		dlg.title = _T("Change Hub Setting");
+		int len = ctrlList.GetItemData(sel);
+		tstring buf;
+		buf.resize(len);
+		ctrlList.GetItemText(sel, 2, &buf[0], len);
+		dlg.line = buf;
+
+		buf.resize(1024);
+		ctrlList.GetItemText(sel, 1, &buf[0], 1024);
+		dlg.description = buf;
+
+		if(dlg.DoModal() == IDOK) {
+			ctrlList.SetItemText(sel, 2, dlg.line.c_str());
+			ctrlList.SetItemData(sel, dlg.line.length());
+		}
+	}
+	return 0;
 }

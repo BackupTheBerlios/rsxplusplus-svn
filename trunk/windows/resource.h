@@ -941,6 +941,7 @@
 #define IDC_UPDATE                      1462
 #define IDC_PROGRESS_MODE               1468
 #define IDC_LIST1                       1469
+#define IDC_SETTINGS                    1469
 #define IDC_FILELISTDP_SELECTOR         1470
 #define IDC_COMPILE_TIME                1472
 #define IDC_IPW_MODE                    1474
@@ -1099,6 +1100,7 @@
 #define IDD_SCRIPTS_LIST                10054
 #define IDC_AUTOSCROLL_CHAT             10055
 #define IDD_FAV_TAB_PLUGINS             10055
+#define IDD_FAV_TAB_RAWSETTINGS         10055
 #define IDC_WHOIS_IP                    10056
 #define IDD_PLUGINS_PAGE                10056
 #define IDC_BAN_IP                      10057

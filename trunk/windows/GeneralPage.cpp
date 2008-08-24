@@ -21,6 +21,7 @@
 #include "../client/DCPlusPlus.h"
 #include "../client/SettingsManager.h"
 #include "../client/Socket.h"
+#include "../client/LogManager.h"
 
 #include "Resource.h"
 #include "GeneralPage.h"
@@ -108,6 +109,7 @@ LRESULT GeneralPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 
 	int q = 0;
 	int pos = 0;
+	tstring curSpd = Text::toT(SETTING(UPLOAD_SPEED));
 	for(size_t i = 0; i < 8; i++) {
 		COMBOBOXEXITEM cbitem = {CBEIF_TEXT|CBEIF_IMAGE|CBEIF_SELECTEDIMAGE};
 		tstring connType;
@@ -127,8 +129,9 @@ LRESULT GeneralPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 		cbitem.iSelectedImage = q;
 		ctrlConnectionType.InsertItem(&cbitem);
 
-		if(connType == Text::toT(SETTING(UPLOAD_SPEED))) pos = i;
-
+		if(stricmp(connType, curSpd) == 0) {
+			pos = i;
+		}
 	}
 
 	switch(SETTING(BWSETTING_MODE)) {
@@ -142,7 +145,6 @@ LRESULT GeneralPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 			ctrlConnection.SetCurSel(pos == CB_ERR ? 0 : pos);
 			break;
 	}
-
 	fixControls();
 	//end
 

@@ -78,6 +78,7 @@ public:
 	EXIMP static void		__cdecl setSetting(int id, const rString& aName, const rString& aVal);
 	EXIMP static rString	__cdecl getClientSetting(const rString& aName, bool rsxmng = false);
 	EXIMP static int		__cdecl getClientSettingInt(const rString& aName, bool rsxmng = false);
+	EXIMP static void		__cdecl registerHubSetting(const char* name, const rString& aValue, const rString& description);
 
 	EXIMP static void		__cdecl OpenHub(const rString& aHubUrl);
 	EXIMP static void		__cdecl CloseHub(const rString& aUrl);

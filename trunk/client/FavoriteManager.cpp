@@ -33,6 +33,8 @@
 
 namespace dcpp {
 
+std::map<uint32_t, StringPair> FavoriteManager::defHubSettings; //RSX++
+
 FavoriteManager::FavoriteManager() : lastId(0), useHttp(false), running(false), c(NULL), lastServer(0), listType(TYPE_NORMAL), dontSave(false) {
 	SettingsManager::getInstance()->addListener(this);
 	ClientManager::getInstance()->addListener(this);
@@ -428,17 +430,7 @@ void FavoriteManager::save() {
 			xml.addChildAttrib("IP", (*i)->getIP());
 			xml.addChildAttrib("SearchInterval", Util::toString((*i)->getSearchInterval()));
 			//RSX++
-			//xml.addChildAttrib("Email", (*i)->getCurrentEmail());
 			xml.addChildAttrib("AwayMsg", (*i)->getAwayMsg());
-			//xml.addChildAttrib("UserProtected", (*i)->getUserProtected());
-			//xml.addChildAttrib("CheckOnConnect", (*i)->getCheckOnConnect());
-			//xml.addChildAttrib("CheckClients", (*i)->getCheckClients());
-			//xml.addChildAttrib("CheckFilelists", (*i)->getCheckFilelists());
-			//xml.addChildAttrib("CheckMyInfo", (*i)->getCheckMyInfo());
-			//xml.addChildAttrib("HideShare", (*i)->getHideShare());
-			//xml.addChildAttrib("UseFilter", (*i)->getUseFilter());
-			//xml.addChildAttrib("UseAutosearch", (*i)->getAutosearch());
-			//xml.addChildAttrib("UseHighLight", (*i)->getUseHL());
 			xml.addChildAttrib("UsersLimitToUseActions", (*i)->getUsersLimit());
 			xml.addChildAttrib("GroupID", (*i)->getGroupId());
 			//RSX++
@@ -681,22 +673,6 @@ void FavoriteManager::loadHighLight(SimpleXML& aXml){
 //END
 
 void FavoriteManager::load() {
-	
-	// Add NMDC standard op commands
-	/*static const char kickstr[] = 
-		"$To: %[userNI] From: %[myNI] $<%[myNI]> You are being kicked because: %[kickline:Reason]|<%[myNI]> is kicking %[userNI] because: %[kickline:Reason]|$Kick %[userNI]|";
-	addUserCommand(UserCommand::TYPE_RAW_ONCE, UserCommand::CONTEXT_CHAT | UserCommand::CONTEXT_SEARCH, UserCommand::FLAG_NOSAVE, 
-		STRING(KICK_USER), kickstr, "op");
-	static const char kickfilestr[] = 
-		"$To: %[userNI] From: %[myNI] $<%[myNI]> You are being kicked because: %[kickline:Reason] %[fileFN]|<%[myNI]> is kicking %[userNI] because: %[kickline:Reason] %[fileFN]|$Kick %[userNI]|";
-	addUserCommand(UserCommand::TYPE_RAW_ONCE, UserCommand::CONTEXT_SEARCH, UserCommand::FLAG_NOSAVE, 
-		STRING(KICK_USER_FILE), kickfilestr, "op");
-	static const char redirstr[] =
-		"$OpForceMove $Who:%[userNI]$Where:%[line:Target Server]$Msg:%[line:Message]|";
-	addUserCommand(UserCommand::TYPE_RAW_ONCE, UserCommand::CONTEXT_CHAT | UserCommand::CONTEXT_SEARCH, UserCommand::FLAG_NOSAVE, 
-		STRING(REDIRECT_USER), redirstr, "op");
-	*/
-
 	loadFilters(); //RSX++
 
 	try {
@@ -1208,17 +1184,18 @@ void FavoriteManager::setActifRaw(FavoriteHubEntry* entry, int actionId, int raw
 		act->raw.push_back(FavoriteHubEntry::Action::Raw(rawId));
 	}
 }
-//RSX++ // update hub settings
-void FavoriteManager::updateHubSettings(const string& aServer, const HubSettings::SettingsMap& s) {
-	Lock l(cs);
-	FavoriteHubEntry* hub = getFavoriteHubEntry(aServer);
-	if(hub) {
-		hub->updateSettings(s);
+//RSX++
+void FavoriteManager::mergeHubSettings() {
+	for(FavoriteHubEntryList::iterator i = favoriteHubs.begin(); i != favoriteHubs.end(); ++i) {
+		HubSettings::SettingsMap& s = (*i)->getSettings();
+		for(std::map<uint32_t, pair<string, string> >::const_iterator si = defHubSettings.begin(); si != defHubSettings.end(); ++si) {
+			if(s.find(si->first) != s.end()) continue;
+			s.insert(make_pair(si->first, si->second.first));
+		}
 	}
 }
-//RSX++ //get away msg
+
 string FavoriteManager::getAwayMessage(const string& aServer) {
-	Lock l(cs);
 	FavoriteHubEntry* hub = getFavoriteHubEntry(aServer);
 	if(hub) {
 		return hub->getAwayMsg().empty() ? Util::getAwayMessage() : hub->getAwayMsg();

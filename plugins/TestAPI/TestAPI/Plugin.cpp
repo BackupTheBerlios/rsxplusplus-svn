@@ -31,6 +31,7 @@ Plugin::Plugin() {
 
 	PluginAPI::logMessage("*** TestAPI v2 loaded");
 	PluginAPI::setSetting(PLUGIN_ID, "testapi_setting", "variable");
+	PluginAPI::registerHubSetting("TEST", "default value", "Test Setting");
 }
 
 Plugin::~Plugin() {

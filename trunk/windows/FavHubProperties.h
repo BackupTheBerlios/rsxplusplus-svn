@@ -64,6 +64,8 @@ protected:
 	CFavTabRaw ctrlRaws;
 	CFavTabOp ctrlOpTab;
 	CCustomTab ctrlCustomTab;
+	CFavTabSettings ctrlSettingsTab;
+
 	CImageList images;
 	//END
 private:

@@ -125,6 +125,10 @@ int PluginAPI::getClientSettingInt(const rString& aName, bool rsxmng) {
 	}
 }
 
+void PluginAPI::registerHubSetting(const char* name, const rString& aValue, const rString& description) {
+	FavoriteManager::registerHubSetting(name, aValue.c_str(), description.c_str());
+}
+
 bool PluginAPI::RegexMatch(const rString& strToMatch, const rString& regEx) {
 	return RegexUtil::match(strToMatch.c_str(), regEx.c_str());
 }

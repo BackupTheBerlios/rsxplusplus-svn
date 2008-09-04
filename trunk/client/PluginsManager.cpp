@@ -34,8 +34,8 @@
 #include "SimpleXML.h"
 #include "version.h"
 
-// revision: 1.2.2.1
-#define API_VERSION 1221
+// revision: 1.2.3.1
+#define API_VERSION 1231
 
 // @todo
 // add download function from url

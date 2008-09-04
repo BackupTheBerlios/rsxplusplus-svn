@@ -28,15 +28,19 @@ namespace dcpp {
 template<class T>
 class rStringBase {
 public:
+	rStringBase() : buf(NULL), len(0) { }
 	EXIMP rStringBase(const T* str);
 	EXIMP ~rStringBase();
 
-	EXIMP __cdecl operator T* () { return buf; }
-	EXIMP __cdecl operator const T*() const { return buf; }
-	EXIMP const T * __cdecl c_str() const { return buf; }
-	EXIMP bool __cdecl empty() const { return buf == 0; }
+	__cdecl operator T* () { return buf; }
+	__cdecl operator const T*() const { return buf; }
+
+	const T * __cdecl c_str() const { return buf; }
+	T * __cdecl str() { return buf; }
+	bool __cdecl empty() const { return len == 0; }
 private:
 	T* buf;
+	int len;
 };
 
 typedef rStringBase<char> rString;

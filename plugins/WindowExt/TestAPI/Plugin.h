@@ -16,29 +16,28 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef STDAFX_H
-#define STDAFX_H
+#ifndef PLUGIN_H
+#define PLUGIN_H
 
-#define _WIN32_WINNT 0x0501
-#define _WIN32_IE 0x0501
-#define WINVER 0x501
+#include "Singleton.h"
+#include <PluginInterface.h>
+#include <SnapWindow.h>
 
-#define STRICT
-#define WIN32_LEAN_AND_MEAN
+class Plugin : public iPlugin, public Singleton<Plugin> {
+public:
+	Plugin();
+	~Plugin();
 
-#include <windows.h>
-#include <tchar.h>
-#include <string>
+	void __cdecl onMainWndEvent(int, HWND);
+	static void toggleTopmost();
 
-#include <rString.h>
-#include <PluginAPI.h>
-
-using namespace std;
-using namespace dcpp;
-
+private:
+	HWND r_hwnd;
+	friend class Singleton<Plugin>;
+};
 #endif
 
 /**
  * @file
- * $Id: stdafx.h 42 2007-10-31 18:27:40Z adrian_007 $
+ * $Id: Plugin.h 42 2007-10-31 18:27:40Z adrian_007 $
  */

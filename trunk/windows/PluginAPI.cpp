@@ -42,26 +42,32 @@ namespace rStrUtil {
 	inline size_t strlen(const wchar_t* c) { return std::wcslen(c); }
 	inline char* strcpy(char* dest, const char* src) { return std::strcpy(dest, src); }
 	inline wchar_t* strcpy(wchar_t* dest, const wchar_t* src) { return wcscpy(dest, src); }
+
 	// dummy functions, just in case...
 	template<class T> size_t strlen(const T*) { return 0; }
-	template<class T> T* strcpy(T*, const T*) { return NULL; }
+	template<class T> T* strcpy(T*, const T*) { return 0; }
 }
 
 template<class T>
-rStringBase<T>::rStringBase(const T* str) {
-	if(str == 0) { buf = 0; return; }
+rStringBase<T>::rStringBase(const T* str) : buf(NULL), len(0) {
+	if(buf != NULL) {
+		delete[] buf;
+		buf = NULL;
+		len = 0;
+	}
 
-	int len = rStrUtil::strlen(str);
+	if(str == NULL) return;
+	len = rStrUtil::strlen(str);
 	buf = new T[len+1];
-	if(!buf) return;
 	rStrUtil::strcpy(buf, str);
 }
 
 template<class T>
 rStringBase<T>::~rStringBase() {
-	if(buf) {
-		delete buf;
-		buf = 0;
+	if(buf != NULL) {
+		delete[] buf;
+		buf = NULL;
+		len = 0;
 	}
 }
 
@@ -82,6 +88,9 @@ rString PluginAPI::getSetting(int id, const rString& aName) {
 }
 
 void PluginAPI::setSetting(int id, const rString& aName, const rString& aVal) {
+	//string val;
+	//if(val.c_str() == '\0')
+	//MessageBoxA(0, val.c_str(), "t", 0);
 	PluginsManager::getInstance()->setSetting(id, aName.c_str(), aVal.c_str());
 }
 

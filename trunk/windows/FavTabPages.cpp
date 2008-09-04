@@ -172,8 +172,6 @@ void CCustomTab::prepareClose() {
 	hub->setUseHL(RsxUtil::toBool(btn.GetCheck()));
 	hub->setShowCountryCodeOnChat(IsDlgButtonChecked(IDC_SHOW_CC) == BST_CHECKED);
 	hub->setShowIpOnChat(IsDlgButtonChecked(IDC_SHOW_IP) == BST_CHECKED);
-//IsDlgButtonChecked(IDC_STEALTH) == BST_CHECKED
-//CheckDlgButton(IDC_STEALTH, curEntry.checkMismatch ? BST_CHECKED : BST_UNCHECKED)
 
 	tstring buf;
 	int len = ::GetWindowTextLength(GetDlgItem(IDC_FAV_SEARCH_INTERVAL_BOX)) + 1;
@@ -202,7 +200,7 @@ LRESULT CFavTabSettings::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /
 			strings.push_back(Text::toT(j->second.second));
 			strings.push_back(Text::toT(i->second));
 			int item = ctrlList.insert(ctrlList.GetItemCount(), strings, NULL, NULL);
-			ctrlList.SetItemData(item, (int)i->second.length());
+			ctrlList.SetItemData(item, (int)i->second.size());
 		}
 	}
 	return 0;
@@ -211,13 +209,13 @@ LRESULT CFavTabSettings::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /
 void CFavTabSettings::prepareClose() {
 	int cnt = ctrlList.GetItemCount();
 	for(int i = 0; i < cnt; ++i) {
-		int len = ctrlList.GetItemData(i);
 		tstring buf;
-		buf.resize(5);
-		ctrlList.GetItemText(i, 0, &buf[0], 5);
+		buf.resize(4);
+		ctrlList.GetItemText(i, 0, &buf[0], buf.size()+1);
 		const char* code = Text::fromT(buf).c_str();
-		buf.resize(len);
-		ctrlList.GetItemText(i, 2, &buf[0], len);
+
+		buf.resize((int)ctrlList.GetItemData(i));
+		ctrlList.GetItemText(i, 2, &buf[0], buf.size()+1);
 		hub->set(code, Text::fromT(buf));
 	}
 }
@@ -227,10 +225,10 @@ LRESULT CFavTabSettings::onDblClick(int /*idCtrl*/, LPNMHDR /* pnmh */, BOOL& /*
 	if(sel != -1) {
 		LineDlg dlg;
 		dlg.title = _T("Change Hub Setting");
-		int len = ctrlList.GetItemData(sel);
+
 		tstring buf;
-		buf.resize(len);
-		ctrlList.GetItemText(sel, 2, &buf[0], len);
+		buf.resize((int)ctrlList.GetItemData(sel));
+		ctrlList.GetItemText(sel, 2, &buf[0], buf.size()+1);
 		dlg.line = buf;
 
 		buf.resize(1024);
@@ -239,7 +237,7 @@ LRESULT CFavTabSettings::onDblClick(int /*idCtrl*/, LPNMHDR /* pnmh */, BOOL& /*
 
 		if(dlg.DoModal() == IDOK) {
 			ctrlList.SetItemText(sel, 2, dlg.line.c_str());
-			ctrlList.SetItemData(sel, dlg.line.length());
+			ctrlList.SetItemData(sel, (int)dlg.line.size());
 		}
 	}
 	return 0;

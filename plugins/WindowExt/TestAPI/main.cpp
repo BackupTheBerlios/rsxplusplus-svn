@@ -17,36 +17,42 @@
  */
 
 #include "stdafx.h"
+#include "resource.h"
 
+#include <PluginInformation.h>
 #include <ClientInterface.h>
 #include <UserInterface.h>
 
 #include "Plugin.h"
 #include "version.h"
 
-CSnapWindow snapHandler;
-WNDPROC lpfnOldWndProc;
+bool __stdcall DllMain(HANDLE /*hInst*/, DWORD /*reason*/, LPVOID /*reserved*/) {
+	return TRUE;
+}
 
-LRESULT CALLBACK SubClassFunc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
-	switch(message) {
-		case WM_MOVING:
-			return snapHandler.OnSnapMoving(hwnd, message, wParam, lParam);
-		case WM_ENTERSIZEMOVE:
-			return snapHandler.OnSnapEnterSizeMove(hwnd, message, wParam, lParam);
+//obligatory functions!
+extern "C" {
+	__declspec(dllexport) iPlugin* __cdecl pluginLoad() {
+		Plugin::newInstance();
+		return Plugin::getInstance();
 	}
-	return CallWindowProc(lpfnOldWndProc, hwnd, message, wParam, lParam);
-}
 
-Plugin::Plugin() {
-	PluginAPI::getMainWnd(r_hwnd);
-	lpfnOldWndProc = (WNDPROC)SetWindowLongPtr(r_hwnd, GWLP_WNDPROC, (LONG_PTR)SubClassFunc);
-}
+	__declspec(dllexport) void __cdecl pluginUnload() {
+		Plugin::deleteInstance();
+	}
 
-Plugin::~Plugin() {
-	SetWindowLongPtr(r_hwnd, GWLP_WNDPROC, (LONG_PTR)lpfnOldWndProc);
+	__declspec(dllexport) void __cdecl pluginInfo(PluginInformation& p) {
+		p.pId = PLUGIN_ID;
+		p.pName = L"WindowExt";
+		p.pDesc = L"Window Extensions";
+		p.pVersion = L"1.00";
+		p.pAuthor = L"adrian_007";
+		p.pApiVersion = 1231;
+		p.pIconResourceId = IDB_ICON;
+	}
 }
 
 /**
  * @file
- * $Id: Plugin.cpp 42 2007-10-31 18:27:40Z adrian_007 $
+ * $Id: main.cpp 42 2007-10-31 18:27:40Z adrian_007 $
  */

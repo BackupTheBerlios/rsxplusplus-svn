@@ -121,8 +121,6 @@ typedef unsigned __int64 uint64_t;
 #endif
 //RSX++
 #define todo_message(x) message(__FILE__ "(" BOOST_STRINGIZE(__LINE__) ") \t\t\t@todo: " x)
-#define EXIMP __declspec(dllexport)
-#include "PluginAPI/rString.h"
 //END
 
 #ifdef _MSC_VER

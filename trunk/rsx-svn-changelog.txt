@@ -1,3 +1,6 @@
+** SVN 111
+ ** ooops... fixed build
+
 ** SVN 110
  ** fixed stlport bat files
  ** StrongDC++ SVN merge

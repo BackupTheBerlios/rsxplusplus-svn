@@ -150,6 +150,7 @@ public:
 	uint32_t getTo() const { return to; }
 	AdcCommand& setTo(const uint32_t sid) { to = sid; return *this; }
 	uint32_t getFrom() const { return from; }
+	void setFrom(const uint32_t sid) { from = sid; }
 
 	static uint32_t toSID(const string& aSID) { return *reinterpret_cast<const uint32_t*>(aSID.data()); }
 	static string fromSID(const uint32_t aSID) { return string(reinterpret_cast<const char*>(&aSID), sizeof(aSID)); }
@@ -199,8 +200,8 @@ public:
 			default: 
 				dcdebug("Unknown ADC command: %.50s\n", aLine.c_str());
 				break;
-#undef C
-
+	#undef C
+	
 			}
 		} catch(const ParseException&) {
 			dcdebug("Invalid ADC command: %.50s\n", aLine.c_str());
@@ -215,5 +216,5 @@ public:
 
 /**
 * @file
-* $Id: AdcCommand.h 403 2008-07-10 21:27:57Z BigMuscle $
+* $Id: AdcCommand.h 423 2008-11-08 17:12:32Z BigMuscle $
 */

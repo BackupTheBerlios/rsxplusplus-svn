@@ -41,7 +41,6 @@ PropPage::TextItem QueuePage::texts[] = {
 	{ IDC_SETTINGS_SEGMENT, ResourceManager::SETTINGS_SEGMENT },
 	{ IDC_AUTOSEGMENT, ResourceManager::SETTINGS_AUTO_SEARCH },
 	{ IDC_DONTBEGIN, ResourceManager::DONT_ADD_SEGMENT_TEXT },
-	{ IDC_MULTISOURCE, ResourceManager::ENABLE_MULTI_SOURCE },
 	{ IDC_MINUTES, ResourceManager::MINUTES },
 	{ IDC_KBPS, ResourceManager::KBPS },
 	{ IDC_CHUNKCOUNT, ResourceManager::TEXT_MANUAL },
@@ -74,6 +73,7 @@ PropPage::Item QueuePage::items[] = {
 };
 
 PropPage::ListItem QueuePage::optionItems[] = {
+	{ SettingsManager::MULTI_CHUNK, ResourceManager::ENABLE_MULTI_SOURCE },
 	{ SettingsManager::PRIO_LOWEST, ResourceManager::SETTINGS_PRIO_LOWEST },
 	{ SettingsManager::AUTO_SEARCH_AUTO_MATCH, ResourceManager::SETTINGS_AUTO_SEARCH_AUTO_MATCH },
 	{ SettingsManager::SKIP_ZERO_BYTE, ResourceManager::SETTINGS_SKIP_ZERO_BYTE },
@@ -103,18 +103,11 @@ LRESULT QueuePage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 	spin.SetRange32(2, 100000);
 	spin.Detach();
 
-	ctrlMultiSource.Attach(GetDlgItem(IDC_MULTISOURCE_COMBO));
-	ctrlMultiSource.AddString(CTSTRING(DISABLED));
-	ctrlMultiSource.AddString(CTSTRING(AUTOMATIC));
-	ctrlMultiSource.SetCurSel(SETTING(MULTI_CHUNK));
-
 	// Do specialized reading here
 	return TRUE;
 }
 
 void QueuePage::write() {
-	settings->set(SettingsManager::MULTI_CHUNK, ctrlMultiSource.GetCurSel());
-
 	PropPage::write((HWND)*this, items, 0, 0);
 	PropPage::write((HWND)*this, items, optionItems, GetDlgItem(IDC_OTHER_QUEUE_OPTIONS));
 }
@@ -122,5 +115,5 @@ void QueuePage::write() {
 
 /**
  * @file
- * $Id: QueuePage.cpp 373 2008-02-06 17:23:49Z bigmuscle $
+ * $Id: QueuePage.cpp 411 2008-07-20 22:39:42Z BigMuscle $
  */

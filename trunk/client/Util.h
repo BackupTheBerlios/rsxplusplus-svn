@@ -204,7 +204,8 @@ public:
 		return (j != wstring::npos) ? path.substr(j+1, i-j-1) : path;
 	}
 
-	static void decodeUrl(const string& aUrl, string& aServer, uint16_t& aPort, string& aFile);
+	static void decodeUrl(const string& aUrl, string& aServer, uint16_t& aPort, string& aFile) { bool isSecure; decodeUrl(aUrl, aServer, aPort, aFile, isSecure); }
+	static void decodeUrl(const string& aUrl, string& aServer, uint16_t& aPort, string& aFile, bool& isSecure);
 	static string validateFileName(string aFile);
 	static string cleanPathChars(string aNick);
 	static string formatStatus(int iStatus);
@@ -516,5 +517,5 @@ struct noCaseStringEq {
 
 /**
  * @file
- * $Id: Util.h 399 2008-07-06 19:48:02Z BigMuscle $
+ * $Id: Util.h 413 2008-07-30 09:32:53Z BigMuscle $
  */

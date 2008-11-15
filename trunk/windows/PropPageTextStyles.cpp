@@ -14,14 +14,14 @@
 #include "PropertiesDlg.h"
 
 PropPage::TextItem PropPageTextStyles::texts[] = {
-	{ IDC_AVAILABLE_STYLES, ResourceManager::SETCZDC_STYLES },
-	{ IDC_BACK_COLOR, ResourceManager::SETCZDC_BACK_COLOR },
-	{ IDC_TEXT_COLOR, ResourceManager::SETCZDC_TEXT_COLOR },
-	{ IDC_TEXT_STYLE, ResourceManager::SETCZDC_TEXT_STYLE },
-	{ IDC_DEFAULT_STYLES, ResourceManager::SETCZDC_DEFAULT_STYLE },
-	{ IDC_BLACK_AND_WHITE, ResourceManager::SETCZDC_BLACK_WHITE },
-	{ IDC_BOLD_AUTHOR_MESS, ResourceManager::SETCZDC_BOLD },
-	{ IDC_CZDC_PREVIEW, ResourceManager::SETCZDC_PREVIEW },
+	{ IDC_AVAILABLE_STYLES, ResourceManager::SETSTRONGDC_STYLES },
+	{ IDC_BACK_COLOR, ResourceManager::SETSTRONGDC_BACK_COLOR },
+	{ IDC_TEXT_COLOR, ResourceManager::SETSTRONGDC_TEXT_COLOR },
+	{ IDC_TEXT_STYLE, ResourceManager::SETSTRONGDC_TEXT_STYLE },
+	{ IDC_DEFAULT_STYLES, ResourceManager::SETSTRONGDC_DEFAULT_STYLE },
+	{ IDC_BLACK_AND_WHITE, ResourceManager::SETSTRONGDC_BLACK_WHITE },
+	{ IDC_BOLD_AUTHOR_MESS, ResourceManager::SETSTRONGDC_BOLD },
+	{ IDC_STRONGDC_PREVIEW, ResourceManager::SETSTRONGDC_PREVIEW },
 	{ IDC_SELTEXT, ResourceManager::SETTINGS_SELECT_TEXT_FACE },
 	{ IDC_RESET_TAB_COLOR, ResourceManager::SETTINGS_RESET },
 	{ IDC_SELECT_TAB_COLOR, ResourceManager::SETTINGS_SELECT_COLOR },
@@ -38,7 +38,7 @@ PropPage::Item PropPageTextStyles::items[] = {
 PropPageTextStyles::clrs PropPageTextStyles::colours[] = {
 	{ResourceManager::SETTINGS_SELECT_WINDOW_COLOR,	SettingsManager::BACKGROUND_COLOR, 0},
 	{ResourceManager::SETTINGS_COLOR_ALTERNATE,	SettingsManager::SEARCH_ALTERNATE_COLOUR, 0},
-	{ResourceManager::SETCZDC_ERROR_COLOR,	SettingsManager::ERROR_COLOR, 0},
+	{ResourceManager::SETSTRONGDC_ERROR_COLOR,	SettingsManager::ERROR_COLOR, 0},
 	{ResourceManager::PROGRESS_BACK,	SettingsManager::PROGRESS_BACK_COLOR, 0},
 	{ResourceManager::PROGRESS_COMPRESS,	SettingsManager::PROGRESS_COMPRESS_COLOR, 0},
 	{ResourceManager::PROGRESS_SEGMENT,	SettingsManager::PROGRESS_SEGMENT_COLOR, 0},
@@ -113,12 +113,12 @@ LRESULT PropPageTextStyles::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARA
 	this, settings, "Operator", "Operator",
 	SettingsManager::TEXT_OP_BACK_COLOR, SettingsManager::TEXT_OP_FORE_COLOR, 
 	SettingsManager::TEXT_OP_BOLD, SettingsManager::TEXT_OP_ITALIC );
-
+	//RSX++
 	TextStyles[ TS_PROTECTED ].Init( 
 	this, settings, "Protected", "Protected User",
 	SettingsManager::TEXT_PROTECTED_BACK_COLOR, SettingsManager::TEXT_PROTECTED_FORE_COLOR, 
 	SettingsManager::TEXT_PROTECTED_BOLD, SettingsManager::TEXT_PROTECTED_ITALIC );
-
+	//END
 	for ( int i = 0; i < TS_LAST; i++ ) {
 		TextStyles[ i ].LoadSettings();
 		_tcscpy(TextStyles[i].szFaceName, m_Font.lfFaceName );
@@ -142,8 +142,8 @@ LRESULT PropPageTextStyles::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARA
 	//RSX++
 	ctrlStyles.Attach(GetDlgItem(IDC_SELECT_STYLES));
 	ctrlStyles.AddString(_T("Current"));
-	ctrlStyles.AddString(CTSTRING(SETCZDC_DEFAULT_STYLE));
-	ctrlStyles.AddString(CTSTRING(SETCZDC_BLACK_WHITE));
+	ctrlStyles.AddString(CTSTRING(SETSTRONGDC_DEFAULT_STYLE));
+	ctrlStyles.AddString(CTSTRING(SETSTRONGDC_BLACK_WHITE));
 	WIN32_FIND_DATA data;
 	HANDLE hFind;
 	hFind = FindFirstFile(Text::toT(Util::getDataPath() + "Styles\\*.xml").c_str(), &data);

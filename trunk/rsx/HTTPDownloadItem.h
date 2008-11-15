@@ -35,7 +35,11 @@ public:
 	HTTPDownloadItem(const CallBack& cb);
 	~HTTPDownloadItem() throw();
 
-	void startDownload(const string& aUrl, bool useCoral = true) { c->downloadFile(aUrl, useCoral); }
+	void startDownload(const string& aUrl, bool useCoral = true) {
+		if(!useCoral)
+			c->setCoralizeState(HttpConnection::CST_NOCORALIZE);
+		c->downloadFile(aUrl);
+	}
 	bool idle() const { return _idle; }
 private:
 	void on(HttpConnectionListener::Complete, HttpConnection*, const string&) throw();

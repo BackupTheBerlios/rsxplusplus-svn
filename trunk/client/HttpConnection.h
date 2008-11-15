@@ -48,7 +48,7 @@ public:
 class HttpConnection : BufferedSocketListener, public Speaker<HttpConnectionListener>
 {
 public:
-	void downloadFile(const string& aUrl, bool UseCoral = true);
+	void downloadFile(const string& aUrl);
 	HttpConnection() : ok(false), port(80), size(-1), moved302(false), coralizeState(CST_DEFAULT), socket(NULL) { }
 	~HttpConnection() throw() {
 		if(socket) {
@@ -56,7 +56,10 @@ public:
 			BufferedSocket::putSocket(socket);
 		}
 	}
-
+	
+	enum CoralizeStates {CST_DEFAULT, CST_CONNECTED, CST_NOCORALIZE};
+	void setCoralizeState(CoralizeStates _cor) { coralizeState = _cor; }
+	
 private:
 
 	HttpConnection(const HttpConnection&);
@@ -70,7 +73,6 @@ private:
 	int64_t size;
 	bool moved302;
 
-	enum CoralizeStates {CST_DEFAULT, CST_CONNECTED, CST_NOCORALIZE};
 	CoralizeStates coralizeState;
 
 	BufferedSocket* socket;
@@ -93,5 +95,5 @@ private:
 
 /**
  * @file
- * $Id: HttpConnection.h 399 2008-07-06 19:48:02Z BigMuscle $
+ * $Id: HttpConnection.h 417 2008-08-05 20:37:18Z BigMuscle $
  */

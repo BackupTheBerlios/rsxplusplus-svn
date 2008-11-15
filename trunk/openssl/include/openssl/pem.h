@@ -133,6 +133,7 @@ extern "C" {
 #define PEM_STRING_ECDSA_PUBLIC "ECDSA PUBLIC KEY"
 #define PEM_STRING_ECPARAMETERS "EC PARAMETERS"
 #define PEM_STRING_ECPRIVATEKEY	"EC PRIVATE KEY"
+#define PEM_STRING_CMS		"CMS"
 
   /* Note that this structure is initialised by PEM_SealInit and cleaned up
      by PEM_SealFinal (at least for now) */
@@ -358,16 +359,16 @@ int PEM_write_bio_##name(BIO *bp, type *x, const EVP_CIPHER *enc, \
 #else
 
 #define DECLARE_PEM_read_fp(name, type) \
-	type * __cdecl PEM_read_##name(FILE *fp, type **x, pem_password_cb *cb, void *u);
+	type *PEM_read_##name(FILE *fp, type **x, pem_password_cb *cb, void *u);
 
 #define DECLARE_PEM_write_fp(name, type) \
-	int __cdecl PEM_write_##name(FILE *fp, type *x);
+	int PEM_write_##name(FILE *fp, type *x);
 
 #define DECLARE_PEM_write_fp_const(name, type) \
-	int __cdecl PEM_write_##name(FILE *fp, const type *x);
+	int PEM_write_##name(FILE *fp, const type *x);
 
 #define DECLARE_PEM_write_cb_fp(name, type) \
-	int __cdecl PEM_write_##name(FILE *fp, type *x, const EVP_CIPHER *enc, \
+	int PEM_write_##name(FILE *fp, type *x, const EVP_CIPHER *enc, \
 	     unsigned char *kstr, int klen, pem_password_cb *cb, void *u);
 
 #endif

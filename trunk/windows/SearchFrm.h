@@ -259,13 +259,13 @@ public:
 		return 0;
 	}
 	
-	static const TStringList& getLastSearches() { return lastSearches; }
+	static const std::set<tstring>& getLastSearches() { return lastSearches; }
 	
 private:
 	class SearchInfo;
 	
 public:	
-	typedef TypedTreeListViewCtrl<SearchInfo, IDC_RESULTS, TTHValue, TTHValue::PtrHash, TTHValue::PtrHash> SearchInfoList;
+	typedef TypedTreeListViewCtrl<SearchInfo, IDC_RESULTS, TTHValue, hash<TTHValue*>, equal_to<TTHValue*>> SearchInfoList;
 	SearchInfoList& getUserList() { return ctrlResults; }
 
 private:
@@ -570,7 +570,7 @@ private:
 	
 	CriticalSection cs;
 
-	static TStringList lastSearches;
+	static std::set<tstring> lastSearches;
 	size_t droppedResults;
 
 	bool closed;
@@ -624,6 +624,6 @@ private:
 
 /**
  * @file
- * $Id: SearchFrm.h 398 2008-07-05 20:54:25Z BigMuscle $
+ * $Id: SearchFrm.h 414 2008-08-01 19:16:45Z BigMuscle $
  */
 

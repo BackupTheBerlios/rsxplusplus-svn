@@ -253,11 +253,11 @@ private:
 
 			if(checkOnConnect) {
 				if(checkClients && !checkFilelists)
-					client->p_addHubLine("*** Checking started (Clients)", 3);
+					client->addHubLine("*** Checking started (Clients)", 3);
 				else if(!checkClients && checkFilelists)
-					client->p_addHubLine("*** Checking started (FileLists)", 3);
+					client->addHubLine("*** Checking started (FileLists)", 3);
 				else if(checkClients && checkFilelists)
-					client->p_addHubLine("*** Checking started (Clients & FileLists)", 3);
+					client->addHubLine("*** Checking started (Clients & FileLists)", 3);
 
 				Thread::sleep(RSXSETTING(CHECK_DELAY) + 1000);
 				checkOnConnect = false;

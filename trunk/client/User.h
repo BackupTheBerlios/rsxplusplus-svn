@@ -28,7 +28,6 @@
 #include "forward.h"
 //RSX++
 #include "TimerManager.h"
-#include "PluginAPI/UserInterface.h"
 //END
 
 namespace dcpp {
@@ -39,13 +38,13 @@ class User : public FastAlloc<User>, public intrusive_ptr_base, public Flags
 public:
 	/** Each flag is set if it's true in at least one hub */
 	enum UserFlags {
-		ONLINE					=  0x01,
-		DCPLUSPLUS				=  0x02,
-		PASSIVE					=  0x04,
-		NMDC					=  0x08,
-		BOT						=  0x10,
-		TLS						=  0x20,	//< Client supports TLS
-		OLD_CLIENT				=  0x40,	//< Can't download - old client
+		ONLINE		= 0x01,
+		DCPLUSPLUS	= 0x02,
+		PASSIVE		= 0x04,
+		NMDC		= 0x08,
+		BOT			= 0x10,
+		TLS			= 0x20,	//< Client supports TLS
+		OLD_CLIENT	= 0x40, //< Can't download - old client
 		NO_ADC_1_0_PROTOCOL		=  0x80,	//< Doesn't support "ADC/1.0" (dc++ <=0.703)
 		NO_ADC_0_10_PROTOCOL	= 0x100,	//< Doesn't support "ADC/0.10"
 		NO_ADCS_0_10_PROTOCOL	= 0x200,	//< Doesn't support "ADCS/0.10"
@@ -95,6 +94,7 @@ public:
 		FIREBALL	= 0x08,
 		TLS			= 0x10
 	};
+	
 	Identity() { resetCounters(); }
 	Identity(const UserPtr& ptr, uint32_t aSID) : user(ptr) { setSID(aSID); resetCounters(); }
 	Identity(const Identity& rhs) { *this = rhs; } // Use operator= since we have to lock before reading...
@@ -225,7 +225,7 @@ private:
 class NmdcHub;
 #include "UserInfoBase.h"
 
-class OnlineUser : public FastAlloc<OnlineUser>, public intrusive_ptr_base, public UserInfoBase, public iOnlineUser {
+class OnlineUser : public FastAlloc<OnlineUser>, public intrusive_ptr_base, public UserInfoBase {
 public:
 	enum {
 		COLUMN_FIRST,
@@ -254,8 +254,9 @@ public:
 		COLUMN_LAST
 	};
 
-	//typedef vector<OnlineUser*> List;
-	//typedef List::const_iterator Iter;
+	struct Hash {
+		size_t operator()(const OnlineUserPtr& x) const { return ((size_t)(&(*x)))/sizeof(OnlineUser); }
+	};
 
 	OnlineUser(const UserPtr& ptr, Client& client_, uint32_t sid_);
 	~OnlineUser() { }
@@ -321,17 +322,6 @@ public:
 	}
 	bool getChecked(bool filelist = false, bool checkComplete = true);
 
-	/** iOnlineUser functions **/
-	rString __cdecl p_get(const char* name) const { return getIdentity().get(name).c_str(); }
-	void __cdecl p_set(const char* name, const rString& value) { getIdentity().set(name, value.c_str()); }
-	bool __cdecl p_isClientType(int mode) const;
-	bool __cdecl p_isTcpActive() const { return identity.isTcpActive(); }
-	void __cdecl p_sendPM(const rString& aMsg, bool thirdPerson = false);
-	iClient* __cdecl p_getUserClient();
-	void __cdecl p_inc() { inc(); }
-	void __cdecl p_dec() { dec(); }
-	//END
-
 	GETSET(Identity, identity, Identity);
 private:
 	friend class NmdcHub;
@@ -348,5 +338,5 @@ private:
 
 /**
  * @file
- * $Id: User.h 406 2008-07-14 20:25:22Z BigMuscle $
+ * $Id: User.h 421 2008-09-03 17:20:45Z BigMuscle $
  */

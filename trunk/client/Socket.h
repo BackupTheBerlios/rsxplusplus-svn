@@ -130,7 +130,7 @@ public:
 	 * @return Number of bytes read, 0 if disconnected and -1 if the call would block.
 	 * @throw SocketException On any failure.
 	 */	
-	virtual int read(void* aBuffer, int aBufLen, string &aIP) throw(SocketException);
+	virtual int read(void* aBuffer, int aBufLen, sockaddr_in& remote) throw(SocketException);
 	/**
 	 * Reads data until aBufLen bytes have been read or an error occurs.
 	 * If the socket is closed, or the timeout is reached, the number of bytes read 
@@ -255,5 +255,5 @@ private:
 
 /**
  * @file
- * $Id: Socket.h 404 2008-07-13 17:08:09Z BigMuscle $
+ * $Id: Socket.h 413 2008-07-30 09:32:53Z BigMuscle $
  */

@@ -39,6 +39,7 @@ public:
 			delete this;
 		}
 	}
+
 	bool unique() const throw() {
 		return (ref == 1);
 	}
@@ -68,5 +69,5 @@ struct DeleteFunction {
 
 /**
  * @file
- * $Id: Pointer.h 382 2008-03-09 10:40:22Z BigMuscle $
+ * $Id: Pointer.h 412 2008-07-23 22:35:40Z BigMuscle $
  */

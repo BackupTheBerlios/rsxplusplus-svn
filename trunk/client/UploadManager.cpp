@@ -43,7 +43,7 @@ static const string UPLOAD_AREA = "Uploads";
 
 UploadManager::UploadManager() throw() : running(0), extra(0), lastGrant(0), mUploadLimit(0), 
 	mBytesSpokenFor(0), mCycleTime(0), mByteSlice(0), mThrottleEnable(BOOLSETTING(THROTTLE_ENABLE)), 
-	m_iHighSpeedStartTick(0), isFireball(false), isFileServer(false) {	
+	m_iHighSpeedStartTick(0), isFireball(false), isFileServer(false), extraPartial(0) {	
 	ClientManager::getInstance()->addListener(this);
 	TimerManager::getInstance()->addListener(this);
 }
@@ -262,7 +262,8 @@ ok:
 	Lock l(cs);
 
 	bool extraSlot = false;
-
+	bool partialSlot = false;
+	
 	if(!aSource.isSet(UserConnection::FLAG_HASSLOT)) {
 		bool hasReserved = (reservedSlots.find(aSource.getUser()) != reservedSlots.end());
 		bool isFavorite = FavoriteManager::getInstance()->hasSlot(aSource.getUser());
@@ -271,8 +272,12 @@ ok:
 		if(!(hasReserved || isFavorite || getAutoSlot() || hasFreeSlot)) {
 			bool supportsFree = aSource.isSet(UserConnection::FLAG_SUPPORTS_MINISLOTS);
 			bool allowedFree = aSource.isSet(UserConnection::FLAG_HASEXTRASLOT) || aSource.isSet(UserConnection::FLAG_OP) || getFreeExtraSlots() > 0;
+			bool partialFree = partial && extraPartial < SETTING(EXTRA_PARTIAL_SLOTS);
+			
 			if(free && supportsFree && allowedFree) {
 				extraSlot = true;
+			} else if(partialFree) {
+				partialSlot = true;
 			} else {
 				delete is;
 				aSource.maxedOut(addFailedUpload(aSource.getUser(), sourceFile, aStartPos, fileSize));
@@ -327,7 +332,9 @@ ok:
 	throttleSetup();
 
 	if(!aSource.isSet(UserConnection::FLAG_HASSLOT)) {
-		if(extraSlot) {
+		if(partialSlot) {
+			extraPartial++;
+		} else if(extraSlot) {
 			if(!aSource.isSet(UserConnection::FLAG_HASEXTRASLOT)) {
 				aSource.setFlag(UserConnection::FLAG_HASEXTRASLOT);
 				extra++;
@@ -569,7 +576,7 @@ void UploadManager::removeConnection(UserConnection* aSource) {
 	if(aSource->isSet(UserConnection::FLAG_HASSLOT)) {
 		running--;
 		aSource->unsetFlag(UserConnection::FLAG_HASSLOT);
-	} 
+	}
 	if(aSource->isSet(UserConnection::FLAG_HASEXTRASLOT)) {
 		extra--;
 		aSource->unsetFlag(UserConnection::FLAG_HASEXTRASLOT);
@@ -841,5 +848,5 @@ void UploadManager::abortUpload(const string& aFile, bool waiting){
 
 /**
  * @file
- * $Id: UploadManager.cpp 395 2008-06-30 12:11:32Z BigMuscle $
+ * $Id: UploadManager.cpp 414 2008-08-01 19:16:45Z BigMuscle $
  */

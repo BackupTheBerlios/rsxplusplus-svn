@@ -17,13 +17,13 @@
  */
 
 #define APPNAME "RSX++"
-#define VERSIONSTRING "1.01"
-#define VERSIONFLOAT 1.011
+#define VERSIONSTRING "1.1"
+#define VERSIONFLOAT 1.11
 
 #define DCVERSIONSTRING "0.707"
 #define DCVERSIONFLOAT 0.7071
 
-#define SVNVERSION "svn409"
+#define SVNVERSION "svn423"
 
 #define SVN_REVISION $WCREV$
 

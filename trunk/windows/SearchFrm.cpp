@@ -31,7 +31,7 @@
 #include "../client/TimerManager.h"
 #include "../client/SearchManager.h"
 
-TStringList SearchFrame::lastSearches;
+std::set<tstring> SearchFrame::lastSearches;
 
 int SearchFrame::columnIndexes[] = { COLUMN_FILENAME, COLUMN_HITS, COLUMN_NICK, COLUMN_TYPE, COLUMN_SIZE,
 	COLUMN_PATH, COLUMN_SLOTS, COLUMN_CONNECTION, COLUMN_HUB, COLUMN_EXACT_SIZE, COLUMN_IP, COLUMN_TTH };
@@ -63,7 +63,7 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 
 	ctrlSearchBox.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | 
 		WS_VSCROLL | CBS_DROPDOWN | CBS_AUTOHSCROLL, 0);
-	for(TStringIter i = lastSearches.begin(); i != lastSearches.end(); ++i) {
+	for(std::set<tstring>::const_iterator i = lastSearches.begin(); i != lastSearches.end(); ++i) {
 		ctrlSearchBox.InsertString(0, i->c_str());
 	}
 	searchBoxContainer.SubclassWindow(ctrlSearchBox.m_hWnd);
@@ -89,6 +89,7 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 
 	ctrlFiletype.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | 
 		WS_HSCROLL | WS_VSCROLL | CBS_DROPDOWNLIST | CBS_HASSTRINGS | CBS_OWNERDRAWFIXED, WS_EX_CLIENTEDGE, IDC_FILETYPES);
+
 	ResourceLoader::LoadImageList(IDP_SEARCH_TYPES, searchTypes, 16, 16);
 	fileTypeContainer.SubclassWindow(ctrlFiletype.m_hWnd);
 
@@ -247,7 +248,7 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	UpdateLayout();
 
 	if(!initialString.empty()) {
-		lastSearches.push_back(initialString);
+		lastSearches.insert(initialString);
 		ctrlSearchBox.InsertString(0, initialString.c_str());
 		ctrlSearchBox.SetCurSel(0);
 		ctrlMode.SetCurSel(initialMode);
@@ -394,7 +395,7 @@ void SearchFrame::onEnter() {
 		SettingsManager::getInstance()->set(SettingsManager::FREE_SLOTS_DEFAULT, onlyFree);
 
 	int n = ctrlHubs.GetItemCount();
-	for(int i = 0; i < n; i++) {
+	for(int i = 1; i < n; i++) {
 		if(ctrlHubs.GetCheckState(i)) {
 			clients.push_back(Text::fromT(ctrlHubs.getItemData(i)->url));
 		}
@@ -486,7 +487,7 @@ void SearchFrame::onEnter() {
 		while(lastSearches.size() > (TStringList::size_type)i) {
 			lastSearches.erase(lastSearches.begin());
 		}
-		lastSearches.push_back(s);
+		lastSearches.insert(s);
 		
 		// update history in quick search box
 		MainFrame::getMainFrame()->updateQuickSearches();
@@ -657,7 +658,7 @@ void SearchFrame::SearchInfo::getList() {
 
 void SearchFrame::SearchInfo::browseList() {
 	try {
-		QueueManager::getInstance()->addPfs(sr->getUser(), Text::fromT(getText(COLUMN_PATH)));
+		QueueManager::getInstance()->addList(sr->getUser(), QueueItem::FLAG_CLIENT_VIEW | QueueItem::FLAG_PARTIAL_LIST, Text::fromT(getText(COLUMN_PATH)));
 	} catch(const Exception&) {
 		// Ignore for now...
 	}
@@ -1303,17 +1304,17 @@ LRESULT SearchFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, 
 void SearchFrame::initHubs() {
 	ctrlHubs.insertItem(new HubInfo(Util::emptyStringT, TSTRING(ONLY_WHERE_OP), false), 0);
 	ctrlHubs.SetCheckState(0, false);
-
+	
 	ClientManager* clientMgr = ClientManager::getInstance();
 	clientMgr->lock();
 	clientMgr->addListener(this);
 
 	const Client::List& clients = clientMgr->getClients();
 
-	Client::List::const_iterator it;
-	Client::List::const_iterator endIt = clients.end();
+	Client::Iter it;
+	Client::Iter endIt = clients.end();
 	for(it = clients.begin(); it != endIt; ++it) {
-		Client* client = *it;
+		Client* client = it->second;
 		if (!client->isConnected())
 			continue;
 
@@ -1686,5 +1687,5 @@ void SearchFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/) throw() 
 
 /**
  * @file
- * $Id: SearchFrm.cpp 398 2008-07-05 20:54:25Z BigMuscle $
+ * $Id: SearchFrm.cpp 419 2008-08-18 07:38:25Z BigMuscle $
  */

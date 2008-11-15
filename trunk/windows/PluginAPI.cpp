@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#include "stdafx.h"
+#include "stdafx.h"/*
 #include "../client/DCPlusPlus.h"
 #include "../client/PluginAPI/PluginAPI.h"
 #include "../client/PluginsManager.h"
@@ -171,7 +171,7 @@ void PluginAPI::AddHubFeature(const rString& feat, bool isAdc) {
 }
 
 } // namespace dcpp
-
+*/
 /**
  * @file
  * $Id$

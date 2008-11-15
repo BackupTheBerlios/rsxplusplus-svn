@@ -190,7 +190,7 @@ LRESULT FakeDetect::onInfoTip(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/) 
 
 		tstring infoTip = _T("Item: ") + di->itemName +
 			_T("\nAction: ") + cRaw.getActionName(di->rawId) +
-			_T("\nDisipay cheat: ") + (di->displayCheat ? CTSTRING(YES) : CTSTRING(NO));
+			_T("\nDisplay cheat: ") + (di->displayCheat ? CTSTRING(YES) : CTSTRING(NO));
 		//@todo write and add cheat descriptions...
 		_tcscpy(lpnmtdi->pszText, infoTip.c_str());
 	}

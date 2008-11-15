@@ -146,6 +146,7 @@ private:
 
 		Socket sock;
 		uint16_t port;
+		string ip;
 		bool secure;
 		bool die;
 	};
@@ -216,5 +217,5 @@ private:
 
 /**
  * @file
- * $Id: ConnectionManager.h 398 2008-07-05 20:54:25Z BigMuscle $
+ * $Id: ConnectionManager.h 411 2008-07-20 22:39:42Z BigMuscle $
  */

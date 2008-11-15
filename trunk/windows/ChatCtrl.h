@@ -128,7 +128,7 @@ public:
 	LRESULT onMultihubKick(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	//END
 
-	void setClient(Client* pClient) { client = pClient; }
+	//void setClient(Client* pClient) { client = pClient; }
 	void runUserCommand(UserCommand& uc);
 
 	void AdjustTextSize();
@@ -142,12 +142,11 @@ public:
 		// We wanna control the scrolling...
 	}
 
+	GETSET(Client*, client, Client);
 	//RSX++
-	Client* getClient() const { return client; }
-	tstring getMyNick() const { return _myNick; }
+	const tstring& getMyNick() const { return _myNick; }
 	void updateMyNick() { _myNick = Text::toT(client ? client->getCurrentNick() : SETTING(NICK)); }
 	//END
-
 private:
 	tstring _myNick;
 
@@ -159,7 +158,7 @@ private:
 	void AppendTextOnly(const tstring& sMyNick, const TCHAR* sMsg, CHARFORMAT2& cf, bool isMyMessage, const tstring& sAuthor, bool useHL = true);
 	void scrollToEnd();
 
-    Client* client;
+    //Client* client;
 
 	OMenu copyMenu;
 

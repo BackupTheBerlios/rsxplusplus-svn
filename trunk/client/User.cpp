@@ -147,19 +147,19 @@ bool Identity::supports(const string& name) const {
 string Identity::getConnection() const {
 	string connection = get("US");
 	if(connection.find_first_not_of("0123456789.,") == string::npos) {
-		int us = Util::toInt(connection);
+		double us = Util::toDouble(connection);
 		if(us > 0) {
-			if(us >= 1024*1024) {
-				return Util::toString(us / 1024 / 1024);
-			} else {
-				char buf[16];
-				snprintf(buf, sizeof(buf), "%.3g", (double)us / 1024 / 1024);
+			char buf[16];
+			if(us < 1024*1024) {
+				snprintf(buf, sizeof(buf), "%.3g", us / 1024 / 1024);
 
 				char *cp;
 				if( (cp=strchr(buf, ',')) != NULL) *cp='.';
-
-				return buf;
+			} else {
+				snprintf(buf, sizeof(buf), "%d", static_cast<int>(us / 1024 / 1024));
 			}
+
+			return buf;
 		} else {
 			return connection;
 		}
@@ -808,27 +808,7 @@ string Identity::checkSlotsCount(OnlineUser& ou, int realSlots) {
 	}
 	return report;
 }
-// iOnlineUser functions
-void OnlineUser::p_sendPM(const rString& aMsg, bool thirdPerson /*= false*/) {
-	ClientManager::getInstance()->privateMessage(identity.getUser(), aMsg.c_str(), thirdPerson);
-}
 
-bool OnlineUser::p_isClientType(int mode) const {
-	if(mode == Identity::CT_OP)
-		return identity.isOp();
-	else if(mode == Identity::CT_BOT)
-		return identity.isBot();
-	else if(mode == Identity::CT_HUB)
-		return identity.isHub();
-
-	int type = Util::toInt(identity.get("CT"));
-	return (type & mode) == mode;
-}
-
-iClient* OnlineUser::p_getUserClient() { 
-	return &getClient(); 
-}
-//END
 int OnlineUser::compareItems(const OnlineUser* a, const OnlineUser* b, uint8_t col)  {
 	if(col == COLUMN_NICK) {
 		bool a_isOp = a->getIdentity().isOp(),

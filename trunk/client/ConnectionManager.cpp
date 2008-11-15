@@ -152,7 +152,7 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) throw()
 				} 
 				
 				if(	cqi->getUser()->isSet(User::PASSIVE) &&
-					!ClientManager::getInstance()->isActive(ClientManager::getInstance()->getHubUrl(cqi->getUser()))) {
+					!ClientManager::getInstance()->isActive(Util::emptyString)) { // TODO: get hub url
 					passiveUsers.push_back(cqi->getUser());
 					removed.push_back(cqi);
 					continue;
@@ -172,7 +172,7 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) throw()
 
 					if(cqi->getState() == ConnectionQueueItem::WAITING) {
 						if(startDown) {
-							cqi->setState(ConnectionQueueItem::CONNECTING);
+							cqi->setState(ConnectionQueueItem::CONNECTING);							
 							ClientManager::getInstance()->connect(cqi->getUser(), cqi->getToken());
 							fire(ConnectionManagerListener::StatusChanged(), cqi);
 							attempts++;
@@ -213,11 +213,12 @@ void ConnectionManager::on(TimerManagerListener::Minute, uint64_t aTick) throw()
 	}
 }
 
-static const uint32_t FLOOD_TRIGGER = 10000;
-static const uint32_t FLOOD_ADD = 1000;
+static const uint32_t FLOOD_TRIGGER = 20000;
+static const uint32_t FLOOD_ADD = 2000;
 
-ConnectionManager::Server::Server(bool secure_, uint16_t aPort, const string& ip /* = "0.0.0.0" */) : port(0), secure(secure_), die(false) {
+ConnectionManager::Server::Server(bool secure_, uint16_t aPort, const string& ip_ /* = "0.0.0.0" */) : port(0), secure(secure_), die(false) {
 	sock.create();
+	ip = ip_;
 	sock.setSocketOpt(SO_REUSEADDR, 1);
 	port = sock.bind(aPort, ip);
 	sock.listen();
@@ -228,14 +229,43 @@ ConnectionManager::Server::Server(bool secure_, uint16_t aPort, const string& ip
 static const uint32_t POLL_TIMEOUT = 250;
 
 int ConnectionManager::Server::run() throw() {
+	while(!die) {
 	try {
+			while(!die) {
+				if(sock.wait(POLL_TIMEOUT, Socket::WAIT_READ) == Socket::WAIT_READ) {
+					ConnectionManager::getInstance()->accept(sock, secure);
+				}
+			}
+		} catch(const Exception& e) {
+			dcdebug("ConnectionManager::Server::run Error: %s\n", e.getError().c_str());
+		}			
+
+		bool failed = false;
 		while(!die) {
-			if(sock.wait(POLL_TIMEOUT, Socket::WAIT_READ) == Socket::WAIT_READ) {
-				ConnectionManager::getInstance()->accept(sock, secure);
+			try {
+				sock.disconnect();
+				sock.create();
+				sock.bind(port, ip);
+				sock.listen();
+				if(failed) {
+					LogManager::getInstance()->message("Connectivity restored"); // TODO: translate
+					failed = false;
+				}
+				break;
+			} catch(const SocketException& e) {
+				dcdebug("ConnectionManager::Server::run Stopped listening: %s\n", e.getError().c_str());
+
+				if(!failed) {
+					LogManager::getInstance()->message("Connectivity error: " + e.getError());
+					failed = true;
+				}
+
+				// Spin for 60 seconds
+				for(int i = 0; i < 60 && !die; ++i) {
+					Thread::sleep(1000);
+				}
 			}
 		}
-	} catch(const Exception& e) {
-		LogManager::getInstance()->message(STRING(LISTENER_FAILED) + e.getError());
 	}
 	return 0;
 }
@@ -423,7 +453,7 @@ void ConnectionManager::on(AdcCommand::STA, UserConnection*, const AdcCommand& /
 void ConnectionManager::on(UserConnectionListener::Connected, UserConnection* aSource) throw() {
 	if(aSource->isSecure() && !aSource->isTrusted() && !BOOLSETTING(ALLOW_UNTRUSTED_CLIENTS)) {
 		putConnection(aSource);
-		LogManager::getInstance()->message(STRING(CERTIFICATE_NOT_TRUSTED));
+		QueueManager::getInstance()->removeSource(aSource->getUser(), QueueItem::Source::FLAG_UNTRUSTED);
 		return;
 	}
 
@@ -522,13 +552,9 @@ void ConnectionManager::on(UserConnectionListener::CLock, UserConnection* aSourc
 		// Alright, we have an extended protocol, set a user flag for this user and refresh his info...
 		if( (aPk.find("DCPLUSPLUS") != string::npos) && aSource->getUser() && !aSource->getUser()->isSet(User::DCPLUSPLUS)) {
 			aSource->getUser()->setFlag(User::DCPLUSPLUS);
-			ClientManager::getInstance()->updateUser(aSource->getUser());
 		}
 		StringList defFeatures = features;
 		if(BOOLSETTING(COMPRESS_TRANSFERS)) {
-			if(aSource->isSet(UserConnection::FLAG_STEALTH)) {
-				defFeatures.push_back(UserConnection::FEATURE_GET_ZBLOCK);
-			}
 			defFeatures.push_back(UserConnection::FEATURE_ZLIB_GET);
 		}
 
@@ -810,5 +836,5 @@ void ConnectionManager::on(UserConnectionListener::Supports, UserConnection* con
 
 /**
  * @file
- * $Id: ConnectionManager.cpp 405 2008-07-14 11:41:15Z BigMuscle $
+ * $Id: ConnectionManager.cpp 413 2008-07-30 09:32:53Z BigMuscle $
  */

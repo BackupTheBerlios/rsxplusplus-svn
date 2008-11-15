@@ -27,7 +27,19 @@
 #include "LogManager.h"
 #include "ClientManager.h"
 
-#include <openssl/bn.h>
+#ifndef YASSL_VERSION
+# include <openssl/bn.h>
+# ifdef _DEBUG
+#  pragma comment(lib, "libeay32d.lib")
+#  pragma comment(lib, "ssleay32d.lib")
+# else
+#  pragma comment(lib, "libeay32.lib")
+#  pragma comment(lib, "ssleay32.lib")
+# endif
+#else
+# pragma comment(lib, "taocrypt.lib")
+# pragma comment(lib, "yassl.lib")
+#endif
 
 #ifdef _WIN32
 #include "../bzip2/bzlib.h"
@@ -37,7 +49,9 @@
 
 namespace dcpp {
 
+#ifndef YASSL_VERSION
 CriticalSection* CryptoManager::cs = NULL;
+#endif
 
 CryptoManager::CryptoManager() 
 :	
@@ -45,10 +59,12 @@ CryptoManager::CryptoManager()
 	lock("EXTENDEDPROTOCOLABCABCABCABCABCABC"), 
 	pk("DCPLUSPLUS" DCVERSIONSTRING "ABCABC")
 {
-	SSL_library_init();
-	
+#ifndef YASSL_VERSION
 	cs = new CriticalSection[CRYPTO_num_locks()];
 	CRYPTO_set_locking_callback(locking_function);
+#endif
+	
+	SSL_library_init();
 	
 	clientContext.reset(SSL_CTX_new(TLSv1_client_method()));
 	clientVerContext.reset(SSL_CTX_new(TLSv1_client_method()));
@@ -130,8 +146,10 @@ CryptoManager::CryptoManager()
 }
 
 CryptoManager::~CryptoManager() {
+#ifndef YASSL_VERSION
 	CRYPTO_set_locking_callback(NULL);
 	delete[] cs;
+#endif
 }
 
 bool CryptoManager::TLSOk() const throw() { 
@@ -147,6 +165,7 @@ void CryptoManager::generateCertificate() throw(CryptoException) {
 		throw CryptoException("No certificate file chosen");
 	}
 
+#ifndef YASSL_VERSION
 	ssl::BIGNUM bn(BN_new());
 	ssl::RSA rsa(RSA_new());
 	ssl::EVP_PKEY pkey(EVP_PKEY_new());
@@ -203,6 +222,7 @@ void CryptoManager::generateCertificate() throw(CryptoException) {
 		PEM_write_X509(f, x509ss);
 		fclose(f);
 	}
+#endif
 }
 
 void CryptoManager::loadCertificates() throw() {
@@ -269,12 +289,12 @@ void CryptoManager::loadCertificates() throw() {
 	certs.insert(certs.end(), certs2.begin(), certs2.end());
 
 	for(StringIter i = certs.begin(); i != certs.end(); ++i) {
-			if(
+		if(
 			SSL_CTX_load_verify_locations(clientContext, i->c_str(), NULL) != SSL_SUCCESS ||
 			SSL_CTX_load_verify_locations(clientVerContext, i->c_str(), NULL) != SSL_SUCCESS ||
 			SSL_CTX_load_verify_locations(serverContext, i->c_str(), NULL) != SSL_SUCCESS ||
 			SSL_CTX_load_verify_locations(serverVerContext, i->c_str(), NULL) != SSL_SUCCESS
-			) {
+		) {
 			LogManager::getInstance()->message("Failed to load trusted certificate from " + *i);
 		}
 	}
@@ -288,6 +308,7 @@ bool CryptoManager::checkCertificate() throw() {
 		return false;
 	}
 
+#ifndef YASSL_VERSION
 	X509* tmpx509 = NULL;
 	PEM_read_X509(f, &tmpx509, NULL, NULL);
 	fclose(f);
@@ -330,6 +351,7 @@ bool CryptoManager::checkCertificate() throw() {
 			return false;
 		}
 	}
+#endif	
 	return true;
 }
 
@@ -339,7 +361,6 @@ SSLSocket* CryptoManager::getClientSocket(bool allowUntrusted) throw(SocketExcep
 SSLSocket* CryptoManager::getServerSocket(bool allowUntrusted) throw(SocketException) {
 	return new SSLSocket(allowUntrusted ? serverContext : serverVerContext);
 }
-
 
 void CryptoManager::decodeBZ2(const uint8_t* is, unsigned int sz, string& os) throw (CryptoException) {
 	bz_stream bs = { 0 };
@@ -438,7 +459,8 @@ string CryptoManager::makeKey(const string& aLock) {
 	return keySubst(&temp[0], aLock.length(), extra);
 }
 
-void __cdecl CryptoManager::locking_function(int mode, int n, const char * /*file*/, int /*line*/)
+#ifndef YASSL_VERSION
+void CryptoManager::locking_function(int mode, int n, const char *file, int line)
 {
     if (mode & CRYPTO_LOCK) {
         cs[n].enter();
@@ -446,10 +468,11 @@ void __cdecl CryptoManager::locking_function(int mode, int n, const char * /*fil
         cs[n].leave();
     }
 }
+#endif
 
 } // namespace dcpp
 
 /**
  * @file
- * $Id: CryptoManager.cpp 404 2008-07-13 17:08:09Z BigMuscle $
+ * $Id: CryptoManager.cpp 414 2008-08-01 19:16:45Z BigMuscle $
  */

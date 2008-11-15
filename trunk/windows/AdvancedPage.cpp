@@ -36,9 +36,9 @@ AdvancedPage::ListItem AdvancedPage::listItems[] = {
 	{ SettingsManager::CLEAR_SEARCH, ResourceManager::SETTINGS_CLEAR_SEARCH },
 	{ SettingsManager::MINIMIZE_ON_STARTUP, ResourceManager::SETTINGS_MINIMIZE_ON_STARTUP },
 	{ SettingsManager::USE_EXTENSION_DOWNTO, ResourceManager::SETTINGS_USE_EXTENSION_DOWNTO },
-	{ SettingsManager::REMOVE_FORBIDDEN, ResourceManager::SETCZDC_REMOVE_FORBIDDEN },
+	{ SettingsManager::REMOVE_FORBIDDEN, ResourceManager::SETSTRONGDC_REMOVE_FORBIDDEN },
 	{ SettingsManager::URL_HANDLER, ResourceManager::SETTINGS_URL_HANDLER },
-	{ SettingsManager::MAGNET_REGISTER, ResourceManager::SETCZDC_MAGNET_URI_HANDLER },
+	{ SettingsManager::MAGNET_REGISTER, ResourceManager::SETSTRONGDC_MAGNET_URI_HANDLER },
 	{ SettingsManager::KEEP_LISTS, ResourceManager::SETTINGS_KEEP_LISTS },
 	{ SettingsManager::AUTO_KICK, ResourceManager::SETTINGS_AUTO_KICK },
 	{ SettingsManager::AUTO_KICK_NO_FAVS, ResourceManager::SETTINGS_AUTO_KICK_NO_FAVS },
@@ -46,7 +46,7 @@ AdvancedPage::ListItem AdvancedPage::listItems[] = {
 	{ SettingsManager::ADLS_BREAK_ON_FIRST, ResourceManager::SETTINGS_ADLS_BREAK_ON_FIRST },
 	{ SettingsManager::COMPRESS_TRANSFERS, ResourceManager::SETTINGS_COMPRESS_TRANSFERS },
 	{ SettingsManager::HUB_USER_COMMANDS, ResourceManager::SETTINGS_HUB_USER_COMMANDS },
-	{ SettingsManager::SEARCH_PASSIVE, ResourceManager::SETCZDC_PASSIVE_SEARCH },
+	{ SettingsManager::SEARCH_PASSIVE, ResourceManager::SETSTRONGDC_PASSIVE_SEARCH },
 	{ SettingsManager::SEND_UNKNOWN_COMMANDS, ResourceManager::SETTINGS_SEND_UNKNOWN_COMMANDS },
 	{ SettingsManager::ADD_FINISHED_INSTANTLY, ResourceManager::ADD_FINISHED_INSTANTLY },
 	{ SettingsManager::USE_CTRL_FOR_LINE_HISTORY, ResourceManager::SETTINGS_USE_CTRL_FOR_LINE_HISTORY },
@@ -57,6 +57,7 @@ AdvancedPage::ListItem AdvancedPage::listItems[] = {
 	{ SettingsManager::SHOW_SHELL_MENU, ResourceManager::SETTINGS_SHOW_SHELL_MENU },
 	{ SettingsManager::MAGNET_ASK, ResourceManager::MAGNET_ASK },
 	{ SettingsManager::CORAL, ResourceManager::CORAL },
+	{ SettingsManager::FAST_HASH, ResourceManager::FAST_HASH },
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
 
@@ -74,5 +75,5 @@ void AdvancedPage::write() {
 
 /**
  * @file
- * $Id: AdvancedPage.cpp 404 2008-07-13 17:08:09Z BigMuscle $
+ * $Id: AdvancedPage.cpp 421 2008-09-03 17:20:45Z BigMuscle $
  */

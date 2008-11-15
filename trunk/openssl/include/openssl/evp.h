@@ -303,6 +303,8 @@ struct env_md_ctx_st
 						* cleaned */
 #define EVP_MD_CTX_FLAG_REUSE		0x0004 /* Don't free up ctx->md_data
 						* in EVP_MD_CTX_cleanup */
+#define EVP_MD_CTX_FLAG_NON_FIPS_ALLOW	0x0008	/* Allow use of non FIPS digest
+						 * in FIPS mode */
 
 struct evp_cipher_st
 	{
@@ -612,7 +614,7 @@ const EVP_MD *EVP_md5(void);
 #endif
 #ifndef OPENSSL_NO_SHA
 const EVP_MD *EVP_sha(void);
-const EVP_MD * __cdecl EVP_sha1(void);
+const EVP_MD *EVP_sha1(void);
 const EVP_MD *EVP_dss(void);
 const EVP_MD *EVP_dss1(void);
 const EVP_MD *EVP_ecdsa(void);
@@ -811,7 +813,7 @@ int 		EVP_PKEY_assign(EVP_PKEY *pkey,int type,char *key);
 
 #ifndef OPENSSL_NO_RSA
 struct rsa_st;
-int __cdecl EVP_PKEY_set1_RSA(EVP_PKEY *pkey,struct rsa_st *key);
+int EVP_PKEY_set1_RSA(EVP_PKEY *pkey,struct rsa_st *key);
 struct rsa_st *EVP_PKEY_get1_RSA(EVP_PKEY *pkey);
 #endif
 #ifndef OPENSSL_NO_DSA
@@ -830,8 +832,8 @@ int EVP_PKEY_set1_EC_KEY(EVP_PKEY *pkey,struct ec_key_st *key);
 struct ec_key_st *EVP_PKEY_get1_EC_KEY(EVP_PKEY *pkey);
 #endif
 
-EVP_PKEY *	__cdecl EVP_PKEY_new(void);
-void		__cdecl EVP_PKEY_free(EVP_PKEY *pkey);
+EVP_PKEY *	EVP_PKEY_new(void);
+void		EVP_PKEY_free(EVP_PKEY *pkey);
 
 EVP_PKEY *	d2i_PublicKey(int type,EVP_PKEY **a, const unsigned char **pp,
 			long length);

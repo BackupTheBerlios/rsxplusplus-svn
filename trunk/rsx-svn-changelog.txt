@@ -1,3 +1,10 @@
+** SVN 110
+ ** fixed stlport bat files
+ ** StrongDC++ SVN merge
+ ** Lua 5.1.4
+ ** removed log message on skipped files in share (makes log huge and spam statusbar)
+ ** removed plugins and scripts support (only for a while)
+
 ** SVN 109
  ** [L#261845] fixed auto refresh and hash speed settings
  ** fixed null character at end of plugin setting in fav hub dlg

@@ -189,6 +189,8 @@ LRESULT TreePropertySheet::onSelChanged(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /* b
 		if(HwndToIndex(GetActivePage()) != page)
 			SetActivePage(page);
 	}
+	
+	ctrlTree.SetFocus();
 	return 0;
 }	
 
@@ -200,5 +202,5 @@ LRESULT TreePropertySheet::onSetCurSel(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lP
 
 /**
 * @file
-* $Id: TreePropertySheet.cpp 392 2008-06-21 21:10:31Z BigMuscle $
+* $Id: TreePropertySheet.cpp 412 2008-07-23 22:35:40Z BigMuscle $
 */

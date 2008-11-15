@@ -52,6 +52,7 @@ LRESULT PrivateFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 	ctrlClient.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | 
 		WS_VSCROLL | ES_AUTOVSCROLL | ES_MULTILINE | ES_NOHIDESEL | ES_READONLY, WS_EX_CLIENTEDGE, IDC_CLIENT);
 	
+	ctrlClientContainer.SubclassWindow(ctrlClient.m_hWnd);
 	ctrlClient.Subclass();
 	ctrlClient.LimitText(0);
 	ctrlClient.SetFont(WinUtil::font);
@@ -63,7 +64,6 @@ LRESULT PrivateFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 		WS_VSCROLL | ES_AUTOHSCROLL | ES_MULTILINE | ES_AUTOVSCROLL, WS_EX_CLIENTEDGE);
 	
 	ctrlMessageContainer.SubclassWindow(ctrlMessage.m_hWnd);
-	ctrlClientContainer.SubclassWindow(ctrlClient.m_hWnd); //RSX++
 
 	ctrlMessage.SetFont(WinUtil::font);
 	ctrlMessage.SetLimitText(9999);
@@ -164,10 +164,10 @@ void PrivateFrame::openWindow(const UserPtr& replyTo, Client* client, const tstr
 		p = new PrivateFrame(replyTo);
 		frames[replyTo] = p;
 		p->CreateEx(WinUtil::mdiClient);
-		
-		if(client)
+		if(client) {
 			p->ctrlClient.setClient(client);
-		p->ctrlClient.updateMyNick(); //RSX++
+			p->ctrlClient.updateMyNick(); //RSX++
+		}
 	} else {
 		p = i->second;
 		if(::IsIconic(p->m_hWnd))
@@ -199,71 +199,92 @@ LRESULT PrivateFrame::onChar(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, BOOL& 
 		}
 		return 0;
 	}
+	
 	switch(wParam) {
-	case VK_RETURN:
-		if( (GetKeyState(VK_SHIFT) & 0x8000) || 
-			(GetKeyState(VK_CONTROL) & 0x8000) || 
-			(GetKeyState(VK_MENU) & 0x8000) ) {
-			bHandled = FALSE;
-		} else {
-			if(uMsg == WM_KEYDOWN) {
-				onEnter();
+		case VK_TAB:
+		{
+			if(GetFocus() == ctrlMessage.m_hWnd)
+			{
+				ctrlClient.SetFocus();
 			}
-		}
-		break;
-	case VK_UP:
-		if ((GetKeyState(VK_CONTROL) & 0x8000) || (GetKeyState(VK_MENU) & 0x8000)) {
-			//scroll up in chat command history
-			//currently beyond the last command?
-			if (curCommandPosition > 0) {
-				//check whether current command needs to be saved
-				if (curCommandPosition == prevCommands.size()) {
-					currentCommand.resize(ctrlMessage.GetWindowTextLength());
-					ctrlMessage.GetWindowText(&currentCommand[0], ctrlMessage.GetWindowTextLength() + 1);
-				}
-				//replace current chat buffer with current command
-				ctrlMessage.SetWindowText(prevCommands[--curCommandPosition].c_str());
+			else
+			{
+				ctrlMessage.SetFocus();
 			}
-		} else {
-			bHandled = FALSE;
-		}
-		break;
-	case VK_DOWN:
-		if ((GetKeyState(VK_CONTROL) & 0x8000) || (GetKeyState(VK_MENU) & 0x8000)) {
-			//scroll down in chat command history
-			//currently beyond the last command?
-			if (curCommandPosition + 1 < prevCommands.size()) {
-				//replace current chat buffer with current command
-				ctrlMessage.SetWindowText(prevCommands[++curCommandPosition].c_str());
-			} else if (curCommandPosition + 1 == prevCommands.size()) {
-				//revert to last saved, unfinished command
-				ctrlMessage.SetWindowText(currentCommand.c_str());
-				++curCommandPosition;
-			}
-		} else {
-			bHandled = FALSE;
-		}
-		break;
-	case VK_HOME:
-		if (!prevCommands.empty() && (GetKeyState(VK_CONTROL) & 0x8000) || (GetKeyState(VK_MENU) & 0x8000)) {
-			curCommandPosition = 0;
-			currentCommand.resize(ctrlMessage.GetWindowTextLength());
-			ctrlMessage.GetWindowText(&currentCommand[0], ctrlMessage.GetWindowTextLength() + 1);
-			ctrlMessage.SetWindowText(prevCommands[curCommandPosition].c_str());
-		} else {
-			bHandled = FALSE;
-		}
-		break;
-	case VK_END:
-		if ((GetKeyState(VK_CONTROL) & 0x8000) || (GetKeyState(VK_MENU) & 0x8000)) {
-			curCommandPosition = prevCommands.size();
-			ctrlMessage.SetWindowText(currentCommand.c_str());
-		} else {
-			bHandled = FALSE;
-		}
-		break;
-	default:
+		}	
+	}
+	
+	// don't handle these keys unless the user is entering a message
+	if (GetFocus() != ctrlMessage.m_hWnd) {
 		bHandled = FALSE;
+		return 0;
+	}	
+	
+	switch(wParam) {
+		case VK_RETURN:
+			if( (GetKeyState(VK_SHIFT) & 0x8000) || 
+				(GetKeyState(VK_CONTROL) & 0x8000) || 
+				(GetKeyState(VK_MENU) & 0x8000) ) {
+				bHandled = FALSE;
+			} else {
+				if(uMsg == WM_KEYDOWN) {
+					onEnter();
+				}
+			}
+			break;
+		case VK_UP:
+			if ((GetKeyState(VK_CONTROL) & 0x8000) || (GetKeyState(VK_MENU) & 0x8000)) {
+				//scroll up in chat command history
+				//currently beyond the last command?
+				if (curCommandPosition > 0) {
+					//check whether current command needs to be saved
+					if (curCommandPosition == prevCommands.size()) {
+						currentCommand.resize(ctrlMessage.GetWindowTextLength());
+						ctrlMessage.GetWindowText(&currentCommand[0], ctrlMessage.GetWindowTextLength() + 1);
+					}
+					//replace current chat buffer with current command
+					ctrlMessage.SetWindowText(prevCommands[--curCommandPosition].c_str());
+				}
+			} else {
+				bHandled = FALSE;
+			}
+			break;
+		case VK_DOWN:
+			if ((GetKeyState(VK_CONTROL) & 0x8000) || (GetKeyState(VK_MENU) & 0x8000)) {
+				//scroll down in chat command history
+				//currently beyond the last command?
+				if (curCommandPosition + 1 < prevCommands.size()) {
+					//replace current chat buffer with current command
+					ctrlMessage.SetWindowText(prevCommands[++curCommandPosition].c_str());
+				} else if (curCommandPosition + 1 == prevCommands.size()) {
+					//revert to last saved, unfinished command
+					ctrlMessage.SetWindowText(currentCommand.c_str());
+					++curCommandPosition;
+				}
+			} else {
+				bHandled = FALSE;
+			}
+			break;
+		case VK_HOME:
+			if (!prevCommands.empty() && (GetKeyState(VK_CONTROL) & 0x8000) || (GetKeyState(VK_MENU) & 0x8000)) {
+				curCommandPosition = 0;
+				currentCommand.resize(ctrlMessage.GetWindowTextLength());
+				ctrlMessage.GetWindowText(&currentCommand[0], ctrlMessage.GetWindowTextLength() + 1);
+				ctrlMessage.SetWindowText(prevCommands[curCommandPosition].c_str());
+			} else {
+				bHandled = FALSE;
+			}
+			break;
+		case VK_END:
+			if ((GetKeyState(VK_CONTROL) & 0x8000) || (GetKeyState(VK_MENU) & 0x8000)) {
+				curCommandPosition = prevCommands.size();
+				ctrlMessage.SetWindowText(currentCommand.c_str());
+			} else {
+				bHandled = FALSE;
+			}
+			break;
+		default:
+			bHandled = FALSE;
 	}
 	return 0;
 }
@@ -287,11 +308,9 @@ void PrivateFrame::onEnter()
 		currentCommand = Util::emptyStringT;
 		//RSX++
 		bool dropMessage = false;
-		if(ctrlClient.getClient() != NULL) {
-			iOnlineUser* iu = ctrlClient.getClient()->p_getUserByNick(ClientManager::getInstance()->getNicks(replyTo->getCID())[0].c_str());
-			if(iu != NULL)
-				dropMessage = PluginsManager::getInstance()->onOutgoingPM(iu, Text::fromT(s));
-		}
+		//if(ctrlClient.getClient() != NULL) {
+		//	dropMessage = PluginsManager::getInstance()->onOutgoingPM(replyTo.get(), Text::fromT(s));
+		//}
 		//END
 		// Process special commands
 		if(s[0] == '/') {
@@ -366,11 +385,16 @@ void PrivateFrame::onEnter()
 }
 
 void PrivateFrame::sendMessage(const tstring& msg, bool thirdPerson) {
-	ClientManager::getInstance()->privateMessage(replyTo, Text::fromT(msg), thirdPerson);
+	OnlineUserPtr ou = ClientManager::getInstance()->findOnlineUser(replyTo->getCID(), ctrlClient.getClient());
+	if(ou != NULL) {
+		ctrlClient.getClient()->privateMessage(ou, Text::fromT(msg), thirdPerson);
+	}
+	//ClientManager::getInstance()->privateMessage(replyTo, Text::fromT(msg), thirdPerson);
 }
 
 LRESULT PrivateFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled) {
 	if(!closed) {
+		//DeleteObject(hEmoticonBmp);
 		ClientManager::getInstance()->removeListener(this);
 		SettingsManager::getInstance()->removeListener(this);
 		closed = true;
@@ -799,5 +823,5 @@ string PrivateFrame::getCustomAway() const {
 
 /**
  * @file
- * $Id: PrivateFrame.cpp 403 2008-07-10 21:27:57Z BigMuscle $
+ * $Id: PrivateFrame.cpp 423 2008-11-08 17:12:32Z BigMuscle $
  */

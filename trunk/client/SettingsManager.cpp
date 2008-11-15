@@ -77,7 +77,7 @@ const string SettingsManager::settingTags[] =
 	"HubUserCommands", "AutoSearchAutoMatch", "DownloadBarColor", "UploadBarColor", "LogSystem",
 	"LogFilelistTransfers", "ShowStatusbar", "BandwidthSettingMode", "ShowToolbar", "ShowTransferview", 
 	"SearchPassiveAlways", "SetMinislotSize", "ShutdownInterval", "DontAnnounceNewVersions", 
-	"CzertHiddenSettingA", "CzertHiddenSettingB", "ExtraSlots", 
+	"CzertHiddenSettingA", "CzertHiddenSettingB", "ExtraSlots", "ExtraPartialSlots",
 	"TextGeneralBackColor", "TextGeneralForeColor", "TextGeneralBold", "TextGeneralItalic", 
 	"TextMyOwnBackColor", "TextMyOwnForeColor", "TextMyOwnBold", "TextMyOwnItalic", 
 	"TextPrivateBackColor", "TextPrivateForeColor", "TextPrivateBold", "TextPrivateItalic", 
@@ -247,7 +247,7 @@ SettingsManager::SettingsManager()
 	setDefault(SKIP_ZERO_BYTE, false);
 	setDefault(ADLS_BREAK_ON_FIRST, false);
 	setDefault(HUB_USER_COMMANDS, true);
-	setDefault(AUTO_SEARCH_AUTO_MATCH, false);
+	setDefault(AUTO_SEARCH_AUTO_MATCH, true);
 	setDefault(LOG_FILELIST_TRANSFERS, false);
 	setDefault(LOG_SYSTEM, false);
 	setDefault(SEND_UNKNOWN_COMMANDS, false);
@@ -320,6 +320,7 @@ SettingsManager::SettingsManager()
 	setDefault(HUB_SLOTS, 1);
 	setDefault(DEBUG_COMMANDS, false);
 	setDefault(EXTRA_SLOTS, 3);
+	setDefault(EXTRA_PARTIAL_SLOTS, 1);
 	setDefault(SHUTDOWN_TIMEOUT, 150);
 	setDefault(SEARCH_PASSIVE, false);
 	setDefault(MAX_UPLOAD_SPEED_LIMIT_NORMAL, 0);

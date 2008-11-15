@@ -75,11 +75,10 @@ uint64_t MainFrame::iCurrentShutdownTime = 0;
 bool MainFrame::isShutdownStatus = false;
 
 MainFrame::MainFrame() : trayMessage(0), maximized(false), lastUpload(-1), lastUpdate(0), 
-lastUp(0), lastDown(0), oldshutdown(false), stopperThread(NULL), 
-closing(false), awaybyminimize(false), missedAutoConnect(false), lastTTHdir(Util::emptyStringT), tabsontop(false),
-bTrayIcon(false), bAppMinimized(false), bIsPM(false), UPnP_TCPConnection(NULL), UPnP_UDPConnection(NULL),
-QuickSearchBoxContainer(WC_COMBOBOX, this, QUICK_SEARCH_MAP), QuickSearchEditContainer(WC_EDIT ,this, QUICK_SEARCH_MAP),
-m_bDisableAutoComplete(false)
+	lastUp(0), lastDown(0), oldshutdown(false), stopperThread(NULL), 
+	closing(false), awaybyminimize(false), missedAutoConnect(false), lastTTHdir(Util::emptyStringT), tabsontop(false),
+	bTrayIcon(false), bAppMinimized(false), bIsPM(false), m_bDisableAutoComplete(false),
+	QuickSearchBoxContainer(WC_COMBOBOX, this, QUICK_SEARCH_MAP), QuickSearchEditContainer(WC_EDIT ,this, QUICK_SEARCH_MAP)
 { 
 		memzero(statusSizes, sizeof(statusSizes));
 		anyMF = this;
@@ -185,8 +184,8 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 
 	SetWindowText(RsxUtil::getWndTitle().c_str());
 	//RSX++
-	PluginsManager::getInstance()->startPlugins();
-	ScriptManager::getInstance()->loadScripts();
+	//PluginsManager::getInstance()->startPlugins();
+	//ScriptManager::getInstance()->loadScripts();
 	UpdateManager::getInstance()->addListener(this);
 	FavoriteManager::getInstance()->mergeHubSettings();
 	//END
@@ -518,7 +517,7 @@ LRESULT MainFrame::onQuickSearchEditChange(WORD /*wNotifyCode*/, WORD /*wID*/, H
 void MainFrame::updateQuickSearches() {
 	QuickSearchBox.ResetContent();
 	
-	for(TStringList::const_iterator i = SearchFrame::getLastSearches().begin(); i != SearchFrame::getLastSearches().end(); ++i) {
+	for(std::set<tstring>::const_iterator i = SearchFrame::getLastSearches().begin(); i != SearchFrame::getLastSearches().end(); ++i) {
 		QuickSearchBox.InsertString(0, i->c_str());
 	}	
 	
@@ -551,74 +550,85 @@ void MainFrame::startUPnP() {
 	stopUPnP();
 
 	if( SETTING(INCOMING_CONNECTIONS) == SettingsManager::INCOMING_FIREWALL_UPNP ) {
-		UPnP_TCPConnection = new UPnP( Util::getLocalIp(), "TCP", APPNAME " Download Port (" + Util::toString(ConnectionManager::getInstance()->getPort()) + " TCP)", ConnectionManager::getInstance()->getPort() );
-		UPnP_UDPConnection = new UPnP( Util::getLocalIp(), "UDP", APPNAME " Search Port (" + Util::toString(SearchManager::getInstance()->getPort()) + " UDP)", SearchManager::getInstance()->getPort() );
-		
-		if ( FAILED(UPnP_UDPConnection->OpenPorts()) || FAILED(UPnP_TCPConnection->OpenPorts()) )
-		{
-			LogManager::getInstance()->message(STRING(UPNP_FAILED_TO_CREATE_MAPPINGS));
-			MessageBox(CTSTRING(UPNP_FAILED_TO_CREATE_MAPPINGS), _T(APPNAME) _T(" ") _T(VERSIONSTRING), MB_OK | MB_ICONWARNING);
-				
-			// We failed! thus reset the objects
-			delete UPnP_TCPConnection;
-			delete UPnP_UDPConnection;
-			UPnP_TCPConnection = UPnP_UDPConnection = NULL;
+		bool ok = true;
+
+		uint16_t port = ConnectionManager::getInstance()->getPort();
+		if(port != 0) {
+			UPnP_TCP.reset(new UPnP( Util::getLocalIp(), "TCP", APPNAME " Transfer Port (" + Util::toString(port) + " TCP)", port));
+			ok &= UPnP_TCP->open();
 		}
-		else
-		{
+		port = ConnectionManager::getInstance()->getSecurePort();
+		if(ok && port != 0) {
+			UPnP_TLS.reset(new UPnP( Util::getLocalIp(), "TCP", APPNAME " Encrypted Transfer Port (" + Util::toString(port) + " TCP)", port));
+			ok &= UPnP_TLS->open();
+		}
+		port = SearchManager::getInstance()->getPort();
+		if(ok && port != 0) {
+			UPnP_UDP.reset(new UPnP( Util::getLocalIp(), "UDP", APPNAME " Search Port (" + Util::toString(port) + " UDP)", port));
+			ok &= UPnP_UDP->open();
+		}
+
+		if(ok) {
 			if(!BOOLSETTING(NO_IP_OVERRIDE)) {
 				// now lets configure the external IP (connect to me) address
-				string ExternalIP = UPnP_TCPConnection->GetExternalIP();
+				string ExternalIP = UPnP_TCP->GetExternalIP();
 				if ( !ExternalIP.empty() ) {
 					// woohoo, we got the external IP from the UPnP framework
 					SettingsManager::getInstance()->set(SettingsManager::EXTERNAL_IP, ExternalIP );
 				} else {
-					//:-(  Looks like we have to rely on the user setting the external IP manually
+					//:-( Looks like we have to rely on the user setting the external IP manually
 					// no need to do cleanup here because the mappings work
 					LogManager::getInstance()->message(STRING(UPNP_FAILED_TO_GET_EXTERNAL_IP));
 					MessageBox(CTSTRING(UPNP_FAILED_TO_GET_EXTERNAL_IP), _T(APPNAME) _T(" ") _T(VERSIONSTRING), MB_OK | MB_ICONWARNING);
 				}
 			}
+		} else {
+			LogManager::getInstance()->message(STRING(UPNP_FAILED_TO_CREATE_MAPPINGS));
+			MessageBox(CTSTRING(UPNP_FAILED_TO_CREATE_MAPPINGS), _T(APPNAME) _T(" ") _T(VERSIONSTRING), MB_OK | MB_ICONWARNING);
+			stopUPnP();
 		}
-	}
+	}	
 }
 
 void MainFrame::stopUPnP() {
 	// Just check if the port mapping objects are initialized (NOT NULL)
-	if ( UPnP_TCPConnection != NULL )
-	{
-		if (FAILED(UPnP_TCPConnection->ClosePorts()) )
-		{
+	if(UPnP_TCP.get()) {
+		if(!UPnP_TCP->close()) {
 			LogManager::getInstance()->message(STRING(UPNP_FAILED_TO_REMOVE_MAPPINGS));
 		}
-		delete UPnP_TCPConnection;
+		UPnP_TCP.reset();
 	}
-	if ( UPnP_UDPConnection != NULL )
-	{
-		if (FAILED(UPnP_UDPConnection->ClosePorts()) )
-		{
+	if(UPnP_TLS.get()) {
+		if(!UPnP_TLS->close()) {
 			LogManager::getInstance()->message(STRING(UPNP_FAILED_TO_REMOVE_MAPPINGS));
 		}
-		delete UPnP_UDPConnection;
+		UPnP_TLS.reset();
 	}
-	// Not sure this is required (i.e. Objects are checked later in execution)
-	// But its better being on the save side :P
-	UPnP_TCPConnection = UPnP_UDPConnection = NULL;
+	if(UPnP_UDP.get()) {
+		if(!UPnP_UDP->close()) {
+			LogManager::getInstance()->message(STRING(UPNP_FAILED_TO_REMOVE_MAPPINGS));
+		}
+		UPnP_UDP.reset();
+	}	
+	if(UPnP_DSN.get()) {
+		if(!UPnP_DSN->close()) {
+			LogManager::getInstance()->message(STRING(UPNP_FAILED_TO_REMOVE_MAPPINGS));
+		}
+		UPnP_DSN.reset();
+	}
 }
 
 HWND MainFrame::createToolbar() {
 	if(!tbarcreated) {
-		if(SETTING(TOOLBARIMAGE) == "") {
+		if(SETTING(TOOLBARIMAGE) == "")
 			ResourceLoader::LoadImageList(IDP_TOOLBAR20, largeImages, 20, 20);
-		} else {
+		else
 			ResourceLoader::LoadImageList(Text::toT(SETTING(TOOLBARIMAGE)).c_str(), largeImages, 20, 20);
-		}
 
-		if(SETTING(TOOLBARHOTIMAGE) == "") {
+		if(SETTING(TOOLBARHOTIMAGE) == "")
 			ResourceLoader::LoadImageList(IDP_TOOLBAR20_HOT, largeImagesHot, 20, 20);
-		} else {
+		else
 			ResourceLoader::LoadImageList(Text::toT(SETTING(TOOLBARHOTIMAGE)).c_str(), largeImagesHot, 20, 20);
-		}
 
 		ctrlToolbar.Create(m_hWnd, NULL, NULL, ATL_SIMPLE_CMDBAR_PANE_STYLE | TBSTYLE_FLAT | TBSTYLE_TOOLTIPS | TBSTYLE_LIST, 0, ATL_IDW_TOOLBAR);
 		ctrlToolbar.SetExtendedStyle(TBSTYLE_EX_MIXEDBUTTONS);
@@ -674,7 +684,7 @@ HWND MainFrame::createPluginsToolbar() {
 	}
 
 	ctrlPluginToolbar.SetButtonStructSize();
-	int n = 0;
+	/*int n = 0;
 	const PluginsManager::Plugins& p = PluginsManager::getInstance()->getPlugins();
 	for(PluginsManager::Plugins::const_iterator i = p.begin(); i != p.end(); ++i) {
 		if((*i)->getIcon() > 0) {
@@ -697,7 +707,7 @@ HWND MainFrame::createPluginsToolbar() {
 			ctrlPluginToolbar.AddButtons(1, &nTB);
 			n++;
 		}
-	}
+	}*/
 	ctrlPluginToolbar.AutoSize();
 	return ctrlPluginToolbar.m_hWnd;
 }
@@ -705,7 +715,7 @@ HWND MainFrame::createPluginsToolbar() {
 LRESULT MainFrame::onBnClick(WORD /*wNotifyCode*/, WORD wID, HWND hWndCtl, BOOL& bHandled) {
 	//maybe not the best way, but, at least, it does the job
 	if(hWndCtl == ctrlPluginToolbar.m_hWnd) {
-		PluginsManager::getInstance()->onToolbarClick(wID, hWndCtl);
+		//PluginsManager::getInstance()->onToolbarClick(wID, hWndCtl);
 		bHandled = TRUE;
 		return 0;
 	}
@@ -735,19 +745,18 @@ LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& 
 			for(int i = 1; i < 8; i++) {
 				int w = WinUtil::getTextWidth(str[i], dc);
 				
-			if(statusSizes[i] < w) {
+				if(statusSizes[i] < w) {
 					statusSizes[i] = w;
-						  u = true;
-						}
-					ctrlStatus.SetText(i+1, str[i].c_str());
+					u = true;
 				}
+				ctrlStatus.SetText(i+1, str[i].c_str());
+			}
 			::ReleaseDC(ctrlStatus.m_hWnd, dc);
 			if(u)
 				UpdateLayout(TRUE);
-		}
-		if (bShutdown) {
-			uint64_t iSec = GET_TICK() / 1000;
-			if (ctrlStatus.IsWindow()) {
+
+			if (bShutdown) {
+				uint64_t iSec = GET_TICK() / 1000;
 				if(!isShutdownStatus) {
 					ctrlStatus.SetIcon(9, hShutdownIcon);
 					isShutdownStatus = true;
@@ -772,14 +781,12 @@ LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& 
 						bShutdown = false;
 					}
 				}
-			}
-		} else {
-			if (ctrlStatus.IsWindow()) {
+			} else {
 				if(isShutdownStatus) {
-					ctrlStatus.SetText(9, _T(""));
 					ctrlStatus.SetIcon(9, NULL);
 					isShutdownStatus = false;
 				}
+				ctrlStatus.SetText(9, _T(""));
 			}
 		}
 	} else if(wParam == AUTO_CONNECT) {
@@ -841,7 +848,7 @@ void MainFrame::parseCommandLine(const tstring& cmdLine)
 	}
 	//RSX++ // Lua
 	if( (j = cmdLine.find(_T("lua "), i)) != string::npos) {
-		ScriptManager::getInstance()->EvaluateChunk(Text::fromT(cmdLine.substr(j+4)));
+		//ScriptManager::getInstance()->EvaluateChunk(Text::fromT(cmdLine.substr(j+4)));
 	}
 	//END
 }

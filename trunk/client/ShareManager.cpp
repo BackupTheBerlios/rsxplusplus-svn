@@ -116,7 +116,7 @@ string ShareManager::Directory::getRealPath(const std::string& path) const throw
 		return ShareManager::getInstance()->findRealRoot(getName(), path);
 	}
 }
-
+	
 string ShareManager::findRealRoot(const string& virtualRoot, const string& virtualPath) const throw(ShareException) {
 	for(StringMap::const_iterator i = shares.begin(); i != shares.end(); ++i) {
 		if(stricmp(i->second, virtualRoot) == 0) {
@@ -786,9 +786,9 @@ ShareManager::Directory* ShareManager::buildTree(const string& aName, Directory*
 
 		//RSX++ //Share skiplist
 		if(Wildcard::patternMatch(name, RSXSETTING(SKIPLIST_SHARE), ';')) {
-			string msg = boost::str(boost::format("User has choosen not to share file: %1% (Size: %2% B, Directory: %3%)")
+			/*string msg = boost::str(boost::format("User has choosen not to share file: %1% (Size: %2% B, Directory: %3%)")
 				% name % File::getSize(name) % aName);
-			LogManager::getInstance()->message(msg);
+			LogManager::getInstance()->message(msg);*/
 			continue;
 		}
 		//END
@@ -1720,5 +1720,5 @@ int64_t ShareManager::removeExcludeFolder(const string &path, bool returnSize /*
 
 /**
  * @file
- * $Id: ShareManager.cpp 399 2008-07-06 19:48:02Z BigMuscle $
+ * $Id: ShareManager.cpp 421 2008-09-03 17:20:45Z BigMuscle $
  */

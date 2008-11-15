@@ -34,20 +34,19 @@
 namespace dcpp {
 
 SearchManager::SearchManager() :
-	socket(NULL),
 	port(0),
 	stop(false)
 {
+
 }
 
 SearchManager::~SearchManager() throw() {
-	if(socket) {
+	if(socket.get()) {
 		stop = true;
 		socket->disconnect();
 #ifdef _WIN32
 		join();
 #endif
-		delete socket;
 	}
 }
 
@@ -66,16 +65,21 @@ void SearchManager::listen() throw(SocketException) {
 
 	disconnect();
 
-	socket = new Socket();
-	socket->create(Socket::TYPE_UDP);
-	socket->setBlocking(true);
-	port = socket->bind(static_cast<uint16_t>(SETTING(UDP_PORT)), SETTING(BIND_ADDRESS));
-
-	start();
+	try {
+		socket.reset(new Socket);
+		socket->create(Socket::TYPE_UDP);
+		socket->setBlocking(true);
+		port = socket->bind(static_cast<uint16_t>(SETTING(UDP_PORT)), SETTING(BIND_ADDRESS));
+	
+		start();
+	} catch(...) {
+		socket.reset();
+		throw;
+	}
 }
 
 void SearchManager::disconnect() throw() {
-	if(socket != NULL) {
+	if(socket.get()) {
 		stop = true;
 		queue.shutdown();
 		socket->disconnect();
@@ -83,42 +87,55 @@ void SearchManager::disconnect() throw() {
 
 		join();
 
+		socket.reset();
+
 		stop = false;
 	}
 }
 
 #define BUFSIZE 8192
 int SearchManager::run() {
-	
 	boost::scoped_array<uint8_t> buf(new uint8_t[BUFSIZE]);
 	int len;
+	sockaddr_in remoteAddr = { 0 };
 
 	queue.start();
-	while(true) {
-
-		string remoteAddr;
+	while(!stop) {
 		try {
-			while( (len = socket->read(&buf[0], BUFSIZE, remoteAddr)) != 0) {
-				onData(&buf[0], len, remoteAddr);
+			while( (len = socket->read(&buf[0], BUFSIZE, remoteAddr)) > 0) {
+				onData(&buf[0], len, inet_ntoa(remoteAddr.sin_addr));
 			}
 		} catch(const SocketException& e) {
 			dcdebug("SearchManager::run Error: %s\n", e.getError().c_str());
 		}
-		if(stop) {
-			return 0;
-		}
 
-		try {
-			socket->disconnect();
-			socket->create(Socket::TYPE_UDP);
-			socket->bind(port, SETTING(BIND_ADDRESS));
-		} catch(const SocketException& e) {
-			// Oops, fatal this time...
-			dcdebug("SearchManager::run Stopped listening: %s\n", e.getError().c_str());
-			return 1;
+		bool failed = false;
+		while(!stop) {
+			try {
+				socket->disconnect();
+				socket->create(Socket::TYPE_UDP);
+				socket->setBlocking(true);
+				socket->bind(port, SETTING(BIND_ADDRESS));
+				if(failed) {
+					LogManager::getInstance()->message("Search enabled again"); // TODO: translate
+					failed = false;
+				}
+				break;
+			} catch(const SocketException& e) {
+				dcdebug("SearchManager::run Stopped listening: %s\n", e.getError().c_str());
+
+				if(!failed) {
+					LogManager::getInstance()->message("Search disabled: " + e.getError()); // TODO: translate
+					failed = true;
+				}
+
+				// Spin for 60 seconds
+				for(int i = 0; i < 60 && !stop; ++i) {
+					Thread::sleep(1000);
+				}
+			}
 		}
 	}
-	
 	return 0;
 }
 
@@ -272,7 +289,7 @@ int SearchManager::UdpQueue::run() {
 			c.getParameters().erase(c.getParameters().begin());			
 			
 			SearchManager::getInstance()->onPSR(c, user, remoteIp);
-			
+		
 		} /*else if(x.compare(1, 4, "SCH ") == 0 && x[x.length() - 1] == 0x0a) {
 			try {
 				respond(AdcCommand(x.substr(0, x.length()-1)));
@@ -300,14 +317,14 @@ void SearchManager::onRES(const AdcCommand& cmd, const UserPtr& from, const stri
 
 	for(StringIterC i = cmd.getParameters().begin(); i != cmd.getParameters().end(); ++i) {
 		const string& str = *i;
-			if(str.compare(0, 2, "FN") == 0) {
-				file = Util::toNmdcFile(str.substr(2));
-			} else if(str.compare(0, 2, "SL") == 0) {
-				freeSlots = Util::toInt(str.substr(2));
-			} else if(str.compare(0, 2, "SI") == 0) {
-				size = Util::toInt64(str.substr(2));
-			} else if(str.compare(0, 2, "TR") == 0) {
-				tth = str.substr(2);
+		if(str.compare(0, 2, "FN") == 0) {
+			file = Util::toNmdcFile(str.substr(2));
+		} else if(str.compare(0, 2, "SL") == 0) {
+			freeSlots = Util::toInt(str.substr(2));
+		} else if(str.compare(0, 2, "SI") == 0) {
+			size = Util::toInt64(str.substr(2));
+		} else if(str.compare(0, 2, "TR") == 0) {
+			tth = str.substr(2);
 		} else if(str.compare(0, 2, "TO") == 0) {
 			token = str.substr(2);
 		}
@@ -359,6 +376,7 @@ void SearchManager::onPSR(const AdcCommand& cmd, UserPtr from, const string& rem
 		}
 	}
 
+	string url;
 	if(!from || from == ClientManager::getInstance()->getMe()) {
 		// for NMDC support
 		
@@ -366,7 +384,7 @@ void SearchManager::onPSR(const AdcCommand& cmd, UserPtr from, const string& rem
 			return;
 		}
 		
-		string url = ClientManager::getInstance()->findHub(hubIpPort);
+		url = ClientManager::getInstance()->findHub(hubIpPort);
 		from = ClientManager::getInstance()->findUser(nick, url);
 		if(!from) {
 			// Could happen if hub has multiple URLs / IPs
@@ -386,7 +404,7 @@ void SearchManager::onPSR(const AdcCommand& cmd, UserPtr from, const string& rem
 	}
 
 	PartsInfo outPartialInfo;
-	QueueItem::PartialSource ps(from->isNMDC() ? ClientManager::getInstance()->getMyNMDCNick(from) : Util::emptyString, hubIpPort, remoteIp, udpPort);
+	QueueItem::PartialSource ps(from->isNMDC() ? ClientManager::getInstance()->getMyNick(url) : Util::emptyString, hubIpPort, remoteIp, udpPort);
 	ps.setPartialInfo(partialInfo);
 
 	QueueManager::getInstance()->handlePartialResult(from, TTHValue(tth), ps, outPartialInfo);
@@ -396,7 +414,7 @@ void SearchManager::onPSR(const AdcCommand& cmd, UserPtr from, const string& rem
 			AdcCommand cmd = SearchManager::getInstance()->toPSR(false, ps.getMyNick(), hubIpPort, tth, outPartialInfo);
 			ClientManager::getInstance()->send(cmd, from->getCID());
 		} catch(...) {
-			dcdebug("Partial search caught error\n");		
+			dcdebug("Partial search caught error\n");
 		}
 	}
 
@@ -492,5 +510,5 @@ AdcCommand SearchManager::toPSR(bool wantResponse, const string& myNick, const s
 
 /**
  * @file
- * $Id: SearchManager.cpp 404 2008-07-13 17:08:09Z BigMuscle $
+ * $Id: SearchManager.cpp 413 2008-07-30 09:32:53Z BigMuscle $
  */

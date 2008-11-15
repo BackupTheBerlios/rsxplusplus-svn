@@ -57,10 +57,12 @@ public:
 		NOTIFY_HANDLER(IDC_HUBLIST, LVN_KEYDOWN, onKeyDown)
 		NOTIFY_HANDLER(IDC_HUBLIST, LVN_ITEMCHANGED, onItemChanged)
 		NOTIFY_HANDLER(IDC_HUBLIST, LVN_COLUMNCLICK, onColumnClickHublist)
+		//RSX++
 		COMMAND_HANDLER(IDC_FAV_GROUPS, CBN_SELCHANGE, onSelChange)
 		MESSAGE_HANDLER(WM_CTLCOLORLISTBOX, onCtlColor)
 		MESSAGE_HANDLER(WM_CTLCOLORSTATIC, onCtlColor)
 		MESSAGE_HANDLER(WM_CTLCOLOREDIT, onCtlColor)
+		//END
 		CHAIN_MSG_MAP(baseClass)
 	END_MSG_MAP()
 		
@@ -77,6 +79,7 @@ public:
 	LRESULT onOpenHubLog(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT onContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/);
 	LRESULT onColumnClickHublist(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/);
+	//RSX++
 	LRESULT onSelChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT onCtlColor(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
 		HDC hDC = (HDC)wParam;
@@ -84,7 +87,7 @@ public:
 		::SetTextColor(hDC, WinUtil::textColor);
 		return (LRESULT)WinUtil::bgBrush;
 	}
-
+	//END
 	bool checkNick();
 	void UpdateLayout(BOOL bResizeBars = TRUE);
 	
@@ -126,11 +129,12 @@ private:
 	OMenu hubsMenu;
 	
 	ExListViewCtrl ctrlHubs;
+	//RSX++
 	CComboBox ctrlGroups;
 
 	void updateGroups();
 	void updateList();
-
+	//END
 	bool nosave;
 	bool closed;
 	

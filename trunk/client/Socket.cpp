@@ -307,7 +307,7 @@ int Socket::read(void* aBuffer, int aBufLen) throw(SocketException) {
 	return len;
 }
 
-int Socket::read(void* aBuffer, int aBufLen, string &aIP) throw(SocketException) {
+int Socket::read(void* aBuffer, int aBufLen, sockaddr_in &remote) throw(SocketException) {
 	dcassert(type == TYPE_UDP);
 
 	sockaddr_in remote_addr = { 0 };
@@ -320,11 +320,9 @@ int Socket::read(void* aBuffer, int aBufLen, string &aIP) throw(SocketException)
 
 	check(len, true);
 	if(len > 0) {
-		aIP = inet_ntoa(remote_addr.sin_addr);
 		stats.totalDown += len;
-	} else {
-		aIP.clear();
 	}
+	remote = remote_addr;
 	return len;
 }
 
@@ -660,5 +658,5 @@ string Socket::getRemoteHost(const string& aIp) {
 
 /**
  * @file
- * $Id: Socket.cpp 404 2008-07-13 17:08:09Z BigMuscle $
+ * $Id: Socket.cpp 413 2008-07-30 09:32:53Z BigMuscle $
  */

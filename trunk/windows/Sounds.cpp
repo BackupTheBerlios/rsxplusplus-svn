@@ -28,7 +28,7 @@
 PropPage::TextItem Sounds::texts[] = {
 	{ IDC_PRIVATE_MESSAGE_BEEP, ResourceManager::SETTINGS_PM_BEEP },
 	{ IDC_PRIVATE_MESSAGE_BEEP_OPEN, ResourceManager::SETTINGS_PM_BEEP_OPEN },
-	{ IDC_CZDC_PM_SOUND, ResourceManager::SETCZDC_PRIVATE_SOUND },
+	{ IDC_STRONGDC_PM_SOUND, ResourceManager::SETSTRONGDC_PRIVATE_SOUND },
 	{ IDC_BROWSE, ResourceManager::BROWSE },	
 	{ IDC_PLAY, ResourceManager::PLAY },
 	{ IDC_NONE, ResourceManager::NONE },
@@ -47,7 +47,7 @@ Sounds::snds Sounds::sounds[] = {
 	{ ResourceManager::SOUND_SOURCE_ADDED,	SettingsManager::SOURCEFILE, ""},
 	{ ResourceManager::SOUND_UPLOAD_FINISHED,	SettingsManager::UPLOADFILE, ""},
 	{ ResourceManager::SOUND_FAKER_FOUND,	SettingsManager::FAKERFILE, ""},
-	{ ResourceManager::SETCZDC_PRIVATE_SOUND,	SettingsManager::BEEPFILE, ""},
+	{ ResourceManager::SETSTRONGDC_PRIVATE_SOUND,	SettingsManager::BEEPFILE, ""},
 	{ ResourceManager::MYNICK_IN_CHAT,	SettingsManager::CHATNAMEFILE, ""},
 	{ ResourceManager::SOUND_TTH_INVALID,	SettingsManager::SOUND_TTH, ""},
 	{ ResourceManager::SOUND_EXCEPTION,	SettingsManager::SOUND_EXC, ""},
@@ -142,6 +142,6 @@ LRESULT Sounds::onPlay(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOO
 }
 /**
  * @file
- * $Id: Sounds.cpp 403 2008-07-10 21:27:57Z BigMuscle $
+ * $Id: Sounds.cpp 412 2008-07-23 22:35:40Z BigMuscle $
  */
 

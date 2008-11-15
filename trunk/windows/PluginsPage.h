@@ -43,12 +43,12 @@ public:
 	void write();
 
 protected:
-	std::map<int, HWND> plugins;
+	//std::map<int, HWND> plugins;
 
-	HWND addPage(int pId, int resId, const tstring& tabName, HMODULE hInst);
+	//HWND addPage(int pId, int resId, const tstring& tabName, HMODULE hInst);
 
 	TCHAR* title;
-	CDialogTabCtrl ctrlTabs;
+	//CDialogTabCtrl ctrlTabs;
 	static Item items[];
 };
 

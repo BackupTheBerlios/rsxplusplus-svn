@@ -2,10 +2,10 @@
 
 del /Q lib\*.*
 
-cd build
+call configure.bat msvc8
+cd build\lib
 call "W:\Program Files (x86)\microsoft visual studio 8\VC\bin\vcvars32.bat"
-call configure.bat -c msvc8
-cd lib
+
 nmake /fmsvc.mak clean all
 nmake /fmsvc.mak install
 

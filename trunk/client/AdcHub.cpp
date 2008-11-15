@@ -284,7 +284,7 @@ void AdcHub::handle(AdcCommand::MSG, AdcCommand& c) throw() {
 		if(!replyTo)
 			return;
 
-		fire(ClientListener::PrivateMessage(), this, *from, *to, *replyTo, c.getParam(0), c.hasFlag("ME", 1));
+		fire(ClientListener::PrivateMessage(), this, *from, to, replyTo, c.getParam(0), c.hasFlag("ME", 1));
 	} else {
 		fire(ClientListener::Message(), this, *from, c.getParam(0), c.hasFlag("ME", 1));
 	}
@@ -640,10 +640,10 @@ void AdcHub::hubMessage(const string& aMessage, bool thirdPerson) {
 	send(c);
 }
 
-void AdcHub::privateMessage(const OnlineUser& user, const string& aMessage, bool thirdPerson) {
+void AdcHub::privateMessage(const OnlineUserPtr& user, const string& aMessage, bool thirdPerson) {
 	if(state != STATE_NORMAL)
 		return;
-	AdcCommand c(AdcCommand::CMD_MSG, user.getIdentity().getSID(), AdcCommand::TYPE_ECHO);
+	AdcCommand c(AdcCommand::CMD_MSG, user->getIdentity().getSID(), AdcCommand::TYPE_ECHO);
 	c.addParam(aMessage);
 	if(thirdPerson)
 		c.addParam("ME", "1");
@@ -839,10 +839,6 @@ void AdcHub::on(Connected c) throw() {
 
 void AdcHub::on(Line l, const string& aLine) throw() {
 	Client::on(l, aLine);
-	//RSX++ // Lua
-	if(onClientMessage(this, "adch", aLine))
-		return;
-	//END
 	if(BOOLSETTING(ADC_DEBUG)) {
 		fire(ClientListener::StatusMessage(), this, "<ADC>" + aLine + "</ADC>");
 	}
@@ -865,5 +861,5 @@ void AdcHub::on(Second s, uint64_t aTick) throw() {
 
 /**
  * @file
- * $Id: AdcHub.cpp 406 2008-07-14 20:25:22Z BigMuscle $
+ * $Id: AdcHub.cpp 413 2008-07-30 09:32:53Z BigMuscle $
  */

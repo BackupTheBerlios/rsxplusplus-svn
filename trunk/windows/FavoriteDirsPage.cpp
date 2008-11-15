@@ -302,5 +302,5 @@ void FavoriteDirsPage::addDirEx(DirectoriesEx::Ptr pa, int pos) {
 //END
 /**
  * @file
- * $Id: FavoriteDirsPage.cpp 273 2007-01-02 12:40:01Z bigmuscle $
+ * $Id: FavoriteDirsPage.cpp 382 2008-03-09 10:40:22Z BigMuscle $
  */

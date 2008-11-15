@@ -146,9 +146,9 @@ LRESULT HubFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 	ctrlMessage.SetFont(WinUtil::font);
 	ctrlMessage.SetLimitText(9999);
 
-	ctrlEmoticons.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | BS_FLAT | BS_BITMAP | BS_CENTER, 0, IDC_EMOT);
 	hEmoticonBmp.LoadFromResource(IDP_EMOTICON, _T("PNG"), _Module.get_m_hInst());
-  	ctrlEmoticons.SetBitmap(hEmoticonBmp);
+	ctrlEmoticons.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | BS_FLAT | BS_BITMAP | BS_CENTER, 0, IDC_EMOT);
+ 	ctrlEmoticons.SetBitmap(hEmoticonBmp);
 
 	ctrlFilter.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | 
 		ES_AUTOHSCROLL, WS_EX_CLIENTEDGE);
@@ -281,7 +281,7 @@ void HubFrame::onEnter() {
 		}
 		currentCommand = _T("");
 		//RSX++ //Lua & PluginAPI outgoing message
-		bool dropMessage = client->onHubFrameEnter(client, Text::fromT(s));
+		bool dropMessage = false;//client->onHubFrameEnter(client, Text::fromT(s));
 		//END
 		// Special command
 		if(s[0] == _T('/')) {
@@ -428,8 +428,6 @@ void HubFrame::onEnter() {
 						PrivateFrame::openWindow(ui->getUser(), client);
 					}
 				}
-			} else if(stricmp(cmd.c_str(), _T("me")) == 0) {
-				client->hubMessage(Text::fromT(s));
 			} else if(stricmp(cmd.c_str(), _T("stats")) == 0) {
 				addLine(Text::toT(WinUtil::generateStats()));
 			//RSX++ //Public Stats
@@ -537,18 +535,6 @@ void HubFrame::addAsFavorite() {
 			aEntry.setPassword(client->getPassword());
 		}
 		aEntry.setConnect(false);
-		//RSX++
-		//aEntry.setCheckOnConnect(false);
-		//aEntry.setCheckClients(false);
-		//aEntry.setCheckFilelists(false);
-		//aEntry.setCheckMyInfo(false);
-		//aEntry.setHideShare(false);
-		//aEntry.setUseFilter(false);
-		//aEntry.setUserProtected(Util::emptyString);
-		//aEntry.setFavEmail(client->getCurrentEmail());
-		//aEntry.setAutosearch(client->getUseAutosearch());
-		//aEntry.setUseHL(client->getUseHL());
-		//END
 		FavoriteManager::getInstance()->addFavorite(aEntry);
 		addClientLine(TSTRING(FAVORITE_HUB_ADDED), WinUtil::m_ChatTextSystem );
 	} else {
@@ -736,7 +722,7 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 				 	addLine(_T("*** ") + TSTRING(JOINS) + Text::toT(u.onlineUser->getIdentity().getNick()), WinUtil::m_ChatTextSystem);
 				}	
 
-				if(client->isOp() && !u.onlineUser->getIdentity().isBot() && !u.onlineUser->getIdentity().isHub()) {
+				/*if(client->isOp() && !u.onlineUser->getIdentity().isBot() && !u.onlineUser->getIdentity().isHub()) {
 					int64_t bytesSharedInt64 = u.onlineUser->getIdentity().getBytesShared();
 					if(bytesSharedInt64 > 0) {
 						string bytesShared = Util::toString(bytesSharedInt64);
@@ -762,7 +748,7 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 							}
 						}
 					}
-				}
+				}*/
 			}
 		} else if(i->first == REMOVE_USER) {
 			const UserTask& u = *static_cast<UserTask*>(i->second);
@@ -1015,6 +1001,7 @@ LRESULT HubFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, B
 			r->setShared(Util::toString(client->getAvailable()));
 			FavoriteManager::getInstance()->updateRecent(r);
 		}
+		//DeleteObject(hEmoticonBmp);
 
 		SettingsManager::getInstance()->removeListener(this);
 		TimerManager::getInstance()->removeListener(this);
@@ -1238,7 +1225,7 @@ void HubFrame::addLine(const Identity& i, const tstring& aLine, CHARFORMAT2& cf,
 		client->getMyIdentity().getParams(params, "my", true);
 		LOG(LogManager::CHAT, params);
 	}
-	//@todo fav setting
+
 	tstring extraInfo = RsxUtil::formatAdditionalInfo(i.getIp(), client->getShowIpOnChat(), client->getShowCountryCodeOnChat());
 	if(timeStamps) {
 		ctrlClient.AppendText(i, Text::toT(client->getCurrentNick()), Text::toT("[" + Util::getShortTimeString() + "] "), aLine + _T('\n'), cf, bUseEmo, useHL, extraInfo);
@@ -1829,11 +1816,7 @@ void HubFrame::on(StatusMessage, const Client*, const string& line, int statusFl
 	}
 }
 
-void HubFrame::on(PrivateMessage, const Client*, const OnlineUser& from, const OnlineUser& to, const OnlineUser& replyTo, const string& line, bool thirdPerson) throw() { 
-	//RSX++
-	if(PluginsManager::getInstance()->onIncommingPM(const_cast<OnlineUser*>(&from), line))
-		return;
-	//END
+void HubFrame::on(PrivateMessage, const Client*, const OnlineUser& from, const OnlineUserPtr& to, const OnlineUserPtr& replyTo, const string& line, bool thirdPerson) throw() { 
 	speak(PRIVATE_MESSAGE, from, to, replyTo, Util::formatMessage(from.getIdentity().getNick(), line, thirdPerson));
 }
 void HubFrame::on(NickTaken, const Client*) throw() {
@@ -2204,7 +2187,7 @@ LRESULT HubFrame::onSelectUser(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCt
 LRESULT HubFrame::onPrivateMessage(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
 	int i = -1;
 	while( (i = ctrlUsers.GetNextItem(i, LVNI_SELECTED)) != -1) {
-		PrivateFrame::openWindow(((OnlineUser*)ctrlUsers.getItemData(i))->getUser(), client);
+		PrivateFrame::openWindow(ctrlUsers.getItemData(i)->getUser(), client);
 	}
 
 	return 0;
@@ -2379,6 +2362,24 @@ LRESULT HubFrame::onEmoPackChange(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl
 	}
 	return 0;
 }
+
+LRESULT HubFrame::onKeyDownUsers(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/) {
+	NMLVKEYDOWN* l = (NMLVKEYDOWN*)pnmh;
+	if(l->wVKey == VK_TAB) {
+		onTab();
+	} else if(WinUtil::isCtrl()) {
+		int i = -1;
+		switch(l->wVKey) {
+			case 'M':
+				while( (i = ctrlUsers.GetNextItem(i, LVNI_SELECTED)) != -1) {
+					ctrlUsers.getItemData(i)->pm();
+				}				
+				break;
+			// TODO: add others
+		}
+	}
+	return 0;
+}
 //RSX++ //Filters
 bool HubFrame::getFilters(const Identity& i, const tstring& msg) {
 	if(RSXBOOLSETTING(USE_CHAT_FILTER) && client->getUseFilter()) {
@@ -2439,5 +2440,5 @@ void HubFrame::displayCheat(const tstring& aMessage) {
 
 /**
  * @file
- * $Id: HubFrame.cpp 406 2008-07-14 20:25:22Z BigMuscle $
+ * $Id: HubFrame.cpp 423 2008-11-08 17:12:32Z BigMuscle $
  */

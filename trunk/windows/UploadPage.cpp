@@ -30,10 +30,11 @@ PropPage::TextItem UploadPage::texts[] = {
 	{ IDC_SETTINGS_UPLOADS_MIN_SPEED, ResourceManager::SETTINGS_UPLOADS_MIN_SPEED },
 	{ IDC_SETTINGS_KBPS, ResourceManager::KBPS }, 
 	{ IDC_SETTINGS_UPLOADS_SLOTS, ResourceManager::SETTINGS_UPLOADS_SLOTS },
-	{ IDC_CZDC_SMALL_SLOTS, ResourceManager::SETCZDC_SMALL_UP_SLOTS },
-	{ IDC_CZDC_SMALL_SIZE, ResourceManager::SETCZDC_SMALL_FILES },
-	{ IDC_CZDC_NOTE_SMALL, ResourceManager::SETCZDC_NOTE_SMALL_UP },
+	{ IDC_STRONGDC_SMALL_SLOTS, ResourceManager::SETSTRONGDC_SMALL_UP_SLOTS },
+	{ IDC_STRONGDC_SMALL_SIZE, ResourceManager::SETSTRONGDC_SMALL_FILES },
+	{ IDC_STRONGDC_NOTE_SMALL, ResourceManager::SETSTRONGDC_NOTE_SMALL_UP },
 	{ IDC_SETTINGS_AUTO_SLOTS, ResourceManager::SETTINGS_AUTO_SLOTS	},	
+	{ IDC_SETTINGS_PARTIAL_SLOTS, ResourceManager::SETSTRONGDC_PARTIAL_SLOTS },		
 	{ IDC_STATICb, ResourceManager::EXTRA_HUB_SLOTS },
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY },
 };
@@ -43,7 +44,8 @@ PropPage::Item UploadPage::items[] = {
 	{ IDC_EXTRA_SLOTS, SettingsManager::EXTRA_SLOTS, PropPage::T_INT },
 	{ IDC_SMALL_FILE_SIZE, SettingsManager::SET_MINISLOT_SIZE, PropPage::T_INT },
 	{ IDC_EXTRA_SLOTS2, SettingsManager::HUB_SLOTS, PropPage::T_INT },
-	{ IDC_AUTO_SLOTS, SettingsManager::AUTO_SLOTS, PropPage::T_INT  },	
+	{ IDC_AUTO_SLOTS, SettingsManager::AUTO_SLOTS, PropPage::T_INT  },
+	{ IDC_PARTIAL_SLOTS, SettingsManager::EXTRA_PARTIAL_SLOTS, PropPage::T_INT  },
 	{ 0, 0, PropPage::T_END }
 };
 
@@ -65,12 +67,15 @@ LRESULT UploadPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 	updown.SetRange32(64, 30000);
 	updown.Detach();
 	updown.Attach(GetDlgItem(IDC_EXTRASPIN));
-	updown.SetRange(0,10);
+	updown.SetRange(0, 10);
 	updown.Detach();
 	updown.Attach(GetDlgItem(IDC_AUTO_SLOTS_SPIN));
-	updown.SetRange(0,100);
+	updown.SetRange(0, 100);
 	updown.Detach();
-		
+	updown.Attach(GetDlgItem(IDC_PARTIAL_SLOTS_SPIN));
+	updown.SetRange(0, 10);
+	updown.Detach();
+			
 	return TRUE;
 }
 
@@ -96,5 +101,5 @@ void UploadPage::write() {
 
 /**
  * @file
- * $Id: UploadPage.cpp 395 2008-06-30 12:11:32Z BigMuscle $
+ * $Id: UploadPage.cpp 414 2008-08-01 19:16:45Z BigMuscle $
  */

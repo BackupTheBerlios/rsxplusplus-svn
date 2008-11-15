@@ -29,13 +29,10 @@
 #include "DebugManager.h"
 //RSX++
 #include "Download.h"
-#include "ScriptManager.h"
-#include "PluginsManager.h"
 //END
 
 namespace dcpp {
 
-const string UserConnection::FEATURE_GET_ZBLOCK = "GetZBlock";
 const string UserConnection::FEATURE_MINISLOTS = "MiniSlots";
 const string UserConnection::FEATURE_XML_BZLIST = "XmlBZList";
 const string UserConnection::FEATURE_ADCGET = "ADCGet";
@@ -58,12 +55,6 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) throw
 		return;
 
 	COMMAND_DEBUG(aLine, DebugManager::CLIENT_IN, getRemoteIp());
-	//RSX++ // Lua
-	if(onUserConnectionMessageIn(this, aLine)) {
-		disconnect(true);
-		return;
-	}
-	//END
 
 	if(aLine[0] == 'C' && !isSet(FLAG_NMDC)) {
 		dispatch(aLine);
@@ -82,23 +73,23 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) throw
 	string param;
 
 	string::size_type x;
-
+                
 	if( (x = aLine.find(' ')) == string::npos) {
-		cmd = aLine;
+		cmd = aLine.substr(1);
 	} else {
-		cmd = aLine.substr(0, x);
+		cmd = aLine.substr(1, x - 1);
 		param = aLine.substr(x+1);
     }
     
-	if(cmd == "$MyNick") {
+	if(cmd == "MyNick") {
 		if(!param.empty())
 			fire(UserConnectionListener::MyNick(), this, param);
-	} else if(cmd == "$Direction") {
+	} else if(cmd == "Direction") {
 		x = param.find(" ");
 		if(x != string::npos) {
 			fire(UserConnectionListener::Direction(), this, param.substr(0, x), param.substr(x+1));
 		}
-	} else if(cmd == "$Error") {
+	} else if(cmd == "Error") {
 		if(stricmp(param.c_str(), FILE_NOT_AVAILABLE) == 0 || 
 			param.rfind(/*path/file*/" no more exists") != string::npos) { 
     		fire(UserConnectionListener::FileNotAvailable(), this);
@@ -108,24 +99,24 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) throw
 			disconnect(true);
 	    }
 	//RSX++
-	} else if(cmd == "$FileLength") {
+	} else if(cmd == "FileLength") {
 		if(!param.empty() && isSet(FLAG_DOWNLOAD) && download != NULL && getUser()) {
 			if(download->isSet(Download::FLAG_CHECK_FILE_LIST)) {	
 				ClientManager::getInstance()->setListSize(getUser(), Util::toInt64(param), false);
 			}
 		}
 	//END
-	} else if(cmd == "$GetListLen") {
+	} else if(cmd == "GetListLen") {
     	fire(UserConnectionListener::GetListLength(), this);
-	} else if(cmd == "$Get") {
+	} else if(cmd == "Get") {
 		x = param.find('$');
 		if(x != string::npos) {
 			fire(UserConnectionListener::Get(), this, Text::toUtf8(param.substr(0, x), *encoding), Util::toInt64(param.substr(x+1)) - (int64_t)1);
 	    }
-	} else if(cmd == "$Key") {
+	} else if(cmd == "Key") {
 		if(!param.empty())
 			fire(UserConnectionListener::Key(), this, param);
-	} else if(cmd == "$Lock") {
+	} else if(cmd == "Lock") {
 		if(!param.empty()) {
 			x = param.find(" Pk=");
 			if(x != string::npos) {
@@ -140,17 +131,17 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) throw
     			}
 	        }
        	}
-	} else if(cmd == "$Send") {
+	} else if(cmd == "Send") {
     	fire(UserConnectionListener::Send(), this);
-	} else if(cmd == "$MaxedOut") {
+	} else if(cmd == "MaxedOut") {
 		fire(UserConnectionListener::MaxedOut(), this, param);
-	} else if(cmd == "$Supports") {
+	} else if(cmd == "Supports") {
 		if(!param.empty()) {
 			fire(UserConnectionListener::Supports(), this, StringTokenizer<string>(param, ' ').getTokens());
 	    }
-	} else if(cmd.compare(0, 4, "$ADC") == 0) {
+	} else if(cmd.compare(0, 3, "ADC") == 0) {
     	dispatch(aLine, true);
-	} else if (cmd == "$ListLen") {
+	} else if (cmd == "ListLen") {
 		if(!param.empty()) {
 			fire(UserConnectionListener::ListLength(), this, param);
 		}
@@ -162,29 +153,7 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) throw
 		unsetFlag(FLAG_NMDC);
 	}
 }
-//RSX++ // Lua
-bool UserConnectionScriptInstance::onUserConnectionMessageIn(UserConnection* aConn, const string& aLine) {
-	bool r1 = false;
-	{
-		Lock l(cs);
-		MakeCall("dcpp", "UserDataIn", 1, aConn, aLine);
-		r1 = GetLuaBool();
-	}
-	bool r2 = PluginsManager::getInstance()->onUserConnectionIn(aConn, aLine);
-	return r1 || r2;
-}
 
-bool UserConnectionScriptInstance::onUserConnectionMessageOut(UserConnection* aConn, const string& aLine) {
-	bool r1 = false;
-	{
-		Lock l(cs);
-		MakeCall("dcpp", "UserDataOut", 1, aConn, aLine);
-		r1 = GetLuaBool();
-	}
-	bool r2 = PluginsManager::getInstance()->onUserConnectionOut(aConn, aLine);
-	return r1 || r2;
-}
-//END
 void UserConnection::connect(const string& aServer, uint16_t aPort) throw(SocketException, ThreadException) { 
 	dcassert(!socket);
 
@@ -302,5 +271,5 @@ void UserConnection::updateChunkSize(int64_t leafSize, int64_t lastChunk, uint64
 
 /**
  * @file
- * $Id: UserConnection.cpp 403 2008-07-10 21:27:57Z BigMuscle $
+ * $Id: UserConnection.cpp 414 2008-08-01 19:16:45Z BigMuscle $
  */

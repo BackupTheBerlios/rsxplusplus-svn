@@ -225,6 +225,8 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const {
 						tmp += TSTRING(SOURCE_TOO_OLD);						
 					} else if(j->isSet(QueueItem::Source::FLAG_NO_NEED_PARTS)) {
 						tmp += TSTRING(NO_NEEDED_PART);
+					} else if(j->isSet(QueueItem::Source::FLAG_UNTRUSTED)) {
+						tmp += TSTRING(CERTIFICATE_NOT_TRUSTED);
 					}
 					tmp += _T(')');
 				}
@@ -258,7 +260,7 @@ void QueueFrame::addQueueItem(QueueItemInfo* ii, bool noSort) {
 	directories.insert(make_pair(dir, ii));
 	
 	if(updateDir) {
-		addDirectory(dir, ii->isSet(QueueItem::FLAG_USER_LIST), NULL, ii->isSet(QueueItem::FLAG_TESTSUR), ii->isSet(QueueItem::FLAG_CHECK_FILE_LIST));
+		addDirectory(dir, ii->isSet(QueueItem::FLAG_USER_LIST));
 	} 
 	if(!showTree || isCurDir(dir)) {
 		if(noSort)
@@ -565,7 +567,9 @@ LRESULT QueueFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 				ctrlQueue.deleteItem(ii);
 			}
 			
-			if(!ii->isSet(QueueItem::FLAG_USER_LIST) && !ii->isSet(QueueItem::FLAG_TESTSUR)) {
+			bool userList = ii->isSet(QueueItem::FLAG_USER_LIST) || ii->isSet(QueueItem::FLAG_TESTSUR);
+			
+			if(!userList) {
 				queueSize-=ii->getSize();
 				dcassert(queueSize >= 0);
 			}
@@ -588,7 +592,7 @@ LRESULT QueueFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 			
 			delete ii;
 			updateStatus();
-			if (BOOLSETTING(BOLD_QUEUE)) {
+			if (!userList && BOOLSETTING(BOLD_QUEUE)) {
 				setDirty();
 			}
 			dirty = true;
@@ -840,6 +844,8 @@ LRESULT QueueFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, B
 							nick += _T(" (") + TSTRING(SOURCE_TOO_OLD) + _T(")");
 						} else if(i->isSet(QueueItem::Source::FLAG_SLOW_SOURCE)) {
 							nick += _T(" (") + TSTRING(SLOW_USER) + _T(")");
+						} else if(i->isSet(QueueItem::Source::FLAG_UNTRUSTED)) {
+							nick += _T(" (") + TSTRING(CERTIFICATE_NOT_TRUSTED) + _T(")");
 						}
 						mi.fMask = MIIM_ID | MIIM_TYPE | MIIM_DATA;
 						mi.fType = MFT_STRING;
@@ -1499,5 +1505,5 @@ void QueueFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/) throw() {
 
 /**
  * @file
- * $Id: QueueFrame.cpp 399 2008-07-06 19:48:02Z BigMuscle $
+ * $Id: QueueFrame.cpp 419 2008-08-18 07:38:25Z BigMuscle $
  */

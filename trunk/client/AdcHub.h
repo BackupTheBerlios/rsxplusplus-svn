@@ -37,14 +37,14 @@ public:
 	void connect(const OnlineUser& user, string const& token, bool secure);
 	
 	void hubMessage(const string& aMessage, bool thirdPerson = false);
-	void privateMessage(const OnlineUser& user, const string& aMessage, bool thirdPerson = false);
+	void privateMessage(const OnlineUserPtr& user, const string& aMessage, bool thirdPerson = false);
 	void sendUserCmd(const string& aUserCmd) { send(aUserCmd); }
 	void search(int aSizeMode, int64_t aSize, int aFileType, const string& aString, const string& aToken);
 	void password(const string& pwd);
 	void info(bool alwaysSend);
 	void refreshUserList(bool);	
 
-	size_t getUserCount() const { Lock l(cs); return users.size(); }
+	//size_t getUserCount() const { Lock l(cs); return users.size(); }
 
 	string escape(string const& str) const { return AdcCommand::escape(str, false); }
 	void send(const AdcCommand& cmd);
@@ -160,5 +160,5 @@ private:
 
 /**
  * @file
- * $Id: AdcHub.h 404 2008-07-13 17:08:09Z BigMuscle $
+ * $Id: AdcHub.h 411 2008-07-20 22:39:42Z BigMuscle $
  */

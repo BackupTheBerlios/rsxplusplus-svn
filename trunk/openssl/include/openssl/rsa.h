@@ -228,7 +228,7 @@ struct rsa_st
 #define RSA_set_app_data(s,arg)         RSA_set_ex_data(s,0,arg)
 #define RSA_get_app_data(s)             RSA_get_ex_data(s,0)
 
-RSA *	__cdecl RSA_new(void);
+RSA *	RSA_new(void);
 RSA *	RSA_new_method(ENGINE *engine);
 int	RSA_size(const RSA *);
 
@@ -239,7 +239,7 @@ RSA *	RSA_generate_key(int bits, unsigned long e,void
 #endif /* !defined(OPENSSL_NO_DEPRECATED) */
 
 /* New version */
-int	__cdecl RSA_generate_key_ex(RSA *rsa, int bits, BIGNUM *e, BN_GENCB *cb);
+int	RSA_generate_key_ex(RSA *rsa, int bits, BIGNUM *e, BN_GENCB *cb);
 
 int	RSA_check_key(const RSA *);
 	/* next 4 return -1 on error */
@@ -251,7 +251,7 @@ int	RSA_public_decrypt(int flen, const unsigned char *from,
 		unsigned char *to, RSA *rsa,int padding);
 int	RSA_private_decrypt(int flen, const unsigned char *from, 
 		unsigned char *to, RSA *rsa,int padding);
-void	__cdecl RSA_free (RSA *r);
+void	RSA_free (RSA *r);
 /* "up" the RSA object's reference count */
 int	RSA_up_ref(RSA *r);
 
@@ -281,6 +281,7 @@ int	RSA_print_fp(FILE *fp, const RSA *r,int offset);
 int	RSA_print(BIO *bp, const RSA *r,int offset);
 #endif
 
+#ifndef OPENSSL_NO_RC4
 int i2d_RSA_NET(const RSA *a, unsigned char **pp,
 		int (*cb)(char *buf, int len, const char *prompt, int verify),
 		int sgckey);
@@ -294,6 +295,7 @@ int i2d_Netscape_RSA(const RSA *a, unsigned char **pp,
 RSA *d2i_Netscape_RSA(RSA **a, const unsigned char **pp, long length,
 		      int (*cb)(char *buf, int len, const char *prompt,
 				int verify));
+#endif
 
 /* The following 2 functions sign and verify a X509_SIG ASN1 object
  * inside PKCS#1 padded RSA encryption */

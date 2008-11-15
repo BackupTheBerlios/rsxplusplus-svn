@@ -620,7 +620,7 @@ private:
 	}	
 };
 
-// Copyright (C) 2005-2007 Big Muscle, StrongDC++
+// Copyright (C) 2005-2008 Big Muscle, StrongDC++
 template<class T, int ctrlId, class key, class hashFunc, class equalKey>
 class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId> 
 {
@@ -995,5 +995,5 @@ const vector<T*> TypedTreeListViewCtrl<T, ctrlId, key, hashFunc, equalKey>::empt
 
 /**
  * @file
- * $Id: TypedListViewCtrl.h 399 2008-07-06 19:48:02Z BigMuscle $
+ * $Id: TypedListViewCtrl.h 420 2008-08-21 19:15:50Z BigMuscle $
  */

@@ -33,7 +33,7 @@ PropPage::Item PluginsPage::items[] = {
 };
 
 LRESULT PluginsPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
-	ctrlTabs.SubclassWindow(GetDlgItem(IDC_PLUGINS_PAGES));
+	/*ctrlTabs.SubclassWindow(GetDlgItem(IDC_PLUGINS_PAGES));
 	ctrlTabs.SetParent(m_hWnd);
 	const PluginsManager::Plugins p = PluginsManager::getInstance()->getPlugins();
 	for(PluginsManager::Plugins::const_iterator i = p.begin(); i != p.end(); ++i) {
@@ -42,24 +42,24 @@ LRESULT PluginsPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 			(*i)->getInterface()->onMainWndEvent(1, h);
 		}
 	}
-	ctrlTabs.SetCurSel(0);
+	ctrlTabs.SetCurSel(0);*/
 	return TRUE;
 }
 
 void PluginsPage::write() {
-	for(std::map<int, HWND>::const_iterator j = plugins.begin(); j != plugins.end(); ++j) {
+	/*for(std::map<int, HWND>::const_iterator j = plugins.begin(); j != plugins.end(); ++j) {
 		PluginsManager::getInstance()->onSettingsDlgClose(j->first, j->second);
 	}
 	plugins.clear();
 
 	for(int i = 0; i < ctrlTabs.m_ctrlViews.GetItemCount(); ++i)
 		::DestroyWindow(ctrlTabs.m_ctrlViews.GetItem(i));
-
+*/
 }
-
+/*
 HWND PluginsPage::addPage(int pId, int resId, const tstring& tabName, HMODULE hInst) {
 	HWND dlg = ::CreateDialog(hInst, MAKEINTRESOURCE(resId), m_hWnd, NULL);
 	ctrlTabs.AddTab((LPWSTR)tabName.c_str(), dlg, true);
 	plugins.insert(make_pair(pId, dlg));
 	return dlg;
-}
+}*/

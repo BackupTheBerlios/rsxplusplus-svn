@@ -294,41 +294,55 @@ void ChatCtrl::AppendTextOnly(const tstring& sMyNick, const TCHAR* sText, CHARFO
 	SetSelectionCharFormat(isMyMessage ? WinUtil::m_ChatTextMyOwn : cf);
 	
 	// Zvyrazneni vsech URL a nastaveni "klikatelnosti"
-	long lSearchFrom = 0;
 	for(size_t i = 0; i < (sizeof(Links) / sizeof(Links[0])); i++) {
-		long linkStart = (long)sMsgLower.find(Links[i], lSearchFrom);
-		while(linkStart > 0) {
-			long linkEnd;
-			long linkEndSpace = (long)sMsgLower.find(_T(" "), linkStart);
-			long linkEndLine = (long)sMsgLower.find(_T("\n"), linkStart);
-			if((linkEndSpace <= linkStart && linkEndLine > linkStart) || (linkEndSpace > linkEndLine && linkEndLine > linkStart)) {
-				linkEnd = linkEndLine;
-			} else if(linkEndSpace > linkStart) {
-				linkEnd = linkEndSpace;
-			} else {
-				linkEnd = (long)sMsgLower.size();
+		size_t linkStart = sMsgLower.find(Links[i]);
+		bool isMagnet = _tcscmp(Links[i], _T("magnet:?")) == 0;
+		while(linkStart != tstring::npos) {
+			size_t linkEnd = linkStart + _tcslen(Links[i]);
+			
+			try {
+				boost::match_results<tstring::const_iterator> result;
+				// TODO: complete regexp for URLs
+				boost::wregex reg;
+				if(isMagnet) // magnet links have totally indeferent structure than classic URL
+					reg =       _T("^(\\w)+=[:\\w]+(&(\\w)+=[-/?%&=~#\\w\\.\\+\\*\\(\\)]*)*");
+				else
+					reg = _T("^([@\\w-]+(\\.)*)+(:[\\d]+)?(/[-/?%&=~#\\w\\.\\+\\*\\(\\)]*)*");
+					
+				if(boost::regex_search(sMsgLower.c_str() + linkEnd, result, reg)) {
+					dcassert(!result.empty());
+					
+					linkEnd += ((tstring)(result[0])).size();
+					SetSel(lSelBegin + linkStart, lSelBegin + linkEnd);
+					SetSelectionCharFormat(WinUtil::m_TextStyleURL);
+				}
+			} catch(...) {
 			}
-			SetSel(lSelBegin + linkStart, lSelBegin + linkEnd);
-			SetSelectionCharFormat(WinUtil::m_TextStyleURL);
-			linkStart = (long)sMsgLower.find(Links[i], linkEnd);
+			
+			linkStart = sMsgLower.find(Links[i], linkEnd);			
 		}
 	}
 
 	// Zvyrazneni vsech vyskytu vlastniho nicku
-	long lMyNickStart = -1, lMyNickEnd = -1;	
+	long lMyNickStart = -1, lMyNickEnd = -1;
+	size_t lSearchFrom = 0;	
 	tstring sNick = sMyNick.c_str();
 	std::transform(sNick.begin(), sNick.end(), sNick.begin(), _totlower);
 
-	while((lMyNickStart = (long)sMsgLower.find(sNick, lSearchFrom)) >= 0) {
+	bool found = false;
+	while((lMyNickStart = (long)sMsgLower.find(sNick, lSearchFrom)) != tstring::npos) {
 		lMyNickEnd = lMyNickStart + (long)sNick.size();
 		SetSel(lSelBegin + lMyNickStart, lSelBegin + lMyNickEnd);
 		SetSelectionCharFormat(WinUtil::m_TextStyleMyNick);
 		lSearchFrom = lMyNickEnd;
-
+		found = true;
+	}
+	
+	if(found) {
 		if(	!SETTING(CHATNAMEFILE).empty() && !BOOLSETTING(SOUNDS_DISABLED) &&
 			!sAuthor.empty() && (stricmp(sAuthor.c_str(), sNick) != 0)) {
 				::PlaySound(Text::toT(SETTING(CHATNAMEFILE)).c_str(), NULL, SND_FILENAME | SND_ASYNC);	 	
-        }
+        }	
 	}
 
 	// Zvyrazneni vsech vyskytu nicku Favorite useru
@@ -340,7 +354,7 @@ void ChatCtrl::AppendTextOnly(const tstring& sMyNick, const TCHAR* sText, CHARFO
 		sNick = Text::toT(pUser.getNick()).c_str();
 		std::transform(sNick.begin(), sNick.end(), sNick.begin(), _totlower);
 
-		while((lMyNickStart = (long)sMsgLower.find(sNick, lSearchFrom)) >= 0) {
+		while((lMyNickStart = (long)sMsgLower.find(sNick, lSearchFrom)) != tstring::npos) {
 			lMyNickEnd = lMyNickStart + (long)sNick.size();
 			SetSel(lSelBegin + lMyNickStart, lSelBegin + lMyNickEnd);
 			SetSelectionCharFormat(WinUtil::m_TextStyleFavUsers);
@@ -937,7 +951,8 @@ LRESULT ChatCtrl::onCopyUserInfo(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*
 LRESULT ChatCtrl::onReport(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
 	const OnlineUserPtr ou = client->findUser(Text::fromT(sSelectedUser));
 	if(ou)
-		client->cheatMessage(ou->getIdentity().getReport());
+		client->cheatMessage("*** Info on " + ou->getIdentity().getNick() + " ***" + "\r\n" + ou->getIdentity().getReport() + "\r\n");
+
 	return 0;
 }
 
@@ -952,6 +967,7 @@ LRESULT ChatCtrl::onGetUserResponses(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*
 			LogManager::getInstance()->message(e.getError());		
 		}
 	}
+
 	return 0;
 }
 

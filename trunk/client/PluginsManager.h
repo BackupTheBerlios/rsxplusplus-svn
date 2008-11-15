@@ -16,86 +16,21 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef PLUGINS_MANAGER
-#define PLUGINS_MANAGER
+#ifndef RSXPLUSPLUS_PLUGINS_MANAGER
+#define RSXPLUSPLUS_PLUGINS_MANAGER
 
 #include "Singleton.h"
-#include "CriticalSection.h"
-#include "Util.h"
-
-#include "PluginAPI/ClientInterface.h"
-#include "PluginAPI/UserInterface.h"
-#include "PluginAPI/PluginInformation.h"
-#include "PluginAPI/UserConnectionInterface.h"
-
-#include "PluginInfo.h"
 
 namespace dcpp {
 
 class PluginsManager : public Singleton<PluginsManager> {
 public:
-	typedef vector<PluginInfo*> Plugins;
-	Plugins& getPlugins() { Lock l(cs); return active; }
-
-	PluginsManager();
-	~PluginsManager();
-
-	void loadPlugins();
-	void unloadPlugins(bool withStopFuncCall);
-
-	void startPlugins();
-	void stopPlugins();
-
-	void saveSettings();
-	void loadSettings();
-
-	void reloadPlugins() {
-		unloadPlugins(true);
-		saveSettings();
-		loadPlugins();
-		startPlugins();
-	}
-
-	void setSetting(int pId, const string& n, const string& v);
-	string getSetting(int pId, const string& n);
-
-	// events
-	bool onIncommingMessage(iClient* client, const string& aMsg);
-	bool onOutgoingMessage(iClient* client, const string& aMsg);
-
-	bool onIncommingPM(iOnlineUser* from, const string& aMsg);
-	bool onOutgoingPM(iOnlineUser* to, const string& aMsg);
-
-	bool onHubConnected(iClient* hub);
-	void onHubDisconnected(iClient* hub);
-
-	void onUserConnected(iOnlineUser* user);
-	void onUserDisconnected(iOnlineUser* user);
-
-	bool onUserConnectionIn(iUserConnection* conn, const string& aLine);
-	bool onUserConnectionOut(iUserConnection* conn, const string& aLine);
-
-	void onToolbarClick(int pluginId, HWND btnHwnd);
-	void onSettingsDlgClose(int pId, HWND pagehWnd);
 
 private:
-	void loadPlugin(const string& pPath);
-	bool isLoaded(int pId);
 
-	string validateName(const string& aName) const {
-		string name = aName;
-		string::size_type i;
-		while((i = name.find(' ')) != string::npos) 
-			name.erase(i, 1);
-		return name;
-	}
-
-	friend class Singleton<PluginsManager>;
-	CriticalSection cs;
-
-	Plugins active;
 };
-}; // namespace dcpp
+} // namespace dcpp
+
 #endif
 
 /**

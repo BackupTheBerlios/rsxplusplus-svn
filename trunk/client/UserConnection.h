@@ -31,26 +31,16 @@
 #include "MerkleTree.h"
 #include "DebugManager.h"
 #include "ClientManager.h"
-#include "ScriptManager.h" //RSX++
-#include "PluginAPI/UserConnectionInterface.h" //RSX++
 
 namespace dcpp {
-//RSX++
-class UserConnectionScriptInstance : public ScriptInstance {
-protected:
-	bool onUserConnectionMessageIn(UserConnection* aConn, const string& aLine);
-	bool onUserConnectionMessageOut(UserConnection* aConn, const string& aLine);
-};
-//END
+
 class UserConnection : public Speaker<UserConnectionListener>, 
 	private BufferedSocketListener, public Flags, private CommandHandler<UserConnection>,
-	/*RSX++*/public UserConnectionScriptInstance, public iUserConnection,/*END*/
 	private boost::noncopyable
 {
 public:
 	friend class ConnectionManager;
 	
-	static const string FEATURE_GET_ZBLOCK;
 	static const string FEATURE_MINISLOTS;
 	static const string FEATURE_XML_BZLIST;
 	static const string FEATURE_ADCGET;
@@ -64,11 +54,6 @@ public:
 
 	static const string FILE_NOT_AVAILABLE;
 	
-	enum Modes {	
-		MODE_COMMAND = BufferedSocket::MODE_LINE,
-		MODE_DATA = BufferedSocket::MODE_DATA
-	};
-
 	enum Flags {
 		FLAG_NMDC					= 0x01,
 		FLAG_OP						= 0x02,
@@ -211,13 +196,6 @@ public:
 	BufferedSocket const* getSocket() { return socket; } 
 
 private:
-	/* iUserConnection interface */
-	void __cdecl p_disconnect(bool graceless = false) { disconnect(graceless); }
-	rString __cdecl p_getRemoteIp() const { return getRemoteIp().c_str(); }
-	void __cdecl p_send(const rString& data) { send(data.c_str()); }
-	bool __cdecl p_isAdc() const { return !isSet(FLAG_NMDC); }
-	//END
-
 	int64_t chunkSize;
 	BufferedSocket* socket;
 	UserPtr user;
@@ -253,12 +231,6 @@ private:
 	void send(const string& aString) {
 		lastActivity = GET_TICK();
 		COMMAND_DEBUG(aString, DebugManager::CLIENT_OUT, getRemoteIp());
-		//RSX++ // Lua
-		if(onUserConnectionMessageOut(this, aString)) {
-			disconnect(true);
-			return;
-		}
-		//END
 		socket->write(aString);
 	}
 
@@ -278,5 +250,5 @@ private:
 
 /**
  * @file
- * $Id: UserConnection.h 404 2008-07-13 17:08:09Z BigMuscle $
+ * $Id: UserConnection.h 421 2008-09-03 17:20:45Z BigMuscle $
  */

@@ -35,8 +35,8 @@ static const std::string CORAL_SUFFIX = ".nyud.net";
  * @param aUrl Full URL of file
  * @return A string with the content, or empty if download failed
  */
-void HttpConnection::downloadFile(const string& aUrl, bool UseCoral /*= true*/) {
-	dcassert(Util::findSubString(aUrl, "http://") == 0);
+void HttpConnection::downloadFile(const string& aUrl) {
+	dcassert(Util::findSubString(aUrl, "http://") == 0 || Util::findSubString(aUrl, "https://") == 0);
 	currentUrl = aUrl;
 	// Trim spaces
 	while(currentUrl[0] == ' ')
@@ -55,16 +55,17 @@ void HttpConnection::downloadFile(const string& aUrl, bool UseCoral /*= true*/) 
 		fire(HttpConnectionListener::TypeNormal(), this);
 	}
 
+	bool isSecure = false;
 	if(SETTING(HTTP_PROXY).empty()) {
-		Util::decodeUrl(currentUrl, server, port, file);
+		Util::decodeUrl(currentUrl, server, port, file, isSecure);
 		if(file.empty())
 			file = "/";
 	} else {
-		Util::decodeUrl(SETTING(HTTP_PROXY), server, port, file);
+		Util::decodeUrl(SETTING(HTTP_PROXY), server, port, file, isSecure);
 		file = currentUrl;
 	}
 
-	if(SETTING(CORAL) && coralizeState != CST_NOCORALIZE && UseCoral) {
+	if(SETTING(CORAL) && coralizeState != CST_NOCORALIZE) {
 		if(server.length() > CORAL_SUFFIX.length() && server.compare(server.length() - CORAL_SUFFIX.length(), CORAL_SUFFIX.length(), CORAL_SUFFIX) !=0) {
 			server += CORAL_SUFFIX;
 		} else {
@@ -81,7 +82,7 @@ void HttpConnection::downloadFile(const string& aUrl, bool UseCoral /*= true*/) 
 	}
 	socket->addListener(this);
 	try {
-		socket->connect(server, port, false, false, false);
+		socket->connect(server, port, isSecure, true, false);
 	} catch(const Exception& e) {
 		fire(HttpConnectionListener::Failed(), this, e.getError() + " (" + currentUrl + ")");
 	} catch(...) { }
@@ -189,5 +190,5 @@ void HttpConnection::on(BufferedSocketListener::Data, uint8_t* aBuf, size_t aLen
 
 /**
  * @file
- * $Id: HttpConnection.cpp 399 2008-07-06 19:48:02Z BigMuscle $
+ * $Id: HttpConnection.cpp 420 2008-08-21 19:15:50Z BigMuscle $
  */

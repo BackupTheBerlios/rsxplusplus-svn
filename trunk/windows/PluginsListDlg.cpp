@@ -25,7 +25,7 @@
 #include "PluginsListDlg.h"
 
 LRESULT PluginsListDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
-	CRect rc;
+	/*CRect rc;
 
 	ctrlList.Attach(GetDlgItem(IDC_PLUGINS_LIST));
 	ctrlList.GetClientRect(rc);
@@ -33,7 +33,7 @@ LRESULT PluginsListDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
 	ctrlList.InsertColumn(1, _T("Version"), LVCFMT_LEFT, (rc.Width() / 6), 0);
 	ctrlList.InsertColumn(2, _T("Author"), LVCFMT_LEFT, (rc.Width() / 6), 0);
 	ctrlList.InsertColumn(3, _T("Description"), LVCFMT_LEFT, (rc.Width() / 2)-18, 0);
-	ctrlList.SetExtendedListViewStyle(/*LVS_EX_INFOTIP | */LVS_EX_FULLROWSELECT);
+	ctrlList.SetExtendedListViewStyle(/LVS_EX_FULLROWSELECT);
 
 	const PluginsManager::Plugins& list = PluginsManager::getInstance()->getPlugins();
 	for(PluginsManager::Plugins::const_iterator i = list.begin(); i != list.end(); ++i) {
@@ -43,7 +43,7 @@ LRESULT PluginsListDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
 		strings.push_back((*i)->getAuthor());
 		strings.push_back((*i)->getDescription());
 		ctrlList.insert(ctrlList.GetItemCount(), strings, NULL, NULL);
-	}
+	}*/
 	return 0;
 }
 

@@ -177,8 +177,8 @@ public:
 private:
 	PrivateFrame(const UserPtr& replyTo_) : replyTo(replyTo_), 
 		created(false), closed(false), isoffline(false), curCommandPosition(0),  
-		ctrlMessageContainer(WC_EDIT, this, PM_MESSAGE_MAP), menuItems(0),
-		ctrlClientContainer(WC_EDIT, this, PM_MESSAGE_MAP),
+		ctrlMessageContainer(WC_EDIT, this, PM_MESSAGE_MAP),
+		ctrlClientContainer(WC_EDIT, this, PM_MESSAGE_MAP), menuItems(0),
 		soundActiveContainer(WC_BUTTON, this, PM_MESSAGE_MAP) { } //RSX++
 	
 	~PrivateFrame() { }
@@ -240,5 +240,5 @@ private:
 
 /**
  * @file
- * $Id: PrivateFrame.h 406 2008-07-14 20:25:22Z BigMuscle $
+ * $Id: PrivateFrame.h 423 2008-11-08 17:12:32Z BigMuscle $
  */

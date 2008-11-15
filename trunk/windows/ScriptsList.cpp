@@ -25,7 +25,7 @@
 #include "../client/ScriptManager.h"
 
 LRESULT ScriptsListDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
-	CRect rc;
+	/*CRect rc;
 
 	ctrlList.Attach(GetDlgItem(IDC_SCRIPTS_LIST));
 	ctrlList.GetClientRect(rc);
@@ -42,12 +42,12 @@ LRESULT ScriptsListDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
 	}
 	::SetWindowText(GetDlgItem(IDC_STATIC1), Text::toT("Scripts Dir: " + Util::getConfigPath() + "scripts\\").c_str());
 	::SetWindowText(GetDlgItem(IDC_STATIC2), Text::toT("Scripts Count: " + Util::toString(count)).c_str());
-	::SetWindowText(GetDlgItem(IDC_STATIC3), Text::toT("Active Scripts: " + Util::toString(active)).c_str());
+	::SetWindowText(GetDlgItem(IDC_STATIC3), Text::toT("Active Scripts: " + Util::toString(active)).c_str());*/
 	return 0;
 }
 
 LRESULT ScriptsListDlg::onSave(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
-	int items = ctrlList.GetItemCount();
+	/*int items = ctrlList.GetItemCount();
 	TCHAR buf[1024];
 	ScriptManager::ScriptsList& list = ScriptManager::getInstance()->getScriptsList();
 	list.clear();
@@ -58,7 +58,7 @@ LRESULT ScriptsListDlg::onSave(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCt
 	}
 	RSXSettingsManager::getInstance()->save();
 	ctrlList.Detach();
-	EndDialog(IDOK);
+	EndDialog(IDOK);*/
 	return 0;
 }
 

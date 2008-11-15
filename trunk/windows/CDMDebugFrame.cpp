@@ -176,7 +176,7 @@ void CDMDebugFrame::addLine(const string& aLine) {
 	if(line.rfind("\n") == string::npos)
 		line += "\n";
 
-	currentMessage = Text::toT(colorize(line));
+	currentMessage = Text::toT("{\\urtf1\\ansi\\ansicpg1252\\deff0\\plain0\n" + line + "}\n");
 	
 	if(noscroll)
 		ctrlPad.SetRedraw(FALSE);

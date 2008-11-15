@@ -29,24 +29,17 @@
 #include "DebugManager.h"
 #include "SearchQueue.h"
 //RSX++
-#include "ScriptManager.h" // Lua
 #include "../rsx/rsx-settings/rsx-SettingsManager.h"
-#include "PluginAPI/ClientInterface.h"
 #include "CommandQueue.h"
 #include "HubSettings.h"
 //END
 namespace dcpp {
-//RSX++
-struct ClientScriptInstance : public ScriptInstance {
-	bool onHubFrameEnter(Client* aClient, const string& aLine);
-	bool onClientMessage(Client* aClient, const string& prot, const string& aLine);
-};
-//END
+
 /** Yes, this should probably be called a Hub */
-class Client : public Speaker<ClientListener>, public iClient, public BufferedSocketListener, protected TimerManagerListener, 
-	/*RSX++*/ public ClientScriptInstance, public HubSettings/*END*/ {
+class Client : public Speaker<ClientListener>, public BufferedSocketListener, protected TimerManagerListener, 
+	/*RSX++*/public HubSettings/*END*/ {
 public:
-	typedef list<Client*> List;
+	typedef unordered_map<string*, Client*, noCaseStringHash, noCaseStringEq> List;
 	typedef List::const_iterator Iter;
 
 	virtual void connect();
@@ -54,7 +47,7 @@ public:
 
 	virtual void connect(const OnlineUser& user, const string& token) = 0;
 	virtual void hubMessage(const string& aMessage, bool thirdPerson = false) = 0;
-	virtual void privateMessage(const OnlineUser& user, const string& aMessage, bool thirdPerson = false) = 0;
+	virtual void privateMessage(const OnlineUserPtr& user, const string& aMessage, bool thirdPerson = false) = 0;
 	virtual void sendUserCmd(const string& aUserCmd) = 0;
 
 	uint64_t search(int aSizeMode, int64_t aSize, int aFileType, const string& aString, const string& aToken, void* owner);
@@ -63,7 +56,7 @@ public:
 	virtual void password(const string& pwd) = 0;
 	virtual void info(bool force) = 0;
 
-	virtual size_t getUserCount() const = 0;
+	size_t getUserCount() const { return userCount; }
 	int64_t getAvailable() const { return availableBytes; };
 	
 	virtual void send(const AdcCommand& command) = 0;
@@ -95,22 +88,6 @@ public:
 	void sendActionCommand(const OnlineUser& ou, int actionId);
 	void putDetectors() { stopMyINFOCheck(); stopChecking(); setCheckedAtConnect(false); }
 	bool isActionActive(const int aAction) const;
-
-	/** iClient functions **/
-	void __cdecl p_hubMessage(const rString& aMsg, bool thirdPerson = false) { hubMessage(aMsg.c_str(), thirdPerson); }
-	void __cdecl p_addHubLine(const rString& aMsg, int mType = 0) { addHubLine(aMsg.c_str(), mType); }
-	rString __cdecl p_getField(const char* name) { return getHubIdentity().get(name).c_str(); }
-	void __cdecl p_setField(const char* name, const rString& value) { getHubIdentity().set(name, value.c_str()); }
-	rString __cdecl p_getMyField(const char* name) { return getMyIdentity().get(name).c_str(); }
-	void __cdecl p_setMyField(const char* name, const rString& value) { getMyIdentity().set(name, value.c_str()); }
-	dcpp::rString __cdecl p_getHubSetting(const char* name) { return get(name).c_str(); }
-	void __cdecl p_setHubSetting(const char* name, const dcpp::rString& value) { set(name, value.c_str()); }
-	rString __cdecl p_getHubUrl() { return hubUrl.c_str(); }
-	void __cdecl p_sendUserCmd(const rString& aUserCmd) { sendUserCmd(aUserCmd.c_str());  }
-	iOnlineUser* __cdecl p_getUserByNick(const rString& aNick) { OnlineUserPtr ou = findUser(aNick.c_str()); return ou.get(); }
-	void __cdecl p_lock() { cs.enter(); }
-	void __cdecl p_unlock() { cs.leave(); }
-	//END
 
 	static int getTotalCounts() {
 		return counts.normal + counts.registered + counts.op;
@@ -241,7 +218,7 @@ protected:
 	virtual void on(Failed, const string&) throw();
 	//RSX++
 	GETSET(uint32_t, usersLimit, UsersLimit);
-	uint32_t userCount;
+	size_t userCount;
 	//END
 private:
 	//RSX++
@@ -275,5 +252,5 @@ private:
 
 /**
  * @file
- * $Id: Client.h 405 2008-07-14 11:41:15Z BigMuscle $
+ * $Id: Client.h 412 2008-07-23 22:35:40Z BigMuscle $
  */

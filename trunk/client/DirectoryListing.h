@@ -32,7 +32,7 @@ namespace dcpp {
 class ListLoader;
 STANDARD_EXCEPTION(AbortException);
 
-class DirectoryListing  
+class DirectoryListing : public UserInfoBase
 {
 public:
 	class Directory;
@@ -118,7 +118,7 @@ public:
 			}
 			return x;
 		}
-
+		
 		GETSET(string, name, Name);
 		GETSET(Directory*, parent, Parent);		
 		GETSET(bool, adls, Adls);		
@@ -201,5 +201,5 @@ inline bool operator==(DirectoryListing::File::Ptr a, const string& b) { return 
 
 /**
  * @file
- * $Id: DirectoryListing.h 403 2008-07-10 21:27:57Z BigMuscle $
+ * $Id: DirectoryListing.h 411 2008-07-20 22:39:42Z BigMuscle $
  */

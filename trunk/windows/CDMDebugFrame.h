@@ -19,7 +19,7 @@
 #include "../client/DebugManager.h"
 #include "../client/ScriptManager.h"
 
-class CDMDebugFrame : private DebugManagerListener, public Thread, public ScriptInstance,
+class CDMDebugFrame : private DebugManagerListener, public Thread,
 	public MDITabChildWindowImpl<CDMDebugFrame, RGB(0, 0, 0), IDR_CDM>,
 	public StaticFrame<CDMDebugFrame, ResourceManager::MENU_CDMDEBUG_MESSAGES>
 {

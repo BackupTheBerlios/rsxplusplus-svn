@@ -58,25 +58,25 @@ public:
 		/** Normal download, no flags set */
 		FLAG_NORMAL				= 0x00, 
 		/** This is a user file listing download */
-		FLAG_USER_LIST			= 0x02,
+		FLAG_USER_LIST			= 0x01,
 		/** The file list is downloaded to use for directory download (used with USER_LIST) */
-		FLAG_DIRECTORY_DOWNLOAD = 0x04,
+		FLAG_DIRECTORY_DOWNLOAD = 0x02,
 		/** The file is downloaded to be viewed in the gui */
-		FLAG_CLIENT_VIEW		= 0x08,
+		FLAG_CLIENT_VIEW		= 0x04,
 		/** Flag to indicate that file should be viewed as a text file */
-		FLAG_TEXT				= 0x20,
-		/** This file exists on the hard disk and should be prioritised */
-		FLAG_EXISTS				= 0x40,
+		FLAG_TEXT				= 0x08,
 		/** Match the queue against this list */
-		FLAG_MATCH_QUEUE		= 0x80,
+		FLAG_MATCH_QUEUE		= 0x10,
 		/** The file list downloaded was actually an .xml.bz2 list */
-		FLAG_XML_BZLIST			= 0x200,
+		FLAG_XML_BZLIST			= 0x20,
+		/** Only download a part of the file list */
+		FLAG_PARTIAL_LIST 		= 0x40,
 		/** Test user for slotlocker */
-		FLAG_TESTSUR			= 0x400,
+		FLAG_TESTSUR			= 0x80,
 		/** Test user's file list for fake share */
-		FLAG_CHECK_FILE_LIST	= 0x800,
+		FLAG_CHECK_FILE_LIST	= 0x100,
 		/** Autodrop slow source is enabled for this file */
-		FLAG_AUTODROP			= 0x1000
+		FLAG_AUTODROP			= 0x200
 	};
 
 	/**
@@ -115,9 +115,10 @@ public:
 			FLAG_NO_NEED_PARTS		= 0x80,
 			FLAG_PARTIAL			= 0x100,
 			FLAG_TTH_INCONSISTENCY	= 0x200,
+			FLAG_UNTRUSTED			= 0x400,
 			FLAG_MASK				= FLAG_FILE_NOT_AVAILABLE
-				| FLAG_PASSIVE | FLAG_REMOVED | FLAG_BAD_TREE
-				| FLAG_SLOW_SOURCE | FLAG_NO_TREE | FLAG_TTH_INCONSISTENCY
+				| FLAG_PASSIVE | FLAG_REMOVED | FLAG_BAD_TREE | FLAG_SLOW_SOURCE
+				| FLAG_NO_TREE | FLAG_TTH_INCONSISTENCY | FLAG_UNTRUSTED
 		};
 
 		Source(const UserPtr& aUser) : user(aUser), partialSource(NULL) { }
@@ -312,5 +313,5 @@ private:
 
 /**
 * @file
-* $Id: QueueItem.h 398 2008-07-05 20:54:25Z BigMuscle $
+* $Id: QueueItem.h 421 2008-09-03 17:20:45Z BigMuscle $
 */

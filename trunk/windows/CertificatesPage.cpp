@@ -29,6 +29,10 @@
 #include "WinUtil.h"
 
 PropPage::TextItem CertificatesPage::texts[] = {
+	{ IDC_STATIC1, ResourceManager::PRIVATE_KEY_FILE },
+	{ IDC_STATIC2, ResourceManager::OWN_CERTIFICATE_FILE },
+	{ IDC_STATIC3, ResourceManager::TRUSTED_CERTIFICATES_PATH },
+	{ IDC_GENERATE_CERTS, ResourceManager::GENERATE_CERTIFICATES },
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
 
@@ -42,7 +46,7 @@ PropPage::Item CertificatesPage::items[] = {
 PropPage::ListItem CertificatesPage::listItems[] = {
 	{ SettingsManager::USE_TLS, ResourceManager::SETTINGS_USE_TLS },
 	{ SettingsManager::ALLOW_UNTRUSTED_HUBS, ResourceManager::SETTINGS_ALLOW_UNTRUSTED_HUBS	},
-	{ SettingsManager::ALLOW_UNTRUSTED_CLIENTS, ResourceManager::SETTINGS_ALLOW_UNTRUSTED_CLIENTS, },
+	{ SettingsManager::ALLOW_UNTRUSTED_CLIENTS, ResourceManager::SETTINGS_ALLOW_UNTRUSTED_CLIENTS },
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
 
@@ -100,5 +104,5 @@ LRESULT CertificatesPage::onGenerateCerts(WORD /*wNotifyCode*/, WORD /*wID*/, HW
 
 /**
  * @file
- * $Id: CertificatesPage.cpp 373 2008-02-06 17:23:49Z bigmuscle $
+ * $Id: CertificatesPage.cpp 403 2008-07-10 21:27:57Z BigMuscle $
  */

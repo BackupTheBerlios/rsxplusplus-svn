@@ -52,12 +52,12 @@ LRESULT FavoriteHubsFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
 	}
 	
 	ctrlHubs.SetColumnOrderArray(COLUMN_LAST, columnIndexes);
-
+	//RSX++
 	ctrlGroups.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_HSCROLL |
 		WS_VSCROLL | CBS_DROPDOWNLIST, WS_EX_CLIENTEDGE, IDC_FAV_GROUPS);
 	ctrlGroups.SetFont(WinUtil::systemFont, FALSE);
 	updateGroups();
-
+	//END
 	ctrlConnect.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_DISABLED | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 		BS_PUSHBUTTON , 0, IDC_CONNECT);
 	ctrlConnect.SetWindowText(CTSTRING(CONNECT));
@@ -110,7 +110,7 @@ LRESULT FavoriteHubsFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
 	bHandled = FALSE;
 	return TRUE;
 }
-
+//RSX++
 void FavoriteHubsFrame::updateGroups() {
 	while(ctrlGroups.GetCount() > 0)
 		ctrlGroups.DeleteString(0);
@@ -137,7 +137,7 @@ void FavoriteHubsFrame::updateList() {
 	ctrlHubs.SetRedraw(TRUE);
 	nosave = false;
 }
-
+//END
 void FavoriteHubsFrame::openSelected() {
 	if(!checkNick())
 		return;
@@ -264,10 +264,12 @@ LRESULT FavoriteHubsFrame::onEdit(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 		FavHubProperties dlg(e);
 		if(dlg.DoModal(m_hWnd) == IDOK)
 		{
+			//RSX++
 			if(e->getGroupId() != ctrlGroups.GetCurSel() && ctrlGroups.GetCurSel() > 0) {
 				ctrlHubs.DeleteItem(i);
 				return 0;
 			}
+			//END
 			ctrlHubs.SetItemText(i, COLUMN_NAME, Text::toT(e->getName()).c_str());
 			ctrlHubs.SetItemText(i, COLUMN_DESCRIPTION, Text::toT(e->getDescription()).c_str());
 			ctrlHubs.SetItemText(i, COLUMN_SERVER, Text::toT(e->getServer()).c_str());
@@ -363,9 +365,9 @@ LRESULT FavoriteHubsFrame::onMoveDown(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /
 
 LRESULT FavoriteHubsFrame::onItemChanged(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/) {
 	NMITEMACTIVATE* l = (NMITEMACTIVATE*)pnmh;
-	::EnableWindow(GetDlgItem(IDC_CONNECT), (l->uNewState & LVIS_FOCUSED));
-	::EnableWindow(GetDlgItem(IDC_REMOVE), (l->uNewState & LVIS_FOCUSED));
-	::EnableWindow(GetDlgItem(IDC_EDIT), (l->uNewState & LVIS_FOCUSED));
+	::EnableWindow(GetDlgItem(IDC_CONNECT), ctrlHubs.GetItemState(l->iItem, LVIS_SELECTED));
+	::EnableWindow(GetDlgItem(IDC_REMOVE), ctrlHubs.GetItemState(l->iItem, LVIS_SELECTED));
+	::EnableWindow(GetDlgItem(IDC_EDIT), ctrlHubs.GetItemState(l->iItem, LVIS_SELECTED));
 	if(!nosave && l->iItem != -1 && ((l->uNewState & LVIS_STATEIMAGEMASK) != (l->uOldState & LVIS_STATEIMAGEMASK))) {
 		FavoriteHubEntry* f = (FavoriteHubEntry*)ctrlHubs.GetItemData(l->iItem);
 		f->setConnect(ctrlHubs.GetCheckState(l->iItem) != FALSE);
@@ -491,5 +493,5 @@ LRESULT FavoriteHubsFrame::onSelChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND 
 
 /**
  * @file
- * $Id: FavoritesFrm.cpp 330 2007-10-13 22:26:06Z bigmuscle $
+ * $Id: FavoritesFrm.cpp 389 2008-06-08 10:51:15Z BigMuscle $
  */

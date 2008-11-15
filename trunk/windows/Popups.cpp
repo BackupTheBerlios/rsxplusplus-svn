@@ -28,7 +28,7 @@
 
 PropPage::TextItem Popups::texts[] = {
 	{ IDC_POPUPGROUP, ResourceManager::BALLOON_POPUPS },
-	{ IDC_PREVIEW, ResourceManager::SETCZDC_PREVIEW },
+	{ IDC_PREVIEW, ResourceManager::SETSTRONGDC_PREVIEW },
 	{ IDC_POPUPTYPE, ResourceManager::POPUP_TYPE },
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
@@ -84,6 +84,6 @@ LRESULT Popups::onPreview(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, 
 }
 /**
  * @file
- * $Id: Popups.cpp 373 2008-02-06 17:23:49Z bigmuscle $
+ * $Id: Popups.cpp 412 2008-07-23 22:35:40Z BigMuscle $
  */
 

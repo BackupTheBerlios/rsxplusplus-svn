@@ -105,13 +105,15 @@ LRESULT FavHubProperties::OnInitDialog(UINT, WPARAM, LPARAM, BOOL&)
 	tmp.Attach(GetDlgItem(IDC_HUBPASS));
 	tmp.SetPasswordChar(0x25CF);
 	tmp.Detach();
+
 	//RSX++
 	tmp.Attach(GetDlgItem(IDC_FAV_EMAIL));
 	tmp.LimitText(50);
 	tmp.Detach();
-	tmp.Attach(GetDlgItem(IDC_FAV_AWAY_MSG));
-	tmp.LimitText(2048);
-	tmp.Detach();
+	
+//	tmp.Attach(GetDlgItem(IDC_FAV_AWAY_MSG));
+//	tmp.LimitText(2048);
+//	tmp.Detach();
 
 	m_hIcon = ::LoadIcon(_Module.get_m_hInst(), MAKEINTRESOURCE(IDR_FAVORITES));
 	SetIcon(m_hIcon, FALSE);

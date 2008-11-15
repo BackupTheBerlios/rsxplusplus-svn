@@ -294,7 +294,7 @@ void UserInfoBase::browseList() {
 	if(!getUser() || getUser()->getCID().isZero())
 		return;
 	try {
-		QueueManager::getInstance()->addPfs(getUser(), "");
+		QueueManager::getInstance()->addList(getUser(), QueueItem::FLAG_CLIENT_VIEW | QueueItem::FLAG_PARTIAL_LIST);
 	} catch(const Exception& e) {
 		LogManager::getInstance()->message(e.getError());		
 	}
@@ -385,12 +385,10 @@ static LRESULT CALLBACK KeyboardProc(int code, WPARAM wParam, LPARAM lParam) {
 
 void WinUtil::reLoadImages() {
 	userImages.Destroy();
-
-	if(SETTING(USERLIST_IMAGE) == "") {
+	if(SETTING(USERLIST_IMAGE).empty())
 		ResourceLoader::LoadImageList(IDP_USERS, userImages, 16, 16);
-	} else {
+	else
 		ResourceLoader::LoadImageList(Text::toT(SETTING(USERLIST_IMAGE)).c_str(), userImages, 16, 16);
-	}
 }
 
 void WinUtil::init(HWND hWnd) {
@@ -518,11 +516,10 @@ void WinUtil::init(HWND hWnd) {
 
 	ResourceLoader::LoadImageList(IDP_FLAGS, flagImages, 25, 15);
 
-	if(SETTING(USERLIST_IMAGE) == "") {
+	if(SETTING(USERLIST_IMAGE) == "")
 		ResourceLoader::LoadImageList(IDP_USERS, userImages, 16, 16);
-	} else {
+	else
 		ResourceLoader::LoadImageList(Text::toT(SETTING(USERLIST_IMAGE)).c_str(), userImages, 16, 16);
-	}
 	
 	LOGFONT lf, lf2;
 	::GetObject((HFONT)GetStockObject(DEFAULT_GUI_FONT), sizeof(lf), &lf);
@@ -1071,18 +1068,18 @@ bool WinUtil::checkCommand(tstring& cmd, tstring& param, tstring& message, tstri
 		}
 	//RSX++
 	} else if(stricmp(cmd.c_str(), _T("pinfo")) == 0) {
-		const PluginsManager::Plugins& p = PluginsManager::getInstance()->getPlugins();
+		/*const PluginsManager::Plugins& p = PluginsManager::getInstance()->getPlugins();
 		tstring pinfo = _T("Active Plugins Info\nLoaded plugins: ") + Util::toStringW(p.size());
 		for(PluginsManager::Plugins::const_iterator i = p.begin(); i != p.end(); ++i) {
 			pinfo += _T("\n-- Plugin Name: ") + (*i)->getName();
 			pinfo += _T("\n-- Plugin Version: ") + (*i)->getVersion();
 			pinfo += _T("\n");
 		}
-		status = pinfo;
+		status = pinfo;*/
 	} else if(stricmp(cmd.c_str(), _T("lua")) == 0) {
-		ScriptManager::getInstance()->EvaluateChunk(Text::fromT(param));
+		//ScriptManager::getInstance()->EvaluateChunk(Text::fromT(param));
 	} else if(stricmp(cmd.c_str(), _T("luafile")) == 0) {
-		ScriptManager::getInstance()->EvaluateFile(Text::fromT(param));
+		//ScriptManager::getInstance()->EvaluateFile(Text::fromT(param));
 	//END
 	} else {
 		return false;
@@ -1288,9 +1285,6 @@ void WinUtil::unRegisterMagnetHandler() {
 }
 
 void WinUtil::openLink(const tstring& url) {
-	CRegKey key;
-	TCHAR regbuf[MAX_PATH];
-	ULONG len = MAX_PATH;
 	if(_strnicmp(Text::fromT(url).c_str(), "magnet:?", 8) == 0) {
 		parseMagnetUri(url);
 		return;
@@ -1299,60 +1293,10 @@ void WinUtil::openLink(const tstring& url) {
 		parseDchubUrl(url);
 		return;
 	}
-	tstring x;
-
-	tstring::size_type i = url.find(_T("://"));
-	if(i != string::npos) {
-		x = url.substr(0, i);
-	} else {
-		x = _T("http");
-	}
-	x += _T("\\shell\\open\\command");
-	if(key.Open(HKEY_CLASSES_ROOT, x.c_str(), KEY_READ) == ERROR_SUCCESS) {
-		if(key.QueryStringValue(NULL, regbuf, &len) == ERROR_SUCCESS) {
-			/*
-			 * Various values (for http handlers):
-			 *  C:\PROGRA~1\MOZILL~1\FIREFOX.EXE -url "%1"
-			 *  "C:\Program Files\Internet Explorer\iexplore.exe" -nohome
-			 *  "C:\Apps\Opera7\opera.exe"
-			 *  C:\PROGRAMY\MOZILLA\MOZILLA.EXE -url "%1"
-			 *  C:\PROGRA~1\NETSCAPE\NETSCAPE\NETSCP.EXE -url "%1"
-			 */
-			tstring cmd(regbuf); // otherwise you consistently get two trailing nulls
-			
-			if(cmd.length() > 1) {
-				string::size_type start,end;
-				if(cmd[0] == '"') {
-					start = 1;
-					end = cmd.find('"', 1);
-				} else {
-					start = 0;
-					end = cmd.find(' ', 1);
-				}
-				if(end == string::npos)
-					end = cmd.length();
-
-				tstring cmdLine(cmd);
-				cmd = cmd.substr(start, end-start);
-				size_t arg_pos;
-				if((arg_pos = cmdLine.find(_T("%1"))) != string::npos) {
-					cmdLine.replace(arg_pos, 2, url);
-				} else {
-					cmdLine.append(_T(" \"") + url + _T('\"'));
-				}
-
-				STARTUPINFO si = { sizeof(si), 0 };
-				PROCESS_INFORMATION pi = { 0 };
-				boost::scoped_array<TCHAR> buf(new TCHAR[cmdLine.length() + 1]);
-				_tcscpy(&buf[0], cmdLine.c_str());
-				if(::CreateProcess(cmd.c_str(), &buf[0], NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) {
-					::CloseHandle(pi.hThread);
-					::CloseHandle(pi.hProcess);
-					return;
-				}
-			}
-		}
-	}
+	if(_strnicmp(Text::fromT(url).c_str(), "adc://", 6) == 0) {
+		parseADChubUrl(url);
+		return;
+	}	
 
 	::ShellExecute(NULL, NULL, url.c_str(), NULL, NULL, SW_SHOWNORMAL);
 }
@@ -2037,5 +1981,5 @@ tstring WinUtil::getWindowText(HWND _hwnd, int ctrlID) {
 //END
 /**
  * @file
- * $Id: WinUtil.cpp 399 2008-07-06 19:48:02Z BigMuscle $
+ * $Id: WinUtil.cpp 420 2008-08-21 19:15:50Z BigMuscle $
  */

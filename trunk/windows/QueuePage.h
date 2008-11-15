@@ -53,13 +53,11 @@ protected:
 	static TextItem texts[];
 	static ListItem optionItems[];
 	TCHAR* title;
-
-	CComboBox ctrlMultiSource;
 };
 
 #endif // !defined(QUEUE_PAGE_H)
 
 /**
  * @file
- * $Id: QueuePage.h 308 2007-07-13 18:57:02Z bigmuscle $
+ * $Id: QueuePage.h 411 2008-07-20 22:39:42Z BigMuscle $
  */

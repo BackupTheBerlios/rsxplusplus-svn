@@ -74,7 +74,7 @@ void AutoSearchManager::getAllowedHubs() {
 	const Client::List& clients = cm->getClients();
 	cm->lock();
 	for(Client::List::const_iterator i = clients.begin(); i != clients.end(); ++i) {
-		Client* client = *i;
+		Client* client = i->second;
 		if(!client || !client->isConnected())
 			continue;
 

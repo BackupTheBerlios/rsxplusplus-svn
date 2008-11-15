@@ -1744,7 +1744,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="*** Checking SVN Revision ***"
-						CommandLine="subwcrev.exe . client/versiontemplate.h client/version.h&#x0D;&#x0A;"
+						CommandLine="svnrevision_check.py"
 						Outputs="$(SolutionDir)client\version.h"
 					/>
 				</FileConfiguration>
@@ -1754,7 +1754,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="*** Checking SVN Revision ***"
-						CommandLine="subwcrev.exe . client/versiontemplate.h client/version.h&#x0D;&#x0A;"
+						CommandLine="svnrevision_check.py"
 						Outputs="$(SolutionDir)client\version.h"
 					/>
 				</FileConfiguration>
@@ -1764,7 +1764,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="*** Checking SVN Revision ***"
-						CommandLine="subwcrev.exe . client/versiontemplate.h client/version.h&#x0D;&#x0A;"
+						CommandLine="svnrevision_check.py"
 						Outputs="$(SolutionDir)client\version.h"
 					/>
 				</FileConfiguration>
@@ -1774,7 +1774,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="*** Checking SVN Revision ***"
-						CommandLine="subwcrev.exe . client/versiontemplate.h client/version.h&#x0D;&#x0A;"
+						CommandLine="svnrevision_check.py"
 						Outputs="$(SolutionDir)client\version.h"
 					/>
 				</FileConfiguration>
@@ -1784,7 +1784,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="*** Checking SVN Revision ***"
-						CommandLine="subwcrev.exe . client/versiontemplate.h client/version.h&#x0D;&#x0A;"
+						CommandLine="svnrevision_check.py"
 						Outputs="$(SolutionDir)client\version.h"
 					/>
 				</FileConfiguration>
@@ -1794,7 +1794,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="*** Checking SVN Revision ***"
-						CommandLine="subwcrev.exe . client/versiontemplate.h client/version.h&#x0D;&#x0A;"
+						CommandLine="svnrevision_check.py"
 						Outputs="$(SolutionDir)client\version.h"
 					/>
 				</FileConfiguration>

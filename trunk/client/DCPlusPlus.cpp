@@ -52,7 +52,6 @@
 #include "DetectionManager.h"
 #include "WebServerManager.h"
 #include "../windows/PopupManager.h"
-
 /*
 #ifdef _STLP_DEBUG
 void __stl_debug_terminate() {
@@ -97,7 +96,7 @@ void startup(void (*f)(void*, const tstring&), void* p) {
 	FinishedManager::newInstance();
 	ADLSearchManager::newInstance();
 	DebugManager::newInstance();
-	DetectionManager::newInstance();		
+	DetectionManager::newInstance();	
 	PopupManager::newInstance();
 	//RSX++ //instances
 	HTTPDownloadManager::newInstance();
@@ -112,7 +111,7 @@ void startup(void (*f)(void*, const tstring&), void* p) {
 	SettingsManager::getInstance()->load();
 	//RSX++ //loaders
 	RSXSettingsManager::getInstance()->load();
-	ScriptManager::getInstance()->load();
+	//ScriptManager::getInstance()->load();
 	AutoSearchManager::getInstance()->AutosearchLoad();
 	IpManager::getInstance()->load();
 	//END
@@ -153,7 +152,7 @@ void shutdown() {
 	QueueManager::getInstance()->saveQueue();
 	SettingsManager::getInstance()->save();
 	RSXSettingsManager::getInstance()->save(); //RSX++
-	PluginsManager::getInstance()->stopPlugins(); //RSX++
+	//PluginsManager::getInstance()->stopPlugins(); //RSX++
 
 	//RSX++
 	RsxUtil::uinit();
@@ -197,5 +196,5 @@ void shutdown() {
 
 /**
  * @file
- * $Id: DCPlusPlus.cpp 399 2008-07-06 19:48:02Z BigMuscle $
+ * $Id: DCPlusPlus.cpp 421 2008-09-03 17:20:45Z BigMuscle $
  */

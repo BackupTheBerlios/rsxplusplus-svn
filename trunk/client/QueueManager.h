@@ -76,12 +76,10 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 {
 public:
 	/** Add a file to the queue. */
-	void add(const string& aTarget, int64_t aSize, const TTHValue& root, UserPtr aUser,
+	void add(const string& aTarget, int64_t aSize, const TTHValue& root, const UserPtr& aUser,
 		Flags::MaskType aFlags = 0, bool addBad = true) throw(QueueException, FileException);
 		/** Add a user's filelist to the queue. */
 	void addList(const UserPtr& aUser, Flags::MaskType aFlags, const string& aInitialDir = Util::emptyString) throw(QueueException, FileException);
-	/** Queue a partial file list download */
-	void addPfs(const UserPtr& aUser, const string& aDir, bool onlyDownload = false) throw(QueueException);
 
 	void addTestSUR(UserPtr aUser, bool checkList = false) throw(QueueException, FileException) {
 		StringList nicks = ClientManager::getInstance()->getNicks(*aUser);
@@ -243,8 +241,6 @@ public:
 		CriticalSection cs;
 	} mover;
 
-	typedef unordered_map<CID, pair<string, bool>> PfsQueue;
-	typedef PfsQueue::iterator PfsIter;
 	typedef vector<pair<QueueItem::SourceConstIter, const QueueItem*> > PFSSourceList;
 
 	/** All queue items by target */
@@ -321,8 +317,6 @@ private:
 	
 	mutable CriticalSection cs;
 	
-	/** Partial file list queue */
-	PfsQueue pfsQueue;
 	/** QueueItems by user */
 	UserQueue userQueue;
 	/** Directories queued for downloading */
@@ -333,10 +327,8 @@ private:
 	bool dirty;
 	/** Next search */
 	uint64_t nextSearch;
-	/** map for storing initial dir for file lists */
-	StringMap dirMap;
 	/** Sanity check for the target filename */
-	static string checkTarget(const string& aTarget, int64_t aSize, Flags::MaskType& flags) throw(QueueException, FileException);
+	static string checkTarget(const string& aTarget, int64_t aSize) throw(QueueException, FileException);
 	/** Add a source to an existing queue item */
 	bool addSource(QueueItem* qi, UserPtr aUser, Flags::MaskType addBad) throw(QueueException, FileException);
 
@@ -345,12 +337,9 @@ private:
 	void load(const SimpleXML& aXml);
 	void moveFile(const string& source, const string& target);
 
-	void setDirty() {
-		if(!dirty) {
-			dirty = true;
-			lastSave = GET_TICK();
-		}
-	}
+	void setDirty();
+
+	string getListPath(const UserPtr& user);
 
 	// TimerManagerListener
 	void on(TimerManagerListener::Second, uint64_t aTick) throw();
@@ -370,5 +359,5 @@ private:
 
 /**
  * @file
- * $Id: QueueManager.h 391 2008-06-21 09:56:36Z BigMuscle $
+ * $Id: QueueManager.h 419 2008-08-18 07:38:25Z BigMuscle $
  */

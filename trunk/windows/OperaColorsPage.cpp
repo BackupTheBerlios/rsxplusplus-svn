@@ -35,15 +35,16 @@ PropPage::TextItem OperaColorsPage::texts[] = {
 	{ IDC_PROGRESS_OVERRIDE2, ResourceManager::SETTINGS_ZDC_PROGRESS_OVERRIDE2 },
 	{ IDC_SETTINGS_DOWNLOAD_BAR_COLOR, ResourceManager::DOWNLOAD },
 	{ IDC_PROGRESS_TEXT_COLOR_DOWN, ResourceManager::DOWNLOAD },
-	{ IDC_SETTINGS_UPLOAD_BAR_COLOR, ResourceManager::SETCZDC_UPLOAD },
-	{ IDC_PROGRESS_TEXT_COLOR_UP, ResourceManager::SETCZDC_UPLOAD },
+	{ IDC_SETTINGS_UPLOAD_BAR_COLOR, ResourceManager::SETSTRONGDC_UPLOAD },
+	{ IDC_PROGRESS_TEXT_COLOR_UP, ResourceManager::SETSTRONGDC_UPLOAD },
 	{ IDC_SETTINGS_ODC_MENUBAR, ResourceManager::MENUBAR },
 	{ IDC_SETTINGS_ODC_MENUBAR_LEFT, ResourceManager::LEFT_COLOR },
 	{ IDC_SETTINGS_ODC_MENUBAR_RIGHT, ResourceManager::RIGHT_COLOR },
 	{ IDC_SETTINGS_ODC_MENUBAR_USETWO, ResourceManager::TWO_COLORS },
 	{ IDC_SETTINGS_ODC_MENUBAR_BUMPED, ResourceManager::BUMPED },
-	{ IDC_CZDC_PROGRESS_COLOR, ResourceManager::SETCZDC_PROGRESSBAR_COLORS },
-	{ IDC_CZDC_PROGRESS_TEXT, ResourceManager::SETCZDC_PROGRESSBAR_TEXT },
+	//{ IDC_STRONGDC_PROGRESS_COLOR, ResourceManager::SETSTRONGDC_PROGRESSBAR_COLORS },
+	//{ IDC_STRONGDC_PROGRESS_TEXT, ResourceManager::SETSTRONGDC_PROGRESSBAR_TEXT },
+	{ IDC_STRONGDC_PROGRESS_COLOR, ResourceManager::SETSTRONGDC_PROGRESSBAR_COLORS },
 	{ IDC_IMAGEBROWSE, ResourceManager::BROWSE },
 	{ IDC_KBPS, ResourceManager::KBPS },
 	{ IDC_KBPS2, ResourceManager::KBPS },
@@ -61,11 +62,12 @@ OperaColorsPage* current_page;
 LPCCHOOKPROC color_proc;
 
 PropPage::Item OperaColorsPage::items[] = {
-	{ IDC_INDICATE_SPEEDS, SettingsManager::STEALTHY_INDICATE_SPEEDS, PropPage::T_BOOL },
-	{ IDC_PROGRESS_BUMPED, SettingsManager::PROGRESSBAR_ODC_BUMPED, PropPage::T_BOOL },
+	//{ IDC_ODC_STYLE, SettingsManager::PROGRESSBAR_ODC_STYLE, PropPage::T_BOOL },
 	{ IDC_PROGRESS_OVERRIDE, SettingsManager::PROGRESS_OVERRIDE_COLORS, PropPage::T_BOOL },
 	{ IDC_PROGRESS_OVERRIDE2, SettingsManager::PROGRESS_OVERRIDE_COLORS2, PropPage::T_BOOL },
 	{ IDC_FLAT, SettingsManager::PROGRESS_3DDEPTH, PropPage::T_INT },
+	{ IDC_INDICATE_SPEEDS, SettingsManager::STEALTHY_INDICATE_SPEEDS, PropPage::T_BOOL },
+	{ IDC_PROGRESS_BUMPED, SettingsManager::PROGRESSBAR_ODC_BUMPED, PropPage::T_BOOL },
 	{ IDC_TOP_SPEED, SettingsManager::TOP_SPEED, PropPage::T_INT },
 	{ IDC_TOP_UP_SPEED, SettingsManager::TOP_UP_SPEED, PropPage::T_INT },
 	//{ IDC_BACKGROUND_IMAGE, SettingsManager::BACKGROUND_IMAGE, PropPage::T_STR },
@@ -111,9 +113,10 @@ UINT_PTR CALLBACK MenuBarCommDlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 			}
 		}
 	}
+	
 	return (*color_proc)(hWnd, uMsg, wParam, lParam);
-}
 
+}
 LRESULT OperaColorsPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
 	PropPage::translate((HWND)(*this), texts);
@@ -153,6 +156,7 @@ LRESULT OperaColorsPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /
 	BOOL b;
 	onMenubarClicked(0, IDC_SETTINGS_ODC_MENUBAR_USETWO, 0, b);
 	// Do specialized reading here
+	
 	return TRUE;
 }
 

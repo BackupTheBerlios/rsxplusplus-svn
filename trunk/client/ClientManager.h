@@ -42,11 +42,11 @@ class ClientManager : public Speaker<ClientManagerListener>,
 	private TimerManagerListener
 {
 public:
+	typedef unordered_multimap<CID*, OnlineUser*> OnlineMap;
+	
 	Client* getClient(const string& aHubURL);
 	void putClient(Client* aClient);
 
-	size_t getUserCount() const;
-	int64_t getAvailable() const;
 	StringList getHubs(const CID& cid) const;
 	StringList getHubNames(const CID& cid) const;
 	StringList getNicks(const CID& cid) const;
@@ -70,15 +70,19 @@ public:
 	UserPtr findUser(const string& aNick, const string& aHubUrl) const throw() { return findUser(makeCid(aNick, aHubUrl)); }
 	UserPtr findUser(const CID& cid) const throw();
 	UserPtr findLegacyUser(const string& aNick) const throw();
-
+	
+	OnlineUserPtr findOnlineUser(const CID& cid, const Client* client = NULL) const throw();
+	void getOnlineUsers(OnlineMap& tmp) const { Lock l(cs); tmp = onlineUsers; }
+	
 	void updateNick(const UserPtr& user, const string& nick) throw();
-
+	string getMyNick(const string& hubUrl) const;
+	
 	void setIPUser(const UserPtr& user, const string& IP, uint16_t udpPort = 0, bool resolveHost = false) {
 		if(IP.empty())
 			return;
 		string aHost = resolveHost ? Socket::getRemoteHost(IP) : Util::emptyString;
 		Lock l(cs);
-		OnlinePairC p = onlineUsers.equal_range(user->getCID());
+		OnlinePairC p = onlineUsers.equal_range(const_cast<CID*>(&user->getCID()));
 		for (OnlineIterC i = p.first; i != p.second; i++) {
 			i->second->getIdentity().setIp(IP);
 			if(udpPort > 0)
@@ -90,23 +94,14 @@ public:
 				i->second->getIdentity().checkIP(*i->second);
 			//END
 		}
-	}	
-	
-	string getMyNMDCNick(const UserPtr& p) const {
-		Lock l(cs);
-		OnlineIterC i = onlineUsers.find(p->getCID());
-		if(i != onlineUsers.end()) {
-			return i->second->getClient().getMyNick();
-		}
-		return Util::emptyString;
 	}
-
+	
 	void reportUser(const UserPtr& p) {
 		string nick; string report;
 		Client* c;
 		{
 			Lock l(cs);
-			OnlineIterC i = onlineUsers.find(p->getCID());
+			OnlineIterC i = onlineUsers.find(const_cast<CID*>(&p->getCID()));
 			if(i == onlineUsers.end()) return;
 
 			nick = i->second->getIdentity().getNick();
@@ -118,7 +113,7 @@ public:
 	//RSX++ // Clean User
 	void cleanUser(const UserPtr& p) {
 		Lock l(cs);
-		OnlineIterC i = onlineUsers.find(p->getCID());
+		OnlineIterC i = onlineUsers.find(const_cast<CID*>(&p->getCID()));
 		if(i == onlineUsers.end()) return;
 
 		i->second->getIdentity().cleanUser();
@@ -127,7 +122,7 @@ public:
 	//RSX++ //Hide Share
 	bool getSharingHub(const UserPtr& p) {
 		Lock l(cs);
-		OnlineIterC i = onlineUsers.find(p->getCID());
+		OnlineIterC i = onlineUsers.find(const_cast<CID*>(&p->getCID()));
 		if(i != onlineUsers.end()) {
 			return i->second->getClient().getHideShare();
 		}
@@ -139,7 +134,7 @@ public:
 		string report = Util::emptyString;
 		{
 			Lock l(cs);
-			OnlineIterC i = onlineUsers.find(p->getCID());
+			OnlineIterC i = onlineUsers.find(const_cast<CID*>(&p->getCID()));
 			if(i == onlineUsers.end()) return;
 			c = &i->second->getClient();
 			if(i->second->getIdentity().get("SC").empty())
@@ -150,56 +145,6 @@ public:
 		}
 	}
 	//END
-	void updateUser(const UserPtr& p) {
-		OnlineUser* ou;
-		{
-			Lock l(cs);
-			OnlineIterC i = onlineUsers.find(p->getCID());
-			if(i == onlineUsers.end()) return;
-
-			ou = i->second;
-		}
-		ou->getClient().updated(ou);
-	}
-
-	void setPkLock(const UserPtr& p, const string& aPk, const string& aLock) {
-		Lock l(cs);
-		OnlineIterC i = onlineUsers.find(p->getCID());
-		if(i == onlineUsers.end()) return;
-		i->second->getIdentity().set("PK", aPk);
-		i->second->getIdentity().set("LO", aLock);
-	}
-
-	void setSupports(const UserPtr& p, const string& aSupports) {
-		Lock l(cs);
-		OnlineIterC i = onlineUsers.find(p->getCID());
-		if(i == onlineUsers.end()) return;
-		i->second->getIdentity().set("SU", aSupports);
-	}
-
-	void setGenerator(const UserPtr& p, const string& aGenerator, const string& aCID, const string& aBase) {
-		Client* c = NULL;
-		string report = Util::emptyString;
-		{
-			Lock l(cs);
-			OnlineIterC i = onlineUsers.find(p->getCID());
-			if(i == onlineUsers.end()) return;
-			i->second->getIdentity().set("GE", aGenerator);
-			i->second->getIdentity().set("FI", aCID);
-			i->second->getIdentity().set("FB", aBase);
-			report = i->second->getIdentity().checkFilelistGenerator((*i->second));
-		}
-		if(c != NULL && !report.empty()) {
-			c->cheatMessage(report);
-		}
-	}
-
-	void setUnknownCommand(const UserPtr& p, const string& aUnknownCommand) {
-		Lock l(cs);
-		OnlineIterC i = onlineUsers.find(p->getCID());
-		if(i == onlineUsers.end()) return;
-		i->second->getIdentity().set("UC", aUnknownCommand);
-	}
 
 	bool isOp(const UserPtr& aUser, const string& aHubUrl) const;
 	bool isStealth(const string& aHubUrl) const;
@@ -214,7 +159,6 @@ public:
 	
 	void connect(const UserPtr& p, const string& token);
 	void send(AdcCommand& c, const CID& to);
-	void privateMessage(const UserPtr& p, const string& msg, bool thirdPerson);
 
 	void userCommand(const UserPtr& p, const UserCommand& uc, StringMap& params, bool compatibility);
 	void sendRawCommand(const UserPtr& user, const string& aRaw, bool checkProtection = false);
@@ -232,7 +176,6 @@ public:
 	void multiHubKick(const UserPtr& p, const string& aRaw);
 	tstring getHubsLoadInfo() const;
 	//END
-	string getHubUrl(const UserPtr& aUser) const;
 
 	const Client::List& getClients() const { return clients; }
 
@@ -252,26 +195,33 @@ public:
 	static bool ucExecuteLua(const string& cmd, StringMap& params);
 	//END
 
+	// NMDC functions only!!!
+	void setPkLock(const UserPtr& p, const string& aPk, const string& aLock);
+	void setSupports(const UserPtr& p, const string& aSupports);
+	
+	void setGenerator(const UserPtr& p, const string& aGenerator, const string& aCID, const string& aBase);
+	void setUnknownCommand(const UserPtr& p, const string& aUnknownCommand);
+
+
 private:
 	//RSX++
 	bool compareUsers(const OnlineUser& ou1, const OnlineUser& ou2) const;
 	//END
-	typedef unordered_map<CID, UserPtr> UserMap;
+	typedef unordered_map<CID*, UserPtr> UserMap;
 	typedef UserMap::iterator UserIter;
 
-	typedef unordered_map<CID, std::string> NickMap;
+	typedef unordered_map<CID*, std::string> NickMap;
 
-	typedef unordered_multimap<CID, OnlineUser*> OnlineMap;
 	typedef OnlineMap::iterator OnlineIter;
 	typedef OnlineMap::const_iterator OnlineIterC;
 	typedef pair<OnlineIter, OnlineIter> OnlinePair;
 	typedef pair<OnlineIterC, OnlineIterC> OnlinePairC;
-
+	
 	Client::List clients;
 	mutable CriticalSection cs;
 	
 	UserMap users;
-	OnlineMap onlineUsers;
+	OnlineMap onlineUsers;	
 	NickMap nicks;
 
 	UserPtr me;
@@ -310,5 +260,5 @@ private:
 
 /**
  * @file
- * $Id: ClientManager.h 405 2008-07-14 11:41:15Z BigMuscle $
+ * $Id: ClientManager.h 413 2008-07-30 09:32:53Z BigMuscle $
  */

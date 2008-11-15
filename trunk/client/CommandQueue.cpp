@@ -47,7 +47,7 @@ void CommandQueue::addCommandDelayed(uint64_t delay, const CommandItem& item) th
 
 void CommandQueue::execCommand(const CommandItem& item) throw() {
 	if(item.lua) {
-		ScriptManager::getInstance()->onRaw(item.name, item.cmd, clientPtr);
+		//ScriptManager::getInstance()->onRaw(item.name, item.cmd, clientPtr);
 	} else {
 		clientPtr->sendUserCmd(item.cmd);
 	}

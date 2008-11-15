@@ -303,7 +303,12 @@ struct bn_mont_ctx_st
 	BIGNUM N;      /* The modulus */
 	BIGNUM Ni;     /* R*(1/R mod N) - N*Ni = 1
 	                * (Ni is only stored for bignum algorithm) */
+#if 0
+	/* OpenSSL 0.9.9 preview: */
+	BN_ULONG n0[2];/* least significant word(s) of Ni */
+#else
 	BN_ULONG n0;   /* least significant word of Ni */
+#endif
 	int flags;
 	};
 
@@ -407,12 +412,12 @@ int	BN_rand_range(BIGNUM *rnd, BIGNUM *range);
 int	BN_pseudo_rand_range(BIGNUM *rnd, BIGNUM *range);
 int	BN_num_bits(const BIGNUM *a);
 int	BN_num_bits_word(BN_ULONG);
-BIGNUM * __cdecl BN_new(void);
+BIGNUM *BN_new(void);
 void	BN_init(BIGNUM *);
 void	BN_clear_free(BIGNUM *a);
 BIGNUM *BN_copy(BIGNUM *a, const BIGNUM *b);
 void	BN_swap(BIGNUM *a, BIGNUM *b);
-BIGNUM * __cdecl BN_bin2bn(const unsigned char *s,int len,BIGNUM *ret);
+BIGNUM *BN_bin2bn(const unsigned char *s,int len,BIGNUM *ret);
 int	BN_bn2bin(const BIGNUM *a, unsigned char *to);
 BIGNUM *BN_mpi2bn(const unsigned char *s,int len,BIGNUM *ret);
 int	BN_bn2mpi(const BIGNUM *a, unsigned char *to);
@@ -454,11 +459,11 @@ BN_ULONG BN_div_word(BIGNUM *a, BN_ULONG w);
 int	BN_mul_word(BIGNUM *a, BN_ULONG w);
 int	BN_add_word(BIGNUM *a, BN_ULONG w);
 int	BN_sub_word(BIGNUM *a, BN_ULONG w);
-int	__cdecl BN_set_word(BIGNUM *a, BN_ULONG w);
+int	BN_set_word(BIGNUM *a, BN_ULONG w);
 BN_ULONG BN_get_word(const BIGNUM *a);
 
 int	BN_cmp(const BIGNUM *a, const BIGNUM *b);
-void	__cdecl BN_free(BIGNUM *a);
+void	BN_free(BIGNUM *a);
 int	BN_is_bit_set(const BIGNUM *a, int n);
 int	BN_lshift(BIGNUM *r, const BIGNUM *a, int n);
 int	BN_lshift1(BIGNUM *r, const BIGNUM *a);

@@ -46,13 +46,13 @@ public:
 	void connect(const OnlineUser& aUser, const string&);
 
 	void hubMessage(const string& aMessage, bool /*thirdPerson*/ = false);
-	void privateMessage(const OnlineUser& aUser, const string& aMessage, bool /*thirdPerson*/ = false);
+	void privateMessage(const OnlineUserPtr& aUser, const string& aMessage, bool /*thirdPerson*/ = false);
 	void sendUserCmd(const string& aUserCmd) throw() { send(fromUtf8(aUserCmd)); }
 	void search(int aSizeType, int64_t aSize, int aFileType, const string& aString, const string& aToken);
 	void password(const string& aPass) { send("$MyPass " + fromUtf8(aPass) + "|"); }
 	void info(bool force) { myInfo(force); }
 
-	size_t getUserCount() const { Lock l(cs); return users.size(); }
+	//size_t getUserCount() const { return userCount; }
 	
 	string escape(string const& str) const { return validateMessage(str, false); }
 	static string unescape(const string& str) { return validateMessage(str, true); }
@@ -76,9 +76,9 @@ public:
 private:
 	friend class ClientManager;
 	enum SupportFlags {
-		SUPPORTS_USERCOMMAND = 0x01,
-		SUPPORTS_NOGETINFO = 0x02,
-		SUPPORTS_USERIP2 = 0x04
+		SUPPORTS_USERCOMMAND	= 0x01,
+		SUPPORTS_NOGETINFO		= 0x02,
+		SUPPORTS_USERIP2		= 0x04
 	};	
 
 	//mutable CriticalSection cs;
@@ -106,7 +106,7 @@ private:
 	FloodMap seekers;
 	FloodMap flooders;
 
-	NmdcHub(const string& aHubURL);
+	NmdcHub(const string& aHubURL, bool secure);
 	~NmdcHub() throw();
 
 	// Dummy
@@ -152,5 +152,5 @@ private:
 
 /**
  * @file
- * $Id: nmdchub.h 404 2008-07-13 17:08:09Z BigMuscle $
+ * $Id: nmdchub.h 423 2008-11-08 17:12:32Z BigMuscle $
  */

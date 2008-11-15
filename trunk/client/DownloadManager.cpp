@@ -62,10 +62,10 @@ DownloadManager::~DownloadManager() throw() {
 
 void DownloadManager::on(TimerManagerListener::Second, uint64_t aTick) throw() {
 	typedef vector<pair<string, UserPtr> > TargetList;
-	typedef vector<pair<uint64_t, UserPtr> > SlowChecks;
+	typedef vector<pair<uint64_t, UserPtr> > SlowChecks; //RSX++
 
 	TargetList dropTargets;
-	SlowChecks slowdl;
+	SlowChecks slowdl; //RSX++
 
 	{
 		Lock l(cs);

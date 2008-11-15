@@ -328,7 +328,7 @@ void DirectoryListingFrame::changeDir(DirectoryListing::Directory* d, BOOL enabl
 	if(!d->getComplete()) {
 		if(dl->getUser()->isOnline()) {
 			try {
-				QueueManager::getInstance()->addPfs(dl->getUser(), dl->getPath(d));
+				QueueManager::getInstance()->addList(dl->getUser(), QueueItem::FLAG_PARTIAL_LIST, dl->getPath(d));
 				ctrlStatus.SetText(STATUS_TEXT, CTSTRING(DOWNLOADING_LIST));
 			} catch(const QueueException& e) {
 				ctrlStatus.SetText(STATUS_TEXT, Text::toT(e.getError()).c_str());
@@ -538,20 +538,6 @@ LRESULT DirectoryListingFrame::onSearchByTTH(WORD /*wNotifyCode*/, WORD /*wID*/,
 	if(ii != NULL && ii->type == ItemInfo::FILE) {
 		WinUtil::searchHash(ii->file->getTTH());
 	} 
-	return 0;
-}
-
-LRESULT DirectoryListingFrame::onAddToFavorites(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
-	UserPtr pUser = dl->getUser();
-	if(pUser != (User*) NULL)
-		FavoriteManager::getInstance()->addFavoriteUser(pUser);
-	return 0;
-}
-
-LRESULT DirectoryListingFrame::onPM(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
-	UserPtr pUser = dl->getUser();
-	if(pUser != (User*) NULL)
-		PrivateFrame::openWindow(pUser);
 	return 0;
 }
 
@@ -1174,24 +1160,22 @@ LRESULT DirectoryListingFrame::onCopy(WORD /*wNotifyCode*/, WORD wID, HWND /*hWn
 		const ItemInfo* ii = (ItemInfo*)ctrlList.getItemData(i);
 		tstring sCopy;
 		
-		if(ii->type != ItemInfo::FILE)
-			continue;
-
 		switch (wID) {
 			case IDC_COPY_NICK:
 				sCopy = WinUtil::getNicks(dl->getUser());
 				break;
 			case IDC_COPY_FILENAME:
-				sCopy = Util::getFileName(Text::toT(ii->file->getName()));
+				sCopy = ii->getText(COLUMN_FILENAME);
 				break;
 			case IDC_COPY_SIZE:
-				sCopy = Util::formatBytesW(ii->file->getSize());
+				sCopy = ii->getText(COLUMN_SIZE);
 				break;
 			case IDC_COPY_LINK:
-				sCopy = WinUtil::getMagnet(ii->file->getTTH(), ii->file->getName(), ii->file->getSize());
+				if(ii->type == ItemInfo::FILE)
+					sCopy = WinUtil::getMagnet(ii->file->getTTH(), ii->file->getName(), ii->file->getSize());
 				break;
 			case IDC_COPY_TTH:
-				sCopy = Text::toT(ii->file->getTTH().toBase32());
+				sCopy = ii->getText(COLUMN_TTH);
 				break;
 			default:
 				dcdebug("DIRECTORYLISTINGFRAME DON'T GO HERE\n");
@@ -1243,9 +1227,7 @@ LRESULT DirectoryListingFrame::onTabContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/
 
 	OMenu tabMenu;
 	tabMenu.CreatePopupMenu();
-
-	tabMenu.AppendMenu(MF_STRING, IDC_PRIVATEMESSAGE, CTSTRING(SEND_PRIVATE_MESSAGE));
-	tabMenu.AppendMenu(MF_STRING, IDC_ADD_TO_FAVORITES, CTSTRING(ADD_TO_FAVORITES));
+	appendUserItems(tabMenu);
 	tabMenu.AppendMenu(MF_SEPARATOR);
 	tabMenu.AppendMenu(MF_STRING, IDC_CLOSE_WINDOW, CTSTRING(CLOSE));
 
@@ -1300,5 +1282,5 @@ LRESULT DirectoryListingFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM /*
 
 /**
  * @file
- * $Id: DirectoryListingFrm.cpp 392 2008-06-21 21:10:31Z BigMuscle $
+ * $Id: DirectoryListingFrm.cpp 419 2008-08-18 07:38:25Z BigMuscle $
  */

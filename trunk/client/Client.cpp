@@ -32,7 +32,6 @@
 #include "version.h"
 #include "Thread.h"
 #include "LogManager.h"
-#include "PluginsManager.h"
 //END
 
 namespace dcpp {
@@ -59,7 +58,7 @@ Client::Client(const string& hubURL, char separator_, bool secure_) :
 
 Client::~Client() throw() {
 	dcassert(!sock);
-
+	
 	// In case we were deleted before we Failed
 	FavoriteManager::getInstance()->removeUserCommand(getHubUrl());
 	TimerManager::getInstance()->removeListener(this);
@@ -123,14 +122,7 @@ void Client::reloadSettings(bool updateNick) {
 		setSearchInterval(SETTING(MINIMUM_SEARCH_INTERVAL) * 1000);
 		//RSX++
 		setCurrentEmail(SETTING(EMAIL));
-		//setUserProtected(Util::emptyString);
-		//setCheckOnConnect(false);
-		//setCheckClients(false);
-		//setCheckFilelists(false);
-		//setCheckMyInfo(false);
-		//setHideShare(false);
 		setUseFilter(false);
-		//setUseAutosearch(false);
 		setUseHL(false);
 		setUsersLimit(0);
 		//END
@@ -146,6 +138,7 @@ void Client::connect() {
 		BufferedSocket::putSocket(sock);
 
 	availableBytes = 0;
+	userCount = 0; //RSX++
 
 	setAutoReconnect(true);
 	setReconnDelay(120 + Util::rand(0, 60));
@@ -299,28 +292,6 @@ string Client::getCurrentDescription() const {
 #else
 	return currentDescription;
 #endif
-}
-//RSX++ // Lua
-bool ClientScriptInstance::onHubFrameEnter(Client* aClient, const string& aLine) {
-	bool r1 = false;
-	{
-		Lock l(ScriptInstance::cs);
-		MakeCall("dcpp", "OnCommandEnter", 1, aClient, aLine);
-		r1 = GetLuaBool();
-	}
-	bool r2 = PluginsManager::getInstance()->onOutgoingMessage(aClient, aLine);
-	return r1 || r2;
-}
-
-bool ClientScriptInstance::onClientMessage(Client* aClient, const string& prot, const string& aLine) {
-	bool r1 = false;
-	{
-		Lock l(ScriptInstance::cs);
-		MakeCall(prot, "DataArrival", 1, aClient, aLine);
-		r1 = GetLuaBool();
-	}
-	bool r2 = PluginsManager::getInstance()->onIncommingMessage(aClient, aLine);
-	return r1 || r2;
 }
 //RSX++
 void Client::sendActionCommand(const OnlineUser& ou, int actionId) {

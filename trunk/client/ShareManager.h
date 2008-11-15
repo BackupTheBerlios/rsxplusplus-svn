@@ -327,5 +327,5 @@ private:
 
 /**
  * @file
- * $Id: ShareManager.h 399 2008-07-06 19:48:02Z BigMuscle $
+ * $Id: ShareManager.h 421 2008-09-03 17:20:45Z BigMuscle $
  */

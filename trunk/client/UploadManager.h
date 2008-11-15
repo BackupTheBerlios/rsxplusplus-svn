@@ -31,7 +31,7 @@
 
 namespace dcpp {
 
-class UploadQueueItem : public FastAlloc<UploadQueueItem>, public intrusive_ptr_base {
+class UploadQueueItem : public FastAlloc<UploadQueueItem>, public intrusive_ptr_base, public UserInfoBase {
 public:
 	UploadQueueItem(UserPtr u, const string& file, int64_t p, int64_t sz, uint64_t itime) :
 		user(u), file(file), pos(p), size(sz), time(itime) { inc(); }
@@ -124,6 +124,7 @@ public:
 	size_t throttleGetSlice();
 	inline size_t throttleCycleTime() const { return mThrottleEnable ? mCycleTime : 0; }
 	
+	GETSET(uint8_t, extraPartial, ExtraPartial);
 	GETSET(uint8_t, extra, Extra);
 	GETSET(uint64_t, lastGrant, LastGrant);
 
@@ -187,5 +188,5 @@ private:
 
 /**
  * @file
- * $Id: UploadManager.h 403 2008-07-10 21:27:57Z BigMuscle $
+ * $Id: UploadManager.h 414 2008-08-01 19:16:45Z BigMuscle $
  */

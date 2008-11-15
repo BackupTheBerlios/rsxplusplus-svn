@@ -382,14 +382,16 @@ string Util::getShortTimeString() {
  * Decodes a URL the best it can...
  * Default ports:
  * http:// -> port 80
+ * https:// -> port 443
  * dchub:// -> port 411
  */
-void Util::decodeUrl(const string& url, string& aServer, uint16_t& aPort, string& aFile) {
+void Util::decodeUrl(const string& url, string& aServer, uint16_t& aPort, string& aFile, bool& isSecure) {
 	// First, check for a protocol: xxxx://
 	string::size_type i = 0, j, k;
 	
 	aServer = emptyString;
 	aFile = emptyString;
+	isSecure = false;
 
 	if( (j=url.find("://", i)) != string::npos) {
 		// Protocol found
@@ -398,6 +400,9 @@ void Util::decodeUrl(const string& url, string& aServer, uint16_t& aPort, string
 
 		if(protocol == "http") {
 			aPort = 80;
+		} else if(protocol == "https") {
+			aPort = 443;
+			isSecure = true;
 		} else if(protocol == "dchub") {
 			aPort = 411;
 		}
@@ -1112,5 +1117,5 @@ void Util::replace(string& aString, const string& findStr, const string& replace
 
 /**
  * @file
- * $Id: Util.cpp 401 2008-07-07 17:02:03Z BigMuscle $
+ * $Id: Util.cpp 413 2008-07-30 09:32:53Z BigMuscle $
  */

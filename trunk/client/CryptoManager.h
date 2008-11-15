@@ -52,8 +52,12 @@ public:
 	bool checkCertificate() throw();
 
 	bool TLSOk() const throw();
-	
+
+#ifndef YASSL_VERSION	
 	static void __cdecl locking_function(int mode, int n, const char *file, int line);
+#endif
+
+
 private:
 
 	friend class Singleton<CryptoManager>;
@@ -65,7 +69,7 @@ private:
 	ssl::SSL_CTX clientVerContext;
 	ssl::SSL_CTX serverContext;
 	ssl::SSL_CTX serverVerContext;
-
+	
 	ssl::DH dh;
 	
 	bool certsLoaded;
@@ -73,7 +77,9 @@ private:
 	const string lock;
 	const string pk;
 	
+#ifndef YASSL_VERSION
 	static CriticalSection* cs;
+#endif
 
 	string keySubst(const uint8_t* aKey, size_t len, size_t n);
 	bool isExtra(uint8_t b) const {
@@ -87,5 +93,5 @@ private:
 
 /**
  * @file
- * $Id: CryptoManager.h 404 2008-07-13 17:08:09Z BigMuscle $
+ * $Id: CryptoManager.h 414 2008-08-01 19:16:45Z BigMuscle $
  */

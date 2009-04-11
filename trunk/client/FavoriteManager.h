@@ -32,6 +32,7 @@
 #include "ClientManager.h"
 #include "StringTokenizer.h" //RSX++
 #include "HubSettings.h" //RSX++
+#include "rsxppSettingsManager.h"
 
 namespace dcpp {
 	
@@ -83,8 +84,8 @@ public:
 		//RSX++
 		setUsersLimit(0);
 		setGroupId(0);
-		setUseFilter(RSXBOOLSETTING(USE_FILTER_FAV));
-		setUseHL(RSXBOOLSETTING(USE_HL_FAV));
+		setUseFilter(RSXPP_BOOLSETTING(USE_FILTER_FAV));
+		setUseHL(RSXPP_BOOLSETTING(USE_HL_FAV));
 		//END
 	}
 	FavoriteHubEntry(const HubEntry& rhs) throw() : name(rhs.getName()), server(rhs.getServer()), encoding(Text::systemCharset), searchInterval(SETTING(MINIMUM_SEARCH_INTERVAL)),
@@ -92,8 +93,8 @@ public:
 		//RSX++
 		setUsersLimit(0);
 		setGroupId(0);
-		setUseFilter(RSXBOOLSETTING(USE_FILTER_FAV));
-		setUseHL(RSXBOOLSETTING(USE_HL_FAV));
+		setUseFilter(RSXPP_BOOLSETTING(USE_FILTER_FAV));
+		setUseHL(RSXPP_BOOLSETTING(USE_HL_FAV));
 		//END
 	}
 	FavoriteHubEntry(const FavoriteHubEntry& rhs) throw() : userdescription(rhs.userdescription), name(rhs.getName()), 
@@ -109,7 +110,7 @@ public:
 	}
 	~FavoriteHubEntry() throw() { 
 		//RSX++
-		for(FavoriteHubEntry::Action::List::const_iterator j = action.begin(); j != action.end(); ++j) {
+		for(FavoriteHubEntry::FavAction::List::const_iterator j = action.begin(); j != action.end(); ++j) {
 			delete j->second;
 		}
 		//END
@@ -155,31 +156,16 @@ public:
 	GS_BOOL(ShowCountryCodeOnChat, "SWCC")
 
 	//RSX++ //Raw Manager
-	struct Action {
-		typedef Action* Ptr;
-		typedef unordered_map<int, Ptr> List;
+	struct FavAction {
+		typedef unordered_map<int, FavAction*> List;
 
-		Action(bool aActif, string aRaw = Util::emptyString) throw() : actif(aActif) {
-			if(!aRaw.empty()) {
-				StringTokenizer<string> tok(aRaw, ',');
-				StringList l = tok.getTokens();
-				for(StringIter j = l.begin(); j != l.end(); ++j){
-					if(Util::toInt(*j) != 0)
-						raw.push_back(Raw(Util::toInt(*j)));
-				}
-			}
-		};
-		struct Raw {
-			Raw(int aRawId) throw() : rawId(aRawId) { };
-			GETSET(int, rawId, RawId);
-		};
-		typedef vector<Raw> RawsList;
-		RawsList raw;
+		FavAction(bool _enabled, string _raw = Util::emptyString, int id = 0) throw();
 
-		GETSET(bool, actif, Actif);
+		GETSET(bool, enabled, Enabled);
+		std::list<int> raws;
 	};
 
-	Action::List action;
+	FavAction::List action;
 	//END
 private:
 	string nick;
@@ -477,10 +463,10 @@ public:
 	}
 
 	//RSX++ //Raw Manager
-	bool getActifAction(FavoriteHubEntry* entry, int actionId);
-	void setActifAction(FavoriteHubEntry* entry, int actionId, bool actif);
-	bool getActifRaw(FavoriteHubEntry* entry, int actionId, int rawId);
-	void setActifRaw(FavoriteHubEntry* entry, int actionId, int rawId, bool actif);
+	bool getEnabledAction(FavoriteHubEntry* entry, int actionId);
+	void setEnabledAction(FavoriteHubEntry* entry, int actionId, bool enabled);
+	bool getEnabledRaw(FavoriteHubEntry* entry, int actionId, int rawId);
+	void setEnabledRaw(FavoriteHubEntry* entry, int actionId, int rawId, bool enabled);
 	//END
 
 // User Commands

@@ -22,7 +22,7 @@
 #include "../client/DCPlusPlus.h"
 #include "../client/RawManager.h"
 
-#include "../rsx/rsx-settings/rsx-SettingsManager.h"
+#include "../client/rsxppSettingsManager.h"
 
 #include "ADLSearchPointsSettings.h"
 #include "ADLSearchPoints.h"
@@ -43,7 +43,7 @@ LRESULT ADLSearchPointsSettings::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, 
 		int pos = ctrlList.insert(strings);
 		ctrlList.SetItemData(pos, (DWORD)i->second);
 	}
-	SetDlgItemInt(IDC_EDIT, RSXSETTING(MIN_POINTS_TO_DISPLAY_CHEAT));
+	SetDlgItemInt(IDC_EDIT, RSXPP_SETTING(MIN_POINTS_TO_DISPLAY_CHEAT));
 	return FALSE;
 }
 
@@ -83,7 +83,7 @@ LRESULT ADLSearchPointsSettings::onClose(WORD /*wNotifyCode*/, WORD wID, HWND /*
 		}
 		RawManager::getInstance()->updateADLPoints(tmp);
 		int min_p = GetDlgItemInt(IDC_EDIT);
-		RSXS_SET(MIN_POINTS_TO_DISPLAY_CHEAT, min_p);
+		RSXPP_SET(MIN_POINTS_TO_DISPLAY_CHEAT, min_p);
 	}
 	ctrlList.Detach();
 	EndDialog(wID);

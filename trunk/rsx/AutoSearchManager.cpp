@@ -1,4 +1,6 @@
 /*
+ * Copyright (C) 2007-2009 adrian_007, adrian-007 on o2 point pl
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -43,7 +45,7 @@ AutoSearchManager::AutoSearchManager() : version("1.00") {
 	recheckTime = 0;
 	curSearch = Util::emptyString;
 
-	setTime((uint16_t)RSXSETTING(AUTOSEARCH_EVERY) -1); //1 minute delay
+	setTime((uint16_t)RSXPP_SETTING(AUTOSEARCH_EVERY) -1); //1 minute delay
 }
 
 AutoSearchManager::~AutoSearchManager() {
@@ -85,11 +87,11 @@ void AutoSearchManager::getAllowedHubs() {
 }
 
 void AutoSearchManager::on(TimerManagerListener::Minute, uint64_t /*aTick*/) throw() {
-	if(RSXBOOLSETTING(AUTOSEARCH_ENABLED_TIME) && RSXBOOLSETTING(AUTOSEARCH_ENABLED) && !as.empty()) {
+	if(RSXPP_BOOLSETTING(AUTOSEARCH_ENABLED_TIME) && RSXPP_BOOLSETTING(AUTOSEARCH_ENABLED) && !as.empty()) {
 
 		if(endOfList) {
 			recheckTime++;
-			if(recheckTime < RSXSETTING(AUTOSEARCH_RECHECK_TIME)) {
+			if(recheckTime < RSXPP_SETTING(AUTOSEARCH_RECHECK_TIME)) {
 				return;
 			} else {
 				endOfList = false; //time's up, search for items again ;]
@@ -97,7 +99,7 @@ void AutoSearchManager::on(TimerManagerListener::Minute, uint64_t /*aTick*/) thr
 		}
 
 		time++;
-		if(time < RSXSETTING(AUTOSEARCH_EVERY))
+		if(time < RSXPP_SETTING(AUTOSEARCH_EVERY))
 			return;
 
 		getAllowedHubs();
@@ -126,7 +128,7 @@ void AutoSearchManager::on(TimerManagerListener::Minute, uint64_t /*aTick*/) thr
 				setTime(0);
 				LogManager::getInstance()->message("[A][S:" + Util::toString(curPos) + "]Searching for: " + (*pos)->getSearchString());
 			} else {
-				LogManager::getInstance()->message("[A]Next search after " + Util::toString(RSXSETTING(AUTOSEARCH_RECHECK_TIME))+ " minutes.");
+				LogManager::getInstance()->message("[A]Next search after " + Util::toString(RSXPP_SETTING(AUTOSEARCH_RECHECK_TIME))+ " minutes.");
 				setTime(0);
 				curPos = 0;
 				endOfList = true;
@@ -138,7 +140,7 @@ void AutoSearchManager::on(TimerManagerListener::Minute, uint64_t /*aTick*/) thr
 }
 
 void AutoSearchManager::on(SearchManagerListener::SR, const SearchResultPtr& sr) throw() {
-	if(RSXBOOLSETTING(AUTOSEARCH_ENABLED)) {
+	if(RSXPP_BOOLSETTING(AUTOSEARCH_ENABLED)) {
 		if(!as.empty() && !allowedHubs.empty()) {
 			UserPtr user = static_cast<UserPtr>(sr->getUser());
 			if(users.find(user) == users.end()) {
@@ -172,7 +174,7 @@ public:
 	Semaphore s;
 	bool stop;
 
-	typedef std::slist<SearchResultPtr> Results;
+	typedef std::list<SearchResultPtr> Results;
 	Results results;
 	Autosearch* as;
 
@@ -250,7 +252,7 @@ private:
 		const string& fullpath = SETTING(DOWNLOAD_DIRECTORY) + s->getFileName();
 		if(!ShareManager::getInstance()->isTTHShared(s->getTTH())) {
 			try {
-				QueueManager::getInstance()->add(fullpath, s->getSize(), s->getTTH(), s->getUser());
+				QueueManager::getInstance()->add(fullpath, s->getSize(), s->getTTH(), s->getUser(), s->getHubURL());
 				if(pausePrio)
 					QueueManager::getInstance()->setPriority(fullpath, QueueItem::PAUSED);
 			} catch(...) {

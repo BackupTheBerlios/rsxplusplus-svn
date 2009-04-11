@@ -144,30 +144,6 @@ bool Identity::supports(const string& name) const {
 	return false;
 }
 
-string Identity::getConnection() const {
-	string connection = get("US");
-	if(connection.find_first_not_of("0123456789.,") == string::npos) {
-		double us = Util::toDouble(connection);
-		if(us > 0) {
-			char buf[16];
-			if(us < 1024*1024) {
-				snprintf(buf, sizeof(buf), "%.3g", us / 1024 / 1024);
-
-				char *cp;
-				if( (cp=strchr(buf, ',')) != NULL) *cp='.';
-			} else {
-				snprintf(buf, sizeof(buf), "%d", static_cast<int>(us / 1024 / 1024));
-			}
-
-			return buf;
-		} else {
-			return connection;
-		}
-	} else {
-		return connection;
-	}
-}
-
 bool Identity::isTcpActive(const Client* c) const {
 	if(c != NULL && user == ClientManager::getInstance()->getMe()) {
 		return c->isActive();
@@ -217,7 +193,7 @@ string Identity::setCheat(const Client& c, const string& aCheatDescription, bool
 	if(aBadFilelist)
  		set("BF", "1");
 
-	if(RSXBOOLSETTING(DISPLAY_CHEATS_IN_MAIN_CHAT) && aDisplayCheat) {
+	if(RSXPP_BOOLSETTING(DISPLAY_CHEATS_IN_MAIN_CHAT) && aDisplayCheat) {
 		string report = "*** " + STRING(USER) + " " + getNick() + " - " + cheat;
 		return report;
 	}
@@ -280,8 +256,8 @@ string Identity::updateClientType(OnlineUser& ou) {
 		const float versionf = Util::toFloat(getVersion());
 		if((get("LL") == "11") && (getBytesShared() > 0)) {
 			setClientType("DC++ Stealth");
-			const string& report = ou.setCheat("Fake FileList - ListLen = 11B", true, true, RSXBOOLSETTING(SHOW_LISTLEN_MISMATCH));
-			ClientManager::getInstance()->sendAction(ou, RSXSETTING(LISTLEN_MISMATCH));
+			const string& report = ou.setCheat("Fake FileList - ListLen = 11B", true, true, RSXPP_BOOLSETTING(SHOW_LISTLEN_MISMATCH));
+			ClientManager::getInstance()->sendAction(ou, RSXPP_SETTING(LISTLEN_MISMATCH));
 			logDetect(true);
 			return report;
 		} else if(strncmp(getTag().c_str(), "<++ V:", 6) == 0 && versionf < 1.001f && versionf >= 0.69f) {
@@ -289,13 +265,13 @@ string Identity::updateClientType(OnlineUser& ou) {
 			if(get("LL") != "42" && !get("LL").empty()) {
 				setClientType("Faked DC++");
 				set("CM", "Supports corrupted files...");
-				const string& report = ou.setCheat("ListLen mis-match (V:0.69+)", true, false, RSXBOOLSETTING(SHOW_LISTLEN_MISMATCH));
-				ClientManager::getInstance()->sendAction(ou, RSXSETTING(LISTLEN_MISMATCH));
+				const string& report = ou.setCheat("ListLen mis-match (V:0.69+)", true, false, RSXPP_BOOLSETTING(SHOW_LISTLEN_MISMATCH));
+				ClientManager::getInstance()->sendAction(ou, RSXPP_SETTING(LISTLEN_MISMATCH));
 				logDetect(true);
 				return report;
 			} else if(versionf > (float)0.699 && !get("TS").empty() && get("TS") != "GetListLength not supported") {
-				const string& report = ou.setCheat("DC++ emulation", true, false, RSXBOOLSETTING(SHOW_DCPP_EMULATION_RAW));
-				ClientManager::getInstance()->sendAction(ou, RSXSETTING(DCPP_EMULATION_RAW));
+				const string& report = ou.setCheat("DC++ emulation", true, false, RSXPP_BOOLSETTING(SHOW_DCPP_EMULATION_RAW));
+				ClientManager::getInstance()->sendAction(ou, RSXPP_SETTING(DCPP_EMULATION_RAW));
 				logDetect(true);
 				return report;
 			}
@@ -352,7 +328,7 @@ string Identity::updateClientType(OnlineUser& ou) {
 
 		if(entry.checkMismatch && getUser()->isSet(User::NMDC) &&  (params["VE"] != params["PKVE"])) { 
 			setClientType(entry.name + " Version mis-match");
-			return ou.setCheat(entry.cheat + " Version mis-match", true, false, ou.getClient().isActionActive(RSXSETTING(VERSION_MISMATCH)));
+			return ou.setCheat(entry.cheat + " Version mis-match", true, false, ou.getClient().isActionActive(RSXPP_SETTING(VERSION_MISMATCH)));
 		}
 
 		string report = Util::emptyString;
@@ -479,7 +455,7 @@ bool Identity::isProtectedUser(const Client& c, bool OpBotHubCheck) const {
 	if(isSet("PR") || getUser()->isSet(User::PROTECTED))
 		return true;
 
-	string RegProtect = RSXSETTING(PROTECTED_USERS);
+	string RegProtect = RSXPP_SETTING(PROTECTED_USERS);
 	if(!c.getUserProtected().empty()) {
 		RegProtect = c.getUserProtected();
 	}
@@ -487,10 +463,10 @@ bool Identity::isProtectedUser(const Client& c, bool OpBotHubCheck) const {
 	bool ret = false;
 	if(OpBotHubCheck && (isOp() || isBot() || isHub())) {
 		ret = true;
-	} else if(RSXSETTING(FAV_USER_IS_PROTECTED_USER) && FavoriteManager::getInstance()->isFavoriteUser(getUser())) {
+	} else if(RSXPP_SETTING(FAV_USER_IS_PROTECTED_USER) && FavoriteManager::getInstance()->isFavoriteUser(getUser())) {
 		ret = true;
 	} else if(!RegProtect.empty()) {
-		if(RSXBOOLSETTING(USE_WILDCARDS_TO_PROTECT)) {
+		if(RSXPP_BOOLSETTING(USE_WILDCARDS_TO_PROTECT)) {
 			if(Wildcard::patternMatch(getNick(), RegProtect, '|')) {
 				ret = true;
 			}
@@ -517,7 +493,7 @@ bool OnlineUser::getChecked(bool filelist/* = false*/, bool checkComplete/* = tr
 		setFileListComplete();
 		return true;
 	} else if(isProtectedUser()) {
-		if((RSXSETTING(UNCHECK_CLIENT_PROTECTED_USER) && !filelist) || (RSXSETTING(UNCHECK_LIST_PROTECTED_USER) && filelist)) {
+		if((RSXPP_SETTING(UNCHECK_CLIENT_PROTECTED_USER) && !filelist) || (RSXPP_SETTING(UNCHECK_LIST_PROTECTED_USER) && filelist)) {
 			identity.setClientType("[Protected]");
 			setTestSURComplete();
 			setFileListComplete();
@@ -534,14 +510,14 @@ bool Identity::isMyInfoSpamming() {
 
 	uint64_t now = GET_TICK();
 	uint64_t i = now - lastMyInfo;
-	if(i < RSXSETTING(MYINFO_TIME)) {
+	if(i < RSXPP_SETTING(MYINFO_TIME)) {
 		myinfoFloodCounter++;
 	} else {
 		myinfoFloodCounter = 0;
 	}
 
 	lastMyInfo = now;
-	if(myinfoFloodCounter > RSXSETTING(MYINFO_COUNTER)) {
+	if(myinfoFloodCounter > RSXPP_SETTING(MYINFO_COUNTER)) {
 		myinfoFloodCounter = 0;
 		return true;
 	}
@@ -551,13 +527,13 @@ bool Identity::isMyInfoSpamming() {
 bool Identity::isCtmSpamming() const {
 	uint64_t now = GET_TICK();
 	uint64_t i = now - lastCte;
-	if(i < RSXSETTING(CTM_TIME)) {
+	if(i < RSXPP_SETTING(CTM_TIME)) {
 		cteFloodCounter++;
 	} else {
 		cteFloodCounter = 0;
 	}
 	lastCte = now;
-	if(cteFloodCounter > RSXSETTING(CTM_COUNTER)) {
+	if(cteFloodCounter > RSXPP_SETTING(CTM_COUNTER)) {
 		cteFloodCounter = 0;
 		return true;
 	}
@@ -567,13 +543,13 @@ bool Identity::isCtmSpamming() const {
 bool Identity::isPmSpamming() const {
 	uint64_t now = GET_TICK();
 	uint64_t i = now - lastPm;
-	if(i < RSXSETTING(PM_TIME)) {
+	if(i < RSXPP_SETTING(PM_TIME)) {
 		pmFloodCounter++;
 	} else {
 		pmFloodCounter = 0;
 	}
 	lastPm = now;
-	if(pmFloodCounter > RSXSETTING(PM_COUNTER)) {
+	if(pmFloodCounter > RSXPP_SETTING(PM_COUNTER)) {
 		pmFloodCounter = 0;
 		return true;
 	}
@@ -581,7 +557,7 @@ bool Identity::isPmSpamming() const {
 }
 //RSX++ //IP Check
 void Identity::checkIP(OnlineUser& ou) {
-	if(RSXBOOLSETTING(USE_IPWATCH)) {
+	if(RSXPP_BOOLSETTING(USE_IPWATCH)) {
 		set("IC", "1"); //ip checked, to avoid cheat spam caused by search
 		const IPWatch::List& il = IpManager::getInstance()->getWatch();
 		bool matched = false;
@@ -647,11 +623,11 @@ void Identity::checkIP(OnlineUser& ou) {
 string Identity::checkFilelistGenerator(OnlineUser& ou) {
 	if((get("FG") == "DC++ 0.403")) {
 		if(RegexUtil::match(getTag(), "^<StrgDC\\+\\+ V:1.00 RC([89]){1}")) {
-			string report = ou.setCheat("rmDC++ in StrongDC++ %[userVE] emulation mode" , true, false, RSXBOOLSETTING(SHOW_RMDC_RAW));
+			string report = ou.setCheat("rmDC++ in StrongDC++ %[userVE] emulation mode" , true, false, RSXPP_BOOLSETTING(SHOW_RMDC_RAW));
 			setClientType("rmDC++");
 			logDetect(true);
 			ou.getClient().updated(&ou);
-			ClientManager::getInstance()->sendAction(ou, RSXSETTING(RMDC_RAW));
+			ClientManager::getInstance()->sendAction(ou, RSXPP_SETTING(RMDC_RAW));
 			return report;
 		}
 	}
@@ -659,18 +635,18 @@ string Identity::checkFilelistGenerator(OnlineUser& ou) {
 	if(!get("VE").empty() && strncmp(getTag().c_str(), "<++ V:", 6) == 0) {
 		if((Util::toFloat(get("VE")) > 0.668)) {
 			if(get("FI").empty() || get("FB").empty()) {
-				string report = ou.setCheat("DC++ emulation", true, false, RSXBOOLSETTING(SHOW_DCPP_EMULATION_RAW));
+				string report = ou.setCheat("DC++ emulation", true, false, RSXPP_BOOLSETTING(SHOW_DCPP_EMULATION_RAW));
 				logDetect(true);
 				ou.getClient().updated(&ou);
-				ClientManager::getInstance()->sendAction(ou, RSXSETTING(DCPP_EMULATION_RAW));
+				ClientManager::getInstance()->sendAction(ou, RSXPP_SETTING(DCPP_EMULATION_RAW));
 				return report;
 			}
 		} else {
 			if(!get("FI").empty() || !get("FB").empty()) {
-				string report = ou.setCheat("DC++ emulation", true, false, RSXBOOLSETTING(SHOW_DCPP_EMULATION_RAW));
+				string report = ou.setCheat("DC++ emulation", true, false, RSXPP_BOOLSETTING(SHOW_DCPP_EMULATION_RAW));
 				logDetect(true);
 				ou.getClient().updated(&ou);
-				ClientManager::getInstance()->sendAction(ou, RSXSETTING(DCPP_EMULATION_RAW));
+				ClientManager::getInstance()->sendAction(ou, RSXPP_SETTING(DCPP_EMULATION_RAW));
 				return report;
 			}
 		}
@@ -679,10 +655,10 @@ string Identity::checkFilelistGenerator(OnlineUser& ou) {
 
 	if(RegexUtil::match(get("FG"), "^DC\\+\\+.*")) {
 		if(!get("VE").empty() && (get("VE") != getFilelistGeneratorVer())) {
-			string report = ou.setCheat("Filelist Version mis-match", false, true, RSXBOOLSETTING(SHOW_FILELIST_VERSION_MISMATCH));
+			string report = ou.setCheat("Filelist Version mis-match", false, true, RSXPP_BOOLSETTING(SHOW_FILELIST_VERSION_MISMATCH));
 			logDetect(true);
 			ou.getClient().updated(&ou);
-			ClientManager::getInstance()->sendAction(ou, RSXSETTING(FILELIST_VERSION_MISMATCH));
+			ClientManager::getInstance()->sendAction(ou, RSXPP_SETTING(FILELIST_VERSION_MISMATCH));
 			return report;
 		}
 	}
@@ -731,18 +707,18 @@ string Identity::getFilelistGeneratorVer() const {
 string Identity::checkrmDC(OnlineUser& ou) {
 	string report = Util::emptyString;
 	if(RegexUtil::match(getVersion(), "^0.40([0123]){1}$")) {
-		report = ou.setCheat("rmDC++ in DC++ %[userVE] emulation mode" , true, false, RSXBOOLSETTING(SHOW_RMDC_RAW));
+		report = ou.setCheat("rmDC++ in DC++ %[userVE] emulation mode" , true, false, RSXPP_BOOLSETTING(SHOW_RMDC_RAW));
 		setClientType("rmDC++");
-		ClientManager::getInstance()->sendAction(ou, RSXSETTING(RMDC_RAW));
+		ClientManager::getInstance()->sendAction(ou, RSXPP_SETTING(RMDC_RAW));
 	}
 	return report;
 }
 
 void Identity::logDetect(bool successful) {
 	if(successful) {
-		RSXS_SET(TOTAL_DETECTS, RSXSETTING(TOTAL_DETECTS) + 1);
+		RSXPP_SET(TOTAL_DETECTS, RSXPP_SETTING(TOTAL_DETECTS) + 1);
 	} else {
-		RSXS_SET(TOTAL_FAILED_DETECTS, RSXSETTING(TOTAL_FAILED_DETECTS) + 1);
+		RSXPP_SET(TOTAL_FAILED_DETECTS, RSXPP_SETTING(TOTAL_FAILED_DETECTS) + 1);
 	}
 }
 
@@ -803,8 +779,8 @@ string Identity::checkSlotsCount(OnlineUser& ou, int realSlots) {
 	set("SC", Util::toString(realSlots));
 	string report = Util::emptyString;
 	if(Util::toInt(get("SL")) > realSlots) { //more slots showed than real opened? cheater ;]
-		report = ou.setCheat("fake slots count - tag states  %[userSL] slots, but real user have opened %[userSC] slots", true, false, RSXBOOLSETTING(SHOW_FAKE_SLOT_COUNT));
-		ClientManager::getInstance()->sendAction(ou, RSXSETTING(FAKE_SLOT_COUNT));
+		report = ou.setCheat("fake slots count - tag states  %[userSL] slots, but real user have opened %[userSC] slots", true, false, RSXPP_BOOLSETTING(SHOW_FAKE_SLOT_COUNT));
+		ClientManager::getInstance()->sendAction(ou, RSXPP_SETTING(FAKE_SLOT_COUNT));
 	}
 	return report;
 }
@@ -920,5 +896,5 @@ bool OnlineUser::update(int sortCol, const tstring& oldText) {
 
 /**
  * @file
- * $Id: User.cpp 406 2008-07-14 20:25:22Z BigMuscle $
+ * $Id: User.cpp 429 2009-02-06 17:26:54Z BigMuscle $
  */

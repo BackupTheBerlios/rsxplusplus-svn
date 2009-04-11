@@ -614,6 +614,9 @@ LRESULT QueueFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 					ctrlQueue.updateItem(pos, COLUMN_DOWNLOADED);
 				}
 			}
+		} else if(ti->first == UPDATE_STATUS) {
+			auto_ptr<StringTask> status(static_cast<StringTask*>(ti->second));
+			ctrlStatus.SetText(1, Text::toT(status->str).c_str());
 		}
 	}
 
@@ -783,6 +786,7 @@ LRESULT QueueFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, B
 				singleMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)removeAllMenu, CTSTRING(REMOVE_FROM_ALL));
 				singleMenu.AppendMenu(MF_STRING, IDC_REMOVE_OFFLINE, CTSTRING(REMOVE_OFFLINE));
 				singleMenu.AppendMenu(MF_SEPARATOR);
+				singleMenu.AppendMenu(MF_STRING, IDC_RECHECK, CTSTRING(RECHECK_FILE));
 				singleMenu.AppendMenu(MF_STRING, IDC_REMOVE, CTSTRING(REMOVE));
 
 				const QueueItemInfo* ii = ctrlQueue.getItemData(ctrlQueue.GetNextItem(-1, LVNI_SELECTED));
@@ -946,6 +950,15 @@ LRESULT QueueFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, B
 	return FALSE; 
 }
 
+LRESULT QueueFrame::onRecheck(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+	if(ctrlQueue.GetSelectedCount() == 1) {
+		int i = ctrlQueue.GetNextItem(-1, LVNI_SELECTED);
+		const QueueItemInfo* ii = ctrlQueue.getItemData(i);
+		QueueManager::getInstance()->recheck(ii->getTarget());
+	}	
+	return 0;
+}
+
 LRESULT QueueFrame::onSearchAlternates(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
 	if(ctrlQueue.GetSelectedCount() == 1) {
 		int i = ctrlQueue.GetNextItem(-1, LVNI_SELECTED);
@@ -974,7 +987,7 @@ LRESULT QueueFrame::onBrowseList(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*
 		OMenuItem* omi = (OMenuItem*)mi.dwItemData;
 		QueueItem::Source* s = (QueueItem::Source*)omi->data;
 		try {
-			QueueManager::getInstance()->addList(s->getUser(), QueueItem::FLAG_CLIENT_VIEW);
+			QueueManager::getInstance()->addList(s->getUser(), Util::emptyString, QueueItem::FLAG_CLIENT_VIEW);
 		} catch(const Exception&) {
 		}
 	}
@@ -995,15 +1008,15 @@ LRESULT QueueFrame::onReadd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BO
 			// re-add all sources
 			QueueItem::SourceList badSources = QueueManager::getInstance()->getBadSources(ii->getQueueItem());
 			for(QueueItem::SourceConstIter s = badSources.begin(); s != badSources.end(); s++) {
-				QueueManager::getInstance()->readd(ii->getTarget(), s->getUser());
+				QueueManager::getInstance()->readd(ii->getTarget(), s->getUser(), Util::emptyString);
 			}
 		} else {
 			OMenuItem* omi = (OMenuItem*)mi.dwItemData;
 			QueueItem::Source* s = (QueueItem::Source*)omi->data;
 			try {
-				QueueManager::getInstance()->readd(ii->getTarget(), s->getUser());
+				QueueManager::getInstance()->readd(ii->getTarget(), s->getUser(), Util::emptyString);
 			} catch(const Exception& e) {
-				ctrlStatus.SetText(0, Text::toT(e.getError()).c_str());
+				ctrlStatus.SetText(1, Text::toT(e.getError()).c_str());
 			}
 		}
 	}
@@ -1503,7 +1516,43 @@ void QueueFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/) throw() {
 	}
 }
 
+void QueueFrame::onRechecked(const QueueItem* qi, const string& message) {
+	string buf;
+	buf.resize(STRING(INTEGRITY_CHECK).length() + message.length() + qi->getTargetFileName().length() + 16);
+	sprintf(&buf[0], CSTRING(INTEGRITY_CHECK), message.c_str(), qi->getTargetFileName().c_str());
+		
+	speak(UPDATE_STATUS, new StringTask(&buf[0]));
+}
+
+void QueueFrame::on(QueueManagerListener::RecheckStarted, const QueueItem* aQI) throw() {
+	onRechecked(aQI, STRING(STARTED));
+}
+
+void QueueFrame::on(QueueManagerListener::RecheckNoFile, const QueueItem* aQI) throw() {
+	onRechecked(aQI, STRING(UNFINISHED_FILE_NOT_FOUND));
+}
+
+void QueueFrame::on(QueueManagerListener::RecheckFileTooSmall, const QueueItem* aQI) throw() {
+	onRechecked(aQI, STRING(UNFINISHED_FILE_TOO_SMALL));
+}
+
+void QueueFrame::on(QueueManagerListener::RecheckDownloadsRunning, const QueueItem* aQI) throw() {
+	onRechecked(aQI, STRING(DOWNLOADS_RUNNING));
+}
+
+void QueueFrame::on(QueueManagerListener::RecheckNoTree, const QueueItem* aQI) throw() {
+	onRechecked(aQI, STRING(NO_FULL_TREE));
+}
+
+void QueueFrame::on(QueueManagerListener::RecheckAlreadyFinished, const QueueItem* aQI) throw() {
+	onRechecked(aQI, STRING(FILE_ALREADY_FINISHED));
+}
+
+void QueueFrame::on(QueueManagerListener::RecheckDone, const QueueItem* aQI) throw() {
+	onRechecked(aQI, STRING(DONE));
+}
+	
 /**
  * @file
- * $Id: QueueFrame.cpp 419 2008-08-18 07:38:25Z BigMuscle $
+ * $Id: QueueFrame.cpp 429 2009-02-06 17:26:54Z BigMuscle $
  */

@@ -37,7 +37,7 @@
 #include "../client/WebServerManager.h"
 #include "../client/AdlSearch.h"
 //RSX++
-#include "../rsx/rsx-settings/rsx-SettingsManager.h"
+#include "../client/rsxppSettingsManager.h"
 #include "../rsx/UpdateManagerListener.h"
 #include "ResourceLoader.h"
 //END
@@ -180,7 +180,6 @@ public:
 		COMMAND_ID_HANDLER(ID_TOGGLE_QSEARCH, OnViewQuickSearchBar)
 		//RSX++
 		COMMAND_ID_HANDLER(IDC_VIEW_PLUGINS_LIST, onViewPluginsList)
-		COMMAND_ID_HANDLER(IDC_VIEW_SCRIPTS_LIST, onViewScriptsList)
 		COMMAND_ID_HANDLER(IDC_RECONNECT_DISCONNECTED, onCloseWindows)
 		COMMAND_ID_HANDLER(ID_VIEW_PLUGIN_TOOLBAR, OnViewPluginToolBar)
 		COMMAND_ID_HANDLER(IDC_CHANGE_PRIO_REALTIME, onChangePriority)
@@ -253,7 +252,6 @@ public:
 	LRESULT OnViewQuickSearchBar(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	//RSX++
 	LRESULT onViewPluginsList(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-	LRESULT onViewScriptsList(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT onSwitchWindow(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT onChangePriority(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT OnViewPluginToolBar(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);

@@ -1,4 +1,6 @@
 /*
+ * Copyright (C) 2007-2009 adrian_007, adrian-007 on o2 point pl
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -40,275 +42,248 @@ PropPage::TextItem RawPage::texts[] = {
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
 
-LRESULT RawPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
-	PropPage::translate((HWND)(*this), texts);
+LRESULT RawPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
+	ctrlList.Attach(GetDlgItem(IDC_ACTIONS));
+	// nasty workaround to get checkboxes created in the right way
+	ctrlList.ModifyStyle(TVS_CHECKBOXES, 0); 
+	ctrlList.ModifyStyle(0, TVS_CHECKBOXES);
 
-	CRect rc1, rc2;
-	ctrlAction.Attach(GetDlgItem(IDC_RAW_PAGE_ACTION));
-	ctrlAction.GetClientRect(rc1);
-	ctrlAction.InsertColumn(0, _T("Dummy"), LVCFMT_LEFT, rc1.Width() - 20, 0);
-	ctrlAction.SetExtendedListViewStyle(LVS_EX_CHECKBOXES | LVS_EX_FULLROWSELECT);
-
-	Action::List& lst = RawManager::getInstance()->getActionList();
-	for(Action::List::const_iterator i = lst.begin(); i != lst.end(); ++i) {
-		addEntryAction(i->first, i->second->getName(), i->second->getActif(), ctrlAction.GetItemCount());
+	ctrlList.SetRedraw(FALSE);
+	const Action::ActionList& a = RawManager::getInstance()->getActions();
+	for(Action::ActionList::const_iterator i = a.begin(); i != a.end(); ++i) {
+		HTREEITEM actionItem = addAction(*i);
+		for(Action::RawsList::const_iterator j = (*i)->raw.begin(); j != (*i)->raw.end(); ++j)
+			addRaw(actionItem, j);
 	}
 
-	ctrlRaw.Attach(GetDlgItem(IDC_RAW_PAGE_RAW));
-	ctrlRaw.GetClientRect(rc2);
-	ctrlRaw.InsertColumn(0, _T("Raw Name"), LVCFMT_LEFT, (rc2.Width()/6)*5, 0);
-	ctrlRaw.InsertColumn(1, _T("Lua"), LVCFMT_LEFT, (rc2.Width()/6) - 17, 1);
-	ctrlRaw.SetExtendedListViewStyle(LVS_EX_CHECKBOXES | LVS_EX_FULLROWSELECT);
-
-	nosave = false;
-	return TRUE;
-}
-
-LRESULT RawPage::onAddAction(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
-	try {
-		LineDlg name;
-		name.title = TSTRING(ADD_ACTION);
-		name.description = TSTRING(NAME);
-		name.line = TSTRING(ACTION);
-		if(name.DoModal(m_hWnd) == IDOK) {
-			addEntryAction(RawManager::getInstance()->addAction(0,	Text::fromT(name.line),	true), Text::fromT(name.line), true, ctrlAction.GetItemCount());
-		}
-	} catch(const Exception& e) {
-		MessageBox(Text::toT(e.getError()).c_str(), _T(APPNAME) _T(" ") _T(VERSIONSTRING), MB_ICONSTOP | MB_OK);
-	}
-
+	ctrlList.SetRedraw(TRUE);
+	ctrlList.Invalidate();
 	return 0;
 }
 
-LRESULT RawPage::onRenameAction(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
-	TCHAR buf[MAX_PATH];
-	LVITEM item;
-	::ZeroMemory(&item, sizeof(item));
-	item.mask = LVIF_TEXT;
-	item.cchTextMax = sizeof(buf);
-	item.pszText = buf;
+HTREEITEM RawPage::addAction(const Action* action) {
+	HTREEITEM item = ctrlList.InsertItem(Text::toT(action->getName()).c_str(), 0, 0);
+	ctrlList.SetItemData(item, (DWORD_PTR)action);
+	ctrlList.SetCheckState(item, action->getEnabled());
+	return item;
+}
 
-	int i = -1;
-	while((i = ctrlAction.GetNextItem(i, LVNI_SELECTED)) != -1) {
-		item.iItem = i;
-		item.iSubItem = 0;
-		ctrlAction.GetItem(&item);
+void RawPage::addRaw(HTREEITEM action, const Raw* raw) {
+	HTREEITEM item = ctrlList.InsertItem(Text::toT(raw->getName()).c_str(), action, 0);
+	ctrlList.SetItemData(item, (DWORD_PTR)raw);
+	ctrlList.SetCheckState(item, raw->getEnabled());
+}
 
+void RawPage::updateRaw(HTREEITEM item, Raw* raw) {
+	ctrlList.SetItemText(item, Text::toT(raw->getName()).c_str());
+	ctrlList.SetItemData(item, (DWORD_PTR)raw);
+	ctrlList.SetCheckState(item, raw->getEnabled());
+}
+
+void RawPage::write() {
+	RawManager::getInstance()->lock();
+	HTREEITEM item = ctrlList.GetRootItem();
+	while(item != NULL) {
+		HTREEITEM child = ctrlList.GetChildItem(item);
+		while(child != NULL) {
+			Raw* raw = (Raw*)ctrlList.GetItemData(child);
+			if(raw != NULL)
+				raw->setEnabled(ctrlList.GetCheckState(child) ? true : false);
+			child = ctrlList.GetNextSiblingItem(child);
+		}
+		Action* action = (Action*)ctrlList.GetItemData(item);
+		if(action != NULL)
+			action->setEnabled(ctrlList.GetCheckState(item) ? true : false);
+		item = ctrlList.GetNextItem(item, TVGN_NEXT);
+	}
+	RawManager::getInstance()->unlock();
+}
+
+LRESULT RawPage::onParentAdd(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+	while(true) {
 		try {
-			LineDlg name;
-			name.title = TSTRING(ADD_ACTION);
-			name.description = TSTRING(NAME);
-			name.line = tstring(buf);
-			if(name.DoModal(m_hWnd) == IDOK) {
-				if (stricmp(buf, name.line) != 0) {
-					RawManager::getInstance()->renameAction(Text::fromT(buf), Text::fromT(name.line));
-					ctrlAction.SetItemText(i, 0, name.line.c_str());
-				} else {
-					MessageBox(CTSTRING(SKIP_RENAME_ACTION), _T(APPNAME) _T(" ") _T(VERSIONSTRING), MB_ICONINFORMATION | MB_OK);
-				}
+			LineDlg dlg;
+			dlg.title = TSTRING(ADD_ACTION);
+			dlg.description = TSTRING(NAME);
+			dlg.line = TSTRING(ACTION);
+			if(dlg.DoModal(m_hWnd) == IDOK) {
+				Action* a = RawManager::getInstance()->addAction(0, Text::fromT(dlg.line), true);
+				HTREEITEM item = addAction(a);
+				ctrlList.Select(item, TVGN_CARET);
 			}
+			break;
 		} catch(const Exception& e) {
 			MessageBox(Text::toT(e.getError()).c_str(), _T(APPNAME) _T(" ") _T(VERSIONSTRING), MB_ICONSTOP | MB_OK);
 		}
 	}
-
 	return 0;
 }
 
-LRESULT RawPage::onRemoveAction(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
-	if(ctrlAction.GetSelectedCount() == 1) {
-		int i = ctrlAction.GetNextItem(-1, LVNI_SELECTED);
-		RawManager::getInstance()->removeAction(ctrlAction.GetItemData(i));
-		ctrlAction.DeleteItem(i);
-	}
-
-	return 0;
-}
-
-LRESULT RawPage::onAddRaw(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
-	if(ctrlAction.GetSelectedCount() == 1) {
-		int i = ctrlAction.GetNextItem(-1, LVNI_SELECTED);
-		try {
-			RawDlg raw;
-			if(raw.DoModal(m_hWnd) == IDOK) {
-				addEntryRaw(RawManager::getInstance()->addRaw(
-					ctrlAction.GetItemData(i), raw.name, raw.raw, raw.time, raw.useLua), ctrlRaw.GetItemCount()
-				);
-			}
-		} catch(const Exception& e) {
-			MessageBox(Text::toT(e.getError()).c_str(), _T(APPNAME) _T(" ") _T(VERSIONSTRING), MB_ICONSTOP | MB_OK);
-		}
-	}
-
-	return 0;
-}
-
-LRESULT RawPage::onChangeRaw(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
-	if(ctrlAction.GetSelectedCount() == 1) {
-		int j = ctrlAction.GetNextItem(-1, LVNI_SELECTED);
-		if(ctrlRaw.GetSelectedCount() == 1) {
-			int i = ctrlRaw.GetNextItem(-1, LVNI_SELECTED);
-			Action::Raw ra;
-			RawManager::getInstance()->getRawItem(ctrlAction.GetItemData(j), ctrlRaw.GetItemData(i), ra);
-
+LRESULT RawPage::onParentEdit(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+	HTREEITEM item = ctrlList.GetSelectedItem();
+	if(item != NULL) {
+		HTREEITEM parent = ctrlList.GetParentItem(item);
+		if(parent != NULL)
+			item = parent;
+		Action* a = (Action*)ctrlList.GetItemData(item);
+		if(a == NULL) return 0;
+		while(true) {
 			try {
-				RawDlg raw;
-				string name = ra.getName();
-				raw.name = name;
-				raw.raw = ra.getRaw();
-				raw.time = ra.getTime();
-				raw.useLua = ra.getLua();
-				if(raw.DoModal() == IDOK) {
-					RawManager::getInstance()->changeRaw(ctrlAction.GetItemData(j), name, raw.name, raw.raw, raw.time, raw.useLua);
-					ctrlRaw.SetItemText(i, 0, Text::toT(raw.name).c_str());
-					ctrlRaw.SetItemText(i, 1, raw.useLua ? CTSTRING(YES) : CTSTRING(NO));
+				LineDlg dlg;
+				dlg.title = TSTRING(ADD_ACTION);
+				dlg.description = TSTRING(NAME);
+				dlg.line = Text::toT(a->getName());
+				if(dlg.DoModal(m_hWnd) == IDOK) {
+					RawManager::getInstance()->editAction(a, Text::fromT(dlg.line));
+					ctrlList.SetItemText(item, dlg.line.c_str());
 				}
+				break;
 			} catch(const Exception& e) {
 				MessageBox(Text::toT(e.getError()).c_str(), _T(APPNAME) _T(" ") _T(VERSIONSTRING), MB_ICONSTOP | MB_OK);
 			}
 		}
 	}
-
 	return 0;
 }
 
-LRESULT RawPage::onRemoveRaw(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
-	if(ctrlAction.GetSelectedCount() == 1) {
-		int j = ctrlAction.GetNextItem(-1, LVNI_SELECTED);
-		if(ctrlRaw.GetSelectedCount() == 1) {
-			int i = ctrlRaw.GetNextItem(-1, LVNI_SELECTED);
-			RawManager::getInstance()->removeRaw(ctrlAction.GetItemData(j), ctrlRaw.GetItemData(i));
-			ctrlRaw.DeleteItem(i);
+LRESULT RawPage::onRemove(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+	HTREEITEM item = ctrlList.GetSelectedItem();
+	if(item != NULL) {
+		HTREEITEM parent = ctrlList.GetParentItem(item);
+		bool success = false; //@todo remove it in the future - it's useless
+		if(parent != NULL) {	// raw
+			Raw* r = (Raw*)ctrlList.GetItemData(item);
+			Action* a = (Action*)ctrlList.GetItemData(parent);
+			if(a != NULL && r != NULL)
+				success = RawManager::getInstance()->remRaw(a, r);
+		} else {				// action
+			Action* a = (Action*)ctrlList.GetItemData(item);
+			if(a != NULL) success = RawManager::getInstance()->remAction(a);
 		}
-	}
-
-	return 0;
-}
-
-LRESULT RawPage::onMoveRawUp(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
-	if(ctrlAction.GetSelectedCount() == 1) {
-		int j = ctrlAction.GetNextItem(-1, LVNI_SELECTED);
-		int i = ctrlRaw.GetSelectedIndex();
-		if(i != -1 && i != 0) {
-			int n = ctrlRaw.GetItemData(i);
-			RawManager::getInstance()->moveRaw(ctrlAction.GetItemData(j), n, -1/*, i*/);
-			ctrlRaw.SetRedraw(FALSE);
-			ctrlRaw.DeleteItem(i);
-			Action::Raw ra;
-			RawManager::getInstance()->getRawItem(ctrlAction.GetItemData(j), n, ra);
-			addEntryRaw(ra, i-1);
-			ctrlRaw.SelectItem(i-1);
-			ctrlRaw.EnsureVisible(i-1, FALSE);
-			ctrlRaw.SetRedraw(TRUE);
-		}
+		if(success)
+			ctrlList.DeleteItem(item);
 	}
 	return 0;
 }
 
-LRESULT RawPage::onMoveRawDown(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
-	if(ctrlAction.GetSelectedCount() == 1) {
-		int j = ctrlAction.GetNextItem(-1, LVNI_SELECTED);
-		int i = ctrlRaw.GetSelectedIndex();
-		if(i != -1 && i != (ctrlRaw.GetItemCount()-1) ) {
-			int n = ctrlRaw.GetItemData(i);
-			RawManager::getInstance()->moveRaw(ctrlAction.GetItemData(j), n, 1/*, i*/);
-			ctrlRaw.SetRedraw(FALSE);
-			ctrlRaw.DeleteItem(i);
-			Action::Raw ra;
-			RawManager::getInstance()->getRawItem(ctrlAction.GetItemData(j), n, ra);
-			addEntryRaw(ra, i+1);
-			ctrlRaw.SelectItem(i+1);
-			ctrlRaw.EnsureVisible(i+1, FALSE);
-			ctrlRaw.SetRedraw(TRUE);
+LRESULT RawPage::onChildAdd(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+	HTREEITEM item = ctrlList.GetSelectedItem();
+	HTREEITEM parent = ctrlList.GetParentItem(item);
+	if(parent == NULL) // if we selected raw that has parent, add new one to this parent
+		parent = item;
+
+	Action* a = (Action*)ctrlList.GetItemData(parent);
+	if(a == NULL) return 0;
+
+	while(true) {
+		try {
+			RawDlg dlg;
+			if(dlg.DoModal(m_hWnd) == IDOK) {
+				Raw r;
+				r.setEnabled(true);
+				r.setName(dlg.name);
+				r.setRaw(dlg.raw);
+				r.setTime(dlg.time);
+				r.setLua(dlg.useLua);
+				r.setId(0);
+
+				Raw* ptr = RawManager::getInstance()->addRaw(a, r);
+				addRaw(parent, ptr);
+				ctrlList.Expand(parent);
+			}
+			break;
+		} catch(const Exception& e) {
+			MessageBox(Text::toT(e.getError()).c_str(), _T(APPNAME) _T(" ") _T(VERSIONSTRING), MB_ICONSTOP | MB_OK);
 		}
 	}
 	return 0;
 }
 
-void RawPage::addEntryAction(int id, const string name, bool actif, int pos) {
-	TStringList lst;
+LRESULT RawPage::onChildEdit(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+	HTREEITEM item = ctrlList.GetSelectedItem();
+	HTREEITEM parent = ctrlList.GetParentItem(item);
+	if(item != NULL && parent != NULL) {
+		const Action* a = (const Action*)ctrlList.GetItemData(parent);
+		Raw* old = (Raw*)ctrlList.GetItemData(item);
+		if(old == NULL || a == NULL) return 0;
 
-	lst.push_back(Text::toT(name));
-	int i = ctrlAction.insert(pos, lst, 0, (LPARAM)id);
-	ctrlAction.SetCheckState(i, actif);
-}
-
-void RawPage::addEntryRaw(const Action::Raw& ra, int pos) {
-	TStringList lst;
-
-	lst.push_back(Text::toT(ra.getName()));
-	lst.push_back(ra.getLua() ? CTSTRING(YES) : CTSTRING(NO));
-	int i = ctrlRaw.insert(pos, lst, 0, (LPARAM)ra.getId());
-	ctrlRaw.SetCheckState(i, ra.getActif());
-}
-
-LRESULT RawPage::onItemChangedRaw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/) {
-	NMITEMACTIVATE* l = (NMITEMACTIVATE*)pnmh;
-	gotFocusOnRaw = (l->uNewState & LVIS_FOCUSED) || ((l->uNewState & LVIS_STATEIMAGEMASK) && ctrlRaw.GetSelectedIndex() != -1);
-	::EnableWindow(GetDlgItem(IDC_CHANGE_RAW), gotFocusOnRaw && gotFocusOnAction);
-	::EnableWindow(GetDlgItem(IDC_REMOVE_RAW), gotFocusOnRaw && gotFocusOnAction);
-	::EnableWindow(GetDlgItem(IDC_MOVE_RAW_UP), gotFocusOnRaw && gotFocusOnAction);
-	::EnableWindow(GetDlgItem(IDC_MOVE_RAW_DOWN), gotFocusOnRaw && gotFocusOnAction); 
-	return 0;
-}
-
-LRESULT RawPage::onItemChanged(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/) {
-	NMITEMACTIVATE* l = (NMITEMACTIVATE*)pnmh;
-	gotFocusOnAction = (l->uNewState & LVIS_FOCUSED) || ((l->uNewState & LVIS_STATEIMAGEMASK) && ctrlAction.GetSelectedIndex() != -1);
-	::EnableWindow(GetDlgItem(IDC_RENAME_ACTION), gotFocusOnAction);
-	::EnableWindow(GetDlgItem(IDC_REMOVE_ACTION), gotFocusOnAction);
-	::EnableWindow(GetDlgItem(IDC_RAW_PAGE_RAW), gotFocusOnAction);
-	::EnableWindow(GetDlgItem(IDC_ADD_RAW), gotFocusOnAction);
-	::EnableWindow(GetDlgItem(IDC_CHANGE_RAW), gotFocusOnRaw && gotFocusOnAction);
-	::EnableWindow(GetDlgItem(IDC_REMOVE_RAW), gotFocusOnRaw && gotFocusOnAction);
-	::EnableWindow(GetDlgItem(IDC_MOVE_RAW_UP), gotFocusOnRaw && gotFocusOnAction);
-	::EnableWindow(GetDlgItem(IDC_MOVE_RAW_DOWN), gotFocusOnRaw && gotFocusOnAction); 
-
-	if(!nosave && l->iItem != -1 && ((l->uNewState & LVIS_STATEIMAGEMASK) == (l->uOldState & LVIS_STATEIMAGEMASK))) {
-		int j;
-		for(j = 0; j < ctrlRaw.GetItemCount(); j++) {
-			RawManager::getInstance()->setActifRaw(ctrlAction.GetItemData(l->iItem), ctrlRaw.GetItemData(j), RsxUtil::toBool(ctrlRaw.GetCheckState(j)));
-		}
-		ctrlRaw.SetRedraw(FALSE);
-		ctrlRaw.DeleteAllItems();
-
-		if(ctrlAction.GetSelectedCount() == 1) {
-			Action::RawsList lst = RawManager::getInstance()->getRawList(ctrlAction.GetItemData(l->iItem));
-
-			for(Action::RawsList::const_iterator i = lst.begin(); i != lst.end(); ++i) {
-				const Action::Raw& ra = *i;	
-				addEntryRaw(ra, ctrlRaw.GetItemCount());
+		while(true) {
+			try {
+				RawDlg dlg(old);
+				if(dlg.DoModal(m_hWnd) == IDOK) {
+					Raw r;
+					r.setEnabled(old->getEnabled());
+					r.setName(dlg.name);
+					r.setRaw(dlg.raw);
+					r.setTime(dlg.time);
+					r.setLua(dlg.useLua);
+		
+					RawManager::getInstance()->editRaw(a, old, r);
+					ctrlList.SetItemText(item, Text::toT(old->getName()).c_str());
+					//ctrlList.Expand(parent);
+				}
+				break;
+			} catch(const Exception& e) {
+				MessageBox(Text::toT(e.getError()).c_str(), _T(APPNAME) _T(" ") _T(VERSIONSTRING), MB_ICONSTOP | MB_OK);
 			}
 		}
-		ctrlRaw.SetRedraw(TRUE);
 	}
 	return 0;
 }
 
-LRESULT RawPage::onDblClick(int idCtrl, LPNMHDR pnmh, BOOL& bHandled) {
-	NMITEMACTIVATE* l = (NMITEMACTIVATE*)pnmh;
-	bool tmp = !(l->uNewState & LVIS_STATEIMAGEMASK);
-	if(tmp) {
-		if(idCtrl == IDC_RAW_PAGE_RAW) {
-			return onChangeRaw(0, 0, 0, bHandled);
-		} else if(idCtrl == IDC_RAW_PAGE_ACTION) {
-			return onRenameAction(0, 0, 0, bHandled);
-		}
+LRESULT RawPage::onChildUp(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+	HTREEITEM item = ctrlList.GetSelectedItem();
+	HTREEITEM parent = ctrlList.GetParentItem(item);
+	HTREEITEM prev = ctrlList.GetPrevSiblingItem(item);
+
+	if(item != NULL && parent != NULL && prev != NULL) {
+		Raw* x = (Raw*)ctrlList.GetItemData(item);
+		Raw* y = (Raw*)ctrlList.GetItemData(prev);
+
+		if(y == NULL || x == NULL) return 0;
+		x->setEnabled(ctrlList.GetCheckState(item) ? true : false);
+		y->setEnabled(ctrlList.GetCheckState(prev) ? true : false);
+
+		swap(*x, *y);
+		updateRaw(item, x);
+		updateRaw(prev, y);
+
+		ctrlList.SelectItem(prev);
 	}
 	return 0;
 }
 
-void RawPage::write() {
-	int i;
-	for(i = 0; i < ctrlAction.GetItemCount(); i++) {
-		RawManager::getInstance()->setActifAction(ctrlAction.GetItemData(i), RsxUtil::toBool(ctrlAction.GetCheckState(i)));
+LRESULT RawPage::onChildDown(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+	HTREEITEM item = ctrlList.GetSelectedItem();
+	HTREEITEM parent = ctrlList.GetParentItem(item);
+	HTREEITEM next = ctrlList.GetNextSiblingItem(item);
+
+	if(item != NULL && parent != NULL && next != NULL) {
+		Raw* x = (Raw*)ctrlList.GetItemData(item);
+		Raw* y = (Raw*)ctrlList.GetItemData(next);
+
+		if(y == NULL || x == NULL) return 0;
+		x->setEnabled(ctrlList.GetCheckState(item) ? true : false);
+		y->setEnabled(ctrlList.GetCheckState(next) ? true : false);
+
+		swap(*x, *y);
+		updateRaw(item, x);
+		updateRaw(next, y);
+		ctrlList.SelectItem(next);
 	}
-	if(ctrlAction.GetSelectedCount() == 1) {
-		int j = ctrlAction.GetNextItem(-1, LVNI_SELECTED);
-		int l;
-		for(l = 0; l < ctrlRaw.GetItemCount(); l++) {
-			RawManager::getInstance()->setActifRaw(ctrlAction.GetItemData(j), ctrlRaw.GetItemData(l), RsxUtil::toBool(ctrlRaw.GetCheckState(l)));
-		}
+	return 0;
+}
+
+LRESULT RawPage::onExpand(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+	HTREEITEM item = ctrlList.GetRootItem();
+	while(item != NULL) {
+		ctrlList.Expand(item, expanded ? TVE_COLLAPSE : TVE_EXPAND);
+		item = ctrlList.GetNextItem(item, TVGN_NEXT);
 	}
-	RawManager::getInstance()->saveActionRaws();
+	if(expanded)
+		::SetWindowText(GetDlgItem(IDC_EXPAND), _T("Expand"));
+	else
+		::SetWindowText(GetDlgItem(IDC_EXPAND), _T("Collapse"));
+	expanded = !expanded;
+	return 0;
 }

@@ -23,7 +23,7 @@
 
 #include "RSX-Advanced.h"
 
-#include "../rsx/rsx-settings/rsx-SettingsManager.h"
+#include "../client/rsxppSettingsManager.h"
 
 #include "WinUtil.h"
 
@@ -36,34 +36,34 @@ PropPage::TextItem RSXAdvanced::texts[] = {
 };
 
 PropPage::Item RSXAdvanced::items[] = {
-	{ IDC_MYINFO_COUNTER,			RSXSettingsManager::MYINFO_COUNTER,			PropPage::T_INT_RSX },
-	{ IDC_CTE_COUNTER,				RSXSettingsManager::CTM_COUNTER,			PropPage::T_INT_RSX },
-	{ IDC_PM_COUNTER,				RSXSettingsManager::PM_COUNTER,				PropPage::T_INT_RSX },
-	{ IDC_MYINFO_TIME,				RSXSettingsManager::MYINFO_TIME,			PropPage::T_INT_RSX },
-	{ IDC_CTE_TIME,					RSXSettingsManager::CTM_TIME,				PropPage::T_INT_RSX },
-	{ IDC_PM_TIME,					RSXSettingsManager::PM_TIME,				PropPage::T_INT_RSX },
-	{ IDC_PROFILE_VERSION_URL,		RSXSettingsManager::PROFILE_VER_URL,		PropPage::T_STR_RSX },
+	{ IDC_MYINFO_COUNTER,			rsxppSettingsManager::MYINFO_COUNTER,			PropPage::T_INT_RSX },
+	{ IDC_CTE_COUNTER,				rsxppSettingsManager::CTM_COUNTER,			PropPage::T_INT_RSX },
+	{ IDC_PM_COUNTER,				rsxppSettingsManager::PM_COUNTER,				PropPage::T_INT_RSX },
+	{ IDC_MYINFO_TIME,				rsxppSettingsManager::MYINFO_TIME,			PropPage::T_INT_RSX },
+	{ IDC_CTE_TIME,					rsxppSettingsManager::CTM_TIME,				PropPage::T_INT_RSX },
+	{ IDC_PM_TIME,					rsxppSettingsManager::PM_TIME,				PropPage::T_INT_RSX },
+	{ IDC_PROFILE_VERSION_URL,		rsxppSettingsManager::PROFILE_VER_URL,		PropPage::T_STR_RSX },
 	{ 0, 0, PropPage::T_END }
 };
 
 RSXAdvanced::ListItem RSXAdvanced::listItems[] = {
-	{ RSXSettingsManager::FAV_USER_IS_PROTECTED_USER,			ResourceManager::SETTINGS_FAV_USER_IS_PROTECTED_USER },
-	{ RSXSettingsManager::USE_SEND_DELAYED_RAW,					ResourceManager::SETTINGS_USE_SEND_DELAYED_RAW },
-	{ RSXSettingsManager::DISPLAY_CHEATS_IN_MAIN_CHAT,			ResourceManager::SETTINGS_DISPLAY_CHEATS_IN_MAIN_CHAT },
-	{ RSXSettingsManager::SHOW_SHARE_CHECKED_USERS,				ResourceManager::SETTINGS_ADVANCED_SHOW_SHARE_CHECKED_USERS },
-	{ RSXSettingsManager::UNCHECK_CLIENT_PROTECTED_USER,		ResourceManager::SETTINGS_UNCHECK_CLIENT_PROTECTED_USER },
-	{ RSXSettingsManager::UNCHECK_LIST_PROTECTED_USER,			ResourceManager::SETTINGS_UNCHECK_LIST_PROTECTED_USER },
-	{ RSXSettingsManager::CHECK_ALL_CLIENTS_BEFORE_FILELISTS,	ResourceManager::SETTINGS_CHECK_ALL_CLIENTS_BEFORE_FILELISTS },
-	{ RSXSettingsManager::DELETE_CHECKED_FILELISTS, 			ResourceManager::SETTINGS_DELETE_CHECKED_FILELISTS },
-	{ RSXSettingsManager::IGNORE_PM_SPAMMERS,					ResourceManager::SETTINGS_IGNORE_PM_SPAMMERS },
-	{ RSXSettingsManager::PROTECT_PM_USERS,						ResourceManager::SETTINGS_PROTECT_PM_USERS },
-	{ RSXSettingsManager::USE_WILDCARDS_TO_PROTECT,				ResourceManager::SETTINGS_USE_WILDCARDS_TO_PROTECT },
-	{ RSXSettingsManager::GET_UPDATE_PROFILE,					ResourceManager::SETTINGS_GET_UPDATE_PROFILE },
-	{ RSXSettingsManager::UPDATE_PROFILE_CHEATS,				ResourceManager::SETTINGS_UPDATE_PROFILE_CHEATS },
-	{ RSXSettingsManager::UPDATE_PROFILE_COMMENTS,				ResourceManager::SETTINGS_UPDATE_PROFILE_COMMENTS },
-	{ RSXSettingsManager::SHOW_CLIENT_NEW_VER,					ResourceManager::SETTINGS_SHOW_CLIENT_NEW_VER },
-	{ RSXSettingsManager::SHOW_MYINFO_NEW_VER,					ResourceManager::SETTINGS_SHOW_USER_INFO_NEW_VER },
-	{ RSXSettingsManager::SHOW_IPWATCH_NEW_VER,					ResourceManager::SETTINGS_SHOW_IPWATCH_NEW_VER },
+	{ rsxppSettingsManager::FAV_USER_IS_PROTECTED_USER,			ResourceManager::SETTINGS_FAV_USER_IS_PROTECTED_USER },
+	{ rsxppSettingsManager::USE_SEND_DELAYED_RAW,				ResourceManager::SETTINGS_USE_SEND_DELAYED_RAW },
+	{ rsxppSettingsManager::DISPLAY_CHEATS_IN_MAIN_CHAT,		ResourceManager::SETTINGS_DISPLAY_CHEATS_IN_MAIN_CHAT },
+	{ rsxppSettingsManager::SHOW_SHARE_CHECKED_USERS,			ResourceManager::SETTINGS_ADVANCED_SHOW_SHARE_CHECKED_USERS },
+	{ rsxppSettingsManager::UNCHECK_CLIENT_PROTECTED_USER,		ResourceManager::SETTINGS_UNCHECK_CLIENT_PROTECTED_USER },
+	{ rsxppSettingsManager::UNCHECK_LIST_PROTECTED_USER,		ResourceManager::SETTINGS_UNCHECK_LIST_PROTECTED_USER },
+	{ rsxppSettingsManager::CHECK_ALL_CLIENTS_BEFORE_FILELISTS,	ResourceManager::SETTINGS_CHECK_ALL_CLIENTS_BEFORE_FILELISTS },
+	{ rsxppSettingsManager::DELETE_CHECKED_FILELISTS, 			ResourceManager::SETTINGS_DELETE_CHECKED_FILELISTS },
+	{ rsxppSettingsManager::IGNORE_PM_SPAMMERS,					ResourceManager::SETTINGS_IGNORE_PM_SPAMMERS },
+	{ rsxppSettingsManager::PROTECT_PM_USERS,					ResourceManager::SETTINGS_PROTECT_PM_USERS },
+	{ rsxppSettingsManager::USE_WILDCARDS_TO_PROTECT,			ResourceManager::SETTINGS_USE_WILDCARDS_TO_PROTECT },
+	{ rsxppSettingsManager::GET_UPDATE_PROFILE,					ResourceManager::SETTINGS_GET_UPDATE_PROFILE },
+	{ rsxppSettingsManager::UPDATE_PROFILE_CHEATS,				ResourceManager::SETTINGS_UPDATE_PROFILE_CHEATS },
+	{ rsxppSettingsManager::UPDATE_PROFILE_COMMENTS,			ResourceManager::SETTINGS_UPDATE_PROFILE_COMMENTS },
+	{ rsxppSettingsManager::SHOW_CLIENT_NEW_VER,				ResourceManager::SETTINGS_SHOW_CLIENT_NEW_VER },
+	{ rsxppSettingsManager::SHOW_MYINFO_NEW_VER,				ResourceManager::SETTINGS_SHOW_USER_INFO_NEW_VER },
+	{ rsxppSettingsManager::SHOW_IPWATCH_NEW_VER,				ResourceManager::SETTINGS_SHOW_IPWATCH_NEW_VER },
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
 

@@ -18,19 +18,12 @@
 #ifndef RSXADVANCED_H
 #define RSXADVANCED_H
 
-#if _MSC_VER > 1000
-#pragma once
-#endif // _MSC_VER > 1000
-
-
 #include "PropPage.h"
 #include "WinUtil.h"
 
 #include "resource.h"
-#include "../client/RawManager.h"
 
-class RSXAdvanced : public CPropertyPage<IDD_RSXADVANCED>, public PropPage, protected RawSelector
-{
+class RSXAdvanced : public CPropertyPage<IDD_RSXADVANCED>, public PropPage {
 public:
 
 	RSXAdvanced(SettingsManager *s) : PropPage(s) {
@@ -44,7 +37,6 @@ public:
 
 	BEGIN_MSG_MAP(RSXAdvanced)
 		MESSAGE_HANDLER(WM_INITDIALOG, onInitDialog)
-		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
 
 	LRESULT onInitDialog(UINT, WPARAM, LPARAM, BOOL&);

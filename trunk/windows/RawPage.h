@@ -1,4 +1,6 @@
-/* 
+/*
+ * Copyright (C) 2007-2009 adrian_007, adrian-007 on o2 point pl
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -23,62 +25,51 @@
 
 class RawPage : public CPropertyPage<IDD_RAW_PAGE>, public PropPage {
 public:
-	RawPage(SettingsManager *s) : PropPage(s), nosave(true), gotFocusOnAction(false), gotFocusOnRaw(false) { 
+	RawPage(SettingsManager *s) : PropPage(s), expanded(false) { 
 		title = _tcsdup((TSTRING(SETTINGS_RSX) + _T('\\') + TSTRING(SETTINGS_FAKEDETECT) + _T('\\') + TSTRING(SETTINGS_ACTION_RAW)).c_str());
 		SetTitle(title);
 	};
 
 	~RawPage() {
-		ctrlAction.Detach();
-		ctrlRaw.Detach();
+		//ctrlList.Detach();
 		free(title);
 	};
 
 	BEGIN_MSG_MAP(RawPage)
-		MESSAGE_HANDLER(WM_INITDIALOG, onInitDialog)
-		COMMAND_ID_HANDLER(IDC_ADD_ACTION, onAddAction)
-		COMMAND_ID_HANDLER(IDC_RENAME_ACTION, onRenameAction)
-		COMMAND_ID_HANDLER(IDC_REMOVE_ACTION, onRemoveAction)
-		COMMAND_ID_HANDLER(IDC_ADD_RAW, onAddRaw)
-		COMMAND_ID_HANDLER(IDC_CHANGE_RAW, onChangeRaw)
-		COMMAND_ID_HANDLER(IDC_REMOVE_RAW, onRemoveRaw)
-		COMMAND_ID_HANDLER(IDC_MOVE_RAW_UP, onMoveRawUp)
-		COMMAND_ID_HANDLER(IDC_MOVE_RAW_DOWN, onMoveRawDown)
-		NOTIFY_HANDLER(IDC_RAW_PAGE_ACTION, LVN_ITEMCHANGED, onItemChanged)
-		NOTIFY_HANDLER(IDC_RAW_PAGE_RAW, LVN_ITEMCHANGED, onItemChangedRaw)
-		NOTIFY_HANDLER(IDC_RAW_PAGE_RAW, NM_DBLCLK, onDblClick)
-		NOTIFY_HANDLER(IDC_RAW_PAGE_ACTION, NM_DBLCLK, onDblClick)
+		MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
+		COMMAND_ID_HANDLER(IDC_EXPAND, onExpand)
+		COMMAND_ID_HANDLER(IDC_REMOVE, onRemove)
+		COMMAND_ID_HANDLER(IDC_PARENT_ADD, onParentAdd)
+		COMMAND_ID_HANDLER(IDC_PARENT_EDIT, onParentEdit)
+		COMMAND_ID_HANDLER(IDC_CHILD_ADD, onChildAdd)
+		COMMAND_ID_HANDLER(IDC_CHILD_EDIT, onChildEdit)
+		COMMAND_ID_HANDLER(IDC_CHILD_UP, onChildUp)
+		COMMAND_ID_HANDLER(IDC_CHILD_DOWN, onChildDown)
 	END_MSG_MAP()
 
-	LRESULT onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
-	LRESULT onAddAction(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-	LRESULT onRenameAction(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-	LRESULT onRemoveAction(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-	LRESULT onAddRaw(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-	LRESULT onChangeRaw(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-	LRESULT onRemoveRaw(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-	LRESULT onMoveRawUp(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-	LRESULT onMoveRawDown(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-	LRESULT onItemChanged(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/);
-	LRESULT onItemChangedRaw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/);
-	LRESULT onDblClick(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
+	LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
+	LRESULT onExpand(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+	LRESULT onRemove(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+	LRESULT onParentAdd(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+	LRESULT onParentEdit(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+	LRESULT onChildAdd(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+	LRESULT onChildEdit(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+	LRESULT onChildUp(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+	LRESULT onChildDown(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 
 	// Common PropPage interface
 	PROPSHEETPAGE *getPSP() { return (PROPSHEETPAGE *)*this; }
 	void write();
 
 protected:
+	bool expanded;
+
+	HTREEITEM addAction(const Action* action);
+	void addRaw(HTREEITEM action, const Raw* raw);
+	void updateRaw(HTREEITEM item, Raw* raw);
+
 	static TextItem texts[];
-
-	ExListViewCtrl ctrlAction;
-	ExListViewCtrl ctrlRaw;
-
-	bool nosave;
-	bool gotFocusOnAction;
-	bool gotFocusOnRaw;
-
-	void addEntryAction(int id, const string name, bool actif, int pos);
-	void addEntryRaw(const Action::Raw& ra, int pos);
+	CTreeViewCtrl ctrlList;
 
 	TCHAR* title;
 };

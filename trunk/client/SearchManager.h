@@ -26,8 +26,6 @@
 #include "Thread.h"
 #include "Client.h"
 #include "Singleton.h"
-#include "FastAlloc.h"
-#include "MerkleTree.h"
 
 #include "SearchManagerListener.h"
 #include "TimerManager.h"
@@ -72,7 +70,7 @@ public:
  	}
 	static string clean(const string& aSearchString);
 	
-	void respond(const AdcCommand& cmd, const CID& cid);
+	void respond(const AdcCommand& cmd, const CID& cid, bool isUdpActive, const string& hubIpPort);
 
 	uint16_t getPort() const
 	{
@@ -140,5 +138,5 @@ private:
 
 /**
  * @file
- * $Id: SearchManager.h 411 2008-07-20 22:39:42Z BigMuscle $
+ * $Id: SearchManager.h 427 2009-01-10 19:29:09Z BigMuscle $
  */

@@ -25,7 +25,6 @@
 
 #include <atlcrack.h>
 #include "PropPage.h"
-#include "ResourceLoader.h" //RSX++
 
 class GeneralPage : public CPropertyPage<IDD_GENERALPAGE>, public PropPage
 {
@@ -34,15 +33,13 @@ public:
 		SetTitle(CTSTRING(SETTINGS_GENERAL));
 		m_psp.dwFlags |= PSP_RTLREADING;
 	}
-	~GeneralPage() { ConnTypes.Destroy(); }
+	~GeneralPage() { }
 
 	BEGIN_MSG_MAP_EX(GeneralPage)
 		MESSAGE_HANDLER(WM_INITDIALOG, onInitDialog)
 		COMMAND_HANDLER(IDC_NICK, EN_CHANGE, onTextChanged)
 		COMMAND_HANDLER(IDC_EMAIL, EN_CHANGE, onTextChanged)
 		COMMAND_HANDLER(IDC_DESCRIPTION, EN_CHANGE, onTextChanged)
-		COMMAND_ID_HANDLER(IDC_BW_BOTH, onClickedRadioButton)
-		COMMAND_ID_HANDLER(IDC_BW_SIMPLE, onClickedRadioButton)
 	END_MSG_MAP()
 
 	LRESULT onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
@@ -60,12 +57,6 @@ private:
 	CComboBox ctrlConnection;	
 	CEdit nick;
 	CEdit desc;
-	//rsx++
-	CImageList ConnTypes;
-	CComboBoxEx ctrlConnectionType;
-	CComboBox ctrlDownloadSpeed, ctrlUploadSpeed;
-	void fixControls();
-	//end
 
 };
 

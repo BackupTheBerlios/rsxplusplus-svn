@@ -34,6 +34,7 @@ public:
 
 	bool operator==(const CID& rhs) const { return memcmp(cid, rhs.cid, sizeof(cid)) == 0; }
 	bool operator<(const CID& rhs) const { return memcmp(cid, rhs.cid, sizeof(cid)) < 0; }
+	CID& operator=(const CID& rhs) { memcpy(cid, rhs.cid, sizeof(cid)); return *this; }
 
 	string toBase32() const { return Encoder::toBase32(cid, sizeof(cid)); }
 	string& toBase32(string& tmp) const { return Encoder::toBase32(cid, sizeof(cid), tmp); }
@@ -57,7 +58,11 @@ private:
 
 } // namespace dcpp
 
-namespace std { //namespace tr1 { 
+#if defined(USE_BOOST_UNORDERED)
+namespace boost {
+#else
+namespace std {
+#endif
 template<>
 struct hash<dcpp::CID> {
 	size_t operator()(const dcpp::CID& rhs) const {
@@ -71,16 +76,16 @@ struct hash<dcpp::CID*> {
 		return *reinterpret_cast<const size_t*>(rhs);
 	}
 };
+} // namespace std/boost
 
+namespace std {
 template<>
 struct equal_to<dcpp::CID*> {
 	bool operator()(const dcpp::CID* lhs, const dcpp::CID* rhs) const {
 		return (*lhs) == (*rhs);
 	}
 };
-//}
-}
-
+} // namespace std
 #endif // !defined(CID_H)
 
 /**

@@ -20,6 +20,10 @@
 #include "../client/Util.h"
 #include "../client/FavoriteManager.h"
 
+namespace dcpp {
+	struct Raw;
+}
+
 class RawDlg : public CDialogImpl<RawDlg> {
 public:
 	string name;
@@ -37,6 +41,8 @@ public:
 	END_MSG_MAP()
 
 	RawDlg() : name("Raw"), raw(""), time(0), useLua(false) { };
+	RawDlg(const Raw* r) : name(r->getName()), raw(r->getRaw()), time(r->getTime()), useLua(r->getLua()) { };
+
 	~RawDlg() { 
 		ctrlName.Detach();
 		ctrlRaw.Detach();

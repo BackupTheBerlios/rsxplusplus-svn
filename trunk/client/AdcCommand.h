@@ -36,6 +36,7 @@ public:
 	};
 
 	enum Error {
+		SUCCESS = 0,
 		ERROR_GENERIC = 0,
 		ERROR_HUB_GENERIC = 10,
 		ERROR_HUB_FULL = 11,
@@ -216,5 +217,5 @@ public:
 
 /**
 * @file
-* $Id: AdcCommand.h 423 2008-11-08 17:12:32Z BigMuscle $
+* $Id: AdcCommand.h 429 2009-02-06 17:26:54Z BigMuscle $
 */

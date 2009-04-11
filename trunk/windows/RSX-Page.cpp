@@ -1,4 +1,6 @@
-/* 
+/*
+ * Copyright (C) 2007-2009 adrian_007, adrian-007 on o2 point pl
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -19,7 +21,7 @@
 #include "../client/IgnoreManager.h"
 #include "../client/FavoriteManager.h"
 #include "../client/version.h"
-#include "../rsx/rsx-settings/rsx-SettingsManager.h"
+#include "../client/rsxppSettingsManager.h"
 
 #include "RSX-Page.h"
 #include "LineDlg.h"
@@ -38,20 +40,20 @@ PropPage::TextItem RSXPage::texts[] = {
 };
 
 PropPage::Item RSXPage::items[] = {
-	{ IDC_USE_REGEXP_OR_WILD,	RSXSettingsManager::IGNORE_USE_REGEXP_OR_WC,	PropPage::T_BOOL_RSX },
-	{ IDC_CHAT_BUF_SIZE,		RSXSettingsManager::MAX_CHAT_BUFSIZE,			PropPage::T_INT_RSX },
+	{ IDC_USE_REGEXP_OR_WILD,	rsxppSettingsManager::IGNORE_USE_REGEXP_OR_WC,	PropPage::T_BOOL_RSX },
+	{ IDC_CHAT_BUF_SIZE,		rsxppSettingsManager::MAX_CHAT_BUFSIZE,			PropPage::T_INT_RSX },
 	{ 0, 0, PropPage::T_END }
 };
 
 RSXPage::ListItem RSXPage::listItems[] = {
-	{ RSXSettingsManager::AUTO_START, ResourceManager::SETTINGS_AUTO_START },
-	{ RSXSettingsManager::USE_FILTER_FAV, ResourceManager::USE_FILTER_FAV },
-	{ RSXSettingsManager::USE_HL_FAV, ResourceManager::USE_HL_FAV },
-	{ RSXSettingsManager::FLASH_WINDOW_ON_PM, ResourceManager::FLASH_WINDOW_ON_PM },
-	{ RSXSettingsManager::FLASH_WINDOW_ON_NEW_PM, ResourceManager::FLASH_WINDOW_ON_NEW_PM },
-	{ RSXSettingsManager::IP_IN_CHAT, ResourceManager::IP_IN_CHAT },
-	{ RSXSettingsManager::COUNTRY_IN_CHAT, ResourceManager::COUNTRY_IN_CHAT },
-	{ RSXSettingsManager::SHOW_LUA_ERROR_MESSAGE, ResourceManager::SETTINGS_SHOW_LUA_ERROR_MESSAGE },
+	{ rsxppSettingsManager::AUTO_START, ResourceManager::SETTINGS_AUTO_START },
+	{ rsxppSettingsManager::USE_FILTER_FAV, ResourceManager::USE_FILTER_FAV },
+	{ rsxppSettingsManager::USE_HL_FAV, ResourceManager::USE_HL_FAV },
+	{ rsxppSettingsManager::FLASH_WINDOW_ON_PM, ResourceManager::FLASH_WINDOW_ON_PM },
+	{ rsxppSettingsManager::FLASH_WINDOW_ON_NEW_PM, ResourceManager::FLASH_WINDOW_ON_NEW_PM },
+	{ rsxppSettingsManager::IP_IN_CHAT, ResourceManager::IP_IN_CHAT },
+	{ rsxppSettingsManager::COUNTRY_IN_CHAT, ResourceManager::COUNTRY_IN_CHAT },
+	{ rsxppSettingsManager::SHOW_LUA_ERROR_MESSAGE, ResourceManager::SETTINGS_SHOW_LUA_ERROR_MESSAGE },
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
 
@@ -86,14 +88,14 @@ LRESULT RSXPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	ctrlPrio.AddString(CTSTRING(MENU_PRIO_NORMAL));
 	ctrlPrio.AddString(CTSTRING(MENU_PRIO_BELOW));
 	ctrlPrio.AddString(CTSTRING(MENU_PRIO_IDLE));
-	ctrlPrio.SetCurSel(RSXSETTING(DEFAULT_PRIO));
+	ctrlPrio.SetCurSel(RSXPP_SETTING(DEFAULT_PRIO));
 	return TRUE;
 }
 
 void RSXPage::write() {
 	PropPage::write((HWND)*this, items, listItems, GetDlgItem(IDC_RSX_BOOLEANS), true);
 	IgnoreManager::getInstance()->putIgnoredUsers(ignoreList);
-	RSXSettingsManager::getInstance()->set(RSXSettingsManager::DEFAULT_PRIO, ctrlPrio.GetCurSel());
+	rsxppSettingsManager::getInstance()->set(rsxppSettingsManager::DEFAULT_PRIO, ctrlPrio.GetCurSel());
 	
 	StringList& lst = FavoriteManager::getInstance()->getFavGroups();
 	if(!lst.size()) FavoriteManager::getInstance()->addFavGroup("All Hubs");
@@ -102,7 +104,7 @@ void RSXPage::write() {
 	HKEY hk;
 	tstring app = _T("\"") + Text::toT(Util::getSystemPath()) + _T("RSXPlusPlus.exe\"");
 	if(::RegOpenKeyEx(HKEY_CURRENT_USER, _T("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run"), 0, KEY_WRITE | KEY_READ, &hk) == ERROR_SUCCESS) {
-		if(RSXBOOLSETTING(AUTO_START)) {
+		if(RSXPP_BOOLSETTING(AUTO_START)) {
 			::RegCreateKey(HKEY_CURRENT_USER, _T("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run"), &hk);
 			::RegSetValueEx(hk, _T(APPNAME), 0, REG_SZ, (LPBYTE)app.c_str(), sizeof(TCHAR) * (app.length() + 1));
 		} else {

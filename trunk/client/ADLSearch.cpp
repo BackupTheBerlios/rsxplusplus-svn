@@ -271,10 +271,8 @@ void ADLSearchManager::MatchesFile(DestDirList& destDirVector, DirectoryListing:
 			if(is->isAutoQueue) {
 				try {
 					QueueManager::getInstance()->add(SETTING(DOWNLOAD_DIRECTORY) + currentFile->getName(),
-						currentFile->getSize(), currentFile->getTTH(), getUser());
-				} catch(const Exception&) {
-					// ...
-				}
+						currentFile->getSize(), currentFile->getTTH(), getUser(), Util::emptyString);
+				} catch(const Exception&) {	}
 			}
 
 			if(breakOnFirst) {
@@ -403,5 +401,5 @@ void ADLSearchManager::matchRecurse(DestDirList &aDestList, DirectoryListing::Di
 
 /**
  * @file
- * $Id: ADLSearch.cpp 403 2008-07-10 21:27:57Z BigMuscle $
+ * $Id: ADLSearch.cpp 427 2009-01-10 19:29:09Z BigMuscle $
  */

@@ -42,8 +42,6 @@ class ClientManager : public Speaker<ClientManagerListener>,
 	private TimerManagerListener
 {
 public:
-	typedef unordered_multimap<CID*, OnlineUser*> OnlineMap;
-	
 	Client* getClient(const string& aHubURL);
 	void putClient(Client* aClient);
 
@@ -71,9 +69,6 @@ public:
 	UserPtr findUser(const CID& cid) const throw();
 	UserPtr findLegacyUser(const string& aNick) const throw();
 	
-	OnlineUserPtr findOnlineUser(const CID& cid, const Client* client = NULL) const throw();
-	void getOnlineUsers(OnlineMap& tmp) const { Lock l(cs); tmp = onlineUsers; }
-	
 	void updateNick(const UserPtr& user, const string& nick) throw();
 	string getMyNick(const string& hubUrl) const;
 	
@@ -96,17 +91,17 @@ public:
 		}
 	}
 	
-	void reportUser(const UserPtr& p) {
+	void reportUser(const UserPtr& p, const string& hubHint) {
 		string nick; string report;
 		Client* c;
 		{
 			Lock l(cs);
-			OnlineIterC i = onlineUsers.find(const_cast<CID*>(&p->getCID()));
-			if(i == onlineUsers.end()) return;
+			OnlineUser* u = findOnlineUser(p->getCID(), hubHint);
+			if(!u) return;
 
-			nick = i->second->getIdentity().getNick();
-			report = i->second->getIdentity().getReport();
-			c = &i->second->getClient();
+			nick = u->getIdentity().getNick();
+			report = u->getIdentity().getReport();
+			c = &u->getClient();
 		}
 		c->cheatMessage("*** Info on " + nick + " ***" + "\r\n" + report + "\r\n");
 	}
@@ -157,8 +152,9 @@ public:
 
 	UserPtr& getMe();
 	
-	void connect(const UserPtr& p, const string& token);
+	void connect(const UserPtr& p, const string& token, const string& hintUrl);
 	void send(AdcCommand& c, const CID& to);
+	void privateMessage(const UserPtr& p, const string& msg, bool thirdPerson, const string& hintUrl);
 
 	void userCommand(const UserPtr& p, const UserCommand& uc, StringMap& params, bool compatibility);
 	void sendRawCommand(const UserPtr& user, const string& aRaw, bool checkProtection = false);
@@ -212,6 +208,7 @@ private:
 
 	typedef unordered_map<CID*, std::string> NickMap;
 
+	typedef unordered_multimap<CID*, OnlineUser*> OnlineMap;
 	typedef OnlineMap::iterator OnlineIter;
 	typedef OnlineMap::const_iterator OnlineIterC;
 	typedef pair<OnlineIter, OnlineIter> OnlinePair;
@@ -240,6 +237,8 @@ private:
 
 	void updateNick(const OnlineUser& user) throw();
 		
+	OnlineUser* findOnlineUser(const CID& cid, const string& hintUrl) throw();
+
 	// ClientListener
 	void on(Connected, const Client* c) throw();
 	void on(UserUpdated, const Client*, const OnlineUserPtr& user) throw();
@@ -260,5 +259,5 @@ private:
 
 /**
  * @file
- * $Id: ClientManager.h 413 2008-07-30 09:32:53Z BigMuscle $
+ * $Id: ClientManager.h 432 2009-02-12 17:16:50Z BigMuscle $
  */

@@ -22,6 +22,7 @@
 #include "../client/QueueManager.h"
 #include "../client/Client.h"
 #include "../client/Thread.h"
+#include "../client/rsxppSettingsManager.h"
 
 namespace dcpp {
 
@@ -210,7 +211,7 @@ private:
 		};
 
 		int preformUserCheck(OnlineUser* ou, const uint8_t clientItems, const uint8_t filelistItems) {
-			if(!ou->isCheckable((uint16_t)RSXSETTING(CHECK_DELAY)))
+			if(!ou->isCheckable((uint16_t)RSXPP_SETTING(CHECK_DELAY)))
 				return CONTINUE;
 			if(isADC) {
 				if((ou->getUser()->isSet(User::NO_ADC_1_0_PROTOCOL) || ou->getUser()->isSet(User::NO_ADC_0_10_PROTOCOL)) && 
@@ -225,7 +226,7 @@ private:
 				}
 			}
 			Identity& i = ou->getIdentity();
-			if(getCheckClients() && clientItems < RSXSETTING(MAX_TESTSURS)) {
+			if(getCheckClients() && clientItems < RSXPP_SETTING(MAX_TESTSURS)) {
 				if(ou->shouldCheckClient()) {
 					if(!ou->getChecked(false, false)) {
 						return ADD_CLIENT_CHECK | BREAK;
@@ -234,7 +235,7 @@ private:
 					return REMOVE_CLIENT_CHECK | BREAK;
 				}
 			}
-			if(getCheckFilelists() && filelistItems < RSXSETTING(MAX_FILELISTS)) {
+			if(getCheckFilelists() && filelistItems < RSXPP_SETTING(MAX_FILELISTS)) {
 				if(canCheckFilelist) {
 					if(ou->shouldCheckFileList()) {
 						if(!ou->getChecked(true, false)) {
@@ -259,7 +260,7 @@ private:
 				else if(checkClients && checkFilelists)
 					client->addHubLine("*** Checking started (Clients & FileLists)", 3);
 
-				Thread::sleep(RSXSETTING(CHECK_DELAY) + 1000);
+				Thread::sleep(RSXPP_SETTING(CHECK_DELAY) + 1000);
 				checkOnConnect = false;
 				client->setCheckOnConnect(false);
 			}
@@ -268,8 +269,8 @@ private:
 				keepChecking = false; 
 			}
 
-			canCheckFilelist = !checkClients || !RSXBOOLSETTING(CHECK_ALL_CLIENTS_BEFORE_FILELISTS);
-			const uint64_t sleepTime = static_cast<uint64_t>(RSXSETTING(SLEEP_TIME));
+			canCheckFilelist = !checkClients || !RSXPP_BOOLSETTING(CHECK_ALL_CLIENTS_BEFORE_FILELISTS);
+			const uint64_t sleepTime = static_cast<uint64_t>(RSXPP_SETTING(SLEEP_TIME));
 
 			while(keepChecking) {
 				dcassert(client != NULL);
@@ -311,7 +312,7 @@ private:
 						Lock l(cs);
 						if(action & ADD_CLIENT_CHECK) {
 							try {
-								string fname = QueueManager::getInstance()->addClientCheck(ou->getUser());
+								string fname = QueueManager::getInstance()->addClientCheck(ou->getUser(), client->getHubUrl());
 								if(!fname.empty())
 									ou->getIdentity().setTestSURQueued(fname);
 							} catch(...) {
@@ -319,7 +320,7 @@ private:
 							}
 						} else if(action & ADD_FILELIST_CHECK) {
 							try {
-								string fname = QueueManager::getInstance()->addFileListCheck(ou->getUser());
+								string fname = QueueManager::getInstance()->addFileListCheck(ou->getUser(), client->getHubUrl());
 								if(!fname.empty())
 									ou->getIdentity().setFileListQueued(fname);
 							} catch(...) {

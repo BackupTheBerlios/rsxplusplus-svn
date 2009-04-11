@@ -11,77 +11,60 @@
 #include "LineDlg.h"
 
 LRESULT CFavTabRaw::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
-	CRect rc1, rc2;
+	ctrlList.Attach(GetDlgItem(IDC_ACTIONS));
+	// nasty workaround to get checkboxes created in the right way
+	ctrlList.ModifyStyle(TVS_CHECKBOXES, 0); 
+	ctrlList.ModifyStyle(0, TVS_CHECKBOXES);
 
-	ctrlAction.Attach(GetDlgItem(IDC_FH_ACTION));
-	ctrlAction.GetClientRect(rc1);
-	ctrlAction.InsertColumn(0, CTSTRING(ACTION), LVCFMT_LEFT, rc1.Width() - 20, 0);
-	ctrlAction.SetExtendedListViewStyle(LVS_EX_CHECKBOXES | LVS_EX_FULLROWSELECT);
-
-	Action::List& lst = RawManager::getInstance()->getActionList();
-
-	for(Action::List::const_iterator i = lst.begin(); i != lst.end(); ++i) {
-		addEntryAction(i->first, i->second->getName(), FavoriteManager::getInstance()->getActifAction(hub, i->second->getActionId()), ctrlAction.GetItemCount());
+	ctrlList.SetRedraw(FALSE);
+	const Action::ActionList& a = RawManager::getInstance()->getActions();
+	for(Action::ActionList::const_iterator i = a.begin(); i != a.end(); ++i) {
+		HTREEITEM actionItem = addAction(*i);
+		for(Action::RawsList::const_iterator j = (*i)->raw.begin(); j != (*i)->raw.end(); ++j)
+			addRaw(actionItem, (*i)->getId(), j);
 	}
 
-	ctrlRaw.Attach(GetDlgItem(IDC_FH_RAW));
-	ctrlRaw.GetClientRect(rc2);
-	ctrlRaw.InsertColumn(0, _T("Raws or Lua Function"), LVCFMT_LEFT, rc2.Width() - 20, 0);
-	ctrlRaw.SetExtendedListViewStyle(LVS_EX_CHECKBOXES | LVS_EX_FULLROWSELECT);
+	ctrlList.SetRedraw(TRUE);
+	ctrlList.Invalidate();
+
+	/*HTREEITEM item = ctrlList.GetRootItem();
+	while(item != NULL) {
+		ctrlList.Expand(item, TVE_EXPAND);
+		item = ctrlList.GetNextItem(item, TVGN_NEXT);
+	}*/
 
 	return 0;
 }
 
-void CFavTabRaw::addEntryAction(int id, const string name, bool actif, int pos) {
-	TStringList lst;
-
-	lst.push_back(Text::toT(name));
-	int i = ctrlAction.insert(pos, lst, 0, (LPARAM)id);
-	ctrlAction.SetCheckState(i, actif);
+HTREEITEM CFavTabRaw::addAction(const Action* action) {
+	HTREEITEM item = ctrlList.InsertItem(Text::toT(action->getName()).c_str(), 0, 0);
+	ctrlList.SetItemData(item, (DWORD_PTR)action);
+	ctrlList.SetCheckState(item, FavoriteManager::getInstance()->getEnabledAction(hub, action->getId()));
+	return item;
 }
 
-void CFavTabRaw::addEntryRaw(const Action::Raw& ra, int pos, int actionId) {
-	TStringList lst;
-
-	lst.push_back(Text::toT(ra.getName()));
-	int i = ctrlRaw.insert(pos, lst, 0, (LPARAM)ra.getRawId());
-	ctrlRaw.SetCheckState(i, FavoriteManager::getInstance()->getActifRaw(hub, actionId, ra.getRawId()));
-}
-
-LRESULT CFavTabRaw::onItemChanged(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/) {
-	NMITEMACTIVATE* l = (NMITEMACTIVATE*)pnmh;
-
-	if(l->iItem != -1 && ((l->uNewState & LVIS_STATEIMAGEMASK) == (l->uOldState & LVIS_STATEIMAGEMASK))) {
-		int j;
-		for(j = 0; j < ctrlRaw.GetItemCount(); j++) {
-			FavoriteManager::getInstance()->setActifRaw(hub, RawManager::getInstance()->getActionId(ctrlAction.GetItemData(l->iItem)), ctrlRaw.GetItemData(j), RsxUtil::toBool(ctrlRaw.GetCheckState(j)));
-		}
-		ctrlRaw.SetRedraw(FALSE);
-		ctrlRaw.DeleteAllItems();
-		if(ctrlAction.GetSelectedCount() == 1) {
-			Action::RawsList lst = RawManager::getInstance()->getRawList(ctrlAction.GetItemData(l->iItem));
-
-			for(Action::RawsList::const_iterator i = lst.begin(); i != lst.end(); ++i) {
-				const Action::Raw& ra = *i;
-				addEntryRaw(ra, ctrlRaw.GetItemCount(), RawManager::getInstance()->getActionId(ctrlAction.GetItemData(l->iItem)));
-			}
-		}
-		ctrlRaw.SetRedraw(TRUE);
-	}
-	return 0;
+void CFavTabRaw::addRaw(HTREEITEM action, int actionId, const Raw* raw) {
+	HTREEITEM item = ctrlList.InsertItem(Text::toT(raw->getName()).c_str(), action, 0);
+	ctrlList.SetItemData(item, (DWORD_PTR)raw);
+	ctrlList.SetCheckState(item, FavoriteManager::getInstance()->getEnabledRaw(hub, actionId, raw->getId()));
 }
 
 void CFavTabRaw::prepareClose() {
-	int i;
-	for(i = 0; i < ctrlAction.GetItemCount(); i++) {
-		FavoriteManager::getInstance()->setActifAction(hub, RawManager::getInstance()->getActionId(ctrlAction.GetItemData(i)), RsxUtil::toBool(ctrlAction.GetCheckState(i)));
-	}
-	if(ctrlAction.GetSelectedCount() == 1) {
-		int j = ctrlAction.GetNextItem(-1, LVNI_SELECTED);
-		int l;
-		for(l = 0; l < ctrlRaw.GetItemCount(); l++) {
-			FavoriteManager::getInstance()->setActifRaw(hub, RawManager::getInstance()->getActionId(ctrlAction.GetItemData(j)), ctrlRaw.GetItemData(l), RsxUtil::toBool(ctrlRaw.GetCheckState(l)));
+	HTREEITEM item = ctrlList.GetRootItem();
+	while(item != NULL) {
+		HTREEITEM child = ctrlList.GetChildItem(item);
+		Action* action = (Action*)ctrlList.GetItemData(item);
+		if(action != NULL) {
+			FavoriteManager::getInstance()->setEnabledAction(hub, action->getId(), ctrlList.GetCheckState(item) ? true : false);
+			while(child != NULL) {
+				Raw* raw = (Raw*)ctrlList.GetItemData(child);
+				if(raw != NULL) {
+					FavoriteManager::getInstance()->setEnabledRaw(hub, action->getId(), raw->getId(), ctrlList.GetCheckState(child) ? true : false);
+				}
+				child = ctrlList.GetNextSiblingItem(child);
+			}
 		}
+		item = ctrlList.GetNextItem(item, TVGN_NEXT);
 	}
 }
 

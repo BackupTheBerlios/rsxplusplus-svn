@@ -17,7 +17,6 @@
 #include "WinUtil.h"
 
 #include "../client/DebugManager.h"
-#include "../client/ScriptManager.h"
 
 class CDMDebugFrame : private DebugManagerListener, public Thread,
 	public MDITabChildWindowImpl<CDMDebugFrame, RGB(0, 0, 0), IDR_CDM>,
@@ -114,12 +113,6 @@ public:
 	void addLine(const string& aLine);
 	
 private:
-	//RSX++
-	bool scrollbarAtBottom();
-	tstring currentMessage;
-	static DWORD CALLBACK funWithWin32CallBacks(DWORD dwCookie, LPBYTE pbBuff, LONG cb, LONG *pcb);
-	//END
-
 	bool stop;
 	CriticalSection cs;
 	Semaphore s;
@@ -157,9 +150,7 @@ private:
 		s.signal();
 	}
 
-	CEdit ctrlFilterText;
-	CRichEditCtrl ctrlPad; //RSX++
-
+	CEdit ctrlPad, ctrlFilterText;
 	CStatusBarCtrl ctrlStatus;
 	CButton ctrlClear, ctrlCommands, ctrlHubCommands, ctrlDetection, ctrlFilterIp;
 	CContainedWindow clearContainer, statusContainer, detectionContainer, commandContainer, HubCommandContainer, cFilterContainer, eFilterContainer;
@@ -180,28 +171,28 @@ private:
 					if(!showHubCommands)
 						return;
 					if(!bFilterIp || Text::toT(ip) == sFilterIp) {
-						addCmd("Hub:\t[Incoming][" + ip + "]\t\t\t" + aLine);
+						addCmd("Hub:\t[Incoming][" + ip + "]\t \t" + aLine);
 					}
 					break;
 				case DebugManager::HUB_OUT:
 					if(!showHubCommands)
 						return;
 					if(!bFilterIp || Text::toT(ip) == sFilterIp) {
-						addCmd("Hub:\t[Outgoing][" + ip + "]\t\t\t" + aLine);
+						addCmd("Hub:\t[Outgoing][" + ip + "]\t \t" + aLine);
 					}
 					break;
 				case DebugManager::CLIENT_IN:
 					if(!showCommands)
 						return;
 					if(!bFilterIp || Text::toT(ip) == sFilterIp) {
-						addCmd("Client:\t[Incoming][" + ip + "]\t\t\t" + aLine);
+						addCmd("Client:\t[Incoming][" + ip + "]\t \t" + aLine);
 					}
 					break;
 				case DebugManager::CLIENT_OUT:
 					if(!showCommands)
 						return;
 					if(!bFilterIp || Text::toT(ip) == sFilterIp) {
-						addCmd("Client:\t[Outgoing][" + ip + "]\t\t\t" + aLine);
+						addCmd("Client:\t[Outgoing][" + ip + "]\t \t" + aLine);
 					}
 					break;
 				default: dcassert(0);

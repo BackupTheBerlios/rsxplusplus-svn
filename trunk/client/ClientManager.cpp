@@ -38,7 +38,10 @@
 #include "QueueManager.h"
 #include "FinishedManager.h"
 //RSX++
+#include "PluginsManager.h"
+#include "rsxppSettingsManager.h"
 #include "RawManager.h"
+#include "ScriptManager.h"
 #include "ADLSearch.h"
 //END
 
@@ -62,11 +65,18 @@ Client* ClientManager::getClient(const string& aHubURL) {
 	}
 
 	c->addListener(this);
-
+	//RSX++
+	ScriptManager::getInstance()->onHubConnected(c);
+	PluginsManager::getInstance()->plugEvent(DCPP_HUB_OPENED, reinterpret_cast<void*>((dcpp_ptr_t)c), 0, 0);
+	//END
 	return c;
 }
 
 void ClientManager::putClient(Client* aClient) {
+	//RSX++
+	ScriptManager::getInstance()->onHubDisconnected(aClient);
+	PluginsManager::getInstance()->plugEvent(DCPP_HUB_CLOSED, reinterpret_cast<void*>((dcpp_ptr_t)aClient), 0, 0);
+	//END
 	fire(ClientManagerListener::ClientDisconnected(), aClient);
 	aClient->removeListeners();
 
@@ -261,7 +271,10 @@ void ClientManager::putOnline(OnlineUser* ou) throw() {
 		Lock l(cs);
 		onlineUsers.insert(make_pair(const_cast<CID*>(&ou->getUser()->getCID()), ou));
 	}
-	
+	//RSX++
+	ScriptManager::getInstance()->onUserConnected(ou); //RSX++
+	PluginsManager::getInstance()->plugEvent(DCPP_USER_CONNECTED, reinterpret_cast<void*>((dcpp_ptr_t)ou), 0, 0);
+	//END
 	if(!ou->getUser()->isOnline()) {
 		ou->getUser()->setFlag(User::ONLINE);
 		ou->initializeData(); //RSX++
@@ -271,6 +284,10 @@ void ClientManager::putOnline(OnlineUser* ou) throw() {
 
 void ClientManager::putOffline(OnlineUser* ou, bool disconnect) throw() {
 	bool lastUser = false;
+	//RSX++
+	ScriptManager::getInstance()->onUserDisconnected(ou);
+	PluginsManager::getInstance()->plugEvent(DCPP_USER_DISCONNECTED, reinterpret_cast<void*>((dcpp_ptr_t)ou), 0, 0);
+	//END
 	{
 		Lock l(cs);
 		OnlinePair op = onlineUsers.equal_range(const_cast<CID*>(&ou->getUser()->getCID()));
@@ -296,25 +313,40 @@ void ClientManager::putOffline(OnlineUser* ou, bool disconnect) throw() {
 	}
 }
 
-void ClientManager::connect(const UserPtr& p, const string& token) {
+void ClientManager::connect(const UserPtr& p, const string& token, const string& hintUrl) {
 	Lock l(cs);
-	OnlineIterC i = onlineUsers.find(const_cast<CID*>(&p->getCID()));
-	if(i != onlineUsers.end()) {
-		OnlineUser* u = i->second;
+	OnlineUser* u = findOnlineUser(p->getCID(), hintUrl);
+
+	if(u) {
 		u->getClient().connect(*u, token);
 	}
 }
 
-OnlineUserPtr ClientManager::findOnlineUser(const CID& cid, const Client* client) const throw(){
-	Lock l(cs);
-	OnlinePairC op = onlineUsers.equal_range(const_cast<CID*>(&cid));
-	for(OnlineIterC i = op.first; i != op.second; ++i) {
-		const OnlineUserPtr& ou = i->second;
-		if(!client || &ou->getClient() == client)
-			return ou;
+OnlineUser* ClientManager::findOnlineUser(const CID& cid, const string& hintUrl) throw() {
+	OnlinePair p = onlineUsers.equal_range(const_cast<CID*>(&cid));
+	if(p.first == p.second)
+		return 0;
+
+	if(!hintUrl.empty()) {
+		for(OnlineIter i = p.first; i != p.second; ++i) {
+			OnlineUser* u = i->second;
+			if(u->getClient().getHubUrl() == hintUrl) {
+				return u;
+			}
+		}
 	}
+
+	// TODO maybe disallow non-hint urls, or maybe for some hints (secure?)
+	return p.first->second;
+}
+
+void ClientManager::privateMessage(const UserPtr& p, const string& msg, bool thirdPerson, const string& hintUrl) {
+	Lock l(cs);
+	OnlineUser* u = findOnlineUser(p->getCID(), hintUrl);
 	
-	return NULL;
+	if(u) {
+		u->getClient().privateMessage(u, msg, thirdPerson);
+	}
 }
 
 void ClientManager::send(AdcCommand& cmd, const CID& cid) {
@@ -446,7 +478,7 @@ void ClientManager::sendRawCommand(const UserPtr& user, const string& aRaw, bool
 			StringMap ucParams;
 			UserCommand uc = UserCommand(0, 0, 0, 0, "", aRaw, "");
 			userCommand(user, uc, ucParams, true);
-			RSXS_SET(TOTAL_RAW_COMMANDS_SENT, RSXSETTING(TOTAL_RAW_COMMANDS_SENT)+1); //important stuff ;p
+			RSXPP_SET(TOTAL_RAW_COMMANDS_SENT, RSXPP_SETTING(TOTAL_RAW_COMMANDS_SENT)+1); //important stuff ;p
 			if(SETTING(LOG_RAW_CMD)) {
 				LOG(LogManager::RAW, ucParams);
 			}
@@ -454,8 +486,22 @@ void ClientManager::sendRawCommand(const UserPtr& user, const string& aRaw, bool
 	}
 }
 
-void ClientManager::on(AdcSearch, const Client*, const AdcCommand& adc, const CID& from) throw() {
-	SearchManager::getInstance()->respond(adc, from);
+void ClientManager::on(AdcSearch, const Client* c, const AdcCommand& adc, const CID& from) throw() {
+	bool isUdpActive = false;
+	{
+		Lock l(cs);
+		
+		OnlinePairC op = onlineUsers.equal_range(const_cast<CID*>(&from));
+		for(OnlineIterC i = op.first; i != op.second; ++i) {
+			const OnlineUserPtr& u = i->second;
+			if(&u->getClient() == c)
+			{
+				isUdpActive = u->getIdentity().isUdpActive();
+				break;
+			}
+		}			
+	}
+	SearchManager::getInstance()->respond(adc, from, isUdpActive, c->getIpPort());
 }
 
 void ClientManager::search(int aSizeMode, int64_t aSize, int aFileType, const string& aString, const string& aToken, void* aOwner) {
@@ -555,6 +601,7 @@ string ClientManager::getMyNick(const string& hubUrl) const {
 }
 	
 void ClientManager::on(Connected, const Client* c) throw() {
+	PluginsManager::getInstance()->plugEvent(DCPP_HUB_CONNECTED, reinterpret_cast<void*>((dcpp_ptr_t)c), 0, 0); //RSX++
 	fire(ClientManagerListener::ClientConnected(), c);
 }
 
@@ -573,7 +620,8 @@ void ClientManager::on(HubUpdated, const Client* c) throw() {
 	fire(ClientManagerListener::ClientUpdated(), c);
 }
 
-void ClientManager::on(Failed, const Client* client, const string&) throw() { 
+void ClientManager::on(Failed, const Client* client, const string&) throw() {
+	PluginsManager::getInstance()->plugEvent(DCPP_HUB_DISCONNECTED, reinterpret_cast<void*>((dcpp_ptr_t)client), 0, 0); //RSX++
 	fire(ClientManagerListener::ClientDisconnected(), client);
 }
 
@@ -612,18 +660,18 @@ void ClientManager::fileListDisconnected(const UserPtr& p) {
 			int fileListDisconnects = Util::toInt(ou.getIdentity().get("FD")) + 1;
 			ou.getIdentity().set("FD", Util::toString(fileListDisconnects));
 
-			if(RSXSETTING(MAX_DISCONNECTS) == 0)
+			if(RSXPP_SETTING(MAX_DISCONNECTS) == 0)
 				return;
 
-			if(fileListDisconnects == RSXSETTING(MAX_DISCONNECTS)) {
+			if(fileListDisconnects == RSXPP_SETTING(MAX_DISCONNECTS)) {
 				c = &ou.getClient();
-				report = ou.setCheat("Disconnected file list %[userFD] times", false, true, RSXBOOLSETTING(SHOW_DISCONNECT_RAW));
+				report = ou.setCheat("Disconnected file list %[userFD] times", false, true, RSXPP_BOOLSETTING(SHOW_DISCONNECT_RAW));
 				if(ou.getIdentity().isFileListQueued()) {
 					ou.setFileListComplete();
 					ou.getIdentity().setFileListQueued(Util::emptyString);
 					remove = true;
 				}
-				sendAction(ou, RSXSETTING(DISCONNECT_RAW));
+				sendAction(ou, RSXPP_SETTING(DISCONNECT_RAW));
 			}
 		}
 	}
@@ -653,12 +701,12 @@ void ClientManager::connectionTimeout(const UserPtr& p) {
 			int connectionTimeouts = Util::toInt(ou.getIdentity().get("TO")) + 1;
 			ou.getIdentity().set("TO", Util::toString(connectionTimeouts));
 	
-			if(RSXSETTING(MAX_TIMEOUTS) == 0)
+			if(RSXPP_SETTING(MAX_TIMEOUTS) == 0)
 				return;
 	
-			if(connectionTimeouts == RSXSETTING(MAX_TIMEOUTS)) {
+			if(connectionTimeouts == RSXPP_SETTING(MAX_TIMEOUTS)) {
 				c = &ou.getClient();
-				report = ou.setCheat("Connection timeout %[userTO] times", false, false, RSXBOOLSETTING(SHOW_TIMEOUT_RAW));
+				report = ou.setCheat("Connection timeout %[userTO] times", false, false, RSXPP_BOOLSETTING(SHOW_TIMEOUT_RAW));
 				
 				if(ou.getIdentity().isClientQueued()) {
 					ou.setTestSURComplete();
@@ -670,7 +718,7 @@ void ClientManager::connectionTimeout(const UserPtr& p) {
 					ou.getIdentity().setFileListQueued(Util::emptyString);
 					remove += 2;
 				}
-				sendAction(ou, RSXSETTING(TIMEOUT_RAW));
+				sendAction(ou, RSXPP_SETTING(TIMEOUT_RAW));
 			}
 		}
 	}
@@ -706,7 +754,7 @@ void ClientManager::checkCheating(const UserPtr& p, DirectoryListing* dl) {
 		int64_t statedSize = ou->getIdentity().getBytesShared();
 		int64_t realSize = dl->getTotalSize();
 
-		double multiplier = ((100+(double)RSXSETTING(PERCENT_FAKE_SHARE_TOLERATED))/100); 
+		double multiplier = ((100+(double)RSXPP_SETTING(PERCENT_FAKE_SHARE_TOLERATED))/100); 
 		int64_t sizeTolerated = (int64_t)(realSize*multiplier);
 
 		ou->getIdentity().set("RS", Util::toString(realSize));
@@ -726,8 +774,8 @@ void ClientManager::checkCheating(const UserPtr& p, DirectoryListing* dl) {
 				cheatStr = str(boost::format("Mismatched share size - filelist was inflated %1% times, stated size = %[userSSshort], real size = %[userRSshort]")
 					% qwe);
 			}
-			report = ou->setCheat(cheatStr, false, true, RSXBOOLSETTING(SHOW_FAKESHARE_RAW));
-			sendAction(*ou, RSXSETTING(FAKESHARE_RAW));
+			report = ou->setCheat(cheatStr, false, true, RSXPP_BOOLSETTING(SHOW_FAKESHARE_RAW));
+			sendAction(*ou, RSXPP_SETTING(FAKESHARE_RAW));
 		} else {
 			//RSX++ //ADLS Forbidden files
 			const DirectoryListing::File::List forbiddenList = dl->getForbiddenFiles();
@@ -878,10 +926,10 @@ void ClientManager::addCheckToQueue(const UserPtr& p, bool filelist) {
 	if(addCheck) {
 		try {
 			if(filelist) {
-				QueueManager::getInstance()->addFileListCheck(p);
+				QueueManager::getInstance()->addFileListCheck(p, ou->getClient().getHubUrl());
 				ou->getIdentity().setFileListQueued("1");
 			} else {
-				QueueManager::getInstance()->addTestSUR(p);
+				QueueManager::getInstance()->addTestSUR(p, ou->getClient().getHubUrl());
 				ou->getIdentity().setTestSURQueued("1");
 			}
 		} catch(...) {
@@ -953,18 +1001,18 @@ void ClientManager::setListSize(const UserPtr& p, int64_t aFileLength, bool adc)
 		ou->getIdentity().set("LS", Util::toString(aFileLength));
 
 		if(ou->getIdentity().getBytesShared() > 0) {
-			if((RSXSETTING(MAXIMUM_FILELIST_SIZE) > 0) && (aFileLength > RSXSETTING(MAXIMUM_FILELIST_SIZE)) && RSXSETTING(FILELIST_TOO_SMALL_BIG)) {
-				report = ou->setCheat("Too large filelist - %[userLSshort] for the specified share of %[userSSshort]", false, true, RSXBOOLSETTING(FILELIST_TOO_SMALL_BIG));
-				sendAction(*ou, RSXSETTING(FILELIST_TOO_SMALL_BIG));
-			} else if((aFileLength < RSXSETTING(MINIMUM_FILELIST_SIZE) && RSXSETTING(FILELIST_TOO_SMALL_BIG)) || (aFileLength < 100)) {
-				report = ou->setCheat("Too small filelist - %[userLSshort] for the specified share of %[userSSshort]", false, true, RSXBOOLSETTING(FILELIST_TOO_SMALL_BIG));
-				sendAction(*ou, RSXSETTING(FILELIST_TOO_SMALL_BIG));
+			if((RSXPP_SETTING(MAXIMUM_FILELIST_SIZE) > 0) && (aFileLength > RSXPP_SETTING(MAXIMUM_FILELIST_SIZE)) && RSXPP_SETTING(FILELIST_TOO_SMALL_BIG)) {
+				report = ou->setCheat("Too large filelist - %[userLSshort] for the specified share of %[userSSshort]", false, true, RSXPP_BOOLSETTING(FILELIST_TOO_SMALL_BIG));
+				sendAction(*ou, RSXPP_SETTING(FILELIST_TOO_SMALL_BIG));
+			} else if((aFileLength < RSXPP_SETTING(MINIMUM_FILELIST_SIZE) && RSXPP_SETTING(FILELIST_TOO_SMALL_BIG)) || (aFileLength < 100)) {
+				report = ou->setCheat("Too small filelist - %[userLSshort] for the specified share of %[userSSshort]", false, true, RSXPP_BOOLSETTING(FILELIST_TOO_SMALL_BIG));
+				sendAction(*ou, RSXPP_SETTING(FILELIST_TOO_SMALL_BIG));
 			}
 		} else if(adc == false) {
 			int64_t listLength = (!ou->getIdentity().get("LL").empty()) ? Util::toInt64(ou->getIdentity().get("LL")) : -1;
 			if(p->isSet(User::DCPLUSPLUS) && (listLength != -1) && (listLength * 3 < aFileLength) && (ou->getIdentity().getBytesShared() > 0)) {
-				report = ou->setCheat("Fake file list - ListLen = %[userLL], FileLength = %[userLS]", false, true, RSXBOOLSETTING(LISTLEN_MISMATCH));
-				sendAction(*ou, RSXSETTING(LISTLEN_MISMATCH));
+				report = ou->setCheat("Fake file list - ListLen = %[userLL], FileLength = %[userLS]", false, true, RSXPP_BOOLSETTING(LISTLEN_MISMATCH));
+				sendAction(*ou, RSXPP_SETTING(LISTLEN_MISMATCH));
 			}
 		}
 	}
@@ -1040,9 +1088,9 @@ void ClientManager::setUnknownCommand(const UserPtr& p, const string& aUnknownCo
 	i->second->getIdentity().set("UC", aUnknownCommand);
 }
 //RSX++ //Lua
-bool ClientManager::ucExecuteLua(const string& ucCommand, StringMap& params) throw() {
+bool ClientManager::ucExecuteLua(const string& /*ucCommand*/, StringMap& /*params*/) throw() {
 	bool executedlua = false;
-	string::size_type i, j, k;
+	/*string::size_type i, j, k;
 	i = j = k = 0;
 	string tmp = ucCommand;
 	while( (i = tmp.find("%[lua:", i)) != string::npos) {
@@ -1073,7 +1121,7 @@ bool ClientManager::ucExecuteLua(const string& ucCommand, StringMap& params) thr
 		//ScriptManager::getInstance()->EvaluateChunk(Util::formatParams(chunk, params, false));
 		executedlua = true;
 		i = j + 1;
-	}
+	}*/
 	return executedlua;
 }
 //RSX++ //MultiHubKick
@@ -1142,5 +1190,5 @@ void ClientManager::sendAction(OnlineUser& ou, const int aAction) {
 
 /**
  * @file
- * $Id: ClientManager.cpp 421 2008-09-03 17:20:45Z BigMuscle $
+ * $Id: ClientManager.cpp 432 2009-02-12 17:16:50Z BigMuscle $
  */

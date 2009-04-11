@@ -21,7 +21,6 @@
 #include "../client/DCPlusPlus.h"
 #include "../client/SettingsManager.h"
 #include "../client/Socket.h"
-#include "../client/LogManager.h"
 
 #include "Resource.h"
 #include "GeneralPage.h"
@@ -32,14 +31,8 @@ PropPage::TextItem GeneralPage::texts[] = {
 	{ IDC_SETTINGS_NICK, ResourceManager::NICK },
 	{ IDC_SETTINGS_EMAIL, ResourceManager::EMAIL },
 	{ IDC_SETTINGS_DESCRIPTION, ResourceManager::DESCRIPTION },
-	{ IDC_SETTINGS_UPLOAD_SPEED, ResourceManager::SETTINGS_UPLOAD_LINE_SPEED },
-	{ IDC_SETTINGS_MEBIBYES, ResourceManager::MBITSPS },
-	{ IDC_SETTINGS_UPLOAD_SPEED2, ResourceManager::CONNECTION },
-	{ IDC_BW_SIMPLE, ResourceManager::SETTINGS_BWSINGLE },
-	{ IDC_BW_BOTH, ResourceManager::SETTINGS_BWBOTH },
-	{ IDC_SETTINGS_NOMINALBW, ResourceManager::SETTINGS_NOMINAL_BANDWIDTH },
-	{ IDC_SHOW_SPEED_CHECK, ResourceManager::SHOW_SPEED },
-	{ IDC_DU, ResourceManager::DU },
+	{ IDC_SETTINGS_UPLOAD_LINE_SPEED, ResourceManager::SETTINGS_UPLOAD_LINE_SPEED },
+	{ IDC_SETTINGS_MEBIBITS, ResourceManager::MBITSPS },
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
 
@@ -47,39 +40,13 @@ PropPage::Item GeneralPage::items[] = {
 	{ IDC_NICK,			SettingsManager::NICK,			PropPage::T_STR }, 
 	{ IDC_EMAIL,		SettingsManager::EMAIL,			PropPage::T_STR }, 
 	{ IDC_DESCRIPTION,	SettingsManager::DESCRIPTION,	PropPage::T_STR }, 
-	{ IDC_DOWN_COMBO,	SettingsManager::DOWN_SPEED,	PropPage::T_STR },  
-	{ IDC_UP_COMBO,		SettingsManager::UP_SPEED,		PropPage::T_STR },  
-	{ IDC_SHOW_SPEED_CHECK, SettingsManager::SHOW_DESCRIPTION_SPEED, PropPage::T_BOOL },
+	{ IDC_CONNECTION,	SettingsManager::UPLOAD_SPEED,	PropPage::T_STR },
 	{ 0, 0, PropPage::T_END }
 };
 
 void GeneralPage::write()
 {
 	PropPage::write((HWND)(*this), items);
-	//rsx++ //leaved
-	// Save radio button
-	int bw = SettingsManager::BWSETTINGS_DEFAULT;
-
-	if(IsDlgButtonChecked(IDC_BW_BOTH))
-		bw = SettingsManager::BWSETTINGS_ADVANCED;
-
-	if (bw != SETTING(BWSETTING_MODE))
-		settings->set(SettingsManager::BWSETTING_MODE, bw);
-
-	tstring buf;
-	buf.resize(1024);
-
-	switch(bw) {
-		case SettingsManager::BWSETTINGS_DEFAULT: 
-			GetDlgItemText(IDC_CONNECTION, &buf[0], 1024);
-			settings->set(SettingsManager::UPLOAD_SPEED, Text::fromT(buf));
-			break;
-		case SettingsManager::BWSETTINGS_ADVANCED:
-			ctrlConnectionType.GetLBText(ctrlConnectionType.GetCurSel(), &buf[0]);
-			settings->set(SettingsManager::UPLOAD_SPEED, Text::fromT(buf));
-			break;
-	}
-	//end
 }
 
 LRESULT GeneralPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
@@ -91,63 +58,9 @@ LRESULT GeneralPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 		ctrlConnection.AddString(Text::toT(*i).c_str());
 
 	PropPage::read((HWND)(*this), items);
-	//rsx++
-	ctrlConnectionType.Attach(GetDlgItem(IDC_CONNECTIONTYPE));
-	ResourceLoader::LoadImageList(IDP_USERS, ConnTypes, 16, 16);
-    ctrlConnectionType.SetImageList(ConnTypes);	
 
-	ctrlDownloadSpeed.Attach(GetDlgItem(IDC_DOWN_COMBO));
-	ctrlUploadSpeed.Attach(GetDlgItem(IDC_UP_COMBO));
-
-	for(int i = 0; i < SettingsManager::SP_LAST; i++) {
-		ctrlDownloadSpeed.AddString(Text::toT(SettingsManager::speeds[i]).c_str());
-		ctrlUploadSpeed.AddString(Text::toT(SettingsManager::speeds[i]).c_str());
-	}
-
-	ctrlDownloadSpeed.SetCurSel(ctrlDownloadSpeed.FindString(0, Text::toT(SETTING(DOWN_SPEED)).c_str()));
-	ctrlUploadSpeed.SetCurSel(ctrlUploadSpeed.FindString(0, Text::toT(SETTING(UP_SPEED)).c_str()));
-
-	int q = 0;
-	int pos = 0;
-	tstring curSpd = Text::toT(SETTING(UPLOAD_SPEED));
-	for(size_t i = 0; i < 8; i++) {
-		COMBOBOXEXITEM cbitem = {CBEIF_TEXT|CBEIF_IMAGE|CBEIF_SELECTEDIMAGE};
-		tstring connType;
-		switch(i) {
-			case 0: q = 6; connType = _T("Modem"); break;
-			case 1: q = 6; connType = _T("ISDN"); break;
-			case 2: q = 8; connType = _T("Satellite"); break;
-			case 3: q = 8; connType = _T("Wireless"); break;
-			case 4: q = 9; connType = _T("Cable"); break;
-			case 5: q = 9; connType = _T("DSL"); break;
-			case 6: q = 11; connType = _T("LAN(T1)"); break;
-			case 7: q = 11; connType = _T("LAN(T3)"); break;
-		}
-		cbitem.pszText = const_cast<TCHAR*>(connType.c_str());
-		cbitem.iItem = i; 
-		cbitem.iImage = q;
-		cbitem.iSelectedImage = q;
-		ctrlConnectionType.InsertItem(&cbitem);
-
-		if(stricmp(connType, curSpd) == 0) {
-			pos = i;
-		}
-	}
-
-	switch(SETTING(BWSETTING_MODE)) {
-		case SettingsManager::BWSETTINGS_ADVANCED: 
-			CheckDlgButton(IDC_BW_BOTH, BST_CHECKED);
-			ctrlConnectionType.SetCurSel(pos);
-			break;
-		default: 
-			CheckDlgButton(IDC_BW_SIMPLE, BST_CHECKED);
-			pos = ctrlConnection.FindString(0, Text::toT(SETTING(UPLOAD_SPEED)).c_str());
-			ctrlConnection.SetCurSel(pos == CB_ERR ? 0 : pos);
-			break;
-	}
-	fixControls();
-	//end
-
+	ctrlConnection.SetCurSel(ctrlConnection.FindString(0, Text::toT(SETTING(UPLOAD_SPEED)).c_str()));
+	
 	nick.Attach(GetDlgItem(IDC_NICK));
 	nick.LimitText(35);
 	desc.Attach(GetDlgItem(IDC_DESCRIPTION));
@@ -192,31 +105,7 @@ LRESULT GeneralPage::onTextChanged(WORD /*wNotifyCode*/, WORD wID, HWND hWndCtl,
 
 	return TRUE;
 }
-//rsx++
-void GeneralPage::fixControls() {
-	BOOL advanced = IsDlgButtonChecked(IDC_BW_BOTH) == BST_CHECKED;
 
-	::EnableWindow(GetDlgItem(IDC_DOWN_COMBO), advanced);
-	::EnableWindow(GetDlgItem(IDC_UP_COMBO), advanced);
-	::EnableWindow(GetDlgItem(IDC_SHOW_SPEED_CHECK), advanced);
-	::EnableWindow(GetDlgItem(IDC_SLASH), advanced);
-	::EnableWindow(GetDlgItem(IDC_DU), advanced);
-	::EnableWindow(GetDlgItem(IDC_SETTINGS_UPLOAD_SPEED2), advanced);
-	::EnableWindow(GetDlgItem(IDC_CONNECTIONTYPE), advanced);
-	::EnableWindow(GetDlgItem(IDC_SETTINGS_UPLOAD_SPEED), !advanced);
-	::EnableWindow(GetDlgItem(IDC_CONNECTION), !advanced);
-	::EnableWindow(GetDlgItem(IDC_SETTINGS_MEBIBYES), !advanced);
-
-	if(ctrlConnection.GetCurSel() == -1) ctrlConnection.SetCurSel(0);
-	if(ctrlConnectionType.GetCurSel() == -1) ctrlConnectionType.SetCurSel(0);
-
-}
-
-LRESULT GeneralPage::onClickedRadioButton(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
-	fixControls();
-	return 0;
-}
-//end
 /**
  * @file
  * $Id: GeneralPage.cpp 373 2008-02-06 17:23:49Z bigmuscle $

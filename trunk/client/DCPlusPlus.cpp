@@ -34,7 +34,7 @@
 #include "FinishedManager.h"
 #include "ADLSearch.h"
 //RSX++ ////////////////////////////////////////////////////
-#include "../rsx/rsx-settings/rsx-SettingsManager.h"
+#include "rsxppSettingsManager.h"
 #include "../rsx/UpdateManager.h"
 #include "../rsx/IpManager.h"
 #include "../rsx/RsxUtil.h"
@@ -78,7 +78,7 @@ void startup(void (*f)(void*, const tstring&), void* p) {
 
 	ResourceManager::newInstance();
 	SettingsManager::newInstance();
-	RSXSettingsManager::newInstance(); //RSX++
+	rsxppSettingsManager::newInstance(); //RSX++
 
 	LogManager::newInstance();
 	TimerManager::newInstance();
@@ -106,12 +106,12 @@ void startup(void (*f)(void*, const tstring&), void* p) {
 	AutoSearchManager::newInstance();
 	IpManager::newInstance();
 	PluginsManager::newInstance();
-	//END
 
+	PluginsManager::getInstance()->init(f, p);
+	ScriptManager::getInstance()->load(f, p);
+	//END
 	SettingsManager::getInstance()->load();
 	//RSX++ //loaders
-	RSXSettingsManager::getInstance()->load();
-	//ScriptManager::getInstance()->load();
 	AutoSearchManager::getInstance()->AutosearchLoad();
 	IpManager::getInstance()->load();
 	//END
@@ -137,7 +137,7 @@ void startup(void (*f)(void*, const tstring&), void* p) {
 
 	//RSX++
 	RsxUtil::init();
-	if(RSXBOOLSETTING(IPUPDATE))
+	if(RSXPP_BOOLSETTING(IPUPDATE))
 		IpManager::getInstance()->UpdateExternalIp();
 	//END
 }
@@ -151,7 +151,6 @@ void shutdown() {
 	
 	QueueManager::getInstance()->saveQueue();
 	SettingsManager::getInstance()->save();
-	RSXSettingsManager::getInstance()->save(); //RSX++
 	//PluginsManager::getInstance()->stopPlugins(); //RSX++
 
 	//RSX++
@@ -182,8 +181,8 @@ void shutdown() {
 	ClientManager::deleteInstance();
 	HashManager::deleteInstance();
 	LogManager::deleteInstance();
+	rsxppSettingsManager::deleteInstance(); //RSX++
 	SettingsManager::deleteInstance();
-	RSXSettingsManager::deleteInstance(); //RSX++
 	TimerManager::deleteInstance();
 	ResourceManager::deleteInstance();
 

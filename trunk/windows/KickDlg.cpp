@@ -1,4 +1,6 @@
-/* 
+/*
+ * Copyright (C) 2007-2009 adrian_007, adrian-007 on o2 point pl
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -16,16 +18,13 @@
 
 #include "stdafx.h"
 #include "../client/DCPlusPlus.h"
+#include "../client/RawManager.h"
+
 #include "Resource.h"
 #include "KickDlg.h"
 
 LRESULT RsxKickDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
-	createList();
-	cActionList.Attach(GetDlgItem(IDC_ACTION_LIST)); 
-	for(ActionList::const_iterator i = idAction.begin(); i != idAction.end(); ++i) {
-		cActionList.AddString(RawManager::getInstance()->getNameActionId(i->second).c_str());
-	}
-	cActionList.SetCurSel(0);
+	cAction.attach(GetDlgItem(IDC_ACTION_LIST), 0);
 
 	cRaw.Attach(GetDlgItem(IDC_LINE_RAW));
 	cRaw.AddString(_T("No Raw"));
@@ -50,22 +49,37 @@ LRESULT RsxKickDlg::OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/,
 }
 
 LRESULT RsxKickDlg::onSelChange(WORD /* wNotifyCode */, WORD wID, HWND /* hWndCtl */, BOOL& /* bHandled */) {
-	int sel = cActionList.GetCurSel();
+	int sel = cAction.GetCurSel();
 	if(wID == IDC_ACTION_LIST) {
 		while(cRaw.GetCount() > 0)
 			cRaw.DeleteString(0);
 
 		if(sel > 0) {
-			Action::RawsList rawList = RawManager::getInstance()->getRawListActionId(getIdAction(sel));
-			for(Action::RawsList::const_iterator j = rawList.begin(); j != rawList.end(); ++j) {
-				cRaw.AddString(Text::toT(j->getName()).c_str());
+			Action* a = RawManager::getInstance()->findAction(cAction.getActionId());
+			if(a != NULL) {
+				for(Action::RawsList::const_iterator j = a->raw.begin(); j != a->raw.end(); ++j) {
+					cRaw.AddString(Text::toT(j->getName()).c_str());
+				}
+			} else {
+				cRaw.AddString(_T("No Raw"));
 			}
 		} else {
 			cRaw.AddString(_T("No Raw"));
 		}
 		cRaw.SetCurSel(0);
 	}
-	const string& aCmd = RawManager::getInstance()->getRawCommand(sel, cRaw.GetCurSel());
-	ctrlCommand.SetWindowText(Text::toT(aCmd).c_str());
+	Action* a = cAction.getAction();
+	if(a != NULL) {
+		tstring buf;
+		buf.resize(cRaw.GetLBTextLen(cRaw.GetCurSel()) + 1);
+		cRaw.GetLBText(cRaw.GetCurSel(), &buf[0]);
+		string name = Text::fromT(buf);
+		for(Action::RawsList::const_iterator i = a->raw.begin(); i != a->raw.end(); ++i) {
+			if(stricmp(name, i->getName()) == 0) {
+				ctrlCommand.SetWindowText(Text::toT(i->getRaw()).c_str());
+				return 0;
+			}
+		}
+	}
 	return 0;
 }

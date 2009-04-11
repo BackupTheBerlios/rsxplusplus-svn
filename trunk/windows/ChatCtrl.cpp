@@ -37,9 +37,9 @@ tstring ChatCtrl::sSelectedURL = Util::emptyStringT;
 
 static const TCHAR* Links[] = { _T("http://"), _T("https://"), _T("www."), _T("ftp://"), 
 	_T("magnet:?"), _T("dchub://"), _T("irc://"), _T("ed2k://"), _T("mms://"), _T("file://"),
-	_T("adc://"), _T("adcs://") };
+	_T("adc://"), _T("adcs://"), _T("nmdcs://") };
 
-ChatCtrl::ChatCtrl() : ccw(_T("edit"), this), client(NULL) {
+ChatCtrl::ChatCtrl() : ccw(_T("edit"), this), client(NULL), m_bPopupMenu(false) {
 	if(g_pEmotionsSetup == NULL) {
 		g_pEmotionsSetup = new CAGEmotionSetup();
 	}
@@ -57,7 +57,7 @@ ChatCtrl::~ChatCtrl() {
 }
 	
 void ChatCtrl::AdjustTextSize() {
-	if(GetWindowTextLength() > RSXSETTING(MAX_CHAT_BUFSIZE)) {
+	if(GetWindowTextLength() > RSXPP_SETTING(MAX_CHAT_BUFSIZE)) {
 		SetRedraw(FALSE);
 		SetSel(0, LineIndex(LineFromChar(2000)));
 		ReplaceSel(_T(""));
@@ -304,10 +304,10 @@ void ChatCtrl::AppendTextOnly(const tstring& sMyNick, const TCHAR* sText, CHARFO
 				boost::match_results<tstring::const_iterator> result;
 				// TODO: complete regexp for URLs
 				boost::wregex reg;
-				if(isMagnet) // magnet links have totally indeferent structure than classic URL
-					reg =       _T("^(\\w)+=[:\\w]+(&(\\w)+=[-/?%&=~#\\w\\.\\+\\*\\(\\)]*)*");
+				if(isMagnet) // magnet links have totally indeferent structure than classic URL // -/?%&=~#'\\w\\.\\+\\*\\(\\)
+					reg =       _T("^(\\w)+=[:\\w]+(&(\\w)+=[\\S]*)*");
 				else
-					reg = _T("^([@\\w-]+(\\.)*)+(:[\\d]+)?(/[-/?%&=~#\\w\\.\\+\\*\\(\\)]*)*");
+					reg = _T("^([@\\w-]+(\\.)*)+(:[\\d]+)?(/[\\S]*)*");
 					
 				if(boost::regex_search(sMsgLower.c_str() + linkEnd, result, reg)) {
 					dcassert(!result.empty());
@@ -364,7 +364,7 @@ void ChatCtrl::AppendTextOnly(const tstring& sMyNick, const TCHAR* sText, CHARFO
 
 	//RSX++ // Highlights
 	if(client && useHL) {
-		if(client->getUseHL() && RSXBOOLSETTING(USE_HIGHLIGHT)) {
+		if(client->getUseHL() && RSXPP_BOOLSETTING(USE_HIGHLIGHT)) {
 			// decrease number of string allocs
 			tstring textToMatch = Util::emptyStringT;
 			bool matched = false;
@@ -564,13 +564,13 @@ bool ChatCtrl::HitURL() {
 }
 
 tstring ChatCtrl::LineFromPos(const POINT& p) const {
-	int iCharPos = CharFromPos(p), line = LineFromChar(iCharPos), len = LineLength(iCharPos) + 1;
+	int iCharPos = CharFromPos(p), line = LineFromChar(iCharPos), len = LineLength(iCharPos);
 	if(len < 3) {
 		return Util::emptyStringT;
 	}
 
 	tstring tmp;
-	tmp.resize(len + 1);
+	tmp.resize(len);
 
 	GetLine(line, &tmp[0], len);
 
@@ -609,6 +609,22 @@ LRESULT ChatCtrl::OnRButtonDown(POINT pt) {
 		InvalidateRect(NULL);
 	}
 	return 1;
+}
+
+LRESULT ChatCtrl::onExitMenuLoop(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled) {
+	m_bPopupMenu = false;
+	bHandled = FALSE;
+	return 0;
+}
+
+LRESULT ChatCtrl::onSetCursor(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled) {
+    if(m_bPopupMenu)
+    {
+        SetCursor(LoadCursor(NULL, MAKEINTRESOURCE(IDC_ARROW))) ;
+		return 1;
+    }
+    bHandled = FALSE;
+	return 0;
 }
 
 LRESULT ChatCtrl::onContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/) {
@@ -736,6 +752,9 @@ LRESULT ChatCtrl::onContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam,
 	menu.AppendMenu(MF_SEPARATOR);
 	menu.AppendMenu(MF_STRING, ID_EDIT_SELECT_ALL, CTSTRING(SELECT_ALL));
 	menu.AppendMenu(MF_STRING, ID_EDIT_CLEAR_ALL, CTSTRING(CLEAR));
+	
+	//flag to indicate pop up menu.
+    m_bPopupMenu = true;
 	menu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, pt.x, pt.y, m_hWnd);
 
 	return 0;
@@ -868,7 +887,7 @@ LRESULT ChatCtrl::onOpenUserLog(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndC
 LRESULT ChatCtrl::onPrivateMessage(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
 	OnlineUserPtr ou = client->findUser(Text::fromT(sSelectedUser));
 	if(ou)
-		PrivateFrame::openWindow(ou->getUser(), client);
+		PrivateFrame::openWindow(ou->getUser(), Util::emptyStringT, client);
 
 	return 0;
 }
@@ -876,7 +895,7 @@ LRESULT ChatCtrl::onPrivateMessage(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
 LRESULT ChatCtrl::onGetList(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
 	OnlineUserPtr ou = client->findUser(Text::fromT(sSelectedUser));
 	if(ou)
-		ou->getList();
+		ou->getList(client->getHubUrl());
 
 	return 0;
 }
@@ -884,7 +903,7 @@ LRESULT ChatCtrl::onGetList(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/
 LRESULT ChatCtrl::onMatchQueue(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
 	OnlineUserPtr ou = client->findUser(Text::fromT(sSelectedUser));
 	if(ou)
-		ou->matchQueue();
+		ou->matchQueue(client->getHubUrl());
 
 	return 0;
 }
@@ -902,7 +921,7 @@ LRESULT ChatCtrl::onGrantSlot(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, 
 		}
 		
 		if(time > 0)
-			UploadManager::getInstance()->reserveSlot(ou->getUser(), time);
+			UploadManager::getInstance()->reserveSlot(ou->getUser(), time, client->getHubUrl());
 		else
 			UploadManager::getInstance()->unreserveSlot(ou->getUser());
 	}
@@ -960,7 +979,7 @@ LRESULT ChatCtrl::onGetUserResponses(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*
 	const OnlineUserPtr ou = client->findUser(Text::fromT(sSelectedUser));
 	if(ou) {
 		try {
-			string fname = QueueManager::getInstance()->addClientCheck(ou->getUser());
+			string fname = QueueManager::getInstance()->addClientCheck(ou->getUser(), client->getHubUrl());
 			if(!fname.empty())
 				ou->getIdentity().setTestSURQueued(fname);
 		} catch(const Exception& e) {
@@ -975,7 +994,7 @@ LRESULT ChatCtrl::onCheckList(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl
 	const OnlineUserPtr ou = client->findUser(Text::fromT(sSelectedUser));
 	if(ou) {
 		try {
-			string fname = QueueManager::getInstance()->addFileListCheck(ou->getUser());
+			string fname = QueueManager::getInstance()->addFileListCheck(ou->getUser(), client->getHubUrl());
 			if(!fname.empty())
 				ou->getIdentity().setFileListQueued(fname);
 		} catch(const Exception& e) {

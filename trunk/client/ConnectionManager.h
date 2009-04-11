@@ -46,15 +46,16 @@ public:
 		ACTIVE						// In one up/downmanager
 	};
 
-	ConnectionQueueItem(const UserPtr& aUser, bool aDownload) : state(WAITING), lastAttempt(0), download(aDownload), token(Util::toString(Util::rand())), user(aUser) { }
+	ConnectionQueueItem(const UserPtr& aUser, bool aDownload, const string& hubHint_) : token(Util::toString(Util::rand())), hubHint(hubHint_), lastAttempt(0), state(WAITING), download(aDownload), user(aUser) { }
 	
 	UserPtr& getUser() { return user; }
 	const UserPtr& getUser() const { return user; }
 	
-	GETSET(State, state, State);
-	GETSET(uint64_t, lastAttempt, LastAttempt);
-	GETSET(bool, download, Download);
 	GETSET(string, token, Token);
+	GETSET(string, hubHint, HubHint);
+	GETSET(uint64_t, lastAttempt, LastAttempt);
+	GETSET(State, state, State);
+	GETSET(bool, download, Download);
 private:
 	ConnectionQueueItem(const ConnectionQueueItem&);
 	ConnectionQueueItem& operator=(const ConnectionQueueItem&);
@@ -105,7 +106,7 @@ public:
 	void nmdcConnect(const string& aServer, uint16_t aPort, const string& aMyNick, const string& hubUrl, string* encoding, bool stealth, bool secure);
 	void adcConnect(const OnlineUser& aUser, uint16_t aPort, const string& aToken, bool secure);
 
-	void getDownloadConnection(const UserPtr& aUser);
+	void getDownloadConnection(const UserPtr& aUser, const string& hubHint);
 	void force(const UserPtr& aUser);
 	
 	void disconnect(const UserPtr& aUser); // disconnect downloads and uploads
@@ -120,19 +121,17 @@ public:
 
 	uint16_t getPort() const { return server ? static_cast<uint16_t>(server->getPort()) : 0; }
 	uint16_t getSecurePort() const { return secureServer ? static_cast<uint16_t>(secureServer->getPort()) : 0; }
-	static uint16_t iConnToMeCount;	
+	static uint16_t iConnToMeCount;
 	//RSX++
-	void addFeature(const string& feat, bool isAdc) {
+	void addNmdcFeat(const std::string& feat) {
 		Lock l(cs);
-		isAdc ? adcFeatures.push_back("AD" + feat) : features.push_back(feat);
+		features.push_back(feat);
 	}
-	void remFeature(const string& feat, bool isAdc) {
+	void addAdcFeat(const std::string& feat) {
 		Lock l(cs);
-		StringList& list = isAdc ? adcFeatures : features;
-		StringList::iterator i = std::find(list.begin(), list.end(), isAdc ? "AD" + feat : feat);
-		if(i != list.end())
-			list.erase(i);
+		adcFeatures.push_back("AD" + feat);
 	}
+	~ConnectionManager() throw() { shutdown(); }
 	//END
 private:
 
@@ -177,7 +176,7 @@ private:
 	friend class Singleton<ConnectionManager>;
 	ConnectionManager();
 
-	~ConnectionManager() throw() { shutdown(); }
+	//~ConnectionManager() throw() { shutdown(); }
 	
 	UserConnection* getConnection(bool aNmdc, bool secure) throw();
 	void putConnection(UserConnection* aConn);
@@ -185,12 +184,12 @@ private:
 	void addUploadConnection(UserConnection* uc);
 	void addDownloadConnection(UserConnection* uc);
 
-	ConnectionQueueItem* getCQI(const UserPtr& aUser, bool download);
+	ConnectionQueueItem* getCQI(const UserPtr& aUser, bool download, const string& hubHint);
 	void putCQI(ConnectionQueueItem* cqi);
 
 	void accept(const Socket& sock, bool secure) throw();
 
-	bool checkIpFlood(const string& aServer, uint16_t aPort);
+	bool checkIpFlood(const string& aServer, uint16_t aPort, const string& userInfo);
 	
 	// UserConnectionListener
 	void on(Connected, UserConnection*) throw();
@@ -217,5 +216,5 @@ private:
 
 /**
  * @file
- * $Id: ConnectionManager.h 411 2008-07-20 22:39:42Z BigMuscle $
+ * $Id: ConnectionManager.h 428 2009-02-01 18:14:42Z BigMuscle $
  */

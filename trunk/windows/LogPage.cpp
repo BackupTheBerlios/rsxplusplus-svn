@@ -50,8 +50,8 @@ PropPage::ListItem LogPage::listItems[] = {
 	{ SettingsManager::LOG_SYSTEM,				ResourceManager::SETTINGS_LOG_SYSTEM_MESSAGES },
 	{ SettingsManager::LOG_STATUS_MESSAGES,		ResourceManager::SETTINGS_LOG_STATUS_MESSAGES },
 	{ SettingsManager::LOG_WEBSERVER,			ResourceManager::SETTINGS_LOG_WEBSERVER },
+	{ SettingsManager::LOG_FILELIST_TRANSFERS, ResourceManager::SETTINGS_LOG_FILELIST_TRANSFERS },
 	{ SettingsManager::LOG_RAW_CMD,				ResourceManager::SETTINGS_RAW_CMD_LOG },
-	{ SettingsManager::LOG_FILELIST_TRANSFERS,	ResourceManager::SETTINGS_LOG_FILELIST_TRANSFERS },
 	{ 0,										ResourceManager::SETTINGS_AUTO_AWAY }
 };
 
@@ -158,5 +158,5 @@ LRESULT LogPage::onClickedBrowseDir(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
 
 /**
  * @file
- * $Id: LogPage.cpp 399 2008-07-06 19:48:02Z BigMuscle $
+ * $Id: LogPage.cpp 429 2009-02-06 17:26:54Z BigMuscle $
  */

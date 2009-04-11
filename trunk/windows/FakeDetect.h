@@ -64,17 +64,27 @@ public:
 
 private:
 	struct DetectorItem {
-		DetectorItem(int rpos, int cpos, tstring in) : rawPos(rpos), dcPos(cpos), itemName(in) {
-			rawId = RSXSettingsManager::getInstance()->get((RSXSettingsManager::IntSetting)rpos);
-			displayCheat = RSXSettingsManager::getInstance()->getBool((RSXSettingsManager::IntSetting)cpos);
+		DetectorItem(int rpos, int cpos, tstring in) : rawPos(rpos), dcPos(cpos), itemName(in), a(NULL) {
+			rawId = rsxppSettingsManager::getInstance()->get((rsxppSettingsManager::IntSetting)rpos);
+			displayCheat = rsxppSettingsManager::getInstance()->getBool((rsxppSettingsManager::IntSetting)cpos);
 		};
+		DetectorItem(rsxppSettingsManager::ExtAction* act) : a(act), displayCheat(act->display), rawId(act->actionId) {
+			itemName = Text::toT(act->name);
+		};
+
 		~DetectorItem() { };
 
 		void save() {
-			RSXSettingsManager::getInstance()->set((RSXSettingsManager::IntSetting)rawPos, rawId);
-			RSXSettingsManager::getInstance()->set((RSXSettingsManager::IntSetting)dcPos, displayCheat);
+			if(!a) {
+				rsxppSettingsManager::getInstance()->set((rsxppSettingsManager::IntSetting)rawPos, rawId);
+				rsxppSettingsManager::getInstance()->set((rsxppSettingsManager::IntSetting)dcPos, displayCheat);
+			} else {
+				a->actionId = rawId;
+				a->display = displayCheat;
+			}
 		}
 
+		rsxppSettingsManager::ExtAction* a;
 		tstring itemName;
 		int rawId;
 		bool displayCheat;

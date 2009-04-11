@@ -22,7 +22,7 @@
 #include "../client/DetectionManager.h"
 #include "../client/version.h"
 
-#include "../rsx/rsx-settings/rsx-SettingsManager.h"
+#include "../client/rsxppSettingsManager.h"
 
 #include "ParamsPage.h"
 #include "ParamDlg.h"

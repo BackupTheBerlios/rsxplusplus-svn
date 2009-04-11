@@ -26,7 +26,7 @@
 #include "../rsx/UpdateManager.h"
 #include <atlctrlx.h>
 
-static const TCHAR thanks[] = _T("I.nfraR.ed, Kulmegil, Crise, newborn & Aqualung\r\nKeep it coming!");
+static const TCHAR thanks[] = _T("I.nfraR.ed, Kulmegil, Crise, newborn & Aqualung, Morbid, Thor\r\nKeep it coming!");
 
 class AboutDlg : public CDialogImpl<AboutDlg>, private TimerManagerListener
 {
@@ -45,7 +45,7 @@ public:
 	END_MSG_MAP()
 
 	LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
-		SetDlgItemText(IDC_VERSION, _T("RSX++ v") _T(VERSIONSTRING) _T(" (c) Copyright 2007-2008 adrian_007\nBased on: StrongDC++ 2.21 (c) Copyright 2001-2008 Big Muscle\n"));
+		SetDlgItemText(IDC_VERSION, _T("RSX++ v") _T(VERSIONSTRING) _T(" (c) Copyright 2007-2009 adrian_007\nBased on: StrongDC++ 2.22 (c) Copyright 2001-2009 Big Muscle\n"));
 		CEdit ctrlThanks(GetDlgItem(IDC_THANKS));
 		ctrlThanks.FmtLines(TRUE);
 		ctrlThanks.AppendText(thanks, TRUE);

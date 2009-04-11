@@ -24,7 +24,7 @@
 #include "../client/LogManager.h"
 #include "../client/version.h"
 
-#include "rsx-settings/rsx-SettingsManager.h"
+#include "../client/rsxppSettingsManager.h"
 
 #include "UpdateManager.h"
 #include "HTTPDownloadManager.h"
@@ -112,7 +112,7 @@ void UpdateManager::onVersionXml(string content, bool isFailed) {
 			LogManager::getInstance()->message("[UpdateCheck]Error: " + e.getError());
 		}
 	}
-	const string& profileXml = RSXSETTING(PROFILE_VER_URL) + "profileVersion.xml";
+	const string& profileXml = RSXPP_SETTING(PROFILE_VER_URL) + "profileVersion.xml";
 	HTTPDownloadManager::getInstance()->addRequest(boost::bind(&UpdateManager::onProfileVersionXml, this, _1, _2), profileXml);
 }
 

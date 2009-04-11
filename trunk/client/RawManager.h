@@ -1,4 +1,6 @@
-/* 
+/*
+ * Copyright (C) 2007-2009 adrian_007, adrian-007 on o2 point pl
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -13,48 +15,43 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
-
 #ifndef RAW_MANAGER_H
 #define RAW_MANAGER_H
 
 #include "CriticalSection.h"
 #include "Singleton.h"
 #include "ActionRaw.h"
-#include "../rsx/rsx-settings/rsx-SettingsManager.h"
+#include "rsxppSettingsManager.h"
 
 namespace dcpp {
 	typedef std::map<int, int> IntMap;
 
 class SimpleXML;
-class RawManager : public Singleton<RawManager>, private RSXSettingsManagerListener {
+class RawManager : public Singleton<RawManager>, private SettingsManagerListener {
 public:
-	Action::List& getActionList() { Lock l(cs); return action; }
-	Action::RawsList getRawList(int id);
-	Action::RawsList getRawListActionId(int actionId);
-	Action::Raw addRaw(int id, const string& name, const string& raw, int time, bool lua) throw(Exception);
+	// remember to unlock, if locked before. use when changing sth in action/raw content
+	void lock() { cs.enter(); }
+	void unlock() { cs.leave(); }
 
-	int addAction(int actionId, const string& name, bool actif) throw(Exception);
-	int getValidAction(int actionId);
-	int getActionId(int id);
+	Action::ActionList& getActions() { Lock l(cs); return actions; }
+	Action* findAction(int id) throw();
+	Action* findAction(const std::string& name) throw();
 
-	void renameAction(const string& oName, const string& nName) throw(Exception);
-	void setActifAction(int id, bool actif);
-	void removeAction(int id);
-	void addRaw(int idAction, int rawId, const string& name, const string& raw, int time, bool actif, bool lua);
-	void changeRaw(int id, const string& oName, const string& nName, const string& raw, int time, bool lua) throw(Exception);
-	void getRawItem(int id, int idRaw, Action::Raw& ra, bool favHub = false);
-	void setActifRaw(int id, int idRaw, bool actif);
-	void removeRaw(int id, int idRaw);
+	Action* addAction(int id, const std::string& name, bool enabled) throw(Exception);
+	void editAction(Action* a, const std::string& name) throw(Exception);
+	bool remAction(Action* a) throw();
+
+	Raw* addRaw(Action* a, Raw& r) throw(Exception);
+	void editRaw(const Action* a, Raw* old, Raw& _new) throw(Exception);
+	bool remRaw(Action* a, Raw* r) throw();
 
 	void loadActionRaws();
 	void saveActionRaws();
 
-	bool moveRaw(int id, int idRaw, int pos);
-	bool getActifActionId(int actionId);
 	tstring getNameActionId(int actionId);
-	string getRawCommand(int pos, int rawPos);
+	int getValidAction(int actionId);
 
-	//custom points system
+	// custom points system
 	void calcADLAction(int aPoints, int& a, bool& d);
 
 	IntMap& getADLPoints() { Lock l(cs); return points; }
@@ -70,24 +67,15 @@ private:
 
 	void loadActionRaws(SimpleXML& aXml);
 
-	void on(RSXSettingsManagerListener::Load, SimpleXML& xml) throw();
-	void on(RSXSettingsManagerListener::Save, SimpleXML& xml) throw();
+	void on(SettingsManagerListener::Load, SimpleXML& xml) throw();
+	void on(SettingsManagerListener::Save, SimpleXML& xml) throw();
 
-	Action::List action;
+	Action::ActionList actions;
+
 	IntMap points;
 	CriticalSection cs;
-	uint16_t lastAction;
 };
 
-class RawSelector {
-protected:
-	typedef unordered_map<int, int> ActionList;
-	ActionList idAction;
-
-	void createList();
-	int getId(int actionId);
-	int getIdAction(int id);
-};
 } // namespace dcpp
 #endif //RAW_MANAGER_H
 

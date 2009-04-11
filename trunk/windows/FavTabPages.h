@@ -10,27 +10,23 @@ public:
 
 	CFavTabRaw() : hub(NULL) { }
 	~CFavTabRaw() {
-		ctrlAction.Detach();
-		ctrlRaw.Detach();
+		ctrlList.Detach();
 	}
 
 	BEGIN_MSG_MAP(CFavTabRaw)
 		MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
-		NOTIFY_HANDLER(IDC_FH_ACTION, LVN_ITEMCHANGED, onItemChanged)
 		//REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
 
 	LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
-	LRESULT onItemChanged(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/);
 
 	void setHub(FavoriteHubEntry* _hub) { hub = _hub; }
 	void prepareClose();
 private:
 	FavoriteHubEntry* hub;
-	ExListViewCtrl ctrlAction;
-	ExListViewCtrl ctrlRaw;
-	void addEntryAction(int id, const string name, bool actif, int pos);
-	void addEntryRaw(const Action::Raw& ra, int pos, int actionId);
+	CTreeViewCtrl ctrlList;
+	HTREEITEM addAction(const Action* action);
+	void addRaw(HTREEITEM action, int actionId, const Raw* raw);
 };
 
 class CFavTabOp : public CDialogImpl<CFavTabOp> {

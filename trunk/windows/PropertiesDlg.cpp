@@ -60,6 +60,7 @@
 #include "AutosearchPage.h"
 #include "ClientsPage.h"
 #include "PluginsPage.h"
+#include "ScriptsList.h"
 //END
 
 bool PropertiesDlg::needUpdate = false;
@@ -100,6 +101,7 @@ PropertiesDlg::PropertiesDlg(HWND parent, SettingsManager *s) : TreePropertyShee
 	pages[n++] = new RawPage(s);
 	pages[n++] = new RSXAdvanced(s);
 	pages[n++] = new PluginsPage(s);
+	pages[n++] = new ScriptsListPage(s);
 	//END
 
 	for(int i=0; i<numPages; i++) {
@@ -107,8 +109,9 @@ PropertiesDlg::PropertiesDlg(HWND parent, SettingsManager *s) : TreePropertyShee
 	}
 
 	// Hide "Apply" button
-	m_psh.dwFlags |= PSH_NOAPPLYNOW | PSH_NOCONTEXTHELP;
-	m_psh.dwFlags &= ~PSH_HASHELP;
+	m_psh.dwFlags |= PSH_NOAPPLYNOW;// | PSH_NOCONTEXTHELP;
+	//m_psh.dwFlags &= ~PSH_HASHELP;
+	m_psh.dwFlags |= PSH_HASHELP;
 }
 
 PropertiesDlg::~PropertiesDlg() {

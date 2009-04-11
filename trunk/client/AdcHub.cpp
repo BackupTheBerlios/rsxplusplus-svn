@@ -31,7 +31,7 @@
 #include "CryptoManager.h"
 #include "ResourceManager.h"
 #include "LogManager.h"
-#include "PluginsManager.h" //RSX++
+#include "ScriptManager.h" //RSX++
 
 namespace dcpp {
 
@@ -46,8 +46,6 @@ const string AdcHub::BAS0_SUPPORT("ADBAS0");
 const string AdcHub::TIGR_SUPPORT("ADTIGR");
 const string AdcHub::UCM0_SUPPORT("ADUCM0");
 const string AdcHub::BLO0_SUPPORT("ADBLO0");
-
-StringList AdcHub::extraSup; //RSX++
 
 AdcHub::AdcHub(const string& aHubURL, bool secure) : Client(aHubURL, '\n', secure), oldPassword(false), sid(0) {
 	TimerManager::getInstance()->addListener(this);
@@ -187,6 +185,15 @@ void AdcHub::handle(AdcCommand::INF, AdcCommand& c) throw() {
 	if(u->getIdentity().supports(ADCS_FEATURE)) {
 		u->getUser()->setFlag(User::TLS);
 	}
+
+	if(!u->getIdentity().get("US").empty()) {
+		char buf[16];
+		snprintf(buf, sizeof(buf), "%.3g", Util::toDouble(u->getIdentity().get("US")) * 8 / 1024 / 1024);
+
+		char *cp;
+		if( (cp=strchr(buf, ',')) != NULL) *cp='.';
+		u->getIdentity().setConnection(buf);
+	}
 	//RSX++ // $MyINFO check
 	if(getCheckedAtConnect() && getCheckMyInfo()) {
 		string report = u->getIdentity().myInfoDetect(*u);
@@ -283,8 +290,8 @@ void AdcHub::handle(AdcCommand::MSG, AdcCommand& c) throw() {
 		OnlineUser* replyTo = findUser(AdcCommand::toSID(pmFrom));
 		if(!replyTo)
 			return;
-
-		fire(ClientListener::PrivateMessage(), this, *from, to, replyTo, c.getParam(0), c.hasFlag("ME", 1));
+		if(!extOnPmIn(from, to, replyTo, c.getParam(0), c.hasFlag("ME", 1)))
+			fire(ClientListener::PrivateMessage(), this, *from, to, replyTo, c.getParam(0), c.hasFlag("ME", 1));
 	} else {
 		fire(ClientListener::Message(), this, *from, c.getParam(0), c.hasFlag("ME", 1));
 	}
@@ -643,6 +650,10 @@ void AdcHub::hubMessage(const string& aMessage, bool thirdPerson) {
 void AdcHub::privateMessage(const OnlineUserPtr& user, const string& aMessage, bool thirdPerson) {
 	if(state != STATE_NORMAL)
 		return;
+	//RSX++
+	if(extOnPmOut(user.get(), aMessage, thirdPerson))
+		return;
+	//END
 	AdcCommand c(AdcCommand::CMD_MSG, user->getIdentity().getSID(), AdcCommand::TYPE_ECHO);
 	c.addParam(aMessage);
 	if(thirdPerson)
@@ -747,15 +758,15 @@ void AdcHub::info(bool /*alwaysSend*/) {
 	addParam(lastInfoMap, c, "VE", "RSX++ " VERSIONSTRING);
 
 	if (SETTING(THROTTLE_ENABLE) && SETTING(MAX_UPLOAD_SPEED_LIMIT) != 0) {
-		addParam(lastInfoMap, c, "US", Util::toString(SETTING(MAX_UPLOAD_SPEED_LIMIT)*1024*8));
+		addParam(lastInfoMap, c, "US", Util::toString(SETTING(MAX_UPLOAD_SPEED_LIMIT)*1024));
 	} else {
-		addParam(lastInfoMap, c, "US", Util::toString((long)(Util::toDouble(SETTING(UPLOAD_SPEED))*1024*1024)));
+		addParam(lastInfoMap, c, "US", Util::toString((long)(Util::toDouble(SETTING(UPLOAD_SPEED))*1024*1024/8)));
 	}
 
 	addParam(lastInfoMap, c, "AW", Util::getAway() ? "1" : Util::emptyString);
 	
 	if(SETTING(THROTTLE_ENABLE) && SETTING(MAX_DOWNLOAD_SPEED_LIMIT) != 0) {
-		addParam(lastInfoMap, c, "DS", Util::toString((SETTING(MAX_DOWNLOAD_SPEED_LIMIT)*1024*8)));
+		addParam(lastInfoMap, c, "DS", Util::toString((SETTING(MAX_DOWNLOAD_SPEED_LIMIT)*1024/8)));
 	} else {
 		addParam(lastInfoMap, c, "DS", Util::emptyString);
 	}
@@ -778,11 +789,9 @@ void AdcHub::info(bool /*alwaysSend*/) {
 		addParam(lastInfoMap, c, "I4", "");
 		addParam(lastInfoMap, c, "U4", "");
 	}
-	//RSX++
-	for(StringList::const_iterator i = extraSup.begin(); i != extraSup.end(); ++i) {
-		su += *i + ',';
-	}
-	//END
+	
+	ScriptManager::getInstance()->getAdcFeats(su); //RSX++
+
 	if(!su.empty()) {
 		su.erase(su.size() - 1);
 	}
@@ -798,7 +807,9 @@ void AdcHub::refreshUserList(bool) {
 
 	OnlineUserList v;
 	for(SIDIter i = users.begin(); i != users.end(); ++i) {
-		v.push_back(i->second);
+		if(i->first != AdcCommand::HUB_SID) {
+			v.push_back(i->second);
+		}
 	}
 	fire(ClientListener::UsersUpdated(), this, v);
 }
@@ -839,9 +850,13 @@ void AdcHub::on(Connected c) throw() {
 
 void AdcHub::on(Line l, const string& aLine) throw() {
 	Client::on(l, aLine);
+
 	if(BOOLSETTING(ADC_DEBUG)) {
 		fire(ClientListener::StatusMessage(), this, "<ADC>" + aLine + "</ADC>");
 	}
+
+	if(extOnMsgIn(aLine)) return; //RSX++
+
 	dispatch(aLine);
 }
 
@@ -861,5 +876,5 @@ void AdcHub::on(Second s, uint64_t aTick) throw() {
 
 /**
  * @file
- * $Id: AdcHub.cpp 413 2008-07-30 09:32:53Z BigMuscle $
+ * $Id: AdcHub.cpp 429 2009-02-06 17:26:54Z BigMuscle $
  */

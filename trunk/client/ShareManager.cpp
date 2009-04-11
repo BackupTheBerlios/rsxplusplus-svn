@@ -785,7 +785,7 @@ ShareManager::Directory* ShareManager::buildTree(const string& aName, Directory*
 			continue;
 
 		//RSX++ //Share skiplist
-		if(Wildcard::patternMatch(name, RSXSETTING(SKIPLIST_SHARE), ';')) {
+		if(Wildcard::patternMatch(name, RSXPP_SETTING(SKIPLIST_SHARE), ';')) {
 			/*string msg = boost::str(boost::format("User has choosen not to share file: %1% (Size: %2% B, Directory: %3%)")
 				% name % File::getSize(name) % aName);
 			LogManager::getInstance()->message(msg);*/

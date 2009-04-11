@@ -25,7 +25,7 @@
 
 #include "IpManager.h"
 #include "RsxUtil.h"
-#include "rsx-settings/rsx-SettingsManager.h"
+#include "../client/rsxppSettingsManager.h"
 
 namespace dcpp {
 

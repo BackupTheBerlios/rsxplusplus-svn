@@ -1,3 +1,27 @@
+** SVN 113
+ ** begun work on new Lua API
+ ** begun work on new Plugin SDK
+ ** merged some icons from branches
+ ** AboutDlg updated
+ ** sdc svn merge
+ ** begun work on new actions & raws page
+ ** updated resource info
+ ** cleanup in RawManager (this can mess up a bit with action/raw state - need testing)
+ ** reverted CDM debug frame
+ ** improved loading raws from favorites.xml
+ ** script's list dlg is now a setting's page
+ ** added menu item to open containing folder (need improvements)
+ ** rsx++ settings manager reworked a bit (now everything is stored in DCPlusPlus.xml)
+ ** removed old connection style
+ ** now using boost::unordered instead of stlport version (faster one)
+ ** in splash screen scripts and plugins are showed during load
+ ** some more stuff which i dont remember ;)
+
+TODO: some reasonable way to store settings (plugins and lua)
+
+** SVN 112
+ ** [I.nfraR.ed] improved several icons
+
 ** SVN 111
  ** ooops... fixed build
 

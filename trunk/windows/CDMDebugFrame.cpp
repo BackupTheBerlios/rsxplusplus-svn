@@ -12,21 +12,9 @@ LRESULT CDMDebugFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 {
 	ctrlPad.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | 
 		WS_VSCROLL | ES_AUTOVSCROLL | ES_MULTILINE | ES_NOHIDESEL | ES_READONLY, WS_EX_CLIENTEDGE);
-	
-	EDITSTREAM es;
-	es.dwCookie = (DWORD)this;
-	es.pfnCallback = reinterpret_cast<EDITSTREAMCALLBACK>(funWithWin32CallBacks);
-	ctrlPad.StreamIn(SF_RTF, es);
 	ctrlPad.LimitText(0);
 	ctrlPad.SetFont(WinUtil::font);
-	ctrlPad.SetBackgroundColor(WinUtil::bgColor);
-
-	CHARFORMAT textFormat;
-	textFormat.dwMask = CFM_COLOR;
-	textFormat.dwEffects = 0;
-	textFormat.crTextColor = WinUtil::textColor;
-	ctrlPad.SetDefaultCharFormat(textFormat);
-
+	
 	CreateSimpleStatusBar(ATL_IDS_IDLEMESSAGE, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | SBARS_SIZEGRIP);
 	ctrlStatus.Attach(m_hWndStatusBar);
 	statusContainer.SubclassWindow(ctrlStatus.m_hWnd);
@@ -144,107 +132,31 @@ void CDMDebugFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 }
 
 void CDMDebugFrame::addLine(const string& aLine) {
-	//bcdc++ rip :]
-	bool noscroll = !scrollbarAtBottom();
-
-	if(ctrlPad.GetWindowTextLength() > 25000) {
-		int trimChars = ctrlPad.LineIndex(ctrlPad.LineFromChar(2000));
-		CHARRANGE oldpos;
-		ctrlPad.GetSel(oldpos);
+	if(ctrlPad.GetWindowTextLength() > MAX_TEXT_LEN) {
 		ctrlPad.SetRedraw(FALSE);
-		ctrlPad.SetSel(0, trimChars);
+		ctrlPad.SetSel(0, ctrlPad.LineIndex(ctrlPad.LineFromChar(2000)));
 		ctrlPad.ReplaceSel(_T(""));
 		ctrlPad.SetRedraw(TRUE);
-		if(noscroll) {
-			oldpos.cpMin -= trimChars;
-			oldpos.cpMax -= trimChars;
-			if(oldpos.cpMin < 0) {
-				oldpos.cpMax = 0;
-				oldpos.cpMin = 0;
-			}
-			ctrlPad.SetSel(oldpos);
-			ctrlPad.ScrollCaret();
-		}
 	}
-	
-	string line;
-	if(BOOLSETTING(TIME_STAMPS)) {
-		line = ("[" + Util::getShortTimeString() + "] " + aLine);
-	} else {
-		line = (aLine);
+	BOOL noscroll = TRUE;
+	POINT p = ctrlPad.PosFromChar(ctrlPad.GetWindowTextLength() - 1);
+	CRect r;
+	ctrlPad.GetClientRect(r);
+		
+	if( r.PtInRect(p) || MDIGetActive() != m_hWnd)
+		noscroll = FALSE;
+	else {
+		ctrlPad.SetRedraw(FALSE); // Strange!! This disables the scrolling...????
 	}
-	if(line.rfind("\n") == string::npos)
-		line += "\n";
-
-	currentMessage = Text::toT("{\\urtf1\\ansi\\ansicpg1252\\deff0\\plain0\n" + line + "}\n");
-	
-	if(noscroll)
-		ctrlPad.SetRedraw(FALSE);
-
-	EDITSTREAM es;
-	es.dwCookie = (DWORD)this;
-	es.pfnCallback = reinterpret_cast<EDITSTREAMCALLBACK>(funWithWin32CallBacks);
-	//save current state...
-	CHARRANGE cr;
-	int firstVisibleLine = ctrlPad.GetFirstVisibleLine();
-	ctrlPad.GetSel(cr);
-
-	ctrlPad.SetSel(-1, -1);
-	ctrlPad.StreamIn(SF_RTF | SFF_SELECTION | SF_UNICODE, es);
-
-	//restore it
-	ctrlPad.SetSel(cr);
-
+	ctrlPad.AppendText((Text::toT(aLine) + _T("\r\n")).c_str());
 	if(noscroll) {
-		ctrlPad.LineScroll(firstVisibleLine - ctrlPad.GetFirstVisibleLine());
 		ctrlPad.SetRedraw(TRUE);
-	} else {
-		ctrlPad.SendMessage(EM_SCROLL, SB_BOTTOM, 0);
 	}
-	ctrlPad.InvalidateRect(NULL);
 	//setDirty();
-}
-
-bool CDMDebugFrame::scrollbarAtBottom() {
-	if(::IsWindow(ctrlPad.m_hWnd)) {
-		SCROLLBARINFO sbi;
-		sbi.cbSize = sizeof(SCROLLBARINFO);
-		SCROLLINFO si;
-		si.cbSize = sizeof(SCROLLINFO);
-		si.fMask = SIF_POS | SIF_RANGE | SIF_PAGE;
-		ctrlPad.GetScrollInfo(SB_VERT, &si);
-		GetScrollBarInfo(ctrlPad.m_hWnd, OBJID_VSCROLL, &sbi);
-		if ((sbi.rgstate[0] & STATE_SYSTEM_INVISIBLE) || ((sbi.rcScrollBar.bottom - sbi.rcScrollBar.top) + si.nPos > si.nMax))
-			return true;
-	}
-	return false;
 }
 
 LRESULT CDMDebugFrame::onClear(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
 	ctrlPad.SetWindowText(_T(""));
 	ctrlPad.SetFocus();
-	return 0;
-}
-
-DWORD CALLBACK CDMDebugFrame::funWithWin32CallBacks(DWORD dwCookie, LPBYTE pbBuff, LONG cb, LONG *pcb) {
-	CDMDebugFrame *frame = (CDMDebugFrame*)dwCookie;
-	size_t msgSize = frame->currentMessage.size();
-
-	string tmp;
-	// the multibyte characters were escaped to RTF in ::addLine()
-	tmp = Text::wideToAcp(frame->currentMessage);
-	msgSize = tmp.size();
-
-	if(cb <= (LONG)msgSize) {
-		//unable to process the whole message.
-		*pcb = cb;
-		strncpy((char*)pbBuff, tmp.c_str(), *pcb);
-		frame->currentMessage = frame->currentMessage.substr(cb);
-	} else {
-		//process whole message.
-		*pcb = msgSize;
-		strncpy((char*)pbBuff, tmp.c_str(), *pcb);
-		frame->currentMessage = Util::emptyStringT;
-	}
 	return 0;
 }

@@ -24,7 +24,7 @@
 #include "FilteredFile.h"
 #include "BZUtils.h"
 
-#include "../rsx/rsx-settings/rsx-SettingsManager.h"
+#include "rsxppSettingsManager.h"
 
 namespace dcpp {
 
@@ -393,9 +393,9 @@ const DetectionManager::DetectionItems& DetectionManager::reloadFromHttp(bool bz
 		for(DetectionManager::DetectionItems::const_iterator k = oldList.begin(); k != oldList.end(); ++k) {
 			if(k->Id == j->Id) {
 				j->rawToSend = k->rawToSend;
-				if(RSXBOOLSETTING(UPDATE_PROFILE_CHEATS))
+				if(RSXPP_BOOLSETTING(UPDATE_PROFILE_CHEATS))
 					j->cheat = k->cheat;
-				if(RSXBOOLSETTING(UPDATE_PROFILE_COMMENTS))
+				if(RSXPP_BOOLSETTING(UPDATE_PROFILE_COMMENTS))
 					j->comment = k->comment;
 				j->clientFlag = k->clientFlag;
 				j->isEnabled = k->isEnabled;

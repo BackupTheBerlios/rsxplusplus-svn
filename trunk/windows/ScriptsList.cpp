@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2008 adrian_007, adrian-007 on o2 point pl
+ * Copyright (C) 2007-2009 adrian_007, adrian-007 on o2 point pl
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,44 +22,44 @@
 #include "../client/DCPlusPlus.h"
 
 #include "ScriptsList.h"
+#include "../client/LuaScript.h"
 #include "../client/ScriptManager.h"
 
-LRESULT ScriptsListDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
-	/*CRect rc;
+LRESULT ScriptsListPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
+	CRect rc;
 
 	ctrlList.Attach(GetDlgItem(IDC_SCRIPTS_LIST));
 	ctrlList.GetClientRect(rc);
 	ctrlList.InsertColumn(0, _T("Script"), LVCFMT_LEFT, rc.Width() - 20, 0);
 	ctrlList.SetExtendedListViewStyle(LVS_EX_CHECKBOXES | LVS_EX_FULLROWSELECT);
 
-	const ScriptManager::ScriptsList& list = ScriptManager::getInstance()->getScriptsList();
-	int count = 0, active = 0;
-	for(ScriptManager::ScriptsList::const_iterator i = list.begin(); i != list.end(); ++i, ++count) {
-		int item = ctrlList.insert(ctrlList.GetItemCount(), Text::toT(i->second), 0, 0);
-		ctrlList.SetCheckState(item, i->first);
-		if(i->first)
-			++active;
+	const ScriptManager::Scripts& list = ScriptManager::getInstance()->getScripts();
+	int count = 0;
+	for(ScriptManager::Scripts::const_iterator i = list.begin(); i != list.end(); ++i, ++count) {
+		int item = ctrlList.insert(ctrlList.GetItemCount(), Text::toT((*i)->getFileName()), 0, 0);
+		ctrlList.SetCheckState(item, (*i)->enabled);
 	}
 	::SetWindowText(GetDlgItem(IDC_STATIC1), Text::toT("Scripts Dir: " + Util::getConfigPath() + "scripts\\").c_str());
 	::SetWindowText(GetDlgItem(IDC_STATIC2), Text::toT("Scripts Count: " + Util::toString(count)).c_str());
-	::SetWindowText(GetDlgItem(IDC_STATIC3), Text::toT("Active Scripts: " + Util::toString(active)).c_str());*/
 	return 0;
 }
 
-LRESULT ScriptsListDlg::onSave(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
-	/*int items = ctrlList.GetItemCount();
+void ScriptsListPage::write() {
+	int items = ctrlList.GetItemCount();
 	TCHAR buf[1024];
-	ScriptManager::ScriptsList& list = ScriptManager::getInstance()->getScriptsList();
-	list.clear();
+	ScriptManager::Scripts& list = ScriptManager::getInstance()->getScripts();
+
 	for(int i = 0; i < items; ++i) {
 		ctrlList.GetItemText(i, 0, buf, 1024);
 		bool state = ctrlList.GetCheckState(i) != 0;
-		list.push_back(make_pair(state, Text::fromT(buf)));
+		string fn = Text::fromT(buf);
+		for(ScriptManager::Scripts::iterator j = list.begin(); j != list.end(); ++j) {
+			if(stricmp(fn, (*j)->getFileName()) == 0) {
+				(*j)->enabled = state;
+				break;
+			}
+		}
 	}
-	RSXSettingsManager::getInstance()->save();
-	ctrlList.Detach();
-	EndDialog(IDOK);*/
-	return 0;
 }
 
 /**

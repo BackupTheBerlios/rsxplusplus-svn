@@ -1,4 +1,6 @@
 /*
+ * Copyright (C) 2007-2009 adrian_007, adrian-007 on o2 point pl
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -14,14 +16,12 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#if !defined(RSX_KICK_DLG_H)
-#define RSX_KICK_DLG_H
-#include "../client/RawManager.h"
+#ifndef RSXPLUSPLUS_KICK_DLG_H
+#define RSXPLUSPLUS_KICK_DLG_H
 
-class RsxKickDlg : public CDialogImpl<RsxKickDlg>, protected RawSelector {
-	CComboBox cRaw, cActionList;
-	CStatic ctrlDescription;
-	CEdit ctrlCommand;
+#include "CRawCombo.h"
+
+class RsxKickDlg : public CDialogImpl<RsxKickDlg> {
 public:
 	tstring rawCommand;
 	tstring description;
@@ -40,7 +40,7 @@ public:
 
 	~RsxKickDlg() {
 		cRaw.Detach();
-		cActionList.Detach();
+		cAction.Detach();
 		ctrlCommand.Detach();
 	};
 
@@ -52,6 +52,10 @@ public:
 	LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 	LRESULT OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 private:
-	Action::List actionList;
+	CComboBox cRaw;
+	CRawCombo cAction;
+
+	CStatic ctrlDescription;
+	CEdit ctrlCommand;
 };
-#endif // !defined(RSX_KICK_DLG_H)
+#endif //RSXPLUSPLUS_KICK_DLG_H

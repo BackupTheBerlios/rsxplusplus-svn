@@ -22,7 +22,7 @@
 #include "UpdateDialog.h"
 
 #include "../client/DetectionManager.h"
-#include "../rsx/rsx-settings/rsx-SettingsManager.h"
+#include "../client/rsxppSettingsManager.h"
 #include "../client/version.h"
 #include "../windows/WinUtil.h"
 #include "../rsx/IpManager.h"
@@ -57,9 +57,9 @@ LRESULT UpdateDialog::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lP
 	set_text(IDC_UPDATE_VERSION_CURRENT_PROFIL, DetectionManager::getInstance()->getProfileVersion());
 	set_text(IDC_UPDATE_VERSION_CURRENT_PROFIL_MYINFO, DetectionManager::getInstance()->getUserInfoVersion());
 	set_text(IDC_UPDATE_VERSION_CURRENT_IPW, IpManager::getInstance()->getIpWatchVersion());
-	set_text(IDC_CLIENT_ADDRESS, RSXSETTING(UPDATE_URL));
-	set_text(IDC_MYINFO_ADDRESS, RSXSETTING(UPDATE_MYINFOS));
-	set_text(IDC_ISP_ADDRESS, RSXSETTING(UPDATE_IPWATCH_URL));
+	set_text(IDC_CLIENT_ADDRESS, RSXPP_SETTING(UPDATE_URL));
+	set_text(IDC_MYINFO_ADDRESS, RSXPP_SETTING(UPDATE_MYINFOS));
+	set_text(IDC_ISP_ADDRESS, RSXPP_SETTING(UPDATE_IPWATCH_URL));
 	set_text(IDCLOSE, STRING(CLOSE));
 	set_text(IDC_UPDATE_VERSION_CURRENT, VERSIONSTRING);
 
@@ -130,7 +130,7 @@ bool UpdateDialog::isNewClientVersion(bool checkSetting) {
 bool UpdateDialog::isNewClientProfiles(bool checkSetting) {
 	if((Util::toDouble(profilesInfo.clientProfile.first) > Util::toDouble(DetectionManager::getInstance()->getProfileVersion()))) {
 		if(checkSetting)
-			return RSXBOOLSETTING(SHOW_CLIENT_NEW_VER);
+			return RSXPP_BOOLSETTING(SHOW_CLIENT_NEW_VER);
 		return true;
 	}
 	return false;
@@ -139,7 +139,7 @@ bool UpdateDialog::isNewClientProfiles(bool checkSetting) {
 bool UpdateDialog::isNewMyInfoProfiles(bool checkSetting) {
 	if((Util::toDouble(profilesInfo.myInfoProfile.first) > Util::toDouble(DetectionManager::getInstance()->getUserInfoVersion()))) {
 		if(checkSetting)
-			return RSXBOOLSETTING(SHOW_MYINFO_NEW_VER);
+			return RSXPP_BOOLSETTING(SHOW_MYINFO_NEW_VER);
 		return true;
 	}
 	return false;
@@ -148,7 +148,7 @@ bool UpdateDialog::isNewMyInfoProfiles(bool checkSetting) {
 bool UpdateDialog::isNewIpWatchProfiles(bool checkSetting) {
 	if((Util::toDouble(profilesInfo.ipWatchProfile.first) > Util::toDouble(IpManager::getInstance()->getIpWatchVersion()))) {
 		if(checkSetting)
-			return RSXBOOLSETTING(SHOW_IPWATCH_NEW_VER);
+			return RSXPP_BOOLSETTING(SHOW_IPWATCH_NEW_VER);
 		return true;
 	}
 	return false;
@@ -326,17 +326,17 @@ LRESULT UpdateDialog::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 
 	buf.resize(len);
 	GetDlgItemText(IDC_CLIENT_ADDRESS, &buf[0], len);
-	RSXSettingsManager::getInstance()->set(RSXSettingsManager::UPDATE_URL, Text::fromT(buf));
+	rsxppSettingsManager::getInstance()->set(rsxppSettingsManager::UPDATE_URL, Text::fromT(buf));
 
 	len = ::GetWindowTextLength(GetDlgItem(IDC_MYINFO_ADDRESS)) + 1;
 	buf.resize(len);
 	GetDlgItemText(IDC_MYINFO_ADDRESS, &buf[0], len);
-	RSXSettingsManager::getInstance()->set(RSXSettingsManager::UPDATE_MYINFOS, Text::fromT(buf));
+	rsxppSettingsManager::getInstance()->set(rsxppSettingsManager::UPDATE_MYINFOS, Text::fromT(buf));
 
 	len = ::GetWindowTextLength(GetDlgItem(IDC_ISP_ADDRESS)) + 1;
 	buf.resize(len);
 	GetDlgItemText(IDC_ISP_ADDRESS, &buf[0], len);
-	RSXSettingsManager::getInstance()->set(RSXSettingsManager::UPDATE_IPWATCH_URL, Text::fromT(buf));
+	rsxppSettingsManager::getInstance()->set(rsxppSettingsManager::UPDATE_IPWATCH_URL, Text::fromT(buf));
 
 	EndDialog(NULL);
 	return 0;

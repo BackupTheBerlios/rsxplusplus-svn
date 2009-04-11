@@ -76,17 +76,17 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 {
 public:
 	/** Add a file to the queue. */
-	void add(const string& aTarget, int64_t aSize, const TTHValue& root, const UserPtr& aUser,
+	void add(const string& aTarget, int64_t aSize, const TTHValue& root, const UserPtr& aUser, const string& hubHint,
 		Flags::MaskType aFlags = 0, bool addBad = true) throw(QueueException, FileException);
 		/** Add a user's filelist to the queue. */
-	void addList(const UserPtr& aUser, Flags::MaskType aFlags, const string& aInitialDir = Util::emptyString) throw(QueueException, FileException);
+	void addList(const UserPtr& aUser, const string& hubHint, Flags::MaskType aFlags, const string& aInitialDir = Util::emptyString) throw(QueueException, FileException);
 
-	void addTestSUR(UserPtr aUser, bool checkList = false) throw(QueueException, FileException) {
+	void addTestSUR(UserPtr aUser, const string& hubHint, bool checkList = false) throw(QueueException, FileException) {
 		StringList nicks = ClientManager::getInstance()->getNicks(*aUser);
 		string nick = nicks.empty() ? Util::emptyString : Util::cleanPathChars(nicks[0]) + ".";
 		string target = Util::getConfigPath() + "TestSURs\\" + RsxUtil::getTestSURString() + nick + aUser->getCID().toBase32();
 
-		add(target, -1, TTHValue(), aUser, (Flags::MaskType)((checkList ? QueueItem::FLAG_CHECK_FILE_LIST : 0) | QueueItem::FLAG_TESTSUR));
+		add(target, -1, TTHValue(), aUser, hubHint, (Flags::MaskType)((checkList ? QueueItem::FLAG_CHECK_FILE_LIST : 0) | QueueItem::FLAG_TESTSUR));
 	}
 
 	void removeTestSUR(UserPtr aUser) {
@@ -102,16 +102,16 @@ public:
 		return;
 	}
 	//RSX++ 
-	string addClientCheck(UserPtr aUser) throw(QueueException, FileException) {
+	string addClientCheck(UserPtr aUser, const string& hubHint) throw(QueueException, FileException) {
 		StringList nicks = ClientManager::getInstance()->getNicks(*aUser);
 		string nick = nicks.empty() ? Util::emptyString : Util::cleanPathChars(nicks[0]) + ".";
 		string filename = RsxUtil::getTestSURString() + nick + aUser->getCID().toBase32();
 
-		add(Util::getConfigPath() + "TestSURs\\" + filename, -1, TTHValue(), aUser, QueueItem::FLAG_TESTSUR);
+		add(Util::getConfigPath() + "TestSURs\\" + filename, -1, TTHValue(), aUser, hubHint, QueueItem::FLAG_TESTSUR);
 		return filename;
 	}
 
-	string addFileListCheck(UserPtr aUser) throw(QueueException, FileException);
+	string addFileListCheck(UserPtr aUser, const string& hubHint) throw(QueueException, FileException);
 
 	void removeFileListCheck(UserPtr aUser) throw(QueueException) {
 		Lock l(cs);
@@ -138,11 +138,11 @@ public:
 	}
 	//END
 	/** Readd a source that was removed */
-	void readd(const string& target, const UserPtr& aUser) throw(QueueException);
+	void readd(const string& target, const UserPtr& aUser, const string& hubHint) throw(QueueException);
 	/** Add a directory to the queue (downloads filelist and matches the directory). */
-	void addDirectory(const string& aDir, const UserPtr& aUser, const string& aTarget, QueueItem::Priority p = QueueItem::DEFAULT) throw();
+	void addDirectory(const string& aDir, const UserPtr& aUser, const string& hubHint, const string& aTarget, QueueItem::Priority p = QueueItem::DEFAULT) throw();
 	
-	int matchListing(const DirectoryListing& dl) throw();
+	int matchListing(const DirectoryListing& dl, const string& hubHint) throw();
 
 	bool getTTH(const string& name, TTHValue& tth) const throw();
 
@@ -152,6 +152,8 @@ public:
 	void remove(const string& aTarget) throw();
 	void removeSource(const string& aTarget, const UserPtr& aUser, Flags::MaskType reason, bool removeConn = true) throw();
 	void removeSource(const UserPtr& aUser, Flags::MaskType reason) throw();
+
+	void recheck(const string& aTarget);
 
 	void setPriority(const string& aTarget, QueueItem::Priority p) throw();
 	void setAutoPriority(const string& aTarget, bool ap) throw();
@@ -177,7 +179,7 @@ public:
 	void saveQueue() throw();
 
 	bool handlePartialSearch(const TTHValue& tth, PartsInfo& _outPartsInfo);
-	bool handlePartialResult(const UserPtr& aUser, const TTHValue& tth, const QueueItem::PartialSource& partialSource, PartsInfo& outPartialInfo);
+	bool handlePartialResult(const UserPtr& aUser, const string& hubHint, const TTHValue& tth, const QueueItem::PartialSource& partialSource, PartsInfo& outPartialInfo);
 	
 	bool dropSource(Download* d);
 
@@ -242,6 +244,27 @@ public:
 	} mover;
 
 	typedef vector<pair<QueueItem::SourceConstIter, const QueueItem*> > PFSSourceList;
+
+	class Rechecker : public Thread {
+		struct DummyOutputStream : OutputStream {
+			virtual size_t write(const void*, size_t n) throw(Exception) { return n; }
+			virtual size_t flush() throw(Exception) { return 0; }
+		};
+
+	public:
+		explicit Rechecker(QueueManager* qm_) : qm(qm_), active(false) { }
+		virtual ~Rechecker() { join(); }
+
+		void add(const string& file);
+		virtual int run();
+
+	private:
+		QueueManager* qm;
+		bool active;
+
+		StringList files;
+		CriticalSection cs;
+	} rechecker;
 
 	/** All queue items by target */
 	class FileQueue {
@@ -330,12 +353,14 @@ private:
 	/** Sanity check for the target filename */
 	static string checkTarget(const string& aTarget, int64_t aSize) throw(QueueException, FileException);
 	/** Add a source to an existing queue item */
-	bool addSource(QueueItem* qi, UserPtr aUser, Flags::MaskType addBad) throw(QueueException, FileException);
+	bool addSource(QueueItem* qi, const UserPtr& aUser, Flags::MaskType addBad) throw(QueueException, FileException);
 
 	void processList(const string& name, UserPtr& user, int flags);
 
 	void load(const SimpleXML& aXml);
 	void moveFile(const string& source, const string& target);
+	void moveStuckFile(QueueItem* qi);
+	void rechecked(QueueItem* qi);
 
 	void setDirty();
 
@@ -359,5 +384,5 @@ private:
 
 /**
  * @file
- * $Id: QueueManager.h 419 2008-08-18 07:38:25Z BigMuscle $
+ * $Id: QueueManager.h 429 2009-02-06 17:26:54Z BigMuscle $
  */

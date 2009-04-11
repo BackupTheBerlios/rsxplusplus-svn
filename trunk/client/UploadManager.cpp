@@ -261,23 +261,22 @@ ok:
 
 	Lock l(cs);
 
-	bool extraSlot = false;
-	bool partialSlot = false;
+	uint8_t slotType = aSource.getSlotType();
 	
-	if(!aSource.isSet(UserConnection::FLAG_HASSLOT)) {
-		bool hasReserved = (reservedSlots.find(aSource.getUser()) != reservedSlots.end());
+	if(slotType != UserConnection::STDSLOT) {
+		bool hasReserved = reservedSlots.find(aSource.getUser()) != reservedSlots.end();
 		bool isFavorite = FavoriteManager::getInstance()->hasSlot(aSource.getUser());
 		bool hasFreeSlot = (getFreeSlots() > 0) && ((waitingUsers.empty() && connectingUsers.empty()) || isConnecting(aSource.getUser()));
 			
 		if(!(hasReserved || isFavorite || getAutoSlot() || hasFreeSlot)) {
 			bool supportsFree = aSource.isSet(UserConnection::FLAG_SUPPORTS_MINISLOTS);
-			bool allowedFree = aSource.isSet(UserConnection::FLAG_HASEXTRASLOT) || aSource.isSet(UserConnection::FLAG_OP) || getFreeExtraSlots() > 0;
+			bool allowedFree = aSource.isSet(UserConnection::FLAG_OP) || getFreeExtraSlots() > 0;
 			bool partialFree = partial && extraPartial < SETTING(EXTRA_PARTIAL_SLOTS);
 			
 			if(free && supportsFree && allowedFree) {
-				extraSlot = true;
+				slotType = UserConnection::EXTRASLOT;
 			} else if(partialFree) {
-				partialSlot = true;
+				slotType = UserConnection::PARTIALSLOT;
 			} else {
 				delete is;
 				aSource.maxedOut(addFailedUpload(aSource.getUser(), sourceFile, aStartPos, fileSize));
@@ -285,12 +284,16 @@ ok:
 				return false;
 			}
 		} else {
-			clearUserFiles(aSource.getUser());
+			slotType = UserConnection::STDSLOT;
 		}
 
 		setLastGrant(GET_TICK());
 	}
-
+	
+	// remove file from upload queue
+	clearUserFiles(aSource.getUser());
+	
+	// remove user from connecting list
 	SlotIter cu = connectingUsers.find(aSource.getUser());
 	if(cu != connectingUsers.end()) {
 		connectingUsers.erase(cu);
@@ -331,22 +334,22 @@ ok:
 
 	throttleSetup();
 
-	if(!aSource.isSet(UserConnection::FLAG_HASSLOT)) {
-		if(partialSlot) {
-			extraPartial++;
-		} else if(extraSlot) {
-			if(!aSource.isSet(UserConnection::FLAG_HASEXTRASLOT)) {
-				aSource.setFlag(UserConnection::FLAG_HASEXTRASLOT);
-				extra++;
-			}
-		} else {
-			if(aSource.isSet(UserConnection::FLAG_HASEXTRASLOT)) {
-				aSource.unsetFlag(UserConnection::FLAG_HASEXTRASLOT);
-				extra--;
-			}
-			aSource.setFlag(UserConnection::FLAG_HASSLOT);
-			running++;
+	if(aSource.getSlotType() != slotType) {
+		// remove old count
+		switch(aSource.getSlotType()) {
+			case UserConnection::STDSLOT: running--; break;
+			case UserConnection::EXTRASLOT: extra--; break;
+			case UserConnection::PARTIALSLOT: extraPartial--; break;
 		}
+		// set new slot count
+		switch(slotType) {
+			case UserConnection::STDSLOT: running++; break;
+			case UserConnection::EXTRASLOT: extra++; break;
+			case UserConnection::PARTIALSLOT: extraPartial++; break;
+		}
+		
+		// user got a slot
+		aSource.setSlotType(slotType);
 	}
 
 	return true;
@@ -390,13 +393,13 @@ void UploadManager::removeUpload(Upload* aUpload, bool delay) {
 	}
 }
 
-void UploadManager::reserveSlot(const UserPtr& aUser, uint64_t aTime) {
+void UploadManager::reserveSlot(const UserPtr& aUser, uint64_t aTime, const string& hubHint) {
 	{
 		Lock l(cs);
 		reservedSlots[aUser] = GET_TICK() + aTime*1000;
 	}
 	if(aUser->isOnline())
-		ClientManager::getInstance()->connect(aUser, Util::toString(Util::rand()));	
+		ClientManager::getInstance()->connect(aUser, Util::toString(Util::rand()), hubHint);	
 }
 
 void UploadManager::unreserveSlot(const UserPtr& aUser) {
@@ -573,14 +576,14 @@ void UploadManager::addConnection(UserConnectionPtr conn) {
 void UploadManager::removeConnection(UserConnection* aSource) {
 	dcassert(aSource->getUpload() == NULL);
 	aSource->removeListener(this);
-	if(aSource->isSet(UserConnection::FLAG_HASSLOT)) {
-		running--;
-		aSource->unsetFlag(UserConnection::FLAG_HASSLOT);
+
+	// slot lost
+	switch(aSource->getSlotType()) {
+		case UserConnection::STDSLOT: running--; break;
+		case UserConnection::EXTRASLOT: extra--; break;
+		case UserConnection::PARTIALSLOT: extraPartial--; break;
 	}
-	if(aSource->isSet(UserConnection::FLAG_HASEXTRASLOT)) {
-		extra--;
-		aSource->unsetFlag(UserConnection::FLAG_HASEXTRASLOT);
-	}
+	aSource->setSlotType(UserConnection::NOSLOT);
 }
 
 void UploadManager::notifyQueuedUsers() {
@@ -590,13 +593,15 @@ void UploadManager::notifyQueuedUsers() {
 	if(freeslots > 0)
 	{
 		freeslots -= connectingUsers.size();
-		while(freeslots > 0){
+		while(freeslots > 0) {
 			// let's keep him in the connectingList until he asks for a file
 			UserPtr u = waitingUsers.front().first;
 			clearUserFiles(u);
 			
 			connectingUsers[u] = GET_TICK();
-			ClientManager::getInstance()->connect(u, Util::toString(Util::rand()));
+			
+			// TODO hubHint
+			ClientManager::getInstance()->connect(u, Util::toString(Util::rand()), Util::emptyString);
 
 			freeslots--;
 		}
@@ -848,5 +853,5 @@ void UploadManager::abortUpload(const string& aFile, bool waiting){
 
 /**
  * @file
- * $Id: UploadManager.cpp 414 2008-08-01 19:16:45Z BigMuscle $
+ * $Id: UploadManager.cpp 427 2009-01-10 19:29:09Z BigMuscle $
  */

@@ -50,11 +50,6 @@ public:
 	void send(const AdcCommand& cmd);
 
 	string getMySID() { return AdcCommand::fromSID(sid); }
-	//RSX++
-	static void addFeature(const string& feat) {
-		extraSup.push_back(feat);
-	}
-	//END
 private:
 	friend class ClientManager;
 	friend class CommandHandler<AdcHub>;
@@ -73,14 +68,14 @@ private:
 	tstring startChecking(const tstring& aParams) { return users.startChecking(this, aParams); }
 	void stopChecking()	{ users.stopCheck(); }
 	void stopMyINFOCheck() { users.stopMyINFOCheck(); }
-
-	static StringList extraSup;
 	//END
 
 	void getUserList(OnlineUserList& list) const {
 		Lock l(cs);
 		for(SIDIter i = users.begin(); i != users.end(); i++) {
-			list.push_back(i->second);
+			if(i->first != AdcCommand::HUB_SID) {
+				list.push_back(i->second);
+			}
 		}
 	}
 
@@ -160,5 +155,5 @@ private:
 
 /**
  * @file
- * $Id: AdcHub.h 411 2008-07-20 22:39:42Z BigMuscle $
+ * $Id: AdcHub.h 424 2008-11-17 12:17:46Z BigMuscle $
  */

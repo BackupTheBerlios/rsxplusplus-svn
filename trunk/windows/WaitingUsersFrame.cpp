@@ -187,17 +187,18 @@ LRESULT WaitingUsersFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lP
 	OMenu contextMenu;
 	contextMenu.CreatePopupMenu();
 	contextMenu.InsertSeparatorFirst(CTSTRING(WAITING_USERS));
-	appendUserItems(contextMenu);
-	contextMenu.AppendMenu(MF_SEPARATOR);
-	contextMenu.AppendMenu(MF_STRING, IDC_REMOVE, CTSTRING(REMOVE));
 
 	if(reinterpret_cast<HWND>(wParam) == ctrlList && ctrlList.GetSelectedCount() > 0) {
      	if(pt.x == -1 && pt.y == -1) {
     		WinUtil::getContextMenuPos(ctrlList, pt);
     	}
+    	
+		appendUserItems(contextMenu);
+		contextMenu.AppendMenu(MF_SEPARATOR);
+		contextMenu.AppendMenu(MF_STRING, IDC_REMOVE, CTSTRING(REMOVE));
 		contextMenu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, pt.x, pt.y, m_hWnd);
 		return TRUE;
-	} else if(reinterpret_cast<HWND>(wParam) == ctrlQueued && ctrlQueued.GetSelectedItem() != NULL) {
+	} else if(usingUserMenu && ctrlQueued.GetSelectedItem() != NULL) {
      	if(pt.x == -1 && pt.y == -1) {
     		WinUtil::getContextMenuPos(ctrlQueued, pt);
     	} else {
@@ -205,14 +206,18 @@ LRESULT WaitingUsersFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lP
     		ctrlQueued.ScreenToClient(&pt);
 			HTREEITEM ht = ctrlQueued.HitTest(pt, &a);
 			
-			if(ht == rootItem)
+			if(!ht || ht == rootItem)
 				return FALSE;
 				
-			if(ht != NULL && ht != ctrlQueued.GetSelectedItem())
+			if(ht != ctrlQueued.GetSelectedItem())
 				ctrlQueued.SelectItem(ht);
     
 			ctrlQueued.ClientToScreen(&pt);
         }
+		
+		appendUserItems(contextMenu);
+		contextMenu.AppendMenu(MF_SEPARATOR);
+		contextMenu.AppendMenu(MF_STRING, IDC_REMOVE, CTSTRING(REMOVE));        
 		contextMenu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, pt.x, pt.y, m_hWnd);
 		return TRUE;
 	}	

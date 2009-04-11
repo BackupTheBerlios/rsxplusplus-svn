@@ -66,7 +66,7 @@ size_t HashBloom::pos(const TTHValue& tth, size_t n) const {
 			x |= (1i64 << i);
 		}
 	}
-	return x % bloom.size();
+	return static_cast<size_t>(x % bloom.size());
 }
 
 void HashBloom::copy_to(ByteVector& v) const {

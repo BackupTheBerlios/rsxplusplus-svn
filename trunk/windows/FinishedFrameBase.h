@@ -276,7 +276,8 @@ public:
 			FinishedItem *ii = ctrlList.getItemData(i);
 			if(ii->getUser() && ii->getUser()->isOnline()) {
 				try {
-					QueueManager::getInstance()->addList(ii->getUser(), QueueItem::FLAG_CLIENT_VIEW);
+					// TODO hubHint
+					QueueManager::getInstance()->addList(ii->getUser(), Util::emptyString, QueueItem::FLAG_CLIENT_VIEW);
 				} catch(const Exception&) {
 				}
 			} else {
@@ -291,7 +292,8 @@ public:
 		if((i = ctrlList.GetNextItem(-1, LVNI_SELECTED)) != -1) {
 			FinishedItem *ii = ctrlList.getItemData(i);
 			if(ii->getUser() && ii->getUser()->isOnline()) {
-				UploadManager::getInstance()->reserveSlot(ii->getUser(), 600);
+				// TODO hubHint
+				UploadManager::getInstance()->reserveSlot(ii->getUser(), 600, Util::emptyString);
 			} else {
 				addStatusLine(TSTRING(USER_OFFLINE));
 			}
@@ -418,5 +420,5 @@ int FinishedItem::imageIndex() const { return WinUtil::getIconIndex(Text::toT(ge
 
 /**
 * @file
-* $Id: FinishedFrameBase.h 393 2008-06-25 18:33:20Z BigMuscle $
+* $Id: FinishedFrameBase.h 427 2009-01-10 19:29:09Z BigMuscle $
 */

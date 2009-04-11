@@ -94,7 +94,7 @@ public:
 
 		GETSET(PartsInfo, partialInfo, PartialInfo);
 		GETSET(string, myNick, MyNick);			// for NMDC support only
-		GETSET(string, hubIpPort, HubIpPort);	// for NMDC support only
+		GETSET(string, hubIpPort, HubIpPort);
 		GETSET(string, ip, Ip);
 		GETSET(uint64_t, nextQueryTime, NextQueryTime);
 		GETSET(uint16_t, udpPort, UdpPort);
@@ -313,5 +313,5 @@ private:
 
 /**
 * @file
-* $Id: QueueItem.h 421 2008-09-03 17:20:45Z BigMuscle $
+* $Id: QueueItem.h 427 2009-01-10 19:29:09Z BigMuscle $
 */

@@ -92,7 +92,7 @@ LRESULT PrivateFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 	return 1;
 }
 
-void PrivateFrame::gotMessage(const Identity& from, const UserPtr& to, const UserPtr& replyTo,  Client* client, const tstring& aMessage) {
+void PrivateFrame::gotMessage(const Identity& from, const UserPtr& to, const UserPtr& replyTo, const tstring& aMessage, Client* c) {
 	PrivateFrame* p = NULL;
 	bool myPM = replyTo == ClientManager::getInstance()->getMe();
 	const UserPtr& user = myPM ? to : replyTo;
@@ -100,10 +100,9 @@ void PrivateFrame::gotMessage(const Identity& from, const UserPtr& to, const Use
 	FrameIter i = frames.find(user);
 	if(i == frames.end()) {
 		if(frames.size() > 200) return;
-		p = new PrivateFrame(user);
+		p = new PrivateFrame(user, c);
 		frames[user] = p;
-		
-		p->ctrlClient.setClient(client);
+
 		p->ctrlClient.updateMyNick(); //RSX++
 		p->addLine(from, aMessage);
 
@@ -128,7 +127,7 @@ void PrivateFrame::gotMessage(const Identity& from, const UserPtr& to, const Use
 			}
 		}
 		//RSX++
-		if(RSXBOOLSETTING(FLASH_WINDOW_ON_PM)) {
+		if(RSXPP_BOOLSETTING(FLASH_WINDOW_ON_PM)) {
 			WinUtil::flashWindow();
 		}
 		//END
@@ -147,7 +146,7 @@ void PrivateFrame::gotMessage(const Identity& from, const UserPtr& to, const Use
 				}
 			}
 			//RSX++
-			if(RSXBOOLSETTING(FLASH_WINDOW_ON_PM) && !RSXBOOLSETTING(FLASH_WINDOW_ON_NEW_PM)){
+			if(RSXPP_BOOLSETTING(FLASH_WINDOW_ON_PM) && !RSXPP_BOOLSETTING(FLASH_WINDOW_ON_NEW_PM)){
 				WinUtil::flashWindow();
 			}
 			//END
@@ -156,18 +155,15 @@ void PrivateFrame::gotMessage(const Identity& from, const UserPtr& to, const Use
 	}
 }
 
-void PrivateFrame::openWindow(const UserPtr& replyTo, Client* client, const tstring& msg) {
+void PrivateFrame::openWindow(const UserPtr& replyTo, const tstring& msg, Client* c) {
 	PrivateFrame* p = NULL;
 	FrameIter i = frames.find(replyTo);
 	if(i == frames.end()) {
 		if(frames.size() > 200) return;
-		p = new PrivateFrame(replyTo);
+		p = new PrivateFrame(replyTo, c);
 		frames[replyTo] = p;
 		p->CreateEx(WinUtil::mdiClient);
-		if(client) {
-			p->ctrlClient.setClient(client);
-			p->ctrlClient.updateMyNick(); //RSX++
-		}
+		p->ctrlClient.updateMyNick(); //RSX++
 	} else {
 		p = i->second;
 		if(::IsIconic(p->m_hWnd))
@@ -329,7 +325,7 @@ void PrivateFrame::onEnter()
 			} else if((stricmp(s.c_str(), _T("clear")) == 0) || (stricmp(s.c_str(), _T("cls")) == 0)) {
 				ctrlClient.SetWindowText(_T(""));
 			} else if(stricmp(s.c_str(), _T("grant")) == 0) {
-				UploadManager::getInstance()->reserveSlot(replyTo, 600);
+				UploadManager::getInstance()->reserveSlot(replyTo, 600, getHubHint());
 				addClientLine(TSTRING(SLOT_GRANTED));
 			} else if(stricmp(s.c_str(), _T("close")) == 0) {
 				PostMessage(WM_CLOSE);
@@ -385,11 +381,7 @@ void PrivateFrame::onEnter()
 }
 
 void PrivateFrame::sendMessage(const tstring& msg, bool thirdPerson) {
-	OnlineUserPtr ou = ClientManager::getInstance()->findOnlineUser(replyTo->getCID(), ctrlClient.getClient());
-	if(ou != NULL) {
-		ctrlClient.getClient()->privateMessage(ou, Text::fromT(msg), thirdPerson);
-	}
-	//ClientManager::getInstance()->privateMessage(replyTo, Text::fromT(msg), thirdPerson);
+	ClientManager::getInstance()->privateMessage(replyTo, Text::fromT(msg), thirdPerson, getHubHint());
 }
 
 LRESULT PrivateFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled) {
@@ -453,6 +445,11 @@ void PrivateFrame::addLine(const Identity& from, const tstring& aLine, CHARFORMA
 	}
 }
 
+LRESULT PrivateFrame::onEditClearAll(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+	ctrlClient.SetWindowText(_T(""));
+	return 0;
+}
+
 LRESULT PrivateFrame::onTabContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/) {
 	POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };        // location of mouse click 
 
@@ -492,13 +489,13 @@ void PrivateFrame::runUserCommand(UserCommand& uc) {
 }
 
 LRESULT PrivateFrame::onReport(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
-	ClientManager::getInstance()->reportUser(replyTo);
+	ClientManager::getInstance()->reportUser(replyTo, getHubHint());
 	return 0;
 }
 
 LRESULT PrivateFrame::onGetUserResponses(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
 	try {
-		QueueManager::getInstance()->addTestSUR(replyTo, false);
+		QueueManager::getInstance()->addTestSUR(replyTo, getHubHint());
 	} catch(const Exception& e) {
 		LogManager::getInstance()->message(e.getError());		
 	}
@@ -508,7 +505,7 @@ LRESULT PrivateFrame::onGetUserResponses(WORD /*wNotifyCode*/, WORD /*wID*/, HWN
 
 LRESULT PrivateFrame::onCheckList(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
 	try {
-		QueueManager::getInstance()->addList(replyTo, QueueItem::FLAG_CHECK_FILE_LIST);
+		QueueManager::getInstance()->addList(replyTo, getHubHint(), QueueItem::FLAG_CHECK_FILE_LIST);
 	} catch(const Exception& e) {
 		LogManager::getInstance()->message(e.getError());		
 	}
@@ -518,7 +515,7 @@ LRESULT PrivateFrame::onCheckList(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 
 LRESULT PrivateFrame::onGetList(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
 	try {
-		QueueManager::getInstance()->addList(replyTo, QueueItem::FLAG_CLIENT_VIEW);
+		QueueManager::getInstance()->addList(replyTo, getHubHint(), QueueItem::FLAG_CLIENT_VIEW);
 	} catch(const Exception& e) {
 		addClientLine(Text::toT(e.getError()));
 	}
@@ -527,7 +524,7 @@ LRESULT PrivateFrame::onGetList(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndC
 
 LRESULT PrivateFrame::onMatchQueue(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
 	try {
-		QueueManager::getInstance()->addList(replyTo, QueueItem::FLAG_MATCH_QUEUE);
+		QueueManager::getInstance()->addList(replyTo, getHubHint(), QueueItem::FLAG_MATCH_QUEUE);
 	} catch(const Exception& e) {
 		addClientLine(Text::toT(e.getError()));
 	}
@@ -545,7 +542,7 @@ LRESULT PrivateFrame::onGrantSlot(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl
 	}
 	
 	if(time > 0)
-		UploadManager::getInstance()->reserveSlot(replyTo, time);
+		UploadManager::getInstance()->reserveSlot(replyTo, time, getHubHint());
 	else
 		UploadManager::getInstance()->unreserveSlot(replyTo);
 
@@ -627,6 +624,7 @@ void PrivateFrame::updateTitle() {
 			addClientLine(status);
 		}
 		isoffline = true;
+		ctrlClient.setClient(NULL);
 	}
 	SetWindowText((WinUtil::getNicks(replyTo) + _T(" - ") + hubs.first).c_str());
 }
@@ -823,5 +821,5 @@ string PrivateFrame::getCustomAway() const {
 
 /**
  * @file
- * $Id: PrivateFrame.cpp 423 2008-11-08 17:12:32Z BigMuscle $
+ * $Id: PrivateFrame.cpp 428 2009-02-01 18:14:42Z BigMuscle $
  */

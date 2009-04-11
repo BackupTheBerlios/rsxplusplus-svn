@@ -28,6 +28,9 @@
 #include "ResourceManager.h"
 #include "ClientManager.h"
 //RSX++
+#include "cstring.hpp"
+#include "PluginsManager.h"
+#include "ScriptManager.h"
 #include "RawManager.h"
 #include "version.h"
 #include "Thread.h"
@@ -293,7 +296,7 @@ string Client::getCurrentDescription() const {
 	return currentDescription;
 #endif
 }
-//RSX++
+
 void Client::sendActionCommand(const OnlineUser& ou, int actionId) {
 	if(!isConnected() || (userCount < getUsersLimit()))
 		return;
@@ -302,7 +305,47 @@ void Client::sendActionCommand(const OnlineUser& ou, int actionId) {
 
 bool Client::isActionActive(const int aAction) const {
 	FavoriteHubEntry* hub = FavoriteManager::getInstance()->getFavoriteHubEntry(getHubUrl());
-	return hub ? FavoriteManager::getInstance()->getActifAction(hub, aAction) : true;
+	return hub ? FavoriteManager::getInstance()->getEnabledAction(hub, aAction) : true;
+}
+
+bool Client::extOnMsgIn(const std::string& msg) {
+	bool plugin = PluginsManager::getInstance()->plugEvent(DCPP_HUB_MSG_IN, (void*)this, (void*)msg.c_str(), 0) == DCPP_DROP_EVENT;
+	bool script = ScriptManager::getInstance()->onHubMsgIn(this, msg);
+	return plugin || script;
+}
+
+bool Client::extOnMsgOut(const std::string& msg) {
+	bool plugin = PluginsManager::getInstance()->plugEvent(DCPP_HUB_MSG_OUT, (void*)this, (void*)msg.c_str(), 0) == DCPP_DROP_EVENT;
+	bool script = ScriptManager::getInstance()->onHubMsgOut(this, msg);
+	return plugin || script;
+}
+
+bool Client::extOnPmIn(OnlineUser* from, OnlineUser* to, OnlineUser* replyTo, const std::string& msg, bool thirdPerson) {
+	if(ClientManager::getInstance()->getMe() == from->getUser()) return false;
+	DCPP_DATA_PACK p1;
+	DCPP_DATA_PACK p2;
+
+	p1.p1 = (void*)from;
+	p1.p2 = (void*)to;
+	p1.p3 = (void*)replyTo;
+	p2.p1 = (void*)this;
+	p2.p2 = (void*)msg.c_str();
+	p2.p3 = (void*)thirdPerson;
+
+	bool plugin = PluginsManager::getInstance()->plugEvent(DCPP_HUB_PRIVATE_MSG_IN, &p1, &p2, 0) == DCPP_DROP_EVENT;
+	bool script = ScriptManager::getInstance()->onPmMsgIn(this, from, to, replyTo, msg, thirdPerson);
+	return plugin || script;
+}
+
+bool Client::extOnPmOut(OnlineUser* to, const std::string& msg, bool thirdPerson) {
+	DCPP_DATA_PACK p;
+	p.p1 = (void*)this;
+	p.p2 = (void*)to;
+	p.p3 = (void*)msg.c_str();
+
+	bool plugin = PluginsManager::getInstance()->plugEvent(DCPP_HUB_PRIVATE_MSG_OUT, &p, (void*)thirdPerson, 0) == DCPP_DROP_EVENT;
+	bool script = ScriptManager::getInstance()->onPmMsgOut(this, to, msg, thirdPerson);
+	return plugin || script;
 }
 //END
 

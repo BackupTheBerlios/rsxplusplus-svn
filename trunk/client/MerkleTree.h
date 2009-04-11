@@ -234,6 +234,32 @@ private:
 
 } // namespace dcpp
 
+#if defined(USE_BOOST_UNORDERED)
+namespace boost {
+template<>
+struct hash<dcpp::TTHValue> {
+	size_t operator()(const dcpp::TTHValue& rhs) const {
+		return *reinterpret_cast<const size_t*>(rhs.data);
+	}
+};
+
+template<>
+struct hash<dcpp::TTHValue*> {
+	size_t operator()(const dcpp::TTHValue* rhs) const {
+		return *reinterpret_cast<const size_t*>(rhs);
+	}
+};
+} // namespace boost
+namespace std {
+template<>
+struct equal_to<dcpp::TTHValue*> {
+	bool operator()(const dcpp::TTHValue* lhs, const dcpp::TTHValue* rhs) const {
+		return (*lhs) == (*rhs);
+	}
+};
+} // namespace std
+#endif // USE_BOOST_ORDERED
+
 #endif // !defined(MERKLE_TREE_H)
 
 /**

@@ -364,5 +364,5 @@ private:
 
 /**
  * @file
- * $Id: ADLSearch.h 403 2008-07-10 21:27:57Z BigMuscle $
+ * $Id: ADLSearch.h 412 2008-07-23 22:35:40Z BigMuscle $
   */

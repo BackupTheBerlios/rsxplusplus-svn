@@ -29,7 +29,7 @@
 #include "DebugManager.h"
 #include "SearchQueue.h"
 //RSX++
-#include "../rsx/rsx-settings/rsx-SettingsManager.h"
+#include "rsxppSettingsManager.h"
 #include "CommandQueue.h"
 #include "HubSettings.h"
 //END
@@ -69,7 +69,22 @@ public:
 	virtual void refreshUserList(bool) = 0;
 	virtual void getUserList(OnlineUserList& list) const = 0;
 	virtual OnlineUserPtr findUser(const string& aNick) const = 0;
-	
+	//RSX++ for lua bindings
+	inline OnlineUser* findOnlineUser(const string& aNick) {
+		OnlineUserPtr ou = findUser(aNick);
+		if(ou)
+			return ou.get();
+		return NULL;
+	}
+	/*inline vector<OnlineUser*> getUsers() {
+		OnlineUserList l;
+		getUserList(l);
+		vector<OnlineUser*> v;
+		for(OnlineUserList::iterator i = l.begin(); i != l.end(); ++i)
+			v.push_back(i.get());
+	}*/
+	//END
+
 	uint16_t getPort() const { return port; }
 	const string& getAddress() const { return address; }
 
@@ -84,11 +99,18 @@ public:
 	virtual void stopMyINFOCheck() = 0;
 
 	void attention() { fire(ClientListener::Attention(), this); }
-	void addHubLine(const string& aMsg, int mType) { fire(ClientListener::AddClientLine(), this, aMsg, mType); }
+	void closeHub() { fire(ClientListener::Close(), this); }
+	void redirect(const std::string& url) { disconnect(true); fire(ClientListener::Redirect(), this, url); }
+	void addHubLine(const string& aMsg, int mType = 0) { fire(ClientListener::AddClientLine(), this, aMsg, mType); }
 	void sendActionCommand(const OnlineUser& ou, int actionId);
 	void putDetectors() { stopMyINFOCheck(); stopChecking(); setCheckedAtConnect(false); }
 	bool isActionActive(const int aAction) const;
 
+	bool extOnMsgIn(const std::string& msg);
+	bool extOnMsgOut(const std::string& msg);
+	bool extOnPmIn(OnlineUser* from, OnlineUser* to, OnlineUser* replyTo, const std::string& msg, bool thirdPerson);
+	bool extOnPmOut(OnlineUser* to, const std::string& msg, bool thirdPerson);
+	//END
 	static int getTotalCounts() {
 		return counts.normal + counts.registered + counts.op;
 	}
@@ -131,14 +153,13 @@ public:
 
 	Identity& getHubIdentity() { return hubIdentity; }
 	Identity& getMyIdentity() { return myIdentity; }
+	//Identity& getMe() { return myIdentity; }
 
 	const string& getHubUrl() const { return hubUrl; }
 
+	GETSET(string, defpassword, Password);
 	GETSET(Identity, myIdentity, MyIdentity);
 	GETSET(Identity, hubIdentity, HubIdentity);
-
-	GETSET(string, defpassword, Password);
-
 	GETSET(string, currentNick, CurrentNick);
 	//RSX++
 	GETSET(bool, checkedAtConnect, CheckedAtConnect);
@@ -171,10 +192,12 @@ public:
 	GETSET(bool, stealth, Stealth);
 
 	mutable CriticalSection cs; //RSX++
-protected:
-	friend class ClientManager;
-	Client(const string& hubURL, char separator, bool secure_);
 	virtual ~Client() throw();
+
+protected:
+	Client(const string& hubURL, char separator, bool secure_);
+
+	friend class ClientManager;
 	struct Counts {
 		Counts(long n = 0, long r = 0, long o = 0) : normal(n), registered(r), op(o) { }
 		volatile long normal;

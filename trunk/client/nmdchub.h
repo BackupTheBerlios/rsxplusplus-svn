@@ -68,11 +68,7 @@ public:
 			list.push_back(i->second);
 		}
 	}
-	//RSX++
-	static void addFeature(const string& feat) {
-		extraSup.push_back(feat);
-	}
-	//END
+	
 private:
 	friend class ClientManager;
 	enum SupportFlags {
@@ -92,8 +88,6 @@ private:
 	tstring startChecking(const tstring& aParams) { return users.startChecking(this, aParams); }
 	void stopChecking()	{ users.stopCheck(); }
 	void stopMyINFOCheck() { users.stopMyINFOCheck(); }
-
-	static StringList extraSup;
 	//END
 
 	string lastMyInfo;
@@ -152,5 +146,5 @@ private:
 
 /**
  * @file
- * $Id: nmdchub.h 423 2008-11-08 17:12:32Z BigMuscle $
+ * $Id: nmdchub.h 425 2008-12-24 22:17:02Z BigMuscle $
  */

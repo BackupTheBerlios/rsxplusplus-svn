@@ -35,6 +35,7 @@ public:
 	typedef X<22> AddClientLine;
 	typedef X<23> RawMessage;
 	typedef X<24> Attention;
+	typedef X<25> Close;
 	//END
 
 	enum StatusFlags {
@@ -66,6 +67,7 @@ public:
 	virtual void on(AddClientLine, const Client*, const string&, int) throw() { }
 	virtual void on(RawMessage, Client*, const string&) throw() { }
 	virtual void on(Attention, Client*) throw() { }
+	virtual void on(Close, Client*) throw() { }
 	//END
 };
 

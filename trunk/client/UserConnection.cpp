@@ -28,6 +28,7 @@
 #include "Transfer.h"
 #include "DebugManager.h"
 //RSX++
+#include "ScriptManager.h"
 #include "Download.h"
 //END
 
@@ -56,6 +57,8 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) throw
 
 	COMMAND_DEBUG(aLine, DebugManager::CLIENT_IN, getRemoteIp());
 
+	if(ScriptManager::getInstance()->onConnectionIn(this, aLine)) return; //RSX++ //@todo set nmdc flag before it
+
 	if(aLine[0] == 'C' && !isSet(FLAG_NMDC)) {
 		dispatch(aLine);
 		return;
@@ -69,6 +72,7 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) throw
 		disconnect(true);
 		return;
 	}
+
 	string cmd;
 	string param;
 
@@ -266,7 +270,11 @@ void UserConnection::updateChunkSize(int64_t leafSize, int64_t lastChunk, uint64
 	
 	chunkSize = targetSize;
 }
-
+//RSX++
+bool UserConnection::callLua(const string& line) {
+	return ScriptManager::getInstance()->onConnectionOut(this, line);
+}
+//END
 } // namespace dcpp
 
 /**

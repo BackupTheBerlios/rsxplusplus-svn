@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
-// Used by w:\Visual Studio Projects\rsxplusplus\trunk\RSXPlusPlus.rc
+// Used by W:\Visual Studio Projects\rsxplusplus\trunk\RSXPlusPlus.rc
 //
 #define IDD_ABOUTBOX                    100
 #define IDC_FILETYPES                   101
@@ -185,6 +185,7 @@
 #define IDC_VERSION                     1021
 #define IDC_GETLIST                     1022
 #define IDC_ROLLBACK                    1022
+#define IDC_RECHECK                     1023
 #define IDC_EDIT                        1026
 #define IDC_NOTEPAD                     1027
 #define IDC_AWAY                        1028
@@ -320,6 +321,7 @@
 #define IDC_SETTINGS_SOCKS5_USERNAME    1142
 #define IDC_SETTINGS_SOCKS5_PASSWORD    1143
 #define IDC_SETTINGS_UPLOAD_SPEED       1143
+#define IDC_SETTINGS_UPLOAD_LINE_SPEED  1143
 #define IDC_SETTINGS_DIRECTORIES        1144
 #define IDC_SETTINGS_INCOMING           1144
 #define IDC_SETTINGS_UPLOAD_SPEED2      1144
@@ -874,6 +876,7 @@
 #define IDC_FILELIST_DIFF               1406
 #define IDC_SETTINGS_MEBIBYES           1406
 #define IDC_PM_TIME_SPIN                1406
+#define IDC_SETTINGS_MEBIBITS           1406
 #define IDC_RAW_SENDER_SLEEP_TIME       1407
 #define IDC_STYLES                      1408
 #define IDC_RAW_SENDER_SLEEP_TIME_SPIN  1408
@@ -973,6 +976,7 @@
 #define IDC_DETECTION_ITEM_CHANGE       1511
 #define IDC_ID_EDIT                     1511
 #define IDCOK                           1511
+#define IDC_PARENT_ADD                  1511
 #define IDC_CHECK_DELAY                 1512
 #define IDC_REGEX_TESTER                1513
 #define IDC_LEVEL                       1514
@@ -986,7 +990,17 @@
 #define IDC_SAMPLE_TAB_COLOR            1524
 #define IDC_CHAT_BUF_SIZE               1524
 #define IDC_RESET_TAB_COLOR             1525
+#define IDC_PARENT_REM                  1525
 #define IDC_SELECT_STYLES               1526
+#define IDC_CHILD_ADD                   1526
+#define IDC_CHILD_REM                   1527
+#define IDC_CHILD_UP                    1528
+#define IDC_CHILD_DOWN                  1529
+#define IDC_ACTIONS                     1530
+#define IDC_CHILD_EDIT                  1531
+#define IDC_PARENT_EDIT                 1532
+#define IDC_BUTTON3                     1533
+#define IDC_EXPAND                      1533
 #define WEBSERVER_SOCKET_MESSAGE        1543
 #define IDC_AUTOPRIORITY                1572
 #define IDC_SETTINGS_ODC_MENUBAR        1612
@@ -994,6 +1008,7 @@
 #define IDC_SETTINGS_ODC_MENUBAR_COLOR  1614
 #define IDC_PROGRESS_COLOR_DOWN_SHOW    1616
 #define IDC_PROGRESS_COLOR_UP_SHOW      1617
+#define IDC_OPEN_DIR                    1618
 #define IDC_PREVIEW_APP                 1700
 #define IDC_DISCONNECT_RAW              2187
 #define IDC_TIMEOUT_RAW                 2188
@@ -1278,7 +1293,7 @@
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        354
 #define _APS_NEXT_COMMAND_VALUE         32808
-#define _APS_NEXT_CONTROL_VALUE         1525
+#define _APS_NEXT_CONTROL_VALUE         1534
 #define _APS_NEXT_SYMED_VALUE           134
 #endif
 #endif

@@ -272,6 +272,7 @@ static void checkCommonControls() {
 	if(dwVersion < PACKVERSION(5,80)) {
 		MessageBox(NULL, _T("Your version of windows common controls is too old for RSX++ to run correctly, and you will most probably experience problems with the user interface. You should download version 5.80 or higher from the DC++ homepage or from Microsoft directly."), _T("User Interface Warning"), MB_OK);
 	}
+#undef PACKVERSION
 }
 
 static HWND hWnd;

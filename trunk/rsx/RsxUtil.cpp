@@ -22,7 +22,7 @@
 #include "../client/Util.h"
 #include "../client/Text.h"
 #include "../client/ResourceManager.h"
-#include "rsx-settings/rsx-SettingsManager.h"
+#include "../client/rsxppSettingsManager.h"
 
 namespace dcpp {
 
@@ -299,8 +299,8 @@ tstring RsxUtil::formatAdditionalInfo(const string& aIp, bool sIp, bool sCC) {
 
 	if(!aIp.empty()) {
 		string cc = Util::getIpCountry(aIp);
-		bool showIp = RSXBOOLSETTING(IP_IN_CHAT) || sIp;
-		bool showCc = (RSXBOOLSETTING(COUNTRY_IN_CHAT) || sCC) && !cc.empty();
+		bool showIp = RSXPP_BOOLSETTING(IP_IN_CHAT) || sIp;
+		bool showCc = (RSXPP_BOOLSETTING(COUNTRY_IN_CHAT) || sCC) && !cc.empty();
 
 		if(showIp) {
 			ret = "[ " + aIp + " ] ";

@@ -93,7 +93,7 @@ const string SettingsManager::settingTags[] =
 	"UploadLimitTime", "DownloadLimitTime", "TimeThrottle", "TimeLimitStart", "TimeLimitEnd",
 	"RemoveForbidden", "ProgressTextDown", "ProgressTextUp", "ShowInfoTips", "ExtraDownloadSlots",
 	"MinimizeOnStratup", "ConfirmDelete", "DefaultSearchFreeSlots", "SendUnknownCommands",
-	"ExtensionDownTo", "ErrorColor", "ExpandQueue", "TransferSplitSize",
+	"ErrorColor", "ExpandQueue", "TransferSplitSize",
 	"DisconnectSpeed", "DisconnectFileSpeed", "DisconnectTime", "RemoveSpeed",
 	"ProgressOverrideColors", "Progress3DDepth", "ProgressOverrideColors2",
 	"MenubarTwoColors", "MenubarLeftColor", "MenubarRightColor", "MenubarBumped", 
@@ -369,7 +369,6 @@ SettingsManager::SettingsManager()
 	setDefault(SHOW_INFOTIPS, true);
 	setDefault(MINIMIZE_ON_STARTUP, false);
 	setDefault(FREE_SLOTS_DEFAULT, false);
-	setDefault(USE_EXTENSION_DOWNTO, true);
 	setDefault(EXPAND_QUEUE, true);
 	setDefault(TRANSFER_SPLIT_SIZE, 8000);
 
@@ -781,5 +780,5 @@ const string& SettingsManager::getString(const string& sname) const {
 
 /**
  * @file
- * $Id: SettingsManager.cpp 404 2008-07-13 17:08:09Z BigMuscle $
+ * $Id: SettingsManager.cpp 425 2008-12-24 22:17:02Z BigMuscle $
  */

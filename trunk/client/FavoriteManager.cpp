@@ -35,6 +35,25 @@ namespace dcpp {
 
 std::map<uint32_t, StringPair> FavoriteManager::defHubSettings; //RSX++
 
+//RSX++
+FavoriteHubEntry::FavAction::FavAction(bool _enabled, string _raw /*= Util::emptyString*/, int id /*=0*/) throw() : enabled(_enabled) {
+	if(_raw.empty()) return;
+	StringTokenizer<string> tok(_raw, ',');
+	const Action* a = RawManager::getInstance()->findAction(id);
+	if(a != NULL) {
+		for(StringIter j = tok.getTokens().begin(); j != tok.getTokens().end(); ++j) {
+			int rId = Util::toInt(*j);
+			for(Action::RawsList::const_iterator i = a->raw.begin(); i != a->raw.end(); ++i) {
+				if(rId == i->getId()) {
+					raws.push_back(rId);
+					break;
+				}
+			}
+		}
+	}
+};
+//END
+
 FavoriteManager::FavoriteManager() : lastId(0), useHttp(false), running(false), c(NULL), lastServer(0), listType(TYPE_NORMAL), dontSave(false) {
 	SettingsManager::getInstance()->addListener(this);
 	ClientManager::getInstance()->addListener(this);
@@ -441,18 +460,18 @@ void FavoriteManager::save() {
 				xml.addChildAttrib("Field", string((const char*)&st->first, 4));
 				xml.addChildAttrib("Value", st->second);
 			}
-			for(FavoriteHubEntry::Action::List::const_iterator a = (*i)->action.begin(); a != (*i)->action.end(); ++a) {
+			for(FavoriteHubEntry::FavAction::List::const_iterator a = (*i)->action.begin(); a != (*i)->action.end(); ++a) {
 				if(RawManager::getInstance()->getValidAction(a->first)) {
 					string raw = Util::emptyString;
-					for(FavoriteHubEntry::Action::RawsList::const_iterator j = a->second->raw.begin(); j != a->second->raw.end(); ++j) {
+					for(std::list<int>::const_iterator j = a->second->raws.begin(); j != a->second->raws.end(); ++j) {
 						if(!raw.empty())
 							raw += ",";
-						raw += Util::toString(j->getRawId());
+						raw += Util::toString(*j);
 					}
-					if(!raw.empty() || a->second->getActif()) {
+					if(!raw.empty() || a->second->getEnabled()) {
 						xml.addTag("Action");
 						xml.addChildAttrib("ID", a->first);
-						xml.addChildAttrib("Active", Util::toString(a->second->getActif()));
+						xml.addChildAttrib("Active", Util::toString(a->second->getEnabled()));
 						xml.addChildAttrib("Raw", raw);
 					}
 				}
@@ -743,11 +762,11 @@ void FavoriteManager::load(SimpleXML& aXml) {
 			}
 			aXml.resetCurrentChild();
 			while(aXml.findChild("Action")) {
-				int actionId(aXml.getIntChildAttrib("ID"));
-				bool actif(aXml.getBoolChildAttrib("Active"));
-				string raw(aXml.getChildAttrib("Raw"));
+				int actionId = aXml.getIntChildAttrib("ID");
+				bool enabled = aXml.getBoolChildAttrib("Active");
+				const string& raw = aXml.getChildAttrib("Raw");
 				if(RawManager::getInstance()->getValidAction(actionId))
-					e->action.insert(make_pair(actionId, new FavoriteHubEntry::Action(actif, raw)));
+					e->action.insert(make_pair(actionId, new FavoriteHubEntry::FavAction(enabled, raw, actionId)));
 			}
 			aXml.stepOut();
 			//END
@@ -1116,72 +1135,72 @@ void FavoriteManager::dirsExSave(SimpleXML& aXml){
 	aXml.stepOut();
 }
 //RSX++ //Raw Manager
-bool FavoriteManager::getActifAction(FavoriteHubEntry* entry, int actionId) {
+bool FavoriteManager::getEnabledAction(FavoriteHubEntry* entry, int actionId) {
 	FavoriteHubEntry::Iter h = find(favoriteHubs.begin(), favoriteHubs.end(), entry);
 	if(h == favoriteHubs.end())
 		return false;
 
-	FavoriteHubEntry::Action::List::const_iterator i = (*h)->action.find(actionId);
+	FavoriteHubEntry::FavAction::List::const_iterator i = (*h)->action.find(actionId);
 	if(i != (*h)->action.end()) {
-		return i->second->getActif();
+		return i->second->getEnabled();
 	} else {
-		(*h)->action.insert(make_pair(actionId, new FavoriteHubEntry::Action(false)));
+		(*h)->action.insert(make_pair(actionId, new FavoriteHubEntry::FavAction(false)));
 		return false;
 	}
 }
 
-void FavoriteManager::setActifAction(FavoriteHubEntry* entry, int actionId, bool actif) {
+void FavoriteManager::setEnabledAction(FavoriteHubEntry* entry, int actionId, bool enabled) {
 	FavoriteHubEntry::Iter h = find(favoriteHubs.begin(), favoriteHubs.end(), entry);
 	if(h == favoriteHubs.end())
 		return;
 
-	FavoriteHubEntry::Action::List::iterator i = (*h)->action.find(actionId);
+	FavoriteHubEntry::FavAction::List::iterator i = (*h)->action.find(actionId);
 	if(i != (*h)->action.end()) {
-		i->second->setActif(actif);
+		i->second->setEnabled(enabled);
 		return;
 	}
-	if(actif)
-		(*h)->action.insert(make_pair(actionId, new FavoriteHubEntry::Action(true)));
+	if(enabled)
+		(*h)->action.insert(make_pair(actionId, new FavoriteHubEntry::FavAction(true)));
 }
 
-bool FavoriteManager::getActifRaw(FavoriteHubEntry* entry, int actionId, int rawId) {
+bool FavoriteManager::getEnabledRaw(FavoriteHubEntry* entry, int actionId, int rawId) {
 	FavoriteHubEntry::Iter h = find(favoriteHubs.begin(), favoriteHubs.end(), entry);
 	if(h == favoriteHubs.end())
 		return false;
 
-	FavoriteHubEntry::Action::List::const_iterator i = (*h)->action.find(actionId);
+	FavoriteHubEntry::FavAction::List::const_iterator i = (*h)->action.find(actionId);
 	if(i == (*h)->action.end())
 		return false;
-	for(FavoriteHubEntry::Action::RawsList::const_iterator j = i->second->raw.begin(); j != i->second->raw.end(); ++j) {
-		if(j->getRawId() == rawId) {
+	for(std::list<int>::const_iterator j = i->second->raws.begin(); j != i->second->raws.end(); ++j) {
+		if(*j == rawId) {
 			return true;
 		}
 	}
 	return false;
 }
 
-void FavoriteManager::setActifRaw(FavoriteHubEntry* entry, int actionId, int rawId, bool actif) {
+void FavoriteManager::setEnabledRaw(FavoriteHubEntry* entry, int actionId, int rawId, bool enabled) {
 	FavoriteHubEntry::Iter h = find(favoriteHubs.begin(), favoriteHubs.end(), entry);
 	if(h == favoriteHubs.end())
 		return;
 
-	FavoriteHubEntry::Action::List::const_iterator i = (*h)->action.find(actionId);
+	FavoriteHubEntry::FavAction::List::const_iterator i = (*h)->action.find(actionId);
 	if(i != (*h)->action.end()) {
-		for(FavoriteHubEntry::Action::RawsList::iterator j = i->second->raw.begin(); j != i->second->raw.end(); ++j) {
-			if(j->getRawId() == rawId) {
-				if(!actif)
-					i->second->raw.erase(j);
+		for(std::list<int>::iterator j = i->second->raws.begin(); j != i->second->raws.end(); ++j) {
+			if(*j == rawId) {
+				if(!enabled)
+					i->second->raws.erase(j);
 				return;
 			}
 		}
-		if(actif)
-			i->second->raw.push_back(FavoriteHubEntry::Action::Raw(rawId));
+		if(enabled)
+			i->second->raws.push_back(rawId);
 		return;
 	}
 
-	if(actif) {
-		FavoriteHubEntry::Action* act = (*h)->action.insert(make_pair(actionId, new FavoriteHubEntry::Action(true))).first->second;
-		act->raw.push_back(FavoriteHubEntry::Action::Raw(rawId));
+	if(enabled) {
+		FavoriteHubEntry::FavAction* act = (*h)->action.insert(make_pair(actionId, new FavoriteHubEntry::FavAction(true))).first->second;
+		act->raws.push_back(rawId);
 	}
 }
 //RSX++

@@ -46,7 +46,7 @@ PropPage::TextItem SharePage::texts[] = {
 PropPage::Item SharePage::items[] = {
 	{ IDC_SHAREHIDDEN, SettingsManager::SHARE_HIDDEN, PropPage::T_BOOL },
 	{ IDC_AUTO_REFRESH_TIME, SettingsManager::AUTO_REFRESH_TIME, PropPage::T_INT },
-	{ IDC_SKIPLIST_SHARE, RSXSettingsManager::SKIPLIST_SHARE, PropPage::T_STR_RSX }, //RSX++ //Share Skiplist
+	{ IDC_SKIPLIST_SHARE, rsxppSettingsManager::SKIPLIST_SHARE, PropPage::T_STR_RSX }, //RSX++ //Share Skiplist
 	{ 0, 0, PropPage::T_END }
 };
 

@@ -76,6 +76,7 @@ public:
 		COMMAND_ID_HANDLER(IDC_COLLAPSE_ALL, onCollapseAll)
 		COMMAND_ID_HANDLER(IDC_EXPAND_ALL, onExpandAll)
 		COMMAND_ID_HANDLER(IDC_MENU_SLOWDISCONNECT, onSlowDisconnect)
+		COMMAND_ID_HANDLER(IDC_OPEN_DIR, onOpenDirectory) //RSX++
 		MESSAGE_HANDLER_HWND(WM_INITMENUPOPUP, OMenu::onInitMenuPopup)
 		MESSAGE_HANDLER_HWND(WM_MEASUREITEM, OMenu::onMeasureItem)
 		MESSAGE_HANDLER_HWND(WM_DRAWITEM, OMenu::onDrawItem)
@@ -96,6 +97,7 @@ public:
 	LRESULT onSlowDisconnect(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT onPreviewCommand(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT onWhoisIP(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+	LRESULT onOpenDirectory(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/); //RSX++
 
 	void runUserCommand(UserCommand& uc);
 	void prepareClose();

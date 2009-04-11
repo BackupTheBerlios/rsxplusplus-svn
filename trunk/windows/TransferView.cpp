@@ -214,6 +214,8 @@ LRESULT TransferView::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
 				}
 			}
 		}
+		if(!ii->target.empty())
+			transferMenu.AppendMenu(MF_STRING, IDC_OPEN_DIR, _T("Open containing directory")); // RSX++
 
 		transferMenu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, pt.x, pt.y, m_hWnd);
 		return TRUE; 
@@ -590,21 +592,21 @@ LRESULT TransferView::onDoubleClickTransfers(int /*idCtrl*/, LPNMHDR pnmh, BOOL&
 		if(i->parent != NULL || children.size() <= 1) {
 			switch(SETTING(TRANSFERLIST_DBLCLICK)) {
 				case 0:
-					i->pm();
+					i->pm(Util::emptyString);
 					break;
 				case 1:
-					i->getList();
+					i->getList(Util::emptyString);
 					break;
 				case 2:
-					i->matchQueue();
+					i->matchQueue(Util::emptyString);
 				case 3:
-					i->grant();
+					i->grant(Util::emptyString);
 					break;
 				case 4:
 					i->addFav();
 					break;
 				case 5:
-					i->browseList();
+					i->browseList(Util::emptyString);
 					break;
 			}
 		}
@@ -1255,7 +1257,17 @@ LRESULT TransferView::onSlowDisconnect(WORD /*wNotifyCode*/, WORD /*wID*/, HWND 
 
 	return 0;
 }
-
+//RSX++
+LRESULT TransferView::onOpenDirectory(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+	int i = -1;
+	while((i = ctrlTransfers.GetNextItem(i, LVNI_SELECTED)) != -1) {
+		const ItemInfo *ii = ctrlTransfers.getItemData(i);
+		if(ii && !ii->target.empty())
+			WinUtil::openFolder(ii->target);
+	}
+	return 0;
+}
+//END
 void TransferView::on(SettingsManagerListener::Save, SimpleXML& /*xml*/) throw() {
 	bool refresh = false;
 	if(ctrlTransfers.GetBkColor() != WinUtil::bgColor) {
@@ -1439,5 +1451,5 @@ void TransferView::on(QueueManagerListener::Removed, const QueueItem* qi) throw(
 
 /**
  * @file
- * $Id: TransferView.cpp 421 2008-09-03 17:20:45Z BigMuscle $
+ * $Id: TransferView.cpp 427 2009-01-10 19:29:09Z BigMuscle $
  */

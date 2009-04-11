@@ -23,7 +23,7 @@
 #include "FavoriteManager.h"
 #include "RawManager.h"
 #include "LogManager.h"
-#include "../rsx/rsx-settings/rsx-SettingsManager.h"
+#include "rsxppSettingsManager.h"
 
 namespace dcpp {
 
@@ -56,13 +56,16 @@ void CommandQueue::execCommand(const CommandItem& item) throw() {
 void CommandQueue::addCommand(const OnlineUser& ou, int actionId) {
 	FavoriteHubEntry* hub = FavoriteManager::getInstance()->getFavoriteHubEntry(clientPtr->getHubUrl());
 	if(hub) {
-		if(RawManager::getInstance()->getActifActionId(actionId)) {
-			if(FavoriteManager::getInstance()->getActifAction(hub, actionId)) {
-				Action::RawsList lst = RawManager::getInstance()->getRawListActionId(actionId);
+		Action* a = RawManager::getInstance()->findAction(actionId);
+
+		if(a != NULL) {
+			if(FavoriteManager::getInstance()->getEnabledAction(hub, actionId)) {
+				RawManager::getInstance()->lock();
+
 				uint64_t delayTime = GET_TICK();
-				for(Action::RawsList::const_iterator i = lst.begin(); i != lst.end(); ++i) {
-					if(i->getActif() && !(i->getRaw().empty())) {
-						if(FavoriteManager::getInstance()->getActifRaw(hub, actionId, i->getRawId())) {
+				for(Action::RawsList::const_iterator i = a->raw.begin(); i != a->raw.end(); ++i) {
+					if(i->getEnabled() && !(i->getRaw().empty())) {
+						if(FavoriteManager::getInstance()->getEnabledRaw(hub, actionId, i->getId())) {
 							StringMap params;
 							const UserCommand uc = UserCommand(0, 0, 0, 0, "", i->getRaw(), "");
 							ou.getIdentity().getParams(params, "user", true);
@@ -76,7 +79,7 @@ void CommandQueue::addCommand(const OnlineUser& ou, int actionId) {
 							item.name = i->getName();
 							item.lua = i->getLua();
 
-							if(RSXBOOLSETTING(USE_SEND_DELAYED_RAW)) {
+							if(RSXPP_BOOLSETTING(USE_SEND_DELAYED_RAW)) {
 								delayTime += (i->getTime() * 1000) + 1;
 								addCommandDelayed(delayTime, item);
 							} else {
@@ -89,6 +92,7 @@ void CommandQueue::addCommand(const OnlineUser& ou, int actionId) {
 						}
 					}
 				}
+				RawManager::getInstance()->unlock();
 			}
 		}
 	}

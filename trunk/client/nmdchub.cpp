@@ -28,22 +28,15 @@
 #include "CryptoManager.h"
 #include "ConnectionManager.h"
 
-
 #include "Socket.h"
 #include "UserCommand.h"
 #include "StringTokenizer.h"
 #include "DebugManager.h"
 #include "QueueManager.h"
 #include "ZUtils.h"
-//RSX++
-#include "PluginsManager.h"
-#include "version.h"
-//END
+#include "ScriptManager.h" //RSX++
 
 namespace dcpp {
-
-StringList NmdcHub::extraSup; //RSX++
-
 NmdcHub::NmdcHub(const string& aHubURL, bool secure) : Client(aHubURL, '|', secure), supportFlags(0),
 	lastBytesShared(0), lastUpdate(0)
 {
@@ -118,11 +111,6 @@ void NmdcHub::supports(const StringList& feat) {
 	for(StringList::const_iterator i = feat.begin(); i != feat.end(); ++i) {
 		x+= *i + ' ';
 	}
-	//RSX++
-	for(StringList::const_iterator i = extraSup.begin(); i != extraSup.end(); ++i) {
-		x += *i + ' ';
-	}
-	//END
 	send("$Supports " + x + '|');
 }
 
@@ -141,10 +129,9 @@ void NmdcHub::putUser(const string& aNick) {
 			return;
 		ou = i->second;
 		users.erase(i);
-	}
 	userCount--;
-	availableBytes -= ou->getIdentity().getBytesShared();
-
+		availableBytes -= ou->getIdentity().getBytesShared();
+	}
 	ClientManager::getInstance()->putOffline(ou);
 	ou->dec();
 }
@@ -424,12 +411,6 @@ void NmdcHub::onLine(const string& aLine) throw() {
 		u.getIdentity().setHub(false);
 		u.getIdentity().setHidden(false);
 
-		if(connection.find_first_not_of("0123456789.,") == string::npos) {
-			double us = Util::toDouble(connection);
-			if(us > 0) {
-				connection = Util::toString((long)(us*1024*1024));
-			}
-		}
 		u.getIdentity().setConnection(connection);
 		u.getIdentity().setStatus(Util::toString(param[j-1]));
 		
@@ -462,10 +443,10 @@ void NmdcHub::onLine(const string& aLine) throw() {
 			//RSX++ // MyInfo spam
 			//@todo
 			if(u.getIdentity().isMyInfoSpamming()) {
-				if(RSXSETTING(MYINFO_SPAM_KICK)) {
-					ClientManager::getInstance()->sendAction(u, RSXSETTING(MYINFO_SPAM_KICK));
+				if(RSXPP_SETTING(MYINFO_SPAM_KICK)) {
+					ClientManager::getInstance()->sendAction(u, RSXPP_SETTING(MYINFO_SPAM_KICK));
 				}
-				if(RSXBOOLSETTING(SHOW_MYINFO_SPAM_KICK)) {
+				if(RSXPP_BOOLSETTING(SHOW_MYINFO_SPAM_KICK)) {
 					cheatMessage("*** " + u.getIdentity().getNick() + " - $MyINFO Spam detected!!");
 				}
 			}
@@ -532,9 +513,9 @@ void NmdcHub::onLine(const string& aLine) throw() {
 				if(i->second->getIdentity().getIp().compare(server) == 0) {
 					OnlineUser* u = i->second;
 					if(u->getIdentity().isCtmSpamming()) {
-						if(RSXSETTING(CTM_SPAM_KICK))
-							ClientManager::getInstance()->sendAction(*u, RSXSETTING(CTM_SPAM_KICK));
-						if(RSXBOOLSETTING(SHOW_CTM_SPAM_KICK)) {
+						if(RSXPP_SETTING(CTM_SPAM_KICK))
+							ClientManager::getInstance()->sendAction(*u, RSXPP_SETTING(CTM_SPAM_KICK));
+						if(RSXPP_BOOLSETTING(SHOW_CTM_SPAM_KICK)) {
 							cheatMessage("*** " + u->getIdentity().getNick() + " - ConnectToMe Spam detected!! (IP: " + server + ")");
 						}
 						break;	
@@ -662,7 +643,9 @@ void NmdcHub::onLine(const string& aLine) throw() {
 					
 				if(CryptoManager::getInstance()->TLSOk() && !getStealth())
 					feat.push_back("TLS");
-					
+
+				ScriptManager::getInstance()->getNmdcFeats(feat); //RSX++
+
 				supports(feat);
 			}
 
@@ -847,7 +830,10 @@ void NmdcHub::onLine(const string& aLine) throw() {
 		}
 
 		OnlineUser& to = getUser(getMyNick());
-		fire(ClientListener::PrivateMessage(), this, *from, &to, replyTo, unescape(msg), thirdPerson);
+		//RSX++
+		string unescaped(unescape(msg));
+		if(!extOnPmIn(from.get(), &to, replyTo.get(), toUtf8(unescaped), thirdPerson))
+			fire(ClientListener::PrivateMessage(), this, *from, &to, replyTo, unescaped, thirdPerson);
 	} else if(cmd == "GetPass") {
 		OnlineUser& ou = getUser(getMyNick());
 		ou.getIdentity().set("RG", "1");
@@ -1030,6 +1016,7 @@ string NmdcHub::validateMessage(string tmp, bool reverse) {
 
 void NmdcHub::privateMessage(const OnlineUserPtr& aUser, const string& aMessage, bool thirdPerson) {
 	checkstate();
+	if(extOnPmOut(aUser.get(), aMessage, thirdPerson)) return; //RSX++
 
 	send("$To: " + fromUtf8(aUser->getIdentity().getNick()) + " From: " + fromUtf8(getMyNick()) + " $" + fromUtf8(escape("<" + getMyNick() + "> " + (thirdPerson ? "/me " + aMessage : aMessage))) + "|");
 	// Emulate a returning message...
@@ -1060,6 +1047,9 @@ void NmdcHub::on(Connected) throw() {
 
 void NmdcHub::on(Line, const string& aLine) throw() {
 	Client::on(Line(), aLine);
+
+	if(extOnMsgIn(toUtf8(aLine))) return; //RSX++
+
 	onLine(aLine);
 }
 
@@ -1081,5 +1071,5 @@ void NmdcHub::on(Second, uint64_t aTick) throw() {
 
 /**
  * @file
- * $Id: nmdchub.cpp 423 2008-11-08 17:12:32Z BigMuscle $
+ * $Id: nmdchub.cpp 429 2009-02-06 17:26:54Z BigMuscle $
  */

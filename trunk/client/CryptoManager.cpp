@@ -57,7 +57,7 @@ CryptoManager::CryptoManager()
 :	
 	certsLoaded(false), 
 	lock("EXTENDEDPROTOCOLABCABCABCABCABCABC"), 
-	pk("DCPLUSPLUS" DCVERSIONSTRING "ABCABC")
+	pk("DCPLUSPLUS" DCVERSIONSTRING)
 {
 #ifndef YASSL_VERSION
 	cs = new CriticalSection[CRYPTO_num_locks()];
@@ -366,7 +366,7 @@ void CryptoManager::decodeBZ2(const uint8_t* is, unsigned int sz, string& os) th
 	bz_stream bs = { 0 };
 
 	if(BZ2_bzDecompressInit(&bs, 0, 0) != BZ_OK)
-		throw(CryptoException(STRING(DECOMPRESSION_ERROR)));
+		throw CryptoException(STRING(DECOMPRESSION_ERROR));
 
 	// We assume that the files aren't compressed more than 2:1...if they are it'll work anyway,
 	// but we'll have to do multiple passes...
@@ -460,7 +460,7 @@ string CryptoManager::makeKey(const string& aLock) {
 }
 
 #ifndef YASSL_VERSION
-void CryptoManager::locking_function(int mode, int n, const char *file, int line)
+void CryptoManager::locking_function(int mode, int n, const char * /*file*/, int /*line*/)
 {
     if (mode & CRYPTO_LOCK) {
         cs[n].enter();
@@ -474,5 +474,5 @@ void CryptoManager::locking_function(int mode, int n, const char *file, int line
 
 /**
  * @file
- * $Id: CryptoManager.cpp 414 2008-08-01 19:16:45Z BigMuscle $
+ * $Id: CryptoManager.cpp 431 2009-02-10 13:09:57Z BigMuscle $
  */

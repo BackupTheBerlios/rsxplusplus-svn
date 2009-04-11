@@ -66,7 +66,6 @@
 #include "../client/PluginsManager.h"
 #include "UpdateDialog.h"
 #include "PluginsListDlg.h"
-#include "ScriptsList.h"
 //END
 
 MainFrame* MainFrame::anyMF = NULL;
@@ -126,7 +125,7 @@ public:
 				dl.loadFile(*i);
 				string tmp;
 				tmp.resize(STRING(MATCHED_FILES).size() + 16);
-				tmp.resize(snprintf(&tmp[0], tmp.size(), CSTRING(MATCHED_FILES), QueueManager::getInstance()->matchListing(dl)));
+				tmp.resize(snprintf(&tmp[0], tmp.size(), CSTRING(MATCHED_FILES), QueueManager::getInstance()->matchListing(dl, Util::emptyString)));
 				LogManager::getInstance()->message(Util::toString(ClientManager::getInstance()->getNicks(u->getCID())) + ": " + tmp);
 			} catch(const Exception&) {
 
@@ -164,7 +163,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 		}
 	}
 	//RSX++
-	switch(RSXSETTING(DEFAULT_PRIO)) {
+	switch(RSXPP_SETTING(DEFAULT_PRIO)) {
 		case 0:	RsxUtil::changeProcessPriority(RsxUtil::REALTIME);		break;
 		case 1:	RsxUtil::changeProcessPriority(RsxUtil::HIGH);			break;
 		case 2:	RsxUtil::changeProcessPriority(RsxUtil::ABOVE_NORMAL);	break;
@@ -184,8 +183,6 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 
 	SetWindowText(RsxUtil::getWndTitle().c_str());
 	//RSX++
-	//PluginsManager::getInstance()->startPlugins();
-	//ScriptManager::getInstance()->loadScripts();
 	UpdateManager::getInstance()->addListener(this);
 	FavoriteManager::getInstance()->mergeHubSettings();
 	//END
@@ -367,6 +364,9 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 		File::ensureDirectory(Util::getDataPath() + "EmoPacks" PATH_SEPARATOR_STR);
 		//END
 	} catch (const FileException) {	}
+
+	//ScriptManager::getInstance()->load();
+	PluginsManager::getInstance()->load();
 
 	startSocket();
 	
@@ -841,16 +841,14 @@ void MainFrame::parseCommandLine(const tstring& cmdLine)
 		WinUtil::parseDchubUrl(cmdLine.substr(j));
 		}
 	if( (j = cmdLine.find(_T("adc://"), i)) != string::npos) {
-		WinUtil::parseADChubUrl(cmdLine.substr(j));
+		WinUtil::parseADChubUrl(cmdLine.substr(j), false);
+	}
+	if( (j = cmdLine.find(_T("adcs://"), i)) != string::npos) {
+		WinUtil::parseADChubUrl(cmdLine.substr(j), true);
 	}
 	if( (j = cmdLine.find(_T("magnet:?"), i)) != string::npos) {
 		WinUtil::parseMagnetUri(cmdLine.substr(j));
 	}
-	//RSX++ // Lua
-	if( (j = cmdLine.find(_T("lua "), i)) != string::npos) {
-		//ScriptManager::getInstance()->EvaluateChunk(Text::fromT(cmdLine.substr(j+4)));
-	}
-	//END
 }
 
 LRESULT MainFrame::onCopyData(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/) {
@@ -906,7 +904,6 @@ LRESULT MainFrame::OnFileSettings(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 	if(dlg.DoModal(m_hWnd) == IDOK) 
 	{
 		SettingsManager::getInstance()->save();
-		RSXSettingsManager::getInstance()->save(); //RSX++
 		if(missedAutoConnect && !SETTING(NICK).empty()) {
 			PostMessage(WM_SPEAKER, AUTO_CONNECT);
 		}
@@ -954,6 +951,7 @@ LRESULT MainFrame::OnFileSettings(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 }
 //RSX++
 void MainFrame::on(UpdateManagerListener::VersionUpdated, const VersionInfo::Client& client, const VersionInfo::Profiles& profiles) throw() {
+#ifndef SVNBUILD
 	if(client.veryOldVersion >= SVN_REVISION) {
 		string msg = "Your version of RSX++ contains a serious bug that affects all users of the DC network or the security of your computer.";
 		string url = client.url.empty() ? __HOMESITE : client.url;
@@ -975,7 +973,7 @@ void MainFrame::on(UpdateManagerListener::VersionUpdated, const VersionInfo::Cli
 			return;
 		}
 	}
-
+#endif
 	if(::IsWindow(GetDlgItem(IDD_UPDATE)))
 		return;
 
@@ -1131,7 +1129,6 @@ LRESULT MainFrame::onEndSession(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 	
 	QueueManager::getInstance()->saveQueue();
 	SettingsManager::getInstance()->save();
-	RSXSettingsManager::getInstance()->save(); //RSX++
 	return 0;
 }
 
@@ -1411,12 +1408,6 @@ LRESULT MainFrame::onViewPluginsList(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*
 	dlg.DoModal();
 	return 0;
 }
-
-LRESULT MainFrame::onViewScriptsList(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
-	ScriptsListDlg dlg;
-	dlg.DoModal();
-	return 0;
-}
 //END
 LRESULT MainFrame::OnViewStatusBar(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
@@ -1668,7 +1659,7 @@ int MainFrame::FileListQueue::run() {
 			}
 			delete dl;
 			//RSX++
-			if(RSXBOOLSETTING(DELETE_CHECKED_FILELISTS)) {
+			if(RSXPP_BOOLSETTING(DELETE_CHECKED_FILELISTS)) {
 				File::deleteFile(Text::fromT(i->file));
 			}
 			//END

@@ -19,41 +19,37 @@
 
 #include "Util.h"
 namespace dcpp {
+struct Raw {
+	Raw() : id(0), time(0), lua(false), enabled(false) { };
+	Raw(int _id, const std::string& _name, const std::string& _raw, int _time, bool _enabled, bool _lua) 
+		throw() : id(_id), name(_name), raw(_raw), time(_time), enabled(_enabled), lua(_lua) { };
+	Raw(const Raw& rhs) : id(rhs.id), name(rhs.name), raw(rhs.raw), time(rhs.time), enabled(rhs.enabled), lua(rhs.lua) { }
+	Raw& operator=(const Raw& rhs) { 
+		id = rhs.id; name = rhs.name; raw = rhs.raw; time = rhs.time; enabled = rhs.enabled; lua = rhs.lua;
+		return *this;
+	}
+
+	GETSET(int, id, Id);
+	GETSET(std::string, name, Name);
+	GETSET(std::string, raw, Raw);
+	GETSET(int, time, Time);
+	GETSET(bool, enabled, Enabled);
+	GETSET(bool, lua, Lua);
+};
+
 struct Action {
-	typedef Action* Ptr;
-	typedef unordered_map<int, Ptr> List;
-
-	Action() : lastRaw(0), actionId(0) { };
-	Action(int aActionId, const string& aName, bool aActif) throw() : actionId(aActionId), name(aName), actif(aActif) { };
-	~Action() { };
-
-	GETSET(int, actionId, ActionId);
-	GETSET(string, name, Name);
-	GETSET(bool, actif, Actif);
-
-	struct Raw {
-		Raw() : id(0), rawId(0), time(0), lua(false) { };
-
-		Raw(int aId, int aRawId, const string& aName, const string& aRaw, int aTime, bool aActif, bool aLua) 
-			throw() : id(aId), rawId(aRawId), name(aName), raw(aRaw), time(aTime), actif(aActif), lua(aLua) { };
-		Raw(const Raw& rhs) : id(rhs.id), rawId(rhs.rawId), name(rhs.name), raw(rhs.raw), time(rhs.time), actif(rhs.actif), lua(rhs.lua) { }
-		Raw& operator=(const Raw& rhs) { id = rhs.id; rawId = rhs.rawId; name = rhs.name; raw = rhs.raw;
-		time = rhs.time; actif = rhs.actif; lua = rhs.lua;
-			return *this;
-		}
-
-		GETSET(int, id, Id);
-		GETSET(int, rawId, RawId);
-		GETSET(string, name, Name);
-		GETSET(string, raw, Raw);
-		GETSET(int, time, Time);
-		GETSET(bool, actif, Actif);
-		GETSET(bool, lua, Lua);
-	};
-
 	typedef vector<Raw> RawsList;
+	typedef std::vector<Action*> ActionList;
+
+	Action() : id(0) { };
+	Action(int _id, const std::string& _name, bool _enabled) throw() : id(_id), name(_name), enabled(_enabled) { };
+	~Action() { raw.clear(); };
+
+	GETSET(int, id, Id);
+	GETSET(std::string, name, Name);
+	GETSET(bool, enabled, Enabled);
+
 	RawsList raw;
-	uint16_t lastRaw;
 };
 }
 #endif

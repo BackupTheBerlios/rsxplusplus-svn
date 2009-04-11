@@ -21,7 +21,7 @@
 #include "../client/DCPlusPlus.h"
 #include "../client/SettingsManager.h"
 
-#include "../rsx/rsx-settings/rsx-SettingsManager.h" //RSX++
+#include "../client/rsxppSettingsManager.h" //RSX++
 
 #include "Resource.h"
 #include "QueuePage.h"
@@ -65,9 +65,9 @@ PropPage::Item QueuePage::items[] = {
 	{ IDC_CHUNKCOUNT, SettingsManager::SEGMENTS_MANUAL, PropPage::T_BOOL },
 	{ IDC_SEG_NUMBER, SettingsManager::NUMBER_OF_SEGMENTS, PropPage::T_INT },
 	//RSX++ //Prio + Download Skiplist
-	{ IDC_HIGHEST, RSXSettingsManager::HIGH_PRIO_FILES, PropPage::T_STR_RSX },
-	{ IDC_LOWEST, RSXSettingsManager::LOW_PRIO_FILES, PropPage::T_STR_RSX },
-	{ IDC_SKIPLIST_DOWNLOAD, RSXSettingsManager::SKIPLIST_DOWNLOAD, PropPage::T_STR_RSX },
+	{ IDC_HIGHEST, rsxppSettingsManager::HIGH_PRIO_FILES, PropPage::T_STR_RSX },
+	{ IDC_LOWEST, rsxppSettingsManager::LOW_PRIO_FILES, PropPage::T_STR_RSX },
+	{ IDC_SKIPLIST_DOWNLOAD, rsxppSettingsManager::SKIPLIST_DOWNLOAD, PropPage::T_STR_RSX },
 	//END
 	{ 0, 0, PropPage::T_END }
 };

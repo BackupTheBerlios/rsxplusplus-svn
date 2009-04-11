@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2008 adrian_007, adrian-007 on o2 point pl
+ * Copyright (C) 2007-2009 adrian_007, adrian-007 on o2 point pl
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,25 +20,32 @@
 #define RSXPLUSPLUS_SCRIPTS_LIST_DLG
 
 #include "ExListViewCtrl.h"
+#include "PropPage.h"
 
-class ScriptsListDlg : public CDialogImpl<ScriptsListDlg> {
+class ScriptsListPage : public CPropertyPage<IDD_SCRIPTS_LIST>, public PropPage {
 public:
-	enum { IDD = IDD_SCRIPTS_LIST };
+	ScriptsListPage(SettingsManager *s) : PropPage(s) {
+		title = _tcsdup((TSTRING(SETTINGS_RSX) + _T('\\') + _T("Lua Scripts")).c_str());
+		SetTitle(title);
+		m_psp.dwFlags |= PSP_RTLREADING;
+	}
+	~ScriptsListPage() { 
+		free(title);
+		ctrlList.Detach();
 
-	BEGIN_MSG_MAP(ScriptsListDlg)
-		MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
-		MESSAGE_HANDLER(WM_CLOSE, OnClose)
-		COMMAND_ID_HANDLER(IDCOK, onSave)
+	}
+
+	BEGIN_MSG_MAP(ScriptsListPage)
+		MESSAGE_HANDLER(WM_INITDIALOG, onInitDialog)
 	END_MSG_MAP()
 
-	LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
-	LRESULT onSave(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-	LRESULT OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
-		ctrlList.Detach();
-		EndDialog(NULL);
-		return 0;
-	}
+	LRESULT onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
+
+	// Common PropPage interface
+	PROPSHEETPAGE *getPSP() { return (PROPSHEETPAGE *)*this; }
+	void write();
 private:
+	TCHAR* title;
 	ExListViewCtrl ctrlList;
 };
 #endif

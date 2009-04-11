@@ -18,12 +18,12 @@
 
 #define APPNAME "RSX++"
 #define VERSIONSTRING "1.1"
-#define VERSIONFLOAT 1.11
+#define VERSIONFLOAT 1.1
 
-#define DCVERSIONSTRING "0.707"
-#define DCVERSIONFLOAT 0.7071
+#define DCVERSIONSTRING "0.7091"
+#define DCVERSIONFLOAT 0.7091
 
-#define SVNVERSION "svn423"
+#define SVNVERSION "svn432"
 
 #define SVN_REVISION $WCREV$
 
@@ -31,6 +31,5 @@
 #define __WIKI "http://rsxplusplus.wiki.sourceforge.net/"
 #define __FORUM "http://rsxplusplus.sf.net/forum/"
 #define VERSION_URL "http://rsxplusplus.sf.net/version.xml"
-
 
 /* Update the .rc file as well... */

@@ -10,24 +10,24 @@
 #include "DCPlusPlus.h"
 
 #include "Singleton.h"
-#include "../rsx/rsx-settings/rsx-SettingsManager.h"
+#include "rsxppSettingsManager.h"
 #include "SimpleXML.h"
 #include "forward.h"
 
 namespace dcpp {
 
-class IgnoreManager: public Singleton<IgnoreManager>, private RSXSettingsManagerListener
+class IgnoreManager: public Singleton<IgnoreManager>, private SettingsManagerListener
 {
 public:
-	IgnoreManager() { RSXSettingsManager::getInstance()->addListener(this); }
-	~IgnoreManager() { RSXSettingsManager::getInstance()->removeListener(this); }
+	IgnoreManager() { SettingsManager::getInstance()->addListener(this); }
+	~IgnoreManager() { SettingsManager::getInstance()->removeListener(this); }
 
 	// store & remove ignores through/from hubframe
 	void storeIgnore(const UserPtr& user);
 	void removeIgnore(const UserPtr& user);
 
 	// check if user is ignored
-	bool isIgnored(const string& aNick);
+	bool isIgnored(const tstring& aNick);
 
 	// get and put ignorelist (for MiscPage)
 	unordered_set<tstring> getIgnoredUsers() { Lock l(cs); return ignoredUsers; }
@@ -43,8 +43,8 @@ private:
 	void save(SimpleXML& aXml);
 
 	// SettingsManagerListener
-	void on(RSXSettingsManagerListener::Load, SimpleXML& xml) throw();
-	void on(RSXSettingsManagerListener::Save, SimpleXML& xml) throw();
+	void on(SettingsManagerListener::Load, SimpleXML& xml) throw();
+	void on(SettingsManagerListener::Save, SimpleXML& xml) throw();
 
 	// contains the ignored nicks and patterns 
 	TStringHash ignoredUsers;

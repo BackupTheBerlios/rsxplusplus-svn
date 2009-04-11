@@ -72,21 +72,21 @@ void ConnectionManager::listen() throw(SocketException){
  * for downloading.
  * @param aUser The user to connect to.
  */
-void ConnectionManager::getDownloadConnection(const UserPtr& aUser) {
+void ConnectionManager::getDownloadConnection(const UserPtr& aUser, const string& hubHint) {
 	dcassert((bool)aUser);
 	{
 		Lock l(cs);
 		ConnectionQueueItem::Iter i = find(downloads.begin(), downloads.end(), aUser);
 		if(i == downloads.end()) {
-			getCQI(aUser, true);
+			getCQI(aUser, true, hubHint);
 		} else {
 			DownloadManager::getInstance()->checkIdle(aUser);
 		}
 	}
 }
 
-ConnectionQueueItem* ConnectionManager::getCQI(const UserPtr& aUser, bool download) {
-	ConnectionQueueItem* cqi = new ConnectionQueueItem(aUser, download);
+ConnectionQueueItem* ConnectionManager::getCQI(const UserPtr& aUser, bool download, const string& hubHint) {
+	ConnectionQueueItem* cqi = new ConnectionQueueItem(aUser, download, hubHint);
 	if(download) {
 		dcassert(find(downloads.begin(), downloads.end(), aUser) == downloads.end());
 		downloads.push_back(cqi);
@@ -152,7 +152,8 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) throw()
 				} 
 				
 				if(	cqi->getUser()->isSet(User::PASSIVE) &&
-					!ClientManager::getInstance()->isActive(Util::emptyString)) { // TODO: get hub url
+					!ClientManager::getInstance()->isActive(cqi->getHubHint())) 
+				{
 					passiveUsers.push_back(cqi->getUser());
 					removed.push_back(cqi);
 					continue;
@@ -173,7 +174,7 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) throw()
 					if(cqi->getState() == ConnectionQueueItem::WAITING) {
 						if(startDown) {
 							cqi->setState(ConnectionQueueItem::CONNECTING);							
-							ClientManager::getInstance()->connect(cqi->getUser(), cqi->getToken());
+							ClientManager::getInstance()->connect(cqi->getUser(), cqi->getToken(), cqi->getHubHint());
 							fire(ConnectionManagerListener::StatusChanged(), cqi);
 							attempts++;
 						} else {
@@ -309,12 +310,12 @@ void ConnectionManager::accept(const Socket& sock, bool secure) throw() {
 	}
 }
 
-bool ConnectionManager::checkIpFlood(const string& aServer, uint16_t aPort) {
+bool ConnectionManager::checkIpFlood(const string& aServer, uint16_t aPort, const string& userInfo) {
 	Lock l(cs);
 
 	// Temporary fix to avoid spamming
 	if(aPort == 80 || aPort == 2501) {
-		LogManager::getInstance()->message("Someone is trying to use your client to spam " + aServer + ", please urge hub owner to fix this");
+		LogManager::getInstance()->message("Someone (" + userInfo + ") is trying to use your client to spam " + aServer + ":" + Util::toString(aPort) + ", please urge hub owner to fix this");
 		return true;
 	}	
 	
@@ -342,7 +343,7 @@ void ConnectionManager::nmdcConnect(const string& aServer, uint16_t aPort, const
 	if(shuttingDown)
 		return;
 		
-	if(checkIpFlood(aServer, aPort))
+	if(checkIpFlood(aServer, aPort, "NMDC Hub: " + hubUrl))
 		return;
 
 	UserConnection* uc = getConnection(true, secure);
@@ -366,13 +367,14 @@ void ConnectionManager::adcConnect(const OnlineUser& aUser, uint16_t aPort, cons
 	if(shuttingDown)
 		return;
 
-	if(checkIpFlood(aUser.getIdentity().getIp(), aPort))
+	if(checkIpFlood(aUser.getIdentity().getIp(), aPort, "ADC Nick: " + aUser.getIdentity().getNick() + ", Hub: " + aUser.getClient().getHubName()))
 		return;
 
 	UserConnection* uc = getConnection(false, secure);
 	uc->setToken(aToken);
 	uc->setEncoding(const_cast<string*>(&Text::utf8));
 	uc->setState(UserConnection::STATE_CONNECT);
+	uc->setHubUrl(aUser.getClient().getHubUrl());
 	if(aUser.getIdentity().isOp()) {
 		uc->setFlag(UserConnection::FLAG_OP);
 	}
@@ -460,13 +462,14 @@ void ConnectionManager::on(UserConnectionListener::Connected, UserConnection* aS
 	dcassert(aSource->getState() == UserConnection::STATE_CONNECT);
 	if(aSource->isSet(UserConnection::FLAG_NMDC)) {
 		aSource->myNick(aSource->getToken());
-		aSource->lock(CryptoManager::getInstance()->getLock(), CryptoManager::getInstance()->getPk());
+		aSource->lock(CryptoManager::getInstance()->getLock(), CryptoManager::getInstance()->getPk() + "Ref=" + aSource->getHubUrl());
 	} else {
 		StringList defFeatures = adcFeatures;
 		if(BOOLSETTING(COMPRESS_TRANSFERS)) {
 			defFeatures.push_back("AD" + UserConnection::FEATURE_ZLIB_GET);
 		}
 		aSource->sup(defFeatures);
+		aSource->send(AdcCommand(AdcCommand::SEV_SUCCESS, AdcCommand::SUCCESS, Util::emptyString).addParam("RF", aSource->getHubUrl()));
 	}
 	aSource->setState(UserConnection::STATE_SUPNICK);
 }
@@ -640,7 +643,7 @@ void ConnectionManager::addUploadConnection(UserConnection* uc) {
 
 		ConnectionQueueItem::Iter i = find(uploads.begin(), uploads.end(), uc->getUser());
 		if(i == uploads.end()) {
-			ConnectionQueueItem* cqi = getCQI(uc->getUser(), false);
+			ConnectionQueueItem* cqi = getCQI(uc->getUser(), false, Util::emptyString);
 
 			cqi->setState(ConnectionQueueItem::ACTIVE);
 			uc->setFlag(UserConnection::FLAG_ASSOCIATED);
@@ -836,5 +839,5 @@ void ConnectionManager::on(UserConnectionListener::Supports, UserConnection* con
 
 /**
  * @file
- * $Id: ConnectionManager.cpp 413 2008-07-30 09:32:53Z BigMuscle $
+ * $Id: ConnectionManager.cpp 429 2009-02-06 17:26:54Z BigMuscle $
  */

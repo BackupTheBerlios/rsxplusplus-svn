@@ -24,7 +24,7 @@
 
 #include "../client/SimpleXML.h"
 #include "../client/version.h"
-#include "../rsx/rsx-settings/rsx-SettingsManager.h" //RSX++
+#include "../client/rsxppSettingsManager.h" //RSX++
 
 #include "Resource.h"
 #include "NetworkPage.h"
@@ -75,7 +75,7 @@ PropPage::Item NetworkPage::items[] = {
 	{ IDC_SOCKS_PASSWORD, SettingsManager::SOCKS_PASSWORD, PropPage::T_STR },
 	{ IDC_SOCKS_RESOLVE, SettingsManager::SOCKS_RESOLVE, PropPage::T_BOOL },
 	{ IDC_BIND_ADDRESS, SettingsManager::BIND_ADDRESS, PropPage::T_STR },
-	{ IDC_IPUPDATE,		RSXSettingsManager::IPUPDATE,	PropPage::T_BOOL_RSX }, //RSX++
+	{ IDC_IPUPDATE,		rsxppSettingsManager::IPUPDATE,	PropPage::T_BOOL_RSX }, //RSX++
 	{ 0, 0, PropPage::T_END }
 };
 

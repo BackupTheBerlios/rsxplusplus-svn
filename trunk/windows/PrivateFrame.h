@@ -41,8 +41,8 @@ class PrivateFrame : public MDITabChildWindowImpl<PrivateFrame, RGB(0, 255, 255)
 	private ClientManagerListener, public UCHandler<PrivateFrame>, private SettingsManagerListener
 {
 public:
-	static void gotMessage(const Identity& from, const UserPtr& to, const UserPtr& replyTo,  Client* client, const tstring& aMessage);
-	static void openWindow(const UserPtr& replyTo, Client* client = NULL, const tstring& aMessage = Util::emptyStringT);
+	static void gotMessage(const Identity& from, const UserPtr& to, const UserPtr& replyTo, const tstring& aMessage, Client* c);
+	static void openWindow(const UserPtr& replyTo, const tstring& aMessage = Util::emptyStringT, Client* c = NULL);
 	static bool isOpen(const UserPtr u) { return frames.find(u) != frames.end(); }
 	static void closeAll();
 	static void closeAllOffline();
@@ -76,6 +76,7 @@ public:
 		COMMAND_ID_HANDLER(IDC_ADD_TO_FAVORITES, onAddToFavorites)
 		COMMAND_ID_HANDLER(IDC_SEND_MESSAGE, onSendMessage)
 		COMMAND_ID_HANDLER(IDC_CLOSE_WINDOW, onCloseWindow)
+		COMMAND_ID_HANDLER(ID_EDIT_CLEAR_ALL, onEditClearAll)
 		COMMAND_ID_HANDLER(IDC_EMOT, onEmoticons)
 		COMMAND_ID_HANDLER(IDC_PUBLIC_MESSAGE, onPublicMessage)
 		COMMAND_ID_HANDLER(IDC_REPORT, onReport)
@@ -101,6 +102,7 @@ public:
 	LRESULT onTabContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/);
 	LRESULT onContextMenu(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT onClientEnLink(int idCtrl, LPNMHDR pnmh, BOOL& bHandled) { return ctrlClient.onClientEnLink(idCtrl, pnmh, bHandled); }
+	LRESULT onEditClearAll(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT onOpenUserLog(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT onEmoPackChange(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
   	LRESULT onEmoticons(WORD /*wNotifyCode*/, WORD /*wID*/, HWND hWndCtl, BOOL& bHandled);
@@ -175,11 +177,14 @@ public:
 	void sendMessage(const tstring& msg, bool thirdPerson = false);
 
 private:
-	PrivateFrame(const UserPtr& replyTo_) : replyTo(replyTo_), 
+	PrivateFrame(const UserPtr& replyTo_, Client* c) : replyTo(replyTo_),
 		created(false), closed(false), isoffline(false), curCommandPosition(0),  
 		ctrlMessageContainer(WC_EDIT, this, PM_MESSAGE_MAP),
 		ctrlClientContainer(WC_EDIT, this, PM_MESSAGE_MAP), menuItems(0),
-		soundActiveContainer(WC_BUTTON, this, PM_MESSAGE_MAP) { } //RSX++
+		soundActiveContainer(WC_BUTTON, this, PM_MESSAGE_MAP) //RSX++
+	{
+		ctrlClient.setClient(c);
+	}
 	
 	~PrivateFrame() { }
 
@@ -217,6 +222,8 @@ private:
 	TStringList prevCommands;
 	tstring currentCommand;
 	TStringList::size_type curCommandPosition;
+	
+	const string& getHubHint() const { return ctrlClient.getClient() ? ctrlClient.getClient()->getHubUrl() : Util::emptyString; }
 
 	// ClientManagerListener
 	void on(ClientManagerListener::UserUpdated, const OnlineUser& aUser) throw() {
@@ -240,5 +247,5 @@ private:
 
 /**
  * @file
- * $Id: PrivateFrame.h 423 2008-11-08 17:12:32Z BigMuscle $
+ * $Id: PrivateFrame.h 428 2009-02-01 18:14:42Z BigMuscle $
  */

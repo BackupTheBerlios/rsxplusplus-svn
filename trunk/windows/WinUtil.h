@@ -24,6 +24,8 @@
 #include "../client/User.h"
 #include "../client/MerkleTree.h"
 
+#include <boost/bind.hpp>
+
 #include "resource.h"
 #include "OMenu.h"
 #include "ResourceLoader.h" //RSX++
@@ -68,24 +70,24 @@ public:
 	END_MSG_MAP()
 
 	LRESULT onMatchQueue(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
-		((T*)this)->getUserList().forEachSelected(&UserInfoBase::matchQueue);
+		((T*)this)->getUserList().forEachSelectedT(boost::bind(&UserInfoBase::matchQueue, _1, hubHint));
 		return 0;
 	}
 	LRESULT onGetList(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
-		((T*)this)->getUserList().forEachSelected(&UserInfoBase::getList);
+		((T*)this)->getUserList().forEachSelectedT(boost::bind(&UserInfoBase::getList, _1, hubHint));
 		return 0;
 	}
 	LRESULT onBrowseList(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
-		((T*)this)->getUserList().forEachSelected(&UserInfoBase::browseList);
+		((T*)this)->getUserList().forEachSelectedT(boost::bind(&UserInfoBase::browseList, _1, hubHint));
 		return 0;
 	}
 	LRESULT onReport(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
-		((T*)this)->getUserList().forEachSelected(&UserInfoBase::doReport);
+		((T*)this)->getUserList().forEachSelectedT(boost::bind(&UserInfoBase::doReport, _1, hubHint));
 		return 0;
 	}
 
 	LRESULT onGetUserResponses(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
-		((T*)this)->getUserList().forEachSelected(&UserInfoBase::getUserResponses);
+		((T*)this)->getUserList().forEachSelectedT(boost::bind(&UserInfoBase::getUserResponses, _1, hubHint));
 		return 0;
 	}
 	//RSX++ //Clean User
@@ -113,7 +115,7 @@ public:
 	//END
 
 	LRESULT onCheckList(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
-		((T*)this)->getUserList().forEachSelected(&UserInfoBase::checkList);
+		((T*)this)->getUserList().forEachSelectedT(boost::bind(&UserInfoBase::checkList, _1, hubHint));
 		return 0;
 	}
 
@@ -122,7 +124,7 @@ public:
 		return 0;
 	}
 	virtual LRESULT onPrivateMessage(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
-		((T*)this)->getUserList().forEachSelected(&UserInfoBase::pm);
+		((T*)this)->getUserList().forEachSelectedT(boost::bind(&UserInfoBase::pm, _1, hubHint));
 		return 0;
 	}
 	LRESULT onConnectFav(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
@@ -131,10 +133,10 @@ public:
 	}
 	LRESULT onGrantSlot(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
 		switch(wID) {
-			case IDC_GRANTSLOT:		((T*)this)->getUserList().forEachSelected(&UserInfoBase::grant); break;
-			case IDC_GRANTSLOT_DAY:	((T*)this)->getUserList().forEachSelected(&UserInfoBase::grantDay); break;
-			case IDC_GRANTSLOT_HOUR:	((T*)this)->getUserList().forEachSelected(&UserInfoBase::grantHour); break;
-			case IDC_GRANTSLOT_WEEK:	((T*)this)->getUserList().forEachSelected(&UserInfoBase::grantWeek); break;
+			case IDC_GRANTSLOT:		((T*)this)->getUserList().forEachSelectedT(boost::bind(&UserInfoBase::grant, _1, hubHint)); break;
+			case IDC_GRANTSLOT_DAY:	((T*)this)->getUserList().forEachSelectedT(boost::bind(&UserInfoBase::grantDay, _1, hubHint)); break;
+			case IDC_GRANTSLOT_HOUR:	((T*)this)->getUserList().forEachSelectedT(boost::bind(&UserInfoBase::grantHour, _1, hubHint)); break;
+			case IDC_GRANTSLOT_WEEK:	((T*)this)->getUserList().forEachSelectedT(boost::bind(&UserInfoBase::grantWeek, _1, hubHint)); break;
 			case IDC_UNGRANTSLOT:	((T*)this)->getUserList().forEachSelected(&UserInfoBase::ungrant); break;
 		}
 		return 0;
@@ -146,7 +148,7 @@ public:
 
 	struct UserTraits {
 		UserTraits() : adcOnly(true), favOnly(true), nonFavOnly(true) { }
-		void operator()(UserInfoBase* ui) {
+		void operator()(const UserInfoBase* ui) {
 			if(ui->getUser()) {
 				if(ui->getUser()->isSet(User::NMDC)) 
 					adcOnly = false;
@@ -181,6 +183,8 @@ public:
 		menu.AppendMenu(MF_POPUP, (UINT)(HMENU)WinUtil::grantMenu, CTSTRING(GRANT_SLOTS_MENU));
 	}
 
+	string hubHint;
+	
 };
 
 class FlatTabCtrl;
@@ -396,7 +400,7 @@ public:
 	static void unRegisterADChubHandler();
 	static void unRegisterMagnetHandler();
 	static void parseDchubUrl(const tstring& /*aUrl*/);
-	static void parseADChubUrl(const tstring& /*aUrl*/);
+	static void parseADChubUrl(const tstring& /*aUrl*/, bool secure);
 	static void parseMagnetUri(const tstring& /*aUrl*/, bool aOverride = false);
 	static bool parseDBLClick(const tstring& /*aString*/, string::size_type start, string::size_type end);
 	static bool urlDcADCRegistered;
@@ -502,5 +506,5 @@ private:
 
 /**
  * @file
- * $Id: WinUtil.h 412 2008-07-23 22:35:40Z BigMuscle $
+ * $Id: WinUtil.h 427 2009-01-10 19:29:09Z BigMuscle $
  */

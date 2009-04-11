@@ -46,7 +46,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)regex\pcre&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)luabind&quot;"
 				PreprocessorDefinitions="BUILDING_DCPP"
 				StringPooling="true"
 				MinimalRebuild="true"
@@ -56,8 +56,10 @@
 				RuntimeLibrary="1"
 				BufferSecurityCheck="true"
 				EnableFunctionLevelLinking="true"
+				DefaultCharIsUnsigned="true"
 				TreatWChar_tAsBuiltInType="true"
 				ForceConformanceInForLoopScope="true"
+				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="2"
 				PrecompiledHeaderThrough="stdinc.h"
 				PrecompiledHeaderFile="$(IntDir)/client.pch"
@@ -130,7 +132,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)regex\pcre&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)luabind&quot;"
 				StringPooling="true"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
@@ -139,8 +141,10 @@
 				RuntimeLibrary="1"
 				BufferSecurityCheck="true"
 				EnableFunctionLevelLinking="true"
+				DefaultCharIsUnsigned="true"
 				TreatWChar_tAsBuiltInType="true"
 				ForceConformanceInForLoopScope="true"
+				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="2"
 				PrecompiledHeaderThrough="stdinc.h"
 				PrecompiledHeaderFile="$(IntDir)/client.pch"
@@ -219,7 +223,7 @@
 				FavorSizeOrSpeed="2"
 				OmitFramePointers="false"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)regex\pcre&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)luabind&quot;"
 				PreprocessorDefinitions="BUILDING_DCPP"
 				StringPooling="true"
 				MinimalRebuild="true"
@@ -231,7 +235,7 @@
 				DefaultCharIsUnsigned="true"
 				TreatWChar_tAsBuiltInType="true"
 				ForceConformanceInForLoopScope="true"
-				RuntimeTypeInfo="false"
+				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="2"
 				PrecompiledHeaderThrough="stdinc.h"
 				PrecompiledHeaderFile="$(IntDir)/client.pch"
@@ -312,18 +316,19 @@
 				FavorSizeOrSpeed="2"
 				OmitFramePointers="false"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)regex\pcre&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)luabind&quot;"
 				StringPooling="true"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
 				EnableFunctionLevelLinking="true"
+				EnableEnhancedInstructionSet="0"
 				FloatingPointModel="2"
 				DefaultCharIsUnsigned="true"
 				TreatWChar_tAsBuiltInType="true"
 				ForceConformanceInForLoopScope="true"
-				RuntimeTypeInfo="false"
+				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="2"
 				PrecompiledHeaderThrough="stdinc.h"
 				PrecompiledHeaderFile="$(IntDir)/client.pch"
@@ -402,8 +407,8 @@
 				FavorSizeOrSpeed="2"
 				OmitFramePointers="false"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)intl\include&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)regex\pcre&quot;"
-				PreprocessorDefinitions="SVNBUILD;BUILDING_DCPP"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)luabind&quot;"
+				PreprocessorDefinitions="SVNBUILD"
 				StringPooling="true"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
@@ -414,7 +419,7 @@
 				DefaultCharIsUnsigned="true"
 				TreatWChar_tAsBuiltInType="true"
 				ForceConformanceInForLoopScope="true"
-				RuntimeTypeInfo="false"
+				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="2"
 				PrecompiledHeaderThrough="stdinc.h"
 				PrecompiledHeaderFile="$(IntDir)/client.pch"
@@ -495,7 +500,7 @@
 				FavorSizeOrSpeed="2"
 				OmitFramePointers="false"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)regex\pcre&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)luabind&quot;"
 				PreprocessorDefinitions="SVNBUILD"
 				StringPooling="true"
 				MinimalRebuild="true"
@@ -503,11 +508,12 @@
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
 				EnableFunctionLevelLinking="true"
+				EnableEnhancedInstructionSet="0"
 				FloatingPointModel="2"
 				DefaultCharIsUnsigned="true"
 				TreatWChar_tAsBuiltInType="true"
 				ForceConformanceInForLoopScope="true"
-				RuntimeTypeInfo="false"
+				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="2"
 				PrecompiledHeaderThrough="stdinc.h"
 				PrecompiledHeaderFile="$(IntDir)/client.pch"
@@ -867,6 +873,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\client\LuaBindings.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\client\memcpy_amd.cpp"
 				>
 			</File>
@@ -895,7 +905,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\rsx\rsx-settings\rsx-SettingsManager.cpp"
+				RelativePath=".\client\rsxppSettingsManager.cpp"
 				>
 			</File>
 			<File
@@ -1436,6 +1446,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\client\LuaBindings.h"
+				>
+			</File>
+			<File
 				RelativePath=".\client\memcpy_amd.h"
 				>
 			</File>
@@ -1504,7 +1518,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\rsx\rsx-settings\rsx-SettingsManager.h"
+				RelativePath=".\client\rsxppSettingsManager.h"
 				>
 			</File>
 			<File
@@ -1743,9 +1757,8 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						Description="*** Checking SVN Revision ***"
-						CommandLine="svnrevision_check.py"
-						Outputs="$(SolutionDir)client\version.h"
+						CommandLine="svnrevision_check.py&#x0D;&#x0A;"
+						Outputs=".\client\version.h"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1753,9 +1766,8 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						Description="*** Checking SVN Revision ***"
-						CommandLine="svnrevision_check.py"
-						Outputs="$(SolutionDir)client\version.h"
+						CommandLine="svnrevision_check.py&#x0D;&#x0A;"
+						Outputs=".\client\version.h"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1763,9 +1775,8 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						Description="*** Checking SVN Revision ***"
-						CommandLine="svnrevision_check.py"
-						Outputs="$(SolutionDir)client\version.h"
+						CommandLine="svnrevision_check.py&#x0D;&#x0A;"
+						Outputs=".\client\version.h"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1773,9 +1784,8 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						Description="*** Checking SVN Revision ***"
-						CommandLine="svnrevision_check.py"
-						Outputs="$(SolutionDir)client\version.h"
+						CommandLine="svnrevision_check.py&#x0D;&#x0A;"
+						Outputs=".\client\version.h"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1783,9 +1793,8 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						Description="*** Checking SVN Revision ***"
-						CommandLine="svnrevision_check.py"
-						Outputs="$(SolutionDir)client\version.h"
+						CommandLine="svnrevision_check.py&#x0D;&#x0A;"
+						Outputs=".\client\version.h"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1793,9 +1802,8 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						Description="*** Checking SVN Revision ***"
-						CommandLine="svnrevision_check.py"
-						Outputs="$(SolutionDir)client\version.h"
+						CommandLine="svnrevision_check.py&#x0D;&#x0A;"
+						Outputs=".\client\version.h"
 					/>
 				</FileConfiguration>
 			</File>

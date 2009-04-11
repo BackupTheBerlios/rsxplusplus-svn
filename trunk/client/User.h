@@ -43,13 +43,14 @@ public:
 		PASSIVE		= 0x04,
 		NMDC		= 0x08,
 		BOT			= 0x10,
-		TLS			= 0x20,	//< Client supports TLS
-		OLD_CLIENT	= 0x40, //< Can't download - old client
+		TLS			= 0x20,					//< Client supports TLS
+		OLD_CLIENT	= 0x40,					//< Can't download - old client
 		NO_ADC_1_0_PROTOCOL		=  0x80,	//< Doesn't support "ADC/1.0" (dc++ <=0.703)
 		NO_ADC_0_10_PROTOCOL	= 0x100,	//< Doesn't support "ADC/0.10"
 		NO_ADCS_0_10_PROTOCOL	= 0x200,	//< Doesn't support "ADCS/0.10"
 		//RSX++
-		PROTECTED 				= 0x400		//< User protected
+		PROTECTED 				= 0x400,	//< User protected
+		IGNORED					= 0x800		//< User ignored
 		//END
 	};
 
@@ -107,6 +108,7 @@ public:
 	GS(Ip, "I4")
 	GS(UdpPort, "U4")
 	GS(Email, "EM")
+	GS(Connection, "CO")
 	//RSX++
 	GS(MyInfoType, "MT")
 	GS(ISP, "IS")
@@ -121,9 +123,6 @@ public:
 	void setBytesShared(const string& bs) { set("SS", bs); }
 	int64_t getBytesShared() const { return Util::toInt64(get("SS")); }
 	
-	void setConnection(const string& name) { set("US", name); }
-	string getConnection() const;
-
 	void setStatus(const string& st) { set("ST", st); }
 	StatusFlags getStatus() const { return static_cast<StatusFlags>(Util::toInt(get("ST"))); }
 
@@ -182,7 +181,7 @@ public:
 	GETSET(UserPtr, user, User);
 	GETSET(uint64_t, loggedIn, LoggedIn); //RSX++
 private:
-	typedef std::tr1::unordered_map<short, string> InfMap;
+	typedef unordered_map<short, string> InfMap;
 	typedef InfMap::const_iterator InfIter;
 	InfMap info;
 
@@ -320,6 +319,7 @@ public:
 			return true;
 		return (GET_TICK() - identity.getLoggedIn()) > delay;
 	}
+
 	bool getChecked(bool filelist = false, bool checkComplete = true);
 
 	GETSET(Identity, identity, Identity);
@@ -338,5 +338,5 @@ private:
 
 /**
  * @file
- * $Id: User.h 421 2008-09-03 17:20:45Z BigMuscle $
+ * $Id: User.h 429 2009-02-06 17:26:54Z BigMuscle $
  */

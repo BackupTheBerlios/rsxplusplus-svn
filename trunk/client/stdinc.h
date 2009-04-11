@@ -73,6 +73,12 @@ typedef unsigned __int16 uint16_t;
 typedef unsigned __int32 uint32_t;
 typedef unsigned __int64 uint64_t;
 
+#ifdef _WIN64
+typedef int64_t intptr_t;
+#else
+typedef int32_t intptr_t;
+#endif
+
 # ifndef CDECL
 #  define CDECL _cdecl
 # endif
@@ -157,9 +163,11 @@ typedef unsigned __int64 uint64_t;
 
 #define BOOST_REGEX_NO_LIB 1
 #include <boost/regex.hpp>
-//#include <regex>
 
-#if defined(_MSC_VER) || defined(_STLPORT_VERSION)
+/// STL unordered containers conf
+#define USE_BOOST_UNORDERED 1
+
+#if !defined(USE_BOOST_UNORDERED) && (defined(_MSC_VER) || defined(_STLPORT_VERSION))
 
 #include <unordered_map>
 #include <unordered_set>
@@ -170,12 +178,24 @@ typedef unsigned __int64 uint64_t;
 #include <tr1/unordered_map>
 
 #else
-#error "Unknown STL, please configure accordingly"
+
+#include <boost/unordered_map.hpp>
+#include <boost/unordered_set.hpp>
+#define USE_BOOST_UNORDERED 1
+
 #endif
 
 namespace dcpp {
 using namespace std;
+
+#if defined(USE_BOOST_UNORDERED)
+using boost::unordered_map;
+using boost::unordered_set;
+using boost::unordered_multimap;
+#else
 using namespace std::tr1;
+#endif
+
 }
 
 #endif // !defined(STDINC_H)

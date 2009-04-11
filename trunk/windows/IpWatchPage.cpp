@@ -1,4 +1,6 @@
-/* 
+/*
+ * Copyright (C) 2007-2009 adrian_007, adrian-007 on o2 point pl
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -17,10 +19,11 @@
 #include "stdafx.h"
 #include "../client/DCPlusPlus.h"
 #include "../client/SettingsManager.h"
+#include "../client/RawManager.h"
 #include "Resource.h"
 
 #include "../rsx/RsxUtil.h"
-#include "../rsx/rsx-settings/rsx-SettingsManager.h"
+#include "../client/rsxppSettingsManager.h"
 
 #include "IpWatchPage.h"
 #include "IPWatchDlg.h"
@@ -32,7 +35,7 @@ PropPage::TextItem IpWatchPage::texts[] = {
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
 PropPage::Item IpWatchPage::items[] = {
-	{ IDC_ENABLE_IPWATCH, RSXSettingsManager::USE_IPWATCH, PropPage::T_BOOL_RSX },
+	{ IDC_ENABLE_IPWATCH, rsxppSettingsManager::USE_IPWATCH, PropPage::T_BOOL_RSX },
 	{ 0, 0, PropPage::T_END }
 };
 

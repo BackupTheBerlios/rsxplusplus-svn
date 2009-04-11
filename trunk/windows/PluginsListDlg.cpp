@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2008 adrian_007, adrian-007 on o2 point pl
+ * Copyright (C) 2007-2009 adrian_007, adrian-007 on o2 point pl
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,25 +25,26 @@
 #include "PluginsListDlg.h"
 
 LRESULT PluginsListDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
-	/*CRect rc;
-
-	ctrlList.Attach(GetDlgItem(IDC_PLUGINS_LIST));
+	CRect rc;
+	ctrlList.Attach(GetDlgItem(IDC_LIST));
 	ctrlList.GetClientRect(rc);
-	ctrlList.InsertColumn(0, _T("Name"), LVCFMT_LEFT, (rc.Width() / 6), 0);
-	ctrlList.InsertColumn(1, _T("Version"), LVCFMT_LEFT, (rc.Width() / 6), 0);
-	ctrlList.InsertColumn(2, _T("Author"), LVCFMT_LEFT, (rc.Width() / 6), 0);
-	ctrlList.InsertColumn(3, _T("Description"), LVCFMT_LEFT, (rc.Width() / 2)-18, 0);
-	ctrlList.SetExtendedListViewStyle(/LVS_EX_FULLROWSELECT);
+	ctrlList.InsertColumn(0, _T("Plugin"), LVCFMT_LEFT, rc.Width() / 4 - 20, 0);
+	ctrlList.InsertColumn(1, _T("Description"), LVCFMT_LEFT, rc.Width() / 4 - 20, 0);
+	ctrlList.InsertColumn(2, _T("Author"), LVCFMT_LEFT, rc.Width() / 4 - 20, 0);
+	ctrlList.InsertColumn(3, _T("Website"), LVCFMT_LEFT, rc.Width() / 4 - 20, 0);
+	ctrlList.SetExtendedListViewStyle(/*LVS_EX_CHECKBOXES |*/ LVS_EX_FULLROWSELECT);
 
-	const PluginsManager::Plugins& list = PluginsManager::getInstance()->getPlugins();
-	for(PluginsManager::Plugins::const_iterator i = list.begin(); i != list.end(); ++i) {
-		TStringList strings;
-		strings.push_back((*i)->getName());
-		strings.push_back((*i)->getVersion());
-		strings.push_back((*i)->getAuthor());
-		strings.push_back((*i)->getDescription());
-		ctrlList.insert(ctrlList.GetItemCount(), strings, NULL, NULL);
-	}*/
+	std::list<DCPP_PLUG_INFO*> plugins;
+	PluginsManager::getInstance()->getPluginsInfo(plugins);
+	TStringList list;
+	for(std::list<DCPP_PLUG_INFO*>::const_iterator i = plugins.begin(); i != plugins.end(); ++i) {
+		list.push_back(Text::toT((*i)->name ? (*i)->name : "N/A"));
+		list.push_back(Text::toT((*i)->description ? (*i)->description : "N/A"));
+		list.push_back(Text::toT((*i)->author ? (*i)->author : "N/A"));
+		list.push_back(Text::toT((*i)->website ? (*i)->website : "N/A"));
+		ctrlList.insert(list);
+		list.clear();
+	}
 	return 0;
 }
 

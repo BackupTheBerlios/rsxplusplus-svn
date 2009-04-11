@@ -18,6 +18,8 @@
 
 #include "stdafx.h"
 #include "../client/DCPlusPlus.h"
+#include "../client/ActionRaw.h"
+
 #include "Resource.h"
 
 #include "RawDlg.h"

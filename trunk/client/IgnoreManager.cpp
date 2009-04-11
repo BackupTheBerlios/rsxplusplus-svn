@@ -43,25 +43,25 @@ void IgnoreManager::removeIgnore(const UserPtr& user) {
 	ignoredUsers.erase(Text::toT(ClientManager::getInstance()->getNicks(user->getCID())[0]));
 }
 
-bool IgnoreManager::isIgnored(const string& aNick) {
+bool IgnoreManager::isIgnored(const tstring& aNick) {
 	bool ret = false;
 
-	if(ignoredUsers.count(Text::toT(aNick)))
+	if(ignoredUsers.count(aNick))
 		ret = true;
 
-	if(RSXBOOLSETTING(IGNORE_USE_REGEXP_OR_WC) && !ret) {
+	if(RSXPP_BOOLSETTING(IGNORE_USE_REGEXP_OR_WC) && !ret) {
 		Lock l(cs);
 		for(TStringHashIterC i = ignoredUsers.begin(); i != ignoredUsers.end(); ++i) {
-			const string tmp = Text::fromT(*i);
-			if(strnicmp(tmp, "$Re:", 4) == 0) {
-				if(tmp.length() > 4) {
-					if(RegexUtil::match(aNick, tmp.substr(4))) {
-						ret = true;
-						break;
-					}
+			if(strnicmp(*i, _T("$Re:"), 4) == 0) {
+				if((*i).length() > 4) {
+					try {
+						boost::wregex reg((*i).substr(4), boost::regex_constants::icase);
+						ret = boost::regex_search(aNick.begin(), aNick.end(), reg);
+					} catch(...) { }
+					if(ret) break;
 				}
 			} else {
-				ret = Wildcard::patternMatch(Text::toLower(aNick), Text::toLower(tmp), false);
+				ret = Wildcard::patternMatch(Text::toLower(aNick), Text::toLower(*i), false);
 				if(ret)
 					break;
 			}
@@ -72,11 +72,11 @@ bool IgnoreManager::isIgnored(const string& aNick) {
 }
 
 // SettingsManagerListener
-void IgnoreManager::on(RSXSettingsManagerListener::Load, SimpleXML& aXml) {
+void IgnoreManager::on(SettingsManagerListener::Load, SimpleXML& aXml) {
 	load(aXml);
 }
 
-void IgnoreManager::on(RSXSettingsManagerListener::Save, SimpleXML& aXml) {
+void IgnoreManager::on(SettingsManagerListener::Save, SimpleXML& aXml) {
 	save(aXml);
 }
 }; // namespace dcpp

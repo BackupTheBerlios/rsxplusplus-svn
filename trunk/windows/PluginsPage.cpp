@@ -23,7 +23,7 @@
 #include "../client/SettingsManager.h"
 #include "../client/PluginsManager.h"
 
-#include "../rsx/rsx-settings/rsx-SettingsManager.h"
+#include "../client/rsxppSettingsManager.h"
 
 #include "PluginsPage.h"
 

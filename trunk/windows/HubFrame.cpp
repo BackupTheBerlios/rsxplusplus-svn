@@ -42,6 +42,7 @@
 #include "../rsx/RsxUtil.h"
 #include "../client/ClientManager.h"
 #include "../client/PluginsManager.h"
+#include "../client/cstring.hpp"
 //END
 HubFrame::FrameMap HubFrame::frames;
 HubFrame::IgnoreMap HubFrame::ignoreList;
@@ -280,9 +281,9 @@ void HubFrame::onEnter() {
 			prevCommands.push_back(s);
 		}
 		currentCommand = _T("");
-		//RSX++ //Lua & PluginAPI outgoing message
-		bool dropMessage = false;//client->onHubFrameEnter(client, Text::fromT(s));
-		//END
+
+		bool dropMessage = client->extOnMsgOut(Text::fromT(s)); //RSX++
+
 		// Special command
 		if(s[0] == _T('/')) {
 			tstring cmd = s;
@@ -355,7 +356,7 @@ void HubFrame::onEnter() {
 				if( !param.empty() ){
 					OnlineUserPtr ui = client->findUser(Text::fromT(param));
 					if(ui) {
-						ui->getList();
+						ui->getList(client->getHubUrl());
 					}
 				}
 			} else if(stricmp(cmd.c_str(), _T("log")) == 0) {
@@ -418,14 +419,14 @@ void HubFrame::onEnter() {
 
 					if(ui) {
 						if(param.size() > j + 1)
-							PrivateFrame::openWindow(ui->getUser(), client, param.substr(j+1));
+							PrivateFrame::openWindow(ui->getUser(), param.substr(j+1), client);
 						else
-							PrivateFrame::openWindow(ui->getUser(), client);
+							PrivateFrame::openWindow(ui->getUser(), Util::emptyStringT, client);
 					}
 				} else if(!param.empty()) {
 					const OnlineUserPtr ui = client->findUser(Text::fromT(param));
 					if(ui) {
-						PrivateFrame::openWindow(ui->getUser(), client);
+						PrivateFrame::openWindow(ui->getUser(), Util::emptyStringT, client);
 					}
 				}
 			} else if(stricmp(cmd.c_str(), _T("stats")) == 0) {
@@ -594,7 +595,7 @@ LRESULT HubFrame::onDoubleClickUsers(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHand
 	if(item->iItem != -1 && (ctrlUsers.getItemData(item->iItem)->getUser() != ClientManager::getInstance()->getMe())) {
 	    switch(SETTING(USERLIST_DBLCLICK)) {
 		    case 0:
-				ctrlUsers.getItemData(item->iItem)->getList();
+				ctrlUsers.getItemData(item->iItem)->getList(client->getHubUrl());
 		        break;
 		    case 1: {
 				tstring sUser = Text::toT(ctrlUsers.getItemData(item->iItem)->getIdentity().getNick());
@@ -619,19 +620,19 @@ LRESULT HubFrame::onDoubleClickUsers(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHand
 				break;
 		    }    
 		    case 2:
-				ctrlUsers.getItemData(item->iItem)->pm();
+				ctrlUsers.getItemData(item->iItem)->pm(client->getHubUrl());
 		        break;
 		    case 3:
-		        ctrlUsers.getItemData(item->iItem)->matchQueue();
+		        ctrlUsers.getItemData(item->iItem)->matchQueue(client->getHubUrl());
 		        break;
 		    case 4:
-		        ctrlUsers.getItemData(item->iItem)->grant();
+		        ctrlUsers.getItemData(item->iItem)->grant(client->getHubUrl());
 		        break;
 		    case 5:
 		        ctrlUsers.getItemData(item->iItem)->addFav();
 		        break;
 			case 6:
-				ctrlUsers.getItemData(item->iItem)->browseList();
+				ctrlUsers.getItemData(item->iItem)->browseList(client->getHubUrl());
 				break;
 		}	
 	}
@@ -697,16 +698,7 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 
 	for(TaskQueue::Iter i = t.begin(); i != t.end(); ++i) {
 		if(i->first == UPDATE_USER) {
-			//RSX++
-			UserTask& u = *static_cast<UserTask*>(i->second);
-			
-			if(IgnoreManager::getInstance()->isIgnored(u.onlineUser->getIdentity().getNick())) {
-				ignoreList.insert(u.onlineUser->getUser());
-			} else if(!IgnoreManager::getInstance()->isIgnored(u.onlineUser->getIdentity().getNick()) && (ignoreList.find(u.onlineUser->getUser()) != ignoreList.end())) {
-				ignoreList.erase(u.onlineUser->getUser());
-			}
-			//END
-			updateUser(u);
+			updateUser(*static_cast<UserTask*>(i->second));
 		} else if(i->first == UPDATE_USER_JOIN) {
 			UserTask& u = *static_cast<UserTask*>(i->second);
 			if(updateUser(u)) {
@@ -721,7 +713,13 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 				if (showJoins || (favShowJoins && isFavorite)) {
 				 	addLine(_T("*** ") + TSTRING(JOINS) + Text::toT(u.onlineUser->getIdentity().getNick()), WinUtil::m_ChatTextSystem);
 				}	
-
+				 // Check Ignored status
+				bool ignored = IgnoreManager::getInstance()->isIgnored(Text::toT(u.onlineUser->getIdentity().getNick()));
+				if(ignored && (ignoreList.find(u.onlineUser->getUser()) == ignoreList.end())) {
+					ignoreList.insert(u.onlineUser->getUser());
+				} else if(!ignored && (ignoreList.find(u.onlineUser->getUser()) != ignoreList.end())) {
+					ignoreList.erase(u.onlineUser->getUser());
+				}
 				/*if(client->isOp() && !u.onlineUser->getIdentity().isBot() && !u.onlineUser->getIdentity().isHub()) {
 					int64_t bytesSharedInt64 = u.onlineUser->getIdentity().getBytesShared();
 					if(bytesSharedInt64 > 0) {
@@ -841,14 +839,14 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 				//RSX++ //PM spam detection
 				if(!myPM) {
 					if(pm.from.isPmSpamming()) {
-						if(RSXBOOLSETTING(IGNORE_PM_SPAMMERS)) {
+						if(RSXPP_BOOLSETTING(IGNORE_PM_SPAMMERS)) {
 							displayCheat(_T("*** Private Message Spam Detected! From user: ") + nick + _T(" (user ignored)"));
-							if(!IgnoreManager::getInstance()->isIgnored(Text::fromT(nick))) {
+							if(!IgnoreManager::getInstance()->isIgnored(nick)) {
 								IgnoreManager::getInstance()->storeIgnore(pm.from.getUser());
 								ignoreList.insert(pm.from.getUser());
 							}
-						} else if(RSXSETTING(PM_SPAM_KICK)) {
-							ClientManager::getInstance()->setCheating(pm.from.getUser(), "", "Private Message Flood", RSXSETTING(PM_SPAM_KICK), RSXBOOLSETTING(SHOW_PM_SPAM_KICK), false, false, false, false);
+						} else if(RSXPP_SETTING(PM_SPAM_KICK)) {
+							ClientManager::getInstance()->setCheating(pm.from.getUser(), "", "Private Message Flood", RSXPP_SETTING(PM_SPAM_KICK), RSXPP_BOOLSETTING(SHOW_PM_SPAM_KICK), false, false, false, false);
 						}
 					}
 				}
@@ -857,7 +855,7 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 					if(BOOLSETTING(IGNORE_HUB_PMS)) {
 						addClientLine(TSTRING(IGNORED_MESSAGE) + Text::toT(pm.str), false);
 					} else if(BOOLSETTING(POPUP_HUB_PMS) || PrivateFrame::isOpen(user)) {
-						PrivateFrame::gotMessage(pm.from, pm.to, pm.replyTo, client, Text::toT(pm.str));
+						PrivateFrame::gotMessage(pm.from, pm.to, pm.replyTo, Text::toT(pm.str), client);
 					} else {
 						addLine(TSTRING(PRIVATE_MESSAGE_FROM) + nick + _T(": ") + Text::toT(pm.str), WinUtil::m_ChatTextPrivate);
 					}
@@ -865,13 +863,13 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 					if(BOOLSETTING(IGNORE_BOT_PMS)) {
 						addClientLine(TSTRING(IGNORED_MESSAGE) + Text::toT(pm.str), WinUtil::m_ChatTextPrivate, false);
 					} else if(BOOLSETTING(POPUP_BOT_PMS) || PrivateFrame::isOpen(user)) {
-						PrivateFrame::gotMessage(pm.from, pm.to, pm.replyTo, client, Text::toT(pm.str));
+						PrivateFrame::gotMessage(pm.from, pm.to, pm.replyTo, Text::toT(pm.str), client);
 					} else {
 						addLine(TSTRING(PRIVATE_MESSAGE_FROM) + nick + _T(": ") + Text::toT(pm.str), WinUtil::m_ChatTextPrivate);
 					}
 				} else {
 					if(BOOLSETTING(POPUP_PMS) || PrivateFrame::isOpen(user)) {
-						PrivateFrame::gotMessage(pm.from, pm.to, pm.replyTo, client, Text::toT(pm.str));
+						PrivateFrame::gotMessage(pm.from, pm.to, pm.replyTo, Text::toT(pm.str), client);
 					} else {
 						addLine(TSTRING(PRIVATE_MESSAGE_FROM) + nick + _T(": ") + Text::toT(pm.str), WinUtil::m_ChatTextPrivate);
 					}
@@ -1140,10 +1138,10 @@ LRESULT HubFrame::onLButton(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& b
 			if(ui) {
 				bHandled = true;
 				if (wParam & MK_CONTROL) { // MK_CONTROL = 0x0008
-					PrivateFrame::openWindow(ui->getUser(), client);
+					PrivateFrame::openWindow(ui->getUser(), Util::emptyStringT, client);
 				} else if (wParam & MK_SHIFT) {
 					try {
-						QueueManager::getInstance()->addList(ui->getUser(), QueueItem::FLAG_CLIENT_VIEW);
+						QueueManager::getInstance()->addList(ui->getUser(), client->getHubUrl(), QueueItem::FLAG_CLIENT_VIEW);
 					} catch(const Exception& e) {
 						addClientLine(Text::toT(e.getError()), WinUtil::m_ChatTextSystem);
 					}
@@ -1185,16 +1183,16 @@ LRESULT HubFrame::onLButton(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& b
 					     break;
 					}
 					case 2:
-						ui->pm();
+						ui->pm(client->getHubUrl());
 					    break;
 					case 3:
-					    ui->getList();
+					    ui->getList(client->getHubUrl());
 					    break;
 					case 4:
-					    ui->matchQueue();
+					    ui->matchQueue(client->getHubUrl());
 					    break;
 					case 5:
-					    ui->grant();
+					    ui->grant(client->getHubUrl());
 					    break;
 					case 6:
 					    ui->addFav();
@@ -1223,6 +1221,7 @@ void HubFrame::addLine(const Identity& i, const tstring& aLine, CHARFORMAT2& cf,
 		client->getHubIdentity().getParams(params, "hub", false);
 		params["hubURL"] = client->getHubUrl();
 		client->getMyIdentity().getParams(params, "my", true);
+		i.getParams(params, "user", false); //RSX++
 		LOG(LogManager::CHAT, params);
 	}
 
@@ -1253,6 +1252,8 @@ LRESULT HubFrame::onTabContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lPar
 		tabMenu.AppendMenu(MF_STRING, IDC_OPEN_HUB_LOG, CTSTRING(OPEN_HUB_LOG));
 		tabMenu.AppendMenu(MF_SEPARATOR);
 	}
+	tabMenu.AppendMenu(MF_STRING, ID_EDIT_CLEAR_ALL, CTSTRING(CLEAR));
+	tabMenu.AppendMenu(MF_SEPARATOR);
 	tabMenu.AppendMenu(MF_STRING, IDC_ADD_AS_FAVORITE, CTSTRING(ADD_TO_FAVORITES));
 	tabMenu.AppendMenu(MF_STRING, ID_FILE_RECONNECT, CTSTRING(MENU_RECONNECT));
 	tabMenu.AppendMenu(MF_POPUP, (UINT)(HMENU)copyHubMenu, CTSTRING(COPY));
@@ -1650,7 +1651,7 @@ LRESULT HubFrame::onEnterUsers(int /*idCtrl*/, LPNMHDR /* pnmh */, BOOL& /*bHand
 	int item = ctrlUsers.GetNextItem(-1, LVNI_FOCUSED);
 	if(item != -1) {
 		try {
-			QueueManager::getInstance()->addList((ctrlUsers.getItemData(item))->getUser(), QueueItem::FLAG_CLIENT_VIEW);
+			QueueManager::getInstance()->addList((ctrlUsers.getItemData(item))->getUser(), client->getHubUrl(), QueueItem::FLAG_CLIENT_VIEW);
 		} catch(const Exception& e) {
 			addClientLine(Text::toT(e.getError()));
 		}
@@ -1722,6 +1723,11 @@ void HubFrame::reconnectDisconnected() {
 			i->second->client->reconnect();
 		}
 	}
+}
+
+void HubFrame::on(ClientListener::Close, Client* c) throw() {
+	if(c == client)
+		PostMessage(WM_CLOSE);
 }
 //END
 void HubFrame::on(FavoriteManagerListener::UserAdded, const FavoriteUser& /*aUser*/) throw() {
@@ -2187,7 +2193,7 @@ LRESULT HubFrame::onSelectUser(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCt
 LRESULT HubFrame::onPrivateMessage(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
 	int i = -1;
 	while( (i = ctrlUsers.GetNextItem(i, LVNI_SELECTED)) != -1) {
-		PrivateFrame::openWindow(ctrlUsers.getItemData(i)->getUser(), client);
+		PrivateFrame::openWindow(ctrlUsers.getItemData(i)->getUser(), Util::emptyStringT, client);
 	}
 
 	return 0;
@@ -2314,7 +2320,7 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
 			} else if(ui->getIdentity().isProtectedUser(*client, false)) {
 				cd->clrText = SETTING(PROTECTED_COLOR);
 				return CDRF_NEWFONT | CDRF_NOTIFYSUBITEMDRAW;
-			} else if(!RSXSETTING(FAV_USER_IS_PROTECTED_USER) && FavoriteManager::getInstance()->isFavoriteUser(ui->getUser())) {
+			} else if(!RSXPP_SETTING(FAV_USER_IS_PROTECTED_USER) && FavoriteManager::getInstance()->isFavoriteUser(ui->getUser())) {
 				cd->clrText = SETTING(FAVORITE_COLOR);
 			} else if (UploadManager::getInstance()->hasReservedSlot(ui->getUser())) {
 				cd->clrText = SETTING(RESERVED_SLOT_COLOR);
@@ -2334,7 +2340,7 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
 					cd->clrText = SETTING(BAD_CLIENT_COLOUR);
 				} else if(!ui->getIdentity().get("BF").empty()) {
 					cd->clrText = SETTING(BAD_FILELIST_COLOUR);
-				} else if(RSXBOOLSETTING(SHOW_SHARE_CHECKED_USERS)) {
+				} else if(RSXPP_BOOLSETTING(SHOW_SHARE_CHECKED_USERS)) {
 					if(ui->getIdentity().isClientChecked() && ui->getIdentity().isFileListChecked()) {
 						cd->clrText = SETTING(FULL_CHECKED_COLOUR);
 					} else if(ui->getIdentity().isClientChecked()) {
@@ -2372,7 +2378,11 @@ LRESULT HubFrame::onKeyDownUsers(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*
 		switch(l->wVKey) {
 			case 'M':
 				while( (i = ctrlUsers.GetNextItem(i, LVNI_SELECTED)) != -1) {
-					ctrlUsers.getItemData(i)->pm();
+					OnlineUserPtr ou = ctrlUsers.getItemData(i);
+					if(ou->getUser() != ClientManager::getInstance()->getMe())
+					{
+						ou->pm(client->getHubUrl());
+					}
 				}				
 				break;
 			// TODO: add others
@@ -2380,9 +2390,14 @@ LRESULT HubFrame::onKeyDownUsers(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*
 	}
 	return 0;
 }
+
+LRESULT HubFrame::onEditClearAll(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+	ctrlClient.SetWindowText(_T(""));
+	return 0;
+}
 //RSX++ //Filters
 bool HubFrame::getFilters(const Identity& i, const tstring& msg) {
-	if(RSXBOOLSETTING(USE_CHAT_FILTER) && client->getUseFilter()) {
+	if(RSXPP_BOOLSETTING(USE_CHAT_FILTER) && client->getUseFilter()) {
 		CHARFORMAT2 cf;
 		const Filters::List& ul = FavoriteManager::getInstance()->getFilters();
 		for(Filters::List::const_iterator j = ul.begin(); j != ul.end(); ++j) {
@@ -2440,5 +2455,5 @@ void HubFrame::displayCheat(const tstring& aMessage) {
 
 /**
  * @file
- * $Id: HubFrame.cpp 423 2008-11-08 17:12:32Z BigMuscle $
+ * $Id: HubFrame.cpp 429 2009-02-06 17:26:54Z BigMuscle $
  */

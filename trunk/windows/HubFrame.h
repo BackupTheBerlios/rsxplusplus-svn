@@ -91,6 +91,7 @@ public:
 		COMMAND_ID_HANDLER(IDC_OPEN_HUB_LOG, onOpenHubLog)
 		COMMAND_ID_HANDLER(IDC_OPEN_USER_LOG, onOpenUserLog)
 		COMMAND_ID_HANDLER(IDC_EMOT, onEmoticons)
+		COMMAND_ID_HANDLER(ID_EDIT_CLEAR_ALL, onEditClearAll)
 		COMMAND_RANGE_HANDLER(IDC_EMOMENU, IDC_EMOMENU + menuItems, onEmoPackChange)
 		COMMAND_RANGE_HANDLER(IDC_COPY, IDC_COPY + OnlineUser::COLUMN_LAST, onCopyUserInfo)
 		//RSX++
@@ -170,6 +171,7 @@ public:
 	LRESULT onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled);
 	LRESULT onEmoPackChange(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT onKeyDownUsers(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/);
+	LRESULT onEditClearAll(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	
 	LRESULT onEmoticons(WORD /*wNotifyCode*/, WORD /*wID*/, HWND hWndCtl, BOOL& bHandled) {
 		if (hWndCtl != ctrlEmoticons.m_hWnd) {
@@ -490,6 +492,7 @@ private:
 	void on(HubTopic, const Client*, const string&) throw();
 	//RSX++
 	void on(AddClientLine, const Client*, const string&, int) throw();
+	void on(Close, Client* c) throw();
 	//END
 
 	void speak(Tasks s) { tasks.add(static_cast<uint8_t>(s), 0); PostMessage(WM_SPEAKER); }
@@ -503,5 +506,5 @@ private:
 
 /**
  * @file
- * $Id: HubFrame.h 412 2008-07-23 22:35:40Z BigMuscle $
+ * $Id: HubFrame.h 429 2009-02-06 17:26:54Z BigMuscle $
  */

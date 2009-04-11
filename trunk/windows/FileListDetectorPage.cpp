@@ -19,7 +19,7 @@
 #include "../client/SettingsManager.h"
 #include "Resource.h"
 
-#include "../rsx/rsx-settings/rsx-SettingsManager.h"
+#include "../client/rsxppSettingsManager.h"
 
 #include "FileListDetectorPage.h"
 #include "FileListDetectorDlg.h"
@@ -40,12 +40,12 @@ PropPage::TextItem FileListDetectorPage::texts[] = {
 };
 
 PropPage::Item FileListDetectorPage::items[] = {
-	{ IDC_PERCENT_FAKE_SHARE_TOLERATED, RSXSettingsManager::PERCENT_FAKE_SHARE_TOLERATED,	PropPage::T_INT_RSX },
-	{ IDC_MINIMUM_FILELIST_SIZE,		RSXSettingsManager::MINIMUM_FILELIST_SIZE,			PropPage::T_INT_RSX },
-	{ IDC_MAXIMUM_FILELIST_SIZE,		RSXSettingsManager::MAXIMUM_FILELIST_SIZE,			PropPage::T_INT_RSX },
-	{ IDC_SDL_SPEED,					RSXSettingsManager::SDL_SPEED,						PropPage::T_INT_RSX },
-	{ IDC_SDL_TIME,						RSXSettingsManager::SDL_TIME,						PropPage::T_INT_RSX },
-	{ IDC_USE_SDL_KICK,					RSXSettingsManager::USE_SDL_KICK,					PropPage::T_BOOL_RSX },
+	{ IDC_PERCENT_FAKE_SHARE_TOLERATED, rsxppSettingsManager::PERCENT_FAKE_SHARE_TOLERATED,	PropPage::T_INT_RSX },
+	{ IDC_MINIMUM_FILELIST_SIZE,		rsxppSettingsManager::MINIMUM_FILELIST_SIZE,		PropPage::T_INT_RSX },
+	{ IDC_MAXIMUM_FILELIST_SIZE,		rsxppSettingsManager::MAXIMUM_FILELIST_SIZE,		PropPage::T_INT_RSX },
+	{ IDC_SDL_SPEED,					rsxppSettingsManager::SDL_SPEED,					PropPage::T_INT_RSX },
+	{ IDC_SDL_TIME,						rsxppSettingsManager::SDL_TIME,						PropPage::T_INT_RSX },
+	{ IDC_USE_SDL_KICK,					rsxppSettingsManager::USE_SDL_KICK,					PropPage::T_BOOL_RSX },
 	{ 0, 0, PropPage::T_END }
 };
 

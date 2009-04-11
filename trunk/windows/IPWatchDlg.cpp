@@ -1,4 +1,6 @@
-/* 
+/*
+ * Copyright (C) 2007-2009 adrian_007, adrian-007 on o2 point pl
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -27,7 +29,6 @@ LRESULT IPWatchDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 	ATTACH(IDC_WATCH_DISPLAY_CHEAT, cDisplay);
 	ATTACH(IDC_IPW_MODE, cMode);
 	ATTACH(IDC_IPW_MATCH_TYPE, cMatchType);
-	ATTACH(IDC_WATCH_ACTION_CMD, cAction);
 
 	cPattern.SetWindowText(pattern.c_str());
 	::SetWindowText(GetDlgItem(IDC_WATCH_CHEAT), cheat.c_str());
@@ -49,11 +50,7 @@ LRESULT IPWatchDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 	cMatchType.AddString(_T("RegEx"));
 	cMatchType.SetCurSel(matchType);
 
-	createList();
-	for(ActionList::const_iterator i = idAction.begin(); i != idAction.end(); ++i) {
-		cAction.AddString(RawManager::getInstance()->getNameActionId(i->second).c_str());
-	}
-	cAction.SetCurSel(getId(action));
+	cAction.attach(GetDlgItem(IDC_WATCH_ACTION_CMD), action);
 
 	fixControls();
 	CenterWindow(GetParent());
@@ -76,7 +73,7 @@ LRESULT IPWatchDlg::OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/,
 		cheat = buf;
 
 		task = cTask.GetCurSel();
-		action = getIdAction(cAction.GetCurSel());
+		action = cAction.getActionId();
 		display = cDisplay.GetCheck() == BST_CHECKED;
 		matchType = cMatchType.GetCurSel();
 		mode = cMode.GetCurSel();

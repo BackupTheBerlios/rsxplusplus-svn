@@ -1,4 +1,6 @@
-/* 
+/*
+ * Copyright (C) 2007-2009 adrian_007, adrian-007 on o2 point pl
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -17,9 +19,9 @@
 #ifndef IPWATCH_DLG
 #define IPWATCH_DLG
 
-#include "../client/RawManager.h"
+#include "CRawCombo.h"
 
-class IPWatchDlg : public CDialogImpl<IPWatchDlg>, protected RawSelector {
+class IPWatchDlg : public CDialogImpl<IPWatchDlg> {
 public:
 	tstring pattern, cheat, isp;
 	int task, action, mode, matchType;
@@ -36,7 +38,7 @@ public:
 		COMMAND_ID_HANDLER(IDC_IPW_MODE, onAction)
 	END_MSG_MAP()
 
-	IPWatchDlg() : mode(0), pattern(_T("0.0.0.0")), cheat(_T("Forbidden IP!")), task(0), action(0), display(true), matchType(0), isp(Util::emptyStringT) { };
+	IPWatchDlg() : mode(0), pattern(_T("0.0.0.0")), cheat(_T("Forbidden IP!")), task(0), action(0), display(true), matchType(0), isp(_T("")) { };
 	~IPWatchDlg() {
 		cAction.Detach();
 		cTask.Detach();
@@ -54,7 +56,8 @@ public:
 
 private:
 	CEdit cPattern;
-	CComboBox cAction, cTask, cMode, cMatchType;
+	CComboBox cTask, cMode, cMatchType;
+	CRawCombo cAction;
 	CButton cDisplay;
 	void fixControls();
 };

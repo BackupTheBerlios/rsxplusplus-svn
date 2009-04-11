@@ -61,16 +61,14 @@ public:
 		FLAG_DOWNLOAD				= 0x08,
 		FLAG_INCOMING				= 0x10,
 		FLAG_ASSOCIATED				= 0x20,
-		FLAG_HASSLOT				= 0x40,
-		FLAG_HASEXTRASLOT			= 0x80,
-		FLAG_SUPPORTS_MINISLOTS		= 0x100,
-		FLAG_SUPPORTS_XML_BZLIST	= 0x200,
-		FLAG_SUPPORTS_ADCGET		= 0x400,
-		FLAG_SUPPORTS_ZLIB_GET		= 0x800,
-		FLAG_SUPPORTS_TTHL			= 0x1000,
-		FLAG_SUPPORTS_TTHF			= 0x2000,
-		FLAG_STEALTH				= 0x4000,
-		FLAG_SECURE					= 0x8000
+		FLAG_SUPPORTS_MINISLOTS		= 0x40,
+		FLAG_SUPPORTS_XML_BZLIST	= 0x80,
+		FLAG_SUPPORTS_ADCGET		= 0x100,
+		FLAG_SUPPORTS_ZLIB_GET		= 0x200,
+		FLAG_SUPPORTS_TTHL			= 0x400,
+		FLAG_SUPPORTS_TTHF			= 0x800,
+		FLAG_STEALTH				= 0x1000,
+		FLAG_SECURE					= 0x2000
 	};
 	
 	enum States {
@@ -97,6 +95,13 @@ public:
 		STATE_RUNNING,		// Transmitting data
 
 	};
+	
+	enum SlotTypes {	
+		NOSLOT		= 0,
+		STDSLOT		= 1,
+		EXTRASLOT	= 2,
+		PARTIALSLOT	= 3
+	};	
 
 	short getNumber() const { return (short)((((size_t)this)>>2) & 0x7fff); }
 
@@ -127,7 +132,6 @@ public:
 	void fileNotAvail(const std::string& msg = FILE_NOT_AVAILABLE) { isSet(FLAG_NMDC) ? send("$Error " + msg + "|") : send(AdcCommand(AdcCommand::SEV_RECOVERABLE, AdcCommand::ERROR_FILE_NOT_AVAILABLE, msg)); }
 	void supports(const StringList& feat);
 	void getListLen() { send("$GetListLen|"); }
-	void sendRaw(const string& raw) { send(raw); } //RSX++ // Lua
 
 	// ADC Stuff
 	void sup(const StringList& features);
@@ -135,6 +139,8 @@ public:
 	void get(const string& aType, const string& aName, const int64_t aStart, const int64_t aBytes) {  send(AdcCommand(AdcCommand::CMD_GET).addParam(aType).addParam(aName).addParam(Util::toString(aStart)).addParam(Util::toString(aBytes))); }
 	void snd(const string& aType, const string& aName, const int64_t aStart, const int64_t aBytes) {  send(AdcCommand(AdcCommand::CMD_SND).addParam(aType).addParam(aName).addParam(Util::toString(aStart)).addParam(Util::toString(aBytes))); }
 	void send(const AdcCommand& c) { send(c.toString(0, isSet(FLAG_NMDC))); }
+
+	void sendRaw(const std::string& line) { send(line, false); } //RSX++
 
 	void setDataMode(int64_t aBytes = -1) { dcassert(socket); socket->setDataMode(aBytes); }
 	void setLineMode(size_t rollback) { dcassert(socket); socket->setLineMode(rollback); }
@@ -164,12 +170,6 @@ public:
 	void setDownload(Download* d) { dcassert(isSet(FLAG_DOWNLOAD)); download = d; }
 	Upload* getUpload() { dcassert(isSet(FLAG_UPLOAD)); return upload; }
 	void setUpload(Upload* u) { dcassert(isSet(FLAG_UPLOAD)); upload = u; }
-
-	void reconnect() {
-		disconnect();
-		Thread::sleep(100);
-		ClientManager::getInstance()->connect(user, Util::toString(Util::rand()));
-	}
 	
 	void handle(AdcCommand::SUP t, const AdcCommand& c) { fire(t, this, c); }
 	void handle(AdcCommand::INF t, const AdcCommand& c) { fire(t, this, c); }
@@ -192,8 +192,14 @@ public:
 	GETSET(States, state, State);
 
 	GETSET(string*, encoding, Encoding);
+	GETSET(uint8_t, slotType, SlotType);
 	
 	BufferedSocket const* getSocket() { return socket; } 
+
+	~UserConnection() throw() {
+		BufferedSocket::putSocket(socket);
+		dcassert(!download);
+	}
 
 private:
 	int64_t chunkSize;
@@ -209,15 +215,10 @@ private:
 
 	// We only want ConnectionManager to create this...
 	UserConnection(bool secure_) throw() : encoding(const_cast<string*>(&Text::systemCharset)), state(STATE_UNCONNECTED),
-		lastActivity(0), speed(0), chunkSize(0), socket(0), download(NULL) {
+		lastActivity(0), speed(0), chunkSize(0), socket(0), download(NULL), slotType(NOSLOT) {
 		if(secure_) {
 			setFlag(FLAG_SECURE);
 		}
-	}
-
-	~UserConnection() throw() {
-		BufferedSocket::putSocket(socket);
-		dcassert(!download);
 	}
 
 	friend struct DeleteFunction;
@@ -227,10 +228,12 @@ private:
 	}
 
 	void onLine(const string& aLine) throw();
-	
-	void send(const string& aString) {
+
+	bool callLua(const string& line); //RSX++
+	void send(const string& aString, bool lua = true) {
 		lastActivity = GET_TICK();
 		COMMAND_DEBUG(aString, DebugManager::CLIENT_OUT, getRemoteIp());
+		if(lua && callLua(aString)) return;
 		socket->write(aString);
 	}
 
@@ -250,5 +253,5 @@ private:
 
 /**
  * @file
- * $Id: UserConnection.h 421 2008-09-03 17:20:45Z BigMuscle $
+ * $Id: UserConnection.h 427 2009-01-10 19:29:09Z BigMuscle $
  */

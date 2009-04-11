@@ -23,7 +23,7 @@
 #include "FilterPageDlg.h"
 #include "HLPageDlg.h"
 
-#include "../rsx/rsx-settings/rsx-SettingsManager.h"
+#include "../client/rsxppSettingsManager.h"
 #include "WinUtil.h"
 
 PropPage::TextItem FilterPage::texts[] = {
@@ -34,8 +34,8 @@ PropPage::TextItem FilterPage::texts[] = {
 };
 
 PropPage::Item FilterPage::items[] = {
-	{ IDC_USE_CHAT_FILTER, RSXSettingsManager::USE_CHAT_FILTER, PropPage::T_BOOL_RSX },
-	{ IDC_USE_HL, RSXSettingsManager::USE_HIGHLIGHT, PropPage::T_BOOL_RSX },
+	{ IDC_USE_CHAT_FILTER, rsxppSettingsManager::USE_CHAT_FILTER, PropPage::T_BOOL_RSX },
+	{ IDC_USE_HL, rsxppSettingsManager::USE_HIGHLIGHT, PropPage::T_BOOL_RSX },
 	{ 0, 0, PropPage::T_END }
 };
 

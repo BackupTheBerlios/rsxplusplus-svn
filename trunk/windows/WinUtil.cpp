@@ -218,20 +218,20 @@ COLORREF HLS_TRANSFORM (COLORREF rgb, int percent_L, int percent_S) {
 	return HLS2RGB (HLS(h, l, s));
 }
 
-void UserInfoBase::matchQueue() {
+void UserInfoBase::matchQueue(const string& hubHint) {
 	if(getUser()) {
 		try {
-			QueueManager::getInstance()->addList(getUser(), QueueItem::FLAG_MATCH_QUEUE);
+			QueueManager::getInstance()->addList(getUser(), hubHint, QueueItem::FLAG_MATCH_QUEUE);
 		} catch(const Exception& e) {
 			LogManager::getInstance()->message(e.getError());
 		}
 	}
 }
 
-void UserInfoBase::getUserResponses() {
+void UserInfoBase::getUserResponses(const string& hubHint) {
 	if(getUser()) {
 		try {
-			QueueManager::getInstance()->addTestSUR(getUser());
+			QueueManager::getInstance()->addTestSUR(getUser(), hubHint, false);
 		} catch(const Exception& e) {
 			LogManager::getInstance()->message(e.getError());		
 		}
@@ -275,34 +275,34 @@ void UserInfoBase::multiHubKick() {
 	}
 }
 //END
-void UserInfoBase::doReport() {
+void UserInfoBase::doReport(const string& hubHint) {
 	if(getUser()) {
-		ClientManager::getInstance()->reportUser(getUser());
+		ClientManager::getInstance()->reportUser(getUser(), hubHint);
 	}
 }
 
-void UserInfoBase::getList() {
+void UserInfoBase::getList(const string& hubHint) {
 	if(getUser()) {
 		try {
-			QueueManager::getInstance()->addList(getUser(), QueueItem::FLAG_CLIENT_VIEW);
+			QueueManager::getInstance()->addList(getUser(), hubHint, QueueItem::FLAG_CLIENT_VIEW);
 		} catch(const Exception& e) {
 			LogManager::getInstance()->message(e.getError());		
 		}
 	}
 }
-void UserInfoBase::browseList() {
+void UserInfoBase::browseList(const string& hubHint) {
 	if(!getUser() || getUser()->getCID().isZero())
 		return;
 	try {
-		QueueManager::getInstance()->addList(getUser(), QueueItem::FLAG_CLIENT_VIEW | QueueItem::FLAG_PARTIAL_LIST);
+		QueueManager::getInstance()->addList(getUser(), hubHint, QueueItem::FLAG_CLIENT_VIEW | QueueItem::FLAG_PARTIAL_LIST);
 	} catch(const Exception& e) {
 		LogManager::getInstance()->message(e.getError());		
 	}
 }
-void UserInfoBase::checkList() {
+void UserInfoBase::checkList(const string& hubHint) {
 	if(getUser()) {
 		try {
-			QueueManager::getInstance()->addList(getUser(), QueueItem::FLAG_CHECK_FILE_LIST);
+			QueueManager::getInstance()->addList(getUser(), hubHint, QueueItem::FLAG_CHECK_FILE_LIST);
 		} catch(const Exception& e) {
 			LogManager::getInstance()->message(e.getError());		
 		}
@@ -313,9 +313,10 @@ void UserInfoBase::addFav() {
 		FavoriteManager::getInstance()->addFavoriteUser(getUser());
 	}
 }
-void UserInfoBase::pm() {
+void UserInfoBase::pm(const string& hubHint) {
 	if(getUser()) {
-		PrivateFrame::openWindow(getUser());
+		// TODO provide client
+		PrivateFrame::openWindow(getUser(), Util::emptyStringT, NULL);
 	}
 }
 void UserInfoBase::connectFav() {
@@ -326,9 +327,9 @@ void UserInfoBase::connectFav() {
 		}
 	}
 }
-void UserInfoBase::grant() {
+void UserInfoBase::grant(const string& hubHint) {
 	if(getUser()) {
-		UploadManager::getInstance()->reserveSlot(getUser(), 600);
+		UploadManager::getInstance()->reserveSlot(getUser(), 600, hubHint);
 	}
 }
 void UserInfoBase::removeAll() {
@@ -336,19 +337,19 @@ void UserInfoBase::removeAll() {
 		QueueManager::getInstance()->removeSource(getUser(), QueueItem::Source::FLAG_REMOVED);
 	}
 }
-void UserInfoBase::grantHour() {
+void UserInfoBase::grantHour(const string& hubHint) {
 	if(getUser()) {
-		UploadManager::getInstance()->reserveSlot(getUser(), 3600);
+		UploadManager::getInstance()->reserveSlot(getUser(), 3600, hubHint);
 	}
 }
-void UserInfoBase::grantDay() {
+void UserInfoBase::grantDay(const string& hubHint) {
 	if(getUser()) {
-		UploadManager::getInstance()->reserveSlot(getUser(), 24*3600);
+		UploadManager::getInstance()->reserveSlot(getUser(), 24*3600, hubHint);
 	}
 }
-void UserInfoBase::grantWeek() {
+void UserInfoBase::grantWeek(const string& hubHint) {
 	if(getUser()) {
-		UploadManager::getInstance()->reserveSlot(getUser(), 7*24*3600);
+		UploadManager::getInstance()->reserveSlot(getUser(), 7*24*3600, hubHint);
 	}
 }
 void UserInfoBase::ungrant() {
@@ -435,12 +436,12 @@ void WinUtil::init(HWND hWnd) {
 	view.AppendMenu(MF_STRING, IDC_NOTEPAD, CTSTRING(MENU_NOTEPAD));
 	view.AppendMenu(MF_STRING, IDC_HASH_PROGRESS, CTSTRING(MENU_HASH_PROGRESS));
 	view.AppendMenu(MF_STRING, IDC_VIEW_PLUGINS_LIST, _T("Plugins List")); //RSX++
-	view.AppendMenu(MF_STRING, IDC_VIEW_SCRIPTS_LIST, _T("Scripts List")); //RSX++
+	//view.AppendMenu(MF_STRING, IDC_VIEW_SCRIPTS_LIST, _T("Scripts List")); //RSX++
 	view.AppendMenu(MF_SEPARATOR);
 	view.AppendMenu(MF_STRING, ID_VIEW_TOOLBAR, CTSTRING(MENU_TOOLBAR));
+	view.AppendMenu(MF_STRING, ID_TOGGLE_QSEARCH, CTSTRING(TOGGLE_QSEARCH));	
 	view.AppendMenu(MF_STRING, ID_VIEW_STATUS_BAR, CTSTRING(MENU_STATUS_BAR));
 	view.AppendMenu(MF_STRING, ID_VIEW_TRANSFER_VIEW, CTSTRING(MENU_TRANSFER_VIEW));
-	view.AppendMenu(MF_STRING, ID_TOGGLE_QSEARCH, CTSTRING(TOGGLE_QSEARCH));	
 	view.AppendMenu(MF_STRING, ID_VIEW_PLUGIN_TOOLBAR, CTSTRING(MENU_PLUGIN_VIEW)); //RSX++
 
 	mainMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)view, CTSTRING(MENU_VIEW));
@@ -1067,19 +1068,10 @@ bool WinUtil::checkCommand(tstring& cmd, tstring& param, tstring& message, tstri
 			status = TSTRING(SHUTDOWN_OFF);
 		}
 	//RSX++
-	} else if(stricmp(cmd.c_str(), _T("pinfo")) == 0) {
-		/*const PluginsManager::Plugins& p = PluginsManager::getInstance()->getPlugins();
-		tstring pinfo = _T("Active Plugins Info\nLoaded plugins: ") + Util::toStringW(p.size());
-		for(PluginsManager::Plugins::const_iterator i = p.begin(); i != p.end(); ++i) {
-			pinfo += _T("\n-- Plugin Name: ") + (*i)->getName();
-			pinfo += _T("\n-- Plugin Version: ") + (*i)->getVersion();
-			pinfo += _T("\n");
-		}
-		status = pinfo;*/
-	} else if(stricmp(cmd.c_str(), _T("lua")) == 0) {
-		//ScriptManager::getInstance()->EvaluateChunk(Text::fromT(param));
-	} else if(stricmp(cmd.c_str(), _T("luafile")) == 0) {
-		//ScriptManager::getInstance()->EvaluateFile(Text::fromT(param));
+#if SVNBUILD || _DEBUG
+	} else if(stricmp(cmd.c_str(), _T("luareload")) == 0) {
+		ScriptManager::getInstance()->reload();
+#endif
 	//END
 	} else {
 		return false;
@@ -1116,7 +1108,7 @@ void WinUtil::copyMagnet(const TTHValue& aHash, const string& aFile, int64_t aSi
 	tstring app = _T("\"") + Text::toT(getAppName()) + _T("\" %1");
 	Buf[0] = 0;
 
-	if(::RegOpenKeyEx(HKEY_CLASSES_ROOT, _T("dchub\\Shell\\Open\\Command"), 0, KEY_WRITE | KEY_READ, &hk) == ERROR_SUCCESS) {
+	if(::RegOpenKeyEx(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\dchub\\Shell\\Open\\Command"), 0, KEY_WRITE | KEY_READ, &hk) == ERROR_SUCCESS) {
 		DWORD bufLen = sizeof(Buf);
 		DWORD type;
 		::RegQueryValueEx(hk, NULL, 0, &type, (LPBYTE)Buf, &bufLen);
@@ -1124,7 +1116,7 @@ void WinUtil::copyMagnet(const TTHValue& aHash, const string& aFile, int64_t aSi
 	}
 
 	if(stricmp(app.c_str(), Buf) != 0) {
-		if (::RegCreateKeyEx(HKEY_CLASSES_ROOT, _T("dchub"), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hk, NULL))  {
+		if (::RegCreateKeyEx(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\dchub"), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hk, NULL))  {
 			LogManager::getInstance()->message(STRING(ERROR_CREATING_REGISTRY_KEY_DCHUB));
 			return;
 		}
@@ -1134,11 +1126,11 @@ void WinUtil::copyMagnet(const TTHValue& aHash, const string& aFile, int64_t aSi
 		::RegSetValueEx(hk, _T("URL Protocol"), 0, REG_SZ, (LPBYTE)_T(""), sizeof(TCHAR));
 		::RegCloseKey(hk);
 
-		::RegCreateKeyEx(HKEY_CLASSES_ROOT, _T("dchub\\Shell\\Open\\Command"), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hk, NULL);
+		::RegCreateKeyEx(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\dchub\\Shell\\Open\\Command"), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hk, NULL);
 		::RegSetValueEx(hk, _T(""), 0, REG_SZ, (LPBYTE)app.c_str(), sizeof(TCHAR) * (app.length() + 1));
 		::RegCloseKey(hk);
 
-		::RegCreateKeyEx(HKEY_CLASSES_ROOT, _T("dchub\\DefaultIcon"), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hk, NULL);
+		::RegCreateKeyEx(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\dchub\\DefaultIcon"), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hk, NULL);
 		app = Text::toT(getAppName());
 		::RegSetValueEx(hk, _T(""), 0, REG_SZ, (LPBYTE)app.c_str(), sizeof(TCHAR) * (app.length() + 1));
 		::RegCloseKey(hk);
@@ -1146,7 +1138,7 @@ void WinUtil::copyMagnet(const TTHValue& aHash, const string& aFile, int64_t aSi
 }
 
  void WinUtil::unRegisterDchubHandler() {
-	SHDeleteKey(HKEY_CLASSES_ROOT, _T("dchub"));
+	SHDeleteKey(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\dchub"));
  }
 
  void WinUtil::registerADChubHandler() {
@@ -1155,7 +1147,7 @@ void WinUtil::copyMagnet(const TTHValue& aHash, const string& aFile, int64_t aSi
 	 tstring app = _T("\"") + Text::toT(getAppName()) + _T("\" %1");
 	 Buf[0] = 0;
 
-	 if(::RegOpenKeyEx(HKEY_CLASSES_ROOT, _T("adc\\Shell\\Open\\Command"), 0, KEY_WRITE | KEY_READ, &hk) == ERROR_SUCCESS) {
+	 if(::RegOpenKeyEx(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\adc\\Shell\\Open\\Command"), 0, KEY_WRITE | KEY_READ, &hk) == ERROR_SUCCESS) {
 		 DWORD bufLen = sizeof(Buf);
 		 DWORD type;
 		 ::RegQueryValueEx(hk, NULL, 0, &type, (LPBYTE)Buf, &bufLen);
@@ -1163,7 +1155,7 @@ void WinUtil::copyMagnet(const TTHValue& aHash, const string& aFile, int64_t aSi
 	 }
 
 	 if(stricmp(app.c_str(), Buf) != 0) {
-		 if (::RegCreateKeyEx(HKEY_CLASSES_ROOT, _T("adc"), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hk, NULL))  {
+		 if (::RegCreateKeyEx(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\adc"), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hk, NULL))  {
 			 LogManager::getInstance()->message(STRING(ERROR_CREATING_REGISTRY_KEY_ADC));
 			 return;
 		 }
@@ -1173,11 +1165,11 @@ void WinUtil::copyMagnet(const TTHValue& aHash, const string& aFile, int64_t aSi
 		 ::RegSetValueEx(hk, _T("URL Protocol"), 0, REG_SZ, (LPBYTE)_T(""), sizeof(TCHAR));
 		 ::RegCloseKey(hk);
 
-		 ::RegCreateKeyEx(HKEY_CLASSES_ROOT, _T("adc\\Shell\\Open\\Command"), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hk, NULL);
+		 ::RegCreateKeyEx(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\adc\\Shell\\Open\\Command"), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hk, NULL);
 		 ::RegSetValueEx(hk, _T(""), 0, REG_SZ, (LPBYTE)app.c_str(), sizeof(TCHAR) * (app.length() + 1));
 		 ::RegCloseKey(hk);
 
-		 ::RegCreateKeyEx(HKEY_CLASSES_ROOT, _T("adc\\DefaultIcon"), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hk, NULL);
+		 ::RegCreateKeyEx(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\adc\\DefaultIcon"), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hk, NULL);
 		 app = Text::toT(getAppName());
 		 ::RegSetValueEx(hk, _T(""), 0, REG_SZ, (LPBYTE)app.c_str(), sizeof(TCHAR) * (app.length() + 1));
 		 ::RegCloseKey(hk);
@@ -1185,103 +1177,47 @@ void WinUtil::copyMagnet(const TTHValue& aHash, const string& aFile, int64_t aSi
  }
 
  void WinUtil::unRegisterADChubHandler() {
-	SHDeleteKey(HKEY_CLASSES_ROOT, _T("adc"));
+	SHDeleteKey(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\adc"));
  }
 
 void WinUtil::registerMagnetHandler() {
 	HKEY hk;
 	TCHAR buf[512];
-	tstring openCmd, magnetLoc, magnetExe;
+	tstring openCmd;
+	tstring appName = Text::toT(getAppName());
 	buf[0] = 0;
-	bool haveMagnet = true;
 
 	// what command is set up to handle magnets right now?
-	if(::RegOpenKeyEx(HKEY_CLASSES_ROOT, _T("magnet\\shell\\open\\command"), 0, KEY_READ, &hk) == ERROR_SUCCESS) {
+	if(::RegOpenKeyEx(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\magnet\\shell\\open\\command"), 0, KEY_READ, &hk) == ERROR_SUCCESS) {
 		DWORD bufLen = sizeof(TCHAR) * sizeof(buf);
 		::RegQueryValueEx(hk, NULL, NULL, NULL, (LPBYTE)buf, &bufLen);
 		::RegCloseKey(hk);
 	}
 	openCmd = buf;
 	buf[0] = 0;
-	// read the location of magnet.exe
-	if(::RegOpenKeyEx(HKEY_LOCAL_MACHINE, _T("SOFTWARE\\Magnet"), NULL, KEY_READ, &hk) == ERROR_SUCCESS) {
-		DWORD bufLen = sizeof(buf) * sizeof(TCHAR);
-		::RegQueryValueEx(hk, _T("Location"), NULL, NULL, (LPBYTE)buf, &bufLen);
-		::RegCloseKey(hk);
-	}
-	magnetLoc = buf;
-	string::size_type i;
-	if (!magnetLoc.empty() && magnetLoc[0]==_T('"') && string::npos != (i = magnetLoc.find(_T('"'), 1))) {
-		magnetExe = magnetLoc.substr(1, i-1);
-	}
-	// check for the existence of magnet.exe
-	if(File::getSize(Text::fromT(magnetExe)) == -1) {
-		magnetExe = Text::toT(Util::getDataPath() + "magnet.exe");
-		if(File::getSize(Text::fromT(magnetExe)) == -1) {
-			// gracefully fall back to registering DC++ to handle magnets
-			magnetExe = Text::toT(getAppName());
-			haveMagnet = false;
-		} else {
-			// set Magnet\Location
-			if (::RegCreateKeyEx(HKEY_LOCAL_MACHINE, _T("SOFTWARE\\Magnet"), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hk, NULL))  {
-				LogManager::getInstance()->message(STRING(ERROR_CREATING_REGISTRY_KEY_MAGNET));
-				return;
-			}
 
-			::RegSetValueEx(hk, _T("Location"), NULL, REG_SZ, (LPBYTE)magnetExe.c_str(), sizeof(TCHAR) * (magnetExe.length()+1));
-			::RegCloseKey(hk);
-		}
-		magnetLoc = _T('"') + magnetExe + _T('"');
-	}
 	// (re)register the handler if magnet.exe isn't the default, or if DC++ is handling it
-	if(BOOLSETTING(MAGNET_REGISTER) && (strnicmp(openCmd, magnetLoc, magnetLoc.size()) != 0 || !haveMagnet)) {
-		SHDeleteKey(HKEY_CLASSES_ROOT, _T("magnet"));
-		if (::RegCreateKeyEx(HKEY_CLASSES_ROOT, _T("magnet"), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hk, NULL))  {
+	if(BOOLSETTING(MAGNET_REGISTER) && (strnicmp(openCmd, appName, appName.size()) != 0)) {
+		SHDeleteKey(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\magnet"));
+		if (::RegCreateKeyEx(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\magnet"), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hk, NULL))  {
 			LogManager::getInstance()->message(STRING(ERROR_CREATING_REGISTRY_KEY_MAGNET));
 			return;
 		}
 		::RegSetValueEx(hk, NULL, NULL, REG_SZ, (LPBYTE)CTSTRING(MAGNET_SHELL_DESC), sizeof(TCHAR)*(TSTRING(MAGNET_SHELL_DESC).length()+1));
 		::RegSetValueEx(hk, _T("URL Protocol"), NULL, REG_SZ, NULL, NULL);
 		::RegCloseKey(hk);
-		::RegCreateKeyEx(HKEY_CLASSES_ROOT, _T("magnet\\DefaultIcon"), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hk, NULL);
-		::RegSetValueEx(hk, NULL, NULL, REG_SZ, (LPBYTE)magnetLoc.c_str(), sizeof(TCHAR)*(magnetLoc.length()+1));
+		::RegCreateKeyEx(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\magnet\\DefaultIcon"), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hk, NULL);
+		::RegSetValueEx(hk, NULL, NULL, REG_SZ, (LPBYTE)appName.c_str(), sizeof(TCHAR)*(appName.length()+1));
 		::RegCloseKey(hk);
-		magnetLoc += _T(" %1");
-		::RegCreateKeyEx(HKEY_CLASSES_ROOT, _T("magnet\\shell\\open\\command"), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hk, NULL);
-		::RegSetValueEx(hk, NULL, NULL, REG_SZ, (LPBYTE)magnetLoc.c_str(), sizeof(TCHAR)*(magnetLoc.length()+1));
+		appName += _T(" %1");
+		::RegCreateKeyEx(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\magnet\\shell\\open\\command"), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hk, NULL);
+		::RegSetValueEx(hk, NULL, NULL, REG_SZ, (LPBYTE)appName.c_str(), sizeof(TCHAR)*(appName.length()+1));
 		::RegCloseKey(hk);
 	}
-	// magnet-handler specific code
-	// clean out the DC++ tree first
-	SHDeleteKey(HKEY_LOCAL_MACHINE, _T("SOFTWARE\\Magnet\\Handlers\\DC++"));
-	// add DC++ to magnet-handler's list of applications
-	::RegCreateKeyEx(HKEY_LOCAL_MACHINE, _T("SOFTWARE\\Magnet\\Handlers\\DC++"), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hk, NULL);
-	::RegSetValueEx(hk, NULL, NULL, REG_SZ, (LPBYTE)CTSTRING(MAGNET_HANDLER_ROOT), sizeof(TCHAR) * (TSTRING(MAGNET_HANDLER_ROOT).size()+1));
-	::RegSetValueEx(hk, _T("Description"), NULL, REG_SZ, (LPBYTE)CTSTRING(MAGNET_HANDLER_DESC), sizeof(TCHAR) * (STRING(MAGNET_HANDLER_DESC).size()+1));
-	// set ShellExecute
-	tstring app = Text::toT("\"" + getAppName() + "\" %URL");
-	::RegSetValueEx(hk, _T("ShellExecute"), NULL, REG_SZ, (LPBYTE)app.c_str(), sizeof(TCHAR) * (app.length()+1));
-	// set DefaultIcon
-	app = Text::toT('"' + getAppName() + '"');
-	::RegSetValueEx(hk, _T("DefaultIcon"), NULL, REG_SZ, (LPBYTE)app.c_str(), sizeof(TCHAR)*(app.length()+1));
-	::RegCloseKey(hk);
-
-	// These two types contain a tth root, and are in common use.  The other two are variations picked up
-	// from Shareaza's source, which come second hand from Gordon Mohr.  -GargoyleMT
-	// Reference: http://forums.shareaza.com/showthread.php?threadid=23731
-	// Note: the three part hash types require magnethandler >= 1.0.0.3
-	DWORD nothing = 0;
-	::RegCreateKeyEx(HKEY_LOCAL_MACHINE, _T("SOFTWARE\\Magnet\\Handlers\\DC++\\Type"), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hk, NULL);
-	::RegSetValueEx(hk, _T("urn:bitprint"), NULL, REG_DWORD, (LPBYTE)&nothing, sizeof(nothing));
-	::RegSetValueEx(hk, _T("urn:tree:tiger"), NULL, REG_DWORD, (LPBYTE)&nothing, sizeof(nothing));
-	::RegSetValueEx(hk, _T("urn:tree:tiger/"), NULL, REG_DWORD, (LPBYTE)&nothing, sizeof(nothing));
-	::RegSetValueEx(hk, _T("urn:tree:tiger/1024"), NULL, REG_DWORD, (LPBYTE)&nothing, sizeof(nothing));
-	::RegCloseKey(hk);
 }
 
 void WinUtil::unRegisterMagnetHandler() {
-	SHDeleteKey(HKEY_CLASSES_ROOT, _T("magnet"));
-	SHDeleteKey(HKEY_LOCAL_MACHINE, _T("magnet"));
+	SHDeleteKey(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\magnet"));
 }
 
 void WinUtil::openLink(const tstring& url) {
@@ -1294,7 +1230,11 @@ void WinUtil::openLink(const tstring& url) {
 		return;
 	}
 	if(_strnicmp(Text::fromT(url).c_str(), "adc://", 6) == 0) {
-		parseADChubUrl(url);
+		parseADChubUrl(url, false);
+		return;
+	}
+	if(_strnicmp(Text::fromT(url).c_str(), "adcs://", 7) == 0) {
+		parseADChubUrl(url, true);
 		return;
 	}	
 
@@ -1305,6 +1245,7 @@ void WinUtil::parseDchubUrl(const tstring& aUrl) {
 	string server, file;
 	uint16_t port = 411;
 	Util::decodeUrl(Text::fromT(aUrl), server, port, file);
+	string url = server + ":" + Util::toString(port);
 	if(!server.empty()) {
 		HubFrame::openWindow(Text::toT(server) + _T(":") + Util::toStringW(port));
 	}
@@ -1315,7 +1256,7 @@ void WinUtil::parseDchubUrl(const tstring& aUrl) {
 			if(!file.empty()) {
 				UserPtr user = ClientManager::getInstance()->findLegacyUser(file);
 				if(user)
-					QueueManager::getInstance()->addList(user, QueueItem::FLAG_CLIENT_VIEW);
+					QueueManager::getInstance()->addList(user, url, QueueItem::FLAG_CLIENT_VIEW);
 			}
 			// @todo else report error
 		} catch(const Exception&) {
@@ -1324,12 +1265,12 @@ void WinUtil::parseDchubUrl(const tstring& aUrl) {
 	}
 }
 
-void WinUtil::parseADChubUrl(const tstring& aUrl) {
+void WinUtil::parseADChubUrl(const tstring& aUrl, bool secure) {
 	string server, file;
 	uint16_t port = 0; //make sure we get a port since adc doesn't have a standard one
 	Util::decodeUrl(Text::fromT(aUrl), server, port, file);
 	if(!server.empty() && port > 0) {
-		HubFrame::openWindow(_T("adc://") + Text::toT(server) + _T(":") + Util::toStringW(port));
+		HubFrame::openWindow((secure ? _T("adcs://") : _T("adc://")) + Text::toT(server) + _T(":") + Util::toStringW(port));
 	}
 }
 
@@ -1388,7 +1329,7 @@ void WinUtil::parseMagnetUri(const tstring& aUrl, bool /*aOverride*/) {
 				switch(SETTING(MAGNET_ACTION)) {
 					case SettingsManager::MAGNET_AUTO_DOWNLOAD:
 						try {
-							QueueManager::getInstance()->add(SETTING(DOWNLOAD_DIRECTORY) + Text::fromT(fname), fsize, TTHValue(Text::fromT(fhash)), UserPtr());
+							QueueManager::getInstance()->add(SETTING(DOWNLOAD_DIRECTORY) + Text::fromT(fname), fsize, TTHValue(Text::fromT(fhash)), UserPtr(), Util::emptyString);
 						} catch(const Exception& e) {
 							LogManager::getInstance()->message(e.getError());
 						}
@@ -1449,7 +1390,10 @@ bool WinUtil::parseDBLClick(const tstring& aString, string::size_type start, str
 		parseMagnetUri(aString.substr(start, end-start));
 		return true;
 	} else if(strnicmp(aString.c_str() + start, _T("adc://"), 6) == 0) {
-		parseADChubUrl(aString.substr(start, end-start));
+		parseADChubUrl(aString.substr(start, end-start), false);
+		return true;
+	} else if(strnicmp(aString.c_str() + start, _T("adcs://"), 7) == 0) {
+		parseADChubUrl(aString.substr(start, end-start), true);
 		return true;
 	}
 	return false;
@@ -1737,7 +1681,7 @@ float ProcSpeedCalc() {
 	// Cleanup and return
 	RegCloseKey(hKey);
 	
-	return dwSpeed;
+	return (float)dwSpeed;
 }
 
 wchar_t arrayutf[42] = { L'¡', L'»', L'œ', L'…', L'Ã', L'Õ', L'º', L'“', L'”', L'ÿ', L'ä', L'ç', L'⁄', L'Ÿ', L'›', L'é', L'·', L'Ë', L'Ô', L'È', L'Ï', L'Ì', L'æ', L'Ú', L'Û', L'¯', L'ö', L'ù', L'˙', L'˘', L'˝', L'û', L'ƒ', L'À', L'÷', L'‹', L'‰', L'Î', L'ˆ', L'¸', L'£', L'≥' };
@@ -1801,9 +1745,9 @@ string WinUtil::generateStats() {
 			% RsxUtil::getOsVersion()
 			% formatTime(GET_TICK()/1000)
 			% CPUInfo()
-			% Util::toString(RSXSETTING(TOTAL_DETECTS))
-			% Util::toString(RSXSETTING(TOTAL_FAILED_DETECTS))
-			% Util::toString(RSXSETTING(TOTAL_RAW_COMMANDS_SENT)));
+			% Util::toString(RSXPP_SETTING(TOTAL_DETECTS))
+			% Util::toString(RSXPP_SETTING(TOTAL_FAILED_DETECTS))
+			% Util::toString(RSXPP_SETTING(TOTAL_RAW_COMMANDS_SENT)));
 		return ret;
 	} else {
 		return "Not supported by OS";
@@ -1981,5 +1925,5 @@ tstring WinUtil::getWindowText(HWND _hwnd, int ctrlID) {
 //END
 /**
  * @file
- * $Id: WinUtil.cpp 420 2008-08-21 19:15:50Z BigMuscle $
+ * $Id: WinUtil.cpp 430 2009-02-08 11:08:00Z BigMuscle $
  */

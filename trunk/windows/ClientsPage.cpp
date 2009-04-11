@@ -183,12 +183,11 @@ LRESULT ClientsPage::onContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lPar
 		{ 
 			ctrlProfiles.ClientToScreen(&pt);
 			if(ctrlProfiles.GetSelectedCount() >= 1) {
-
-				ChangeRawCheatDlg dlg;
 				DetectionEntry de;
 				
 				int x = ctrlProfiles.GetSelectedIndex();
 				DetectionManager::getInstance()->getDetectionItem(ctrlProfiles.GetItemData(x), de, isUserInfo);
+				ChangeRawCheatDlg dlg(de.rawToSend);
 				dlg.name = de.name;
 				dlg.cheatingDescription = de.cheat;
 				dlg.raw = de.rawToSend;

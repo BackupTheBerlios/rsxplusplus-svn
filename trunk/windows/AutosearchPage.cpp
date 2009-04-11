@@ -21,7 +21,7 @@
 #include "../client/SettingsManager.h"
 #include "../client/RawManager.h"
 
-#include "../rsx/rsx-settings/rsx-SettingsManager.h"
+#include "../client/rsxppSettingsManager.h"
 #include "../rsx/RsxUtil.h"
 
 #include "AutosearchPage.h"
@@ -41,10 +41,10 @@ PropPage::TextItem AutosearchPage::texts[] = {
 };
 
 PropPage::Item AutosearchPage::items[] = {
-	{ IDC_AUTOSEARCH_ENABLE,		RSXSettingsManager::AUTOSEARCH_ENABLED,			PropPage::T_BOOL_RSX },
-	{ IDC_AUTOSEARCH_ENABLE_TIME,	RSXSettingsManager::AUTOSEARCH_ENABLED_TIME,	PropPage::T_BOOL_RSX },
-	{ IDC_AUTOSEARCH_EVERY,			RSXSettingsManager::AUTOSEARCH_EVERY,			PropPage::T_INT_RSX },
-	{ IDC_AUTOSEARCH_RECHECK_TIME,	RSXSettingsManager::AUTOSEARCH_RECHECK_TIME,	PropPage::T_INT_RSX },
+	{ IDC_AUTOSEARCH_ENABLE,		rsxppSettingsManager::AUTOSEARCH_ENABLED,		PropPage::T_BOOL_RSX },
+	{ IDC_AUTOSEARCH_ENABLE_TIME,	rsxppSettingsManager::AUTOSEARCH_ENABLED_TIME,	PropPage::T_BOOL_RSX },
+	{ IDC_AUTOSEARCH_EVERY,			rsxppSettingsManager::AUTOSEARCH_EVERY,			PropPage::T_INT_RSX },
+	{ IDC_AUTOSEARCH_RECHECK_TIME,	rsxppSettingsManager::AUTOSEARCH_RECHECK_TIME,	PropPage::T_INT_RSX },
 	{ 0, 0, PropPage::T_END }
 };
 

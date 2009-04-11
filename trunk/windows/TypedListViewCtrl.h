@@ -775,11 +775,14 @@ public:
 				pos = findItem(parent);
 			}
 
-			if(autoExpand){
-				SetItemState(pos, INDEXTOSTATEIMAGEMASK(2), LVIS_STATEIMAGEMASK);
-				parent->collapsed = false;
-			} else {
-				SetItemState(pos, INDEXTOSTATEIMAGEMASK(1), LVIS_STATEIMAGEMASK);
+			if(pos != -1)
+			{
+				if(autoExpand){
+					SetItemState(pos, INDEXTOSTATEIMAGEMASK(2), LVIS_STATEIMAGEMASK);
+					parent->collapsed = false;
+				} else {
+					SetItemState(pos, INDEXTOSTATEIMAGEMASK(1), LVIS_STATEIMAGEMASK);
+				}
 			}
 		} else {
 			parent = pp->parent;
@@ -995,5 +998,5 @@ const vector<T*> TypedTreeListViewCtrl<T, ctrlId, key, hashFunc, equalKey>::empt
 
 /**
  * @file
- * $Id: TypedListViewCtrl.h 420 2008-08-21 19:15:50Z BigMuscle $
+ * $Id: TypedListViewCtrl.h 425 2008-12-24 22:17:02Z BigMuscle $
  */

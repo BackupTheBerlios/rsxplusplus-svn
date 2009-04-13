@@ -59,5 +59,8 @@
 
 #define DCPP_ACT_LOG_MSG					DCPP_ACTION + 1
 #define DCPP_ACT_FORMAT_PARAMS				DCPP_ACTION + 2			//#free
+#define DCPP_ACT_CONV_STR_TO_T				DCPP_ACTION + 3			//#free
+#define DCPP_ACT_CONV_STR_FROM_T			DCPP_ACTION + 4			//#free
+
 
 #endif // DCPP_PLUGIN_EVENTS

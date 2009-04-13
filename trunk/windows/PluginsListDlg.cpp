@@ -28,20 +28,24 @@ LRESULT PluginsListDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
 	CRect rc;
 	ctrlList.Attach(GetDlgItem(IDC_LIST));
 	ctrlList.GetClientRect(rc);
-	ctrlList.InsertColumn(0, _T("Plugin"), LVCFMT_LEFT, rc.Width() / 4 - 20, 0);
-	ctrlList.InsertColumn(1, _T("Description"), LVCFMT_LEFT, rc.Width() / 4 - 20, 0);
-	ctrlList.InsertColumn(2, _T("Author"), LVCFMT_LEFT, rc.Width() / 4 - 20, 0);
-	ctrlList.InsertColumn(3, _T("Website"), LVCFMT_LEFT, rc.Width() / 4 - 20, 0);
+	ctrlList.InsertColumn(0, _T("Plugin"), LVCFMT_LEFT, rc.Width() / 5, 0);
+	ctrlList.InsertColumn(1, _T("Description"), LVCFMT_LEFT, rc.Width() / 4, 0);
+	ctrlList.InsertColumn(2, _T("Author"), LVCFMT_LEFT, rc.Width() / 5, 0);
+	ctrlList.InsertColumn(3, _T("Website"), LVCFMT_LEFT, rc.Width() / 5, 0);
+	ctrlList.InsertColumn(4, _T("Version"), LVCFMT_LEFT, rc.Width() / 5 - 50, 0);
 	ctrlList.SetExtendedListViewStyle(/*LVS_EX_CHECKBOXES |*/ LVS_EX_FULLROWSELECT);
 
 	std::list<DCPP_PLUG_INFO*> plugins;
 	PluginsManager::getInstance()->getPluginsInfo(plugins);
 	TStringList list;
+	wchar_t buf[64];
 	for(std::list<DCPP_PLUG_INFO*>::const_iterator i = plugins.begin(); i != plugins.end(); ++i) {
 		list.push_back(Text::toT((*i)->name ? (*i)->name : "N/A"));
 		list.push_back(Text::toT((*i)->description ? (*i)->description : "N/A"));
 		list.push_back(Text::toT((*i)->author ? (*i)->author : "N/A"));
 		list.push_back(Text::toT((*i)->website ? (*i)->website : "N/A"));
+		swprintf(buf, 64, L"%d.%d.%d.%d", VER_MAJOR((*i)->version), VER_MINOR((*i)->version), VER_REVISION((*i)->version), VER_BUILD((*i)->version));
+		list.push_back(buf);
 		ctrlList.insert(list);
 		list.clear();
 	}

@@ -166,13 +166,18 @@ inline int stricmp(const string& a, const string& b) { return _stricmp(a.c_str()
 inline int strnicmp(const string& a, const string& b, size_t n) { return _strnicmp(a.c_str(), b.c_str(), n); }
 inline int stricmp(const wstring& a, const wstring& b) { return wcsicmp(a.c_str(), b.c_str()); }
 inline int strnicmp(const wstring& a, const wstring& b, size_t n) { return _wcsnicmp(a.c_str(), b.c_str(), n); }
+
 //RSX++ // be sure that this buffer will be deleted somewhere...
-inline char* get_c_string(const std::string& str) {
-	char* buf = (char*)malloc(sizeof(char) * str.length() + 1);
+template<class T1, class T2>
+inline T1* get_c_string_t(const T2& str) {
+	T1* buf = (T1*)malloc(sizeof(T1) * str.length() + 1);
 	std::memset(buf, 0, str.length()+1);
 	std::memcpy(buf, str.c_str(), str.length());
 	return buf;
 }
+inline char* get_c_string(const std::string& str) { return get_c_string_t<char, std::string>(str); }
+inline wchar_t* get_c_string(const std::wstring& str) { return get_c_string_t<wchar_t, std::wstring>(str); }
+
 //END
 extern void startup(void (*f)(void*, const tstring&), void* p);
 extern void shutdown();

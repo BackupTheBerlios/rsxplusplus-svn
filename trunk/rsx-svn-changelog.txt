@@ -1,4 +1,11 @@
-** SVN 113
+** SVN 118
+ ** [sdk] fixes in dcpp.h to compile in C
+ ** [sdk] fixed version's macros
+ ** [sdk] DCPP_STRING_MAP changed to DCPP_LINKED_MAP to have it more universal
+ ** [sdk] added option to convert from/to wide string
+ ** version column in plugins' dialog, plus some cosmetic
+
+** SVN 117
  ** begun work on new Lua API
  ** begun work on new Plugin SDK
  ** merged some icons from branches
@@ -19,7 +26,7 @@
 
 TODO: some reasonable way to store settings (plugins and lua)
 
-** SVN 112
+** SVN 116
  ** [I.nfraR.ed] improved several icons
 
 ** SVN 111

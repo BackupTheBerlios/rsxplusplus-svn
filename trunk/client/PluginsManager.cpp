@@ -53,10 +53,16 @@ void* PluginsManager::callFunc(int type, void* p1, void* p2, void* p3) {
 		}
 		case DCPP_ACT_FORMAT_PARAMS: {
 			StringMap params;
-			DCPP_STRING_MAP* first = reinterpret_cast<DCPP_STRING_MAP*>(p1);
+			DCPP_LINKED_MAP* first = reinterpret_cast<DCPP_LINKED_MAP*>(p1);
 			for(; first; first = first->next)
-				params[first->first] = first->second;
+				params[static_cast<char*>(first->first)] = static_cast<char*>(first->second);
 			return get_c_string(Util::formatParams(static_cast<char*>(p2), params, false));
+		}
+		case DCPP_ACT_CONV_STR_TO_T: {
+			return get_c_string(Text::toT(static_cast<char*>(p1)));
+		}
+ 		case DCPP_ACT_CONV_STR_FROM_T: {
+			return get_c_string(Text::fromT(static_cast<wchar_t*>(p1)));
 		}
 		case DCPP_USER_FIELD_IS_SET: {
 			OnlineUser* ou = reinterpret_cast<OnlineUser*>((dcpp_ptr_t)p1);

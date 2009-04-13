@@ -42,7 +42,6 @@
 #include "../rsx/RsxUtil.h"
 #include "../client/ClientManager.h"
 #include "../client/PluginsManager.h"
-#include "../client/cstring.hpp"
 //END
 HubFrame::FrameMap HubFrame::frames;
 HubFrame::IgnoreMap HubFrame::ignoreList;

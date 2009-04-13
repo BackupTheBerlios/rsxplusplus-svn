@@ -28,7 +28,6 @@
 #include "ResourceManager.h"
 #include "ClientManager.h"
 //RSX++
-#include "cstring.hpp"
 #include "PluginsManager.h"
 #include "ScriptManager.h"
 #include "RawManager.h"

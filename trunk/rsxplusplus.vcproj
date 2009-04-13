@@ -162,7 +162,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)luabind&quot;"
 				StringPooling="true"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
@@ -283,7 +283,7 @@
 				FavorSizeOrSpeed="2"
 				OmitFramePointers="false"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)luabind&quot;"
 				StringPooling="true"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
@@ -412,7 +412,7 @@
 				FavorSizeOrSpeed="2"
 				OmitFramePointers="false"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)luabind&quot;"
 				StringPooling="true"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
@@ -673,7 +673,7 @@
 				FavorSizeOrSpeed="2"
 				OmitFramePointers="false"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)luabind&quot;"
 				PreprocessorDefinitions="SVNBUILD"
 				StringPooling="true"
 				MinimalRebuild="true"
@@ -1921,11 +1921,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\windows\stdafx.h"
+				RelativePath=".\stdafx.h"
 				>
 			</File>
 			<File
-				RelativePath=".\stdafx.h"
+				RelativePath=".\windows\stdafx.h"
 				>
 			</File>
 			<File

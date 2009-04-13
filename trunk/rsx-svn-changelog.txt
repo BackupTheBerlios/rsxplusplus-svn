@@ -1,3 +1,7 @@
+** SVN 119
+ ** build and configuration fixes
+ ** boost updated
+
 ** SVN 118
  ** [sdk] fixes in dcpp.h to compile in C
  ** [sdk] fixed version's macros

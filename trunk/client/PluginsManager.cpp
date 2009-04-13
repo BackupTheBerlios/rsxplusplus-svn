@@ -42,7 +42,11 @@ PluginsManager::PluginsManager() : dcpp_func(0) {
 	dcpp_func->free = &free;
 
 	dcpp_func->call = &PluginsManager::callFunc;
+#ifdef _DEBUG
 	dcpp_func->debug = &dcdebug;
+#else
+	dcpp_func->debug = &PluginsManager::debugDummy;
+#endif
 }
 
 void* PluginsManager::callFunc(int type, void* p1, void* p2, void* p3) {

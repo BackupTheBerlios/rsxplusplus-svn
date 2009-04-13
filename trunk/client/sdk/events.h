@@ -64,3 +64,8 @@
 
 
 #endif // DCPP_PLUGIN_EVENTS
+
+/**
+ * @file
+ * $Id$
+ */

@@ -53,7 +53,7 @@ typedef uint32_t dcpp_ptr_t;
 #define VER_REVISION(v) (uint32_t)(((uint64_t)v & 0x00000000FFFF0000) >> 16)
 #define VER_BUILD(v)	(uint32_t)(((uint64_t)v & 0x000000000000FFFF))
 
-#define SDK_VERSION MAKE_VER(3, 0, 0, 0)
+#define SDK_VERSION MAKE_VER(2, 0, 0, 0)
 
 typedef struct {
 	const char*		name;
@@ -96,3 +96,8 @@ typedef struct dcppLinkedMap DCPP_LINKED_MAP;
 #endif
 
 #endif //DCPP_PLUGIN_SDK
+
+/**
+ * @file
+ * $Id: dcpp.h 117 2009-04-11 21:44:24Z adrian_007 $
+ */

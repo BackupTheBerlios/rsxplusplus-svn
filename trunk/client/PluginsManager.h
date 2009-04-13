@@ -46,6 +46,7 @@ public:
 	void getPluginsInfo(std::list<DCPP_PLUG_INFO*>& p);
 
 private:
+	static void debugDummy(const char*, ...) { }
 	static void* callFunc(int type, void* p1, void* p2, void* p3);
 	int plugEventAll(int type, void* p1, void* p2, void* p3);
 	int plugEventBreakAtFirst(int type, void* p1, void* p2, void* p3);

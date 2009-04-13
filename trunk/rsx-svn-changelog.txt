@@ -1,4 +1,4 @@
-** SVN 119
+** SVN 119-120
  ** build and configuration fixes
  ** boost updated
 

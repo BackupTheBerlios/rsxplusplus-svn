@@ -109,9 +109,9 @@ void startup(void (*f)(void*, const tstring&), void* p) {
 
 	PluginsManager::getInstance()->init(f, p);
 	ScriptManager::getInstance()->load(f, p);
-	//END
+	//---
 	SettingsManager::getInstance()->load();
-	//RSX++ //loaders
+	//+++
 	AutoSearchManager::getInstance()->AutosearchLoad();
 	IpManager::getInstance()->load();
 	//END
@@ -151,9 +151,10 @@ void shutdown() {
 	
 	QueueManager::getInstance()->saveQueue();
 	SettingsManager::getInstance()->save();
-	//PluginsManager::getInstance()->stopPlugins(); //RSX++
 
 	//RSX++
+	PluginsManager::getInstance()->initClose();
+
 	RsxUtil::uinit();
 	PluginsManager::deleteInstance();
 	ScriptManager::deleteInstance();

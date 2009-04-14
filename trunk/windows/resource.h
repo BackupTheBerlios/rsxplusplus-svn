@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
-// Used by W:\Visual Studio Projects\rsxplusplus\trunk\RSXPlusPlus.rc
+// Used by w:\Visual Studio Projects\rsxplusplus\trunk\RSXPlusPlus.rc
 //
 #define IDD_ABOUTBOX                    100
 #define IDC_FILETYPES                   101
@@ -1001,6 +1001,8 @@
 #define IDC_PARENT_EDIT                 1532
 #define IDC_BUTTON3                     1533
 #define IDC_EXPAND                      1533
+#define IDC_EXTENSIONS_CFG              1534
+#define IDC_BUTTON2                     1535
 #define WEBSERVER_SOCKET_MESSAGE        1543
 #define IDC_AUTOPRIORITY                1572
 #define IDC_SETTINGS_ODC_MENUBAR        1612
@@ -1127,6 +1129,7 @@
 #define IDC_WHOIS_IP                    10056
 #define IDD_PLUGINS_PAGE                10056
 #define IDC_BAN_IP                      10057
+#define IDD_EXTENSIONS_CFG              10057
 #define IDC_UNBAN_IP                    10058
 #define IDC_CLIENT                      10059
 #define IDC_COPY_URL                    10060
@@ -1293,7 +1296,7 @@
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        354
 #define _APS_NEXT_COMMAND_VALUE         32808
-#define _APS_NEXT_CONTROL_VALUE         1534
+#define _APS_NEXT_CONTROL_VALUE         1536
 #define _APS_NEXT_SYMED_VALUE           134
 #endif
 #endif

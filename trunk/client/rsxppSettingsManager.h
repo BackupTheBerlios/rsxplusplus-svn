@@ -181,6 +181,14 @@ public:
 	int getActionId(int id);
 	ExtActions& getActions() { return ext_actions; }
 	~rsxppSettingsManager() throw();
+
+	const std::string& getExtSetting(const std::string& name) const;
+	void setExtSetting(const std::string& name, const std::string& value);
+	StringMap& getExtSettings() { return extSettings; }
+
+	void lock();
+	void unlock();
+
 private:
 	rsxppSettingsManager();
 
@@ -201,6 +209,7 @@ private:
 
 	ExtActions ext_actions;
 	CriticalSection cs;
+	StringMap extSettings;
 };
 
 #define RSXPP_SETTING(k) (rsxppSettingsManager::getInstance()->get(rsxppSettingsManager::k, true))

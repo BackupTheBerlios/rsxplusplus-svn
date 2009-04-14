@@ -61,6 +61,7 @@
 #include "ClientsPage.h"
 #include "PluginsPage.h"
 #include "ScriptsList.h"
+#include "ExtensionsCfgPage.h"
 //END
 
 bool PropertiesDlg::needUpdate = false;
@@ -102,6 +103,7 @@ PropertiesDlg::PropertiesDlg(HWND parent, SettingsManager *s) : TreePropertyShee
 	pages[n++] = new RSXAdvanced(s);
 	pages[n++] = new PluginsPage(s);
 	pages[n++] = new ScriptsListPage(s);
+	pages[n++] = new ExtensionsCfgPage(s);
 	//END
 
 	for(int i=0; i<numPages; i++) {

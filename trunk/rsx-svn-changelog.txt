@@ -1,3 +1,17 @@
+** SVN 121
+ ** [sdk] some memory optimisations
+ ** [sdk] added basic settings manager
+ ** [sdk] option to access core settings
+ ** [sdk] option to add chat line
+ ** [sdk] new event - on config change
+ ** page in settings for extensions config
+ ** pluginsmanager's destructor
+ ** fixed a bunch of warnings caused by boost::unordered
+ ** trick to check "/me" message sent by plugin
+ ** fixed DCPP_INIT_CLOSE event
+ ** updated openssl (but no, dbg libs are not dbg libs... renamed from rls build ^^)
+ ** sdk version check during load and some log messages if load failed
+
 ** SVN 119-120
  ** build and configuration fixes
  ** boost updated

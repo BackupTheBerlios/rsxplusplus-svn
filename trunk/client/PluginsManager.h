@@ -32,10 +32,12 @@ class Client;
 class PluginsManager : public Singleton<PluginsManager> {
 public:
 	PluginsManager();
+	~PluginsManager();
 
 	void init(void (*f)(void*, const tstring&), void* p);
 	void load();
-	void unload();
+
+	inline void initClose() { plugEvent(DCPP_INIT_CLOSE, 0, 0, 0); }
 
 	inline int plugEvent(int type, void* p1, void* p2, void* p3, bool toAll = true) {
 		if(toAll)

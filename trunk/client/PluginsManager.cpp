@@ -27,7 +27,7 @@
 
 #include "LogManager.h"
 #include "ClientManager.h"
-#include "sdk/events.h"
+#include "rsxppSettingsManager.h"
 
 namespace dcpp {
 
@@ -49,6 +49,16 @@ PluginsManager::PluginsManager() : dcpp_func(0) {
 #endif
 }
 
+PluginsManager::~PluginsManager() {
+	Lock l(cs);
+	for(Plugins::const_iterator i = plugins.begin(); i != plugins.end(); ++i) {
+		FreeLibrary((*i)->handle);
+		delete *i;
+	}
+	plugins.clear();
+	delete dcpp_func;
+}
+
 void* PluginsManager::callFunc(int type, void* p1, void* p2, void* p3) {
 	switch(type) {
 		case DCPP_ACT_LOG_MSG: {
@@ -68,6 +78,30 @@ void* PluginsManager::callFunc(int type, void* p1, void* p2, void* p3) {
  		case DCPP_ACT_CONV_STR_FROM_T: {
 			return get_c_string(Text::fromT(static_cast<wchar_t*>(p1)));
 		}
+		case DCPP_CFG_GET_CORE: {
+			if(p3) {
+				switch((int)(p2)) {
+					case 0: return (void*)rsxppSettingsManager::getInstance()->getString(static_cast<char*>(p1)).c_str();
+					case 1: return (void*)rsxppSettingsManager::getInstance()->getInt(static_cast<char*>(p1));
+					default: return 0;
+				}
+			} else {
+				switch((int)(p2)) {
+					case 0: return (void*)SettingsManager::getInstance()->getString(static_cast<char*>(p1)).c_str();
+					case 1: return (void*)SettingsManager::getInstance()->getInt(static_cast<char*>(p1));
+					default: return 0;
+				}
+			}
+			break;
+		}
+		case DCPP_CFG_SET: {
+			rsxppSettingsManager::getInstance()->setExtSetting(static_cast<char*>(p1), static_cast<char*>(p2));
+			break;
+		}
+		case DCPP_CFG_GET: {
+			return (void*)rsxppSettingsManager::getInstance()->getExtSetting(static_cast<char*>(p1)).c_str();
+			break;
+		}
 		case DCPP_USER_FIELD_IS_SET: {
 			OnlineUser* ou = reinterpret_cast<OnlineUser*>((dcpp_ptr_t)p1);
 			if(ou)
@@ -77,7 +111,7 @@ void* PluginsManager::callFunc(int type, void* p1, void* p2, void* p3) {
 		case DCPP_USER_FIELD_GET: {
 			OnlineUser* ou = reinterpret_cast<OnlineUser*>((dcpp_ptr_t)p1);
 			if(ou)
-				return get_c_string(ou->getIdentity().get(static_cast<char*>(p2)));
+				return (void*)ou->getIdentity().get(static_cast<char*>(p2)).c_str();
 			break;
 		}
 		case DCPP_USER_FIELD_SET: {
@@ -95,7 +129,7 @@ void* PluginsManager::callFunc(int type, void* p1, void* p2, void* p3) {
 		case DCPP_HUB_FIELD_GET: {
 			Client* c = reinterpret_cast<Client*>((dcpp_ptr_t)p1);
 			if(c)
-				return get_c_string(c->getHubIdentity().get(static_cast<char*>(p2)));
+				return (void*)c->getHubIdentity().get(static_cast<char*>(p2)).c_str();
 			break;
 		}
 		case DCPP_HUB_FIELD_SET: {
@@ -113,7 +147,7 @@ void* PluginsManager::callFunc(int type, void* p1, void* p2, void* p3) {
 		case DCPP_HUB_FIELD_MY_GET: {
 			Client* c = reinterpret_cast<Client*>((dcpp_ptr_t)p1);
 			if(c)
-				return get_c_string(c->getMyIdentity().get(static_cast<char*>(p2)));
+				return (void*)c->getMyIdentity().get(static_cast<char*>(p2)).c_str();
 			break;
 		}
 		case DCPP_HUB_FIELD_MY_SET: {
@@ -130,8 +164,19 @@ void* PluginsManager::callFunc(int type, void* p1, void* p2, void* p3) {
 		}
 		case DCPP_HUB_SEND_MESSAGE: {
 			Client* c = reinterpret_cast<Client*>((dcpp_ptr_t)p1);
+			if(c) {
+				char* msg = static_cast<char*>(p2);
+				if(strncmp(msg, "/me", 3) == 0)
+					c->hubMessage(msg+3, true);
+				else
+					c->hubMessage(msg, false);
+			}
+			break;
+		}
+		case DCPP_HUB_ADD_CHAT_LINE: {
+			Client* c = reinterpret_cast<Client*>((dcpp_ptr_t)p1);
 			if(c)
-				c->hubMessage(string(static_cast<char*>(p2)), p3 ? true : false);
+				c->addHubLine(static_cast<char*>(p2), (int)p3);
 			break;
 		}
 		case DCPP_HUB_SEND_USER_CMD: {
@@ -172,35 +217,40 @@ void PluginsManager::init(void (*f)(void*, const tstring&), void* pv) {
 	typedef DCPP_PLUG_INFO* (__cdecl *plugInfo)(int, int);
 
 	StringList libs = File::findFiles(Util::getDataPath() + "Plugins" PATH_SEPARATOR_STR, "*.dll");
+	{
+		Lock l(cs);
+		for(StringIter i = libs.begin(); i != libs.end(); ++i) {
+			tstring fname = Text::toT(*i);
+			HMODULE dll = LoadLibrary(fname.c_str());
+			if(dll != NULL) {
+				Plugin::PluginProc p = reinterpret_cast<Plugin::PluginProc>(GetProcAddress(dll, "pluginProc"));
+				plugInfo pInfo = reinterpret_cast<plugInfo>(GetProcAddress(dll, "pluginInfo"));
 
-	Lock l(cs);
-	for(StringIter i = libs.begin(); i != libs.end(); ++i) {
-		tstring fname = Text::toT(*i);
-		HMODULE dll = LoadLibrary(fname.c_str());
-		if(dll != NULL) {
-			Plugin::PluginProc p = reinterpret_cast<Plugin::PluginProc>(GetProcAddress(dll, "pluginProc"));
-			plugInfo pInfo = reinterpret_cast<plugInfo>(GetProcAddress(dll, "pluginInfo"));
-
-			if(p && pInfo) {
-				if(f != NULL)
-					(*f)(pv, Util::getFileName(fname));
-				Plugin* plugin = new Plugin(dll);
-				plugin->pluginProc = p;
-				plugin->info = pInfo(0,0);
-				plugins.push_back(plugin);
-			} else {
-				FreeLibrary(dll);
+				if(p && pInfo) {
+					DCPP_PLUG_INFO* info = pInfo(0, 0);
+					if(info->sdkVersion == SDK_VERSION) {
+						if(f != NULL)
+							(*f)(pv, Util::getFileName(fname));
+						Plugin* plugin = new Plugin(dll);
+						plugin->pluginProc = p;
+						plugin->info = info;
+						plugins.push_back(plugin);
+					} else {
+						LogManager::getInstance()->message(Util::getFileName(*i) + " is using old version of SDK!");
+						FreeLibrary(dll);
+					}
+				} else {
+					LogManager::getInstance()->message(Util::getFileName(*i) + " is not a valid RSX++ plugin!");
+					FreeLibrary(dll);
+				}
 			}
 		}
 	}
-}
-
-void PluginsManager::load() {
 	plugEvent(DCPP_INIT_OPEN, dcpp_func, 0, 0);
 }
 
-void PluginsManager::unload() {
-	plugEvent(DCPP_INIT_CLOSE, 0, 0, 0);
+void PluginsManager::load() {
+	plugEvent(DCPP_CORE_STARTED, 0, 0, 0);
 }
 
 void PluginsManager::getPluginsInfo(std::list<DCPP_PLUG_INFO*>& p) {

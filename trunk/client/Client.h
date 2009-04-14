@@ -76,13 +76,6 @@ public:
 			return ou.get();
 		return NULL;
 	}
-	/*inline vector<OnlineUser*> getUsers() {
-		OnlineUserList l;
-		getUserList(l);
-		vector<OnlineUser*> v;
-		for(OnlineUserList::iterator i = l.begin(); i != l.end(); ++i)
-			v.push_back(i.get());
-	}*/
 	//END
 
 	uint16_t getPort() const { return port; }

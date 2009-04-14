@@ -281,6 +281,12 @@ void rsxppSettingsManager::on(Load, SimpleXML& xml) throw() {
 				addAction(xml.getIntChildAttrib("ID"), xml.getIntChildAttrib("ActionID"), xml.getBoolChildAttrib("Display"), xml.getChildAttrib("Name"), xml.getChildAttrib("CheatingDescription"));
 			xml.stepOut();
 		}
+		if(xml.findChild("ExtensionsConfig")) {
+			xml.stepIn();
+			while(xml.findChild("Item"))
+				setExtSetting(xml.getChildAttrib("Name"), xml.getChildAttrib("Value"));
+			xml.stepOut();
+		}
 	} catch(...) {
 		// ...
 	}
@@ -327,6 +333,14 @@ void rsxppSettingsManager::on(Save, SimpleXML& xml) throw() {
 		xml.addChildAttrib("CheatingDescription", (*i)->cheat);
 	}
 	xml.stepOut();
+	xml.addTag("ExtensionsConfig");
+	xml.stepIn();
+	for(StringMap::const_iterator j = extSettings.begin(); j != extSettings.end(); ++j) {
+		xml.addTag("Item");
+		xml.addChildAttrib("Name", j->first);
+		xml.addChildAttrib("Value", j->second);
+	}
+	xml.stepOut();
 }
 
 int rsxppSettingsManager::getInt(const string& sname) {
@@ -362,4 +376,16 @@ void rsxppSettingsManager::set(IntSetting key, int value) {
 	isSet[key] = true;
 }
 #endif
+const std::string& rsxppSettingsManager::getExtSetting(const std::string& name) const {
+	StringMap::const_iterator i = extSettings.find(name);
+	return i == extSettings.end() ? Util::emptyString : i->second;
+}
+
+void rsxppSettingsManager::setExtSetting(const std::string& name, const std::string& value) {
+	extSettings[name] = value;
+}
+
+void rsxppSettingsManager::lock() { cs.enter(); }
+void rsxppSettingsManager::unlock() { cs.leave(); }
+
 } // namespace dcpp

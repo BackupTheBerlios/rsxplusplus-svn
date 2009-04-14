@@ -178,11 +178,15 @@ typedef int32_t intptr_t;
 #include <tr1/unordered_map>
 
 #else
+#pragma warning(push)
+#pragma warning(disable:4100)
+#pragma warning(disable:4512)
 
 #include <boost/unordered_map.hpp>
 #include <boost/unordered_set.hpp>
-#define USE_BOOST_UNORDERED 1
 
+#pragma warning(pop)
+#define USE_BOOST_UNORDERED 1
 #endif
 
 namespace dcpp {

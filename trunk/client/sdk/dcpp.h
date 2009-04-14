@@ -47,7 +47,7 @@ typedef uint64_t dcpp_ptr_t;
 typedef uint32_t dcpp_ptr_t;
 #endif
 
-#define MAKE_VER(major, minor, revision, build) ((uint64_t)major & 0xFFFF) << 48 | ((uint64_t)minor & 0xFFFF) << 32 | ((uint64_t)revision & 0xFFFF) << 16 | ((uint64_t)build & 0xFFFF)
+#define MAKE_VER(major, minor, revision, build) (((uint64_t)major & 0xFFFF) << 48 | ((uint64_t)minor & 0xFFFF) << 32 | ((uint64_t)revision & 0xFFFF) << 16 | ((uint64_t)build & 0xFFFF))
 #define VER_MAJOR(v)	(uint32_t)(((uint64_t)v & 0xFFFF000000000000) >> 48)
 #define VER_MINOR(v)	(uint32_t)(((uint64_t)v & 0x0000FFFF00000000) >> 32)
 #define VER_REVISION(v) (uint32_t)(((uint64_t)v & 0x00000000FFFF0000) >> 16)

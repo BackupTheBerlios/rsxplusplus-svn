@@ -650,10 +650,7 @@ void AdcHub::hubMessage(const string& aMessage, bool thirdPerson) {
 void AdcHub::privateMessage(const OnlineUserPtr& user, const string& aMessage, bool thirdPerson) {
 	if(state != STATE_NORMAL)
 		return;
-	//RSX++
-	if(extOnPmOut(user.get(), aMessage, thirdPerson))
-		return;
-	//END
+
 	AdcCommand c(AdcCommand::CMD_MSG, user->getIdentity().getSID(), AdcCommand::TYPE_ECHO);
 	c.addParam(aMessage);
 	if(thirdPerson)

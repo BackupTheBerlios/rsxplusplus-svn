@@ -69,6 +69,7 @@ public:
 	virtual void refreshUserList(bool) = 0;
 	virtual void getUserList(OnlineUserList& list) const = 0;
 	virtual OnlineUserPtr findUser(const string& aNick) const = 0;
+	virtual OnlineUser* findUser(const CID& aCid) const = 0; //RSX++
 	//RSX++ for lua bindings
 	inline OnlineUser* findOnlineUser(const string& aNick) {
 		OnlineUserPtr ou = findUser(aNick);
@@ -102,7 +103,7 @@ public:
 	bool extOnMsgIn(const std::string& msg);
 	bool extOnMsgOut(const std::string& msg);
 	bool extOnPmIn(OnlineUser* from, OnlineUser* to, OnlineUser* replyTo, const std::string& msg, bool thirdPerson);
-	bool extOnPmOut(OnlineUser* to, const std::string& msg, bool thirdPerson);
+	bool extOnPmOut(const UserPtr& user, const std::string& msg);
 	//END
 	static int getTotalCounts() {
 		return counts.normal + counts.registered + counts.op;

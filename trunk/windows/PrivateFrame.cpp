@@ -302,12 +302,9 @@ void PrivateFrame::onEnter()
 			prevCommands.push_back(s);
 		}
 		currentCommand = Util::emptyStringT;
-		//RSX++
-		bool dropMessage = false;
-		//if(ctrlClient.getClient() != NULL) {
-		//	dropMessage = PluginsManager::getInstance()->onOutgoingPM(replyTo.get(), Text::fromT(s));
-		//}
-		//END
+
+		bool dropMessage = ctrlClient.getClient() && ctrlClient.getClient()->extOnPmOut(replyTo, Text::fromT(s)); //RSX++
+
 		// Process special commands
 		if(s[0] == '/') {
 			tstring m = s;

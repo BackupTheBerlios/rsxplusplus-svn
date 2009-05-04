@@ -1,3 +1,10 @@
+** SVN 126
+ ** fixed event DCPP_HUB_PRIVATE_MSG_OUT
+ ** branches sync
+
+** SVN 122-125
+ ** [I.nfraR.ed] updated icons (why the hell so many commits? :D)
+
 ** SVN 121
  ** [sdk] some memory optimisations
  ** [sdk] added basic settings manager

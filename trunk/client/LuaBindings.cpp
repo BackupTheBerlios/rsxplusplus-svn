@@ -46,51 +46,27 @@ namespace dcpp {
 		inline HWND findWindowA(LPCSTR p1, LPCSTR p2) {
 			return FindWindowA(strcmp(p1, "") == 0 ? NULL : p1, strcmp(p2, "") == 0 ? NULL : p2);
 		}
-		/*inline HWND findWindowW(LPCWSTR p1, LPCWSTR p2) {
-			return FindWindowW(wcsicmp(p1, L"") == 0 ? NULL : p1, wcsicmp(p2, L"") == 0 ? NULL : p2);
-		}*/
 		inline LRESULT sendMessageA(HWND p1, UINT p2, LPARAM p3, WPARAM p4) {
 			return SendMessageA(p1, p2, p3, p4);
 		}
-		/*inline LRESULT sendMessageW(HWND p1, UINT p2, LPARAM p3, WPARAM p4) {
-			return SendMessageW(p1, p2, p3, p4);
-		}*/
 		inline LRESULT postMessageA(HWND p1, UINT p2, LPARAM p3, WPARAM p4) {
 			return PostMessageA(p1, p2, p3, p4);
 		}
-		/*inline LRESULT postMessageW(HWND p1, UINT p2, LPARAM p3, WPARAM p4) {
-			return PostMessageW(p1, p2, p3, p4);
-		}*/
 		inline string getWindowTextA(HWND p1, int len) {
 			string buf;
 			buf.resize(len + 1);
 			::GetWindowTextA(p1, &buf[0], buf.size());
 			return buf;
 		}
-		/*inline wstring getWindowTextW(HWND p1, int len) {
-			wstring buf;
-			buf.resize(len + 1);
-			::GetWindowTextW(p1, &buf[0], buf.size());
-			return buf;
-		}*/
 		inline bool setWindowTextA(HWND p1, LPCSTR p2) {
 			return ::SetWindowTextA(p1, p2) ? true : false;
 		}
-		/*inline bool setWindowTextW(HWND p1, LPCWSTR p2) {
-			return ::SetWindowTextW(p1, p2) ? true : false;
-		}*/
 		inline int getWindowTextLengthA(HWND p1) {
 			return ::GetWindowTextLengthA(p1);
 		}
-		/*inline int getWindowTextLengthW(HWND p1) {
-			return ::GetWindowTextLengthW(p1);
-		}*/
 		inline HINSTANCE shellExecuteA(HWND p1, LPCSTR p2, LPCSTR p3, LPCSTR p4, LPCSTR p5, int p6) {
 			return ShellExecuteA(p1, p2, p3, p4, p5, p6);
 		}
-		/*inline HINSTANCE shellExecuteW(HWND p1, LPCWSTR p2, LPCWSTR p3, LPCWSTR p4, LPCWSTR p5, int p6) {
-			return ShellExecuteW(p1, p2, p3, p4, p5, p6);
-		}*/
 		inline void privateMessage(Client* c, OnlineUser* ou, const std::string& msg, bool thirdPerson) {
 			if(c && ou)
 				c->privateMessage(ou, msg, thirdPerson);
@@ -277,8 +253,6 @@ namespace dcpp {
 		void BindDcppCore(lua_State* L) {
 			luabind::module(L, "dcpp") [
 				luabind::def("LogMessage", &wrappers::LogMessage),
-				//luabind::def("TextToT", (tstring (*)(const string&))&Text::toT),
-				//luabind::def("TextFromT", (string (*)(const tstring&))&Text::fromT),
 				luabind::def("TextToUTF8", (string (*)(const string&))&Text::acpToUtf8),
 				luabind::def("EncodeURI", &Util::encodeURI),
 				luabind::def("formatParams", &wrappers::makeParams),
@@ -286,23 +260,18 @@ namespace dcpp {
 			];
 		}
 
+		// deprecated
 		void BindWinAPI(lua_State* L) {
 			luabind::module(L, "winapi") [
 				luabind::class_<HWND__>("HWND"),
 				luabind::class_<HINSTANCE__>("HINSTANCE"),
 
 				luabind::def("SendMessageA", &wrappers::sendMessageA),
-				//luabind::def("SendMessageW", &wrappers::sendMessageW),
 				luabind::def("PosMessageA", &wrappers::postMessageA),
-				//luabind::def("PosMessageW", &wrappers::postMessageW),
 				luabind::def("FindWindowA", &wrappers::findWindowA),
-				//luabind::def("FindWindowW", &wrappers::findWindowW),
 				luabind::def("GetWindowTextA", &wrappers::getWindowTextA),
-				//luabind::def("GetWindowTextW", &wrappers::getWindowTextW),
 				luabind::def("SetWindowTextA", &wrappers::setWindowTextA),
-				//luabind::def("SetWindowTextW", &wrappers::setWindowTextW),
 				luabind::def("GetWindowTextLengthA", &wrappers::getWindowTextLengthA),
-				//luabind::def("GetWindowTextLengthW", &wrappers::getWindowTextLengthW),
 				luabind::def("ShellExecuteA", &wrappers::shellExecuteA)
 			];
 		}

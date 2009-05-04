@@ -119,7 +119,16 @@ OnlineUserPtr NmdcHub::findUser(const string& aNick) const {
 	NickIter i = users.find(aNick);
 	return i == users.end() ? NULL : i->second;
 }
-
+//RSX++
+OnlineUser* NmdcHub::findUser(const CID& aCid) const {
+	Lock l(cs);
+	for(NickIter i = users.begin(); i != users.end(); ++i) {
+		if(i->second->getUser()->getCID() == aCid)
+			return i->second;
+	}
+	return NULL;
+}
+//END
 void NmdcHub::putUser(const string& aNick) {
 	OnlineUser* ou = NULL;
 	{
@@ -1016,7 +1025,6 @@ string NmdcHub::validateMessage(string tmp, bool reverse) {
 
 void NmdcHub::privateMessage(const OnlineUserPtr& aUser, const string& aMessage, bool thirdPerson) {
 	checkstate();
-	if(extOnPmOut(aUser.get(), aMessage, thirdPerson)) return; //RSX++
 
 	send("$To: " + fromUtf8(aUser->getIdentity().getNick()) + " From: " + fromUtf8(getMyNick()) + " $" + fromUtf8(escape("<" + getMyNick() + "> " + (thirdPerson ? "/me " + aMessage : aMessage))) + "|");
 	// Emulate a returning message...

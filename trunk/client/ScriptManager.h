@@ -46,7 +46,7 @@ public:
 	bool onHubMsgIn(Client* c, const std::string& msg);
 	bool onHubMsgOut(Client* c, const std::string& msg);
 	bool onPmMsgIn(Client* hub, OnlineUser* from, OnlineUser* to, OnlineUser* replyTo, const std::string& msg, bool thirdPerson);
-	bool onPmMsgOut(Client* hub, OnlineUser* to, const std::string& msg, bool thirdPerson);
+	bool onPmMsgOut(Client* hub, OnlineUser* to, const std::string& msg);
 	void onUserConnected(OnlineUser* user);
 	void onUserDisconnected(OnlineUser* user);
 	void onHubConnected(Client* c);

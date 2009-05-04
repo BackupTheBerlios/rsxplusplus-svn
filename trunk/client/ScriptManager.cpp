@@ -242,13 +242,13 @@ bool ScriptManager::onPmMsgIn(Client* hub, OnlineUser* from, OnlineUser* to, Onl
 	return ret;
 }
 
-bool ScriptManager::onPmMsgOut(Client* hub, OnlineUser* to, const std::string& msg, bool thirdPerson) {
+bool ScriptManager::onPmMsgOut(Client* hub, OnlineUser* to, const std::string& msg) {
 	if(pmOut.empty()) return false;
 	Lock l(cs);
 	bool ret = false;
 	for(Objects::const_iterator i = pmOut.begin(); i != pmOut.end(); ++i) {
 		try {
-			bool r = luabind::call_function<bool>(*i, hub, to, boost::ref(msg), thirdPerson);
+			bool r = luabind::call_function<bool>(*i, hub, to, boost::ref(msg));
 			if(r) ret = true;
 		} catch(const luabind::error&) { 
 			//LogManager::getInstance()->message(e.what());

@@ -336,14 +336,12 @@ bool Client::extOnPmIn(OnlineUser* from, OnlineUser* to, OnlineUser* replyTo, co
 	return plugin || script;
 }
 
-bool Client::extOnPmOut(OnlineUser* to, const std::string& msg, bool thirdPerson) {
-	DCPP_DATA_PACK p;
-	p.p1 = (void*)this;
-	p.p2 = (void*)to;
-	p.p3 = (void*)msg.c_str();
+bool Client::extOnPmOut(const UserPtr& user, const std::string& msg) {
+	OnlineUser* ou = findUser(user->getCID());
+	if(!ou) return false;
 
-	bool plugin = PluginsManager::getInstance()->plugEvent(DCPP_HUB_PRIVATE_MSG_OUT, &p, (void*)thirdPerson, 0) == DCPP_DROP_EVENT;
-	bool script = ScriptManager::getInstance()->onPmMsgOut(this, to, msg, thirdPerson);
+	bool plugin = PluginsManager::getInstance()->plugEvent(DCPP_HUB_PRIVATE_MSG_OUT, this, ou, (void*)msg.c_str()) == DCPP_DROP_EVENT;
+	bool script = ScriptManager::getInstance()->onPmMsgOut(this, ou, msg);
 	return plugin || script;
 }
 //END

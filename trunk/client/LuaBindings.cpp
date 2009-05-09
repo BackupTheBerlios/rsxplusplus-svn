@@ -39,33 +39,10 @@
 #include "version.h"
 
 namespace dcpp {
+
 	namespace wrappers {
 		inline void LogMessage(const std::string& msg) {
 			LogManager::getInstance()->message(msg);
-		}
-		inline HWND findWindowA(LPCSTR p1, LPCSTR p2) {
-			return FindWindowA(strcmp(p1, "") == 0 ? NULL : p1, strcmp(p2, "") == 0 ? NULL : p2);
-		}
-		inline LRESULT sendMessageA(HWND p1, UINT p2, LPARAM p3, WPARAM p4) {
-			return SendMessageA(p1, p2, p3, p4);
-		}
-		inline LRESULT postMessageA(HWND p1, UINT p2, LPARAM p3, WPARAM p4) {
-			return PostMessageA(p1, p2, p3, p4);
-		}
-		inline string getWindowTextA(HWND p1, int len) {
-			string buf;
-			buf.resize(len + 1);
-			::GetWindowTextA(p1, &buf[0], buf.size());
-			return buf;
-		}
-		inline bool setWindowTextA(HWND p1, LPCSTR p2) {
-			return ::SetWindowTextA(p1, p2) ? true : false;
-		}
-		inline int getWindowTextLengthA(HWND p1) {
-			return ::GetWindowTextLengthA(p1);
-		}
-		inline HINSTANCE shellExecuteA(HWND p1, LPCSTR p2, LPCSTR p3, LPCSTR p4, LPCSTR p5, int p6) {
-			return ShellExecuteA(p1, p2, p3, p4, p5, p6);
 		}
 		inline void privateMessage(Client* c, OnlineUser* ou, const std::string& msg, bool thirdPerson) {
 			if(c && ou)
@@ -105,10 +82,6 @@ namespace dcpp {
 		inline User* getUser2(Identity* i) {
 			return i->getUser().get();
 		}
-		inline string toBase32(CID* cid) {
-			const uint8_t* data = cid->data();
-			return Encoder::toBase32(data, sizeof(data));
-		}
 		inline void sendAction(Client* c, OnlineUser* o, int id) {
 			c->sendActionCommand(*o, id);
 		}
@@ -138,12 +111,15 @@ namespace dcpp {
 				.def("getHubUrl", &Client::getHubUrl)
 				.def("escape", &Client::escape)
 				.def("sendAction", &wrappers::sendAction)
+				.def("closeHub", &Client::closeHub)
+				.def("redirect", &Client::redirect)
 				.property("password", &Client::getPassword, &Client::setPassword)
 				.property("currentNick", &Client::getCurrentNick, &Client::setCurrentNick)
 				.property("stealth", &Client::getStealth, &Client::setStealth)
 				.def("getMyIdentity", (Identity& (Client::*)())&Client::getMyIdentity, luabind::dependency(luabind::result, _1))
 				.def("getHubIdentity", (Identity& (Client::*)())&Client::getHubIdentity, luabind::dependency(luabind::result, _1))
-				.def("findUser", &Client::findOnlineUser)
+				.def("findUserByNick", (OnlineUser* (Client::*)(const string&) const)&Client::findOnlineUser)
+				.def("findUserByCID", (OnlineUser* (Client::*)(const CID&) const)&Client::findUser)
 				.def("getUserList", &wrappers::getUsers, luabind::raw(_1))
 			];
 		}
@@ -151,12 +127,24 @@ namespace dcpp {
 		void BindUser(lua_State* L) {
 			luabind::module(L, "dcpp") [
 				luabind::class_<User, Flags>("User")
-				.def("getCID", &User::getCID)
-				.def("isOnline", &User::isOnline)
-				.def("isNMDC", &User::isNMDC)
+				.def("getCID", &User::getCID, luabind::dependency(luabind::result, _1))
 				.def("inc", &User::inc)
 				.def("dec", &User::dec)
 				.def("unique", &User::unique)
+				.enum_("Flags") [
+					luabind::value("ONLINE", (int)User::ONLINE),
+					luabind::value("DCPLUSPLUS", (int)User::DCPLUSPLUS),
+					luabind::value("PASSIVE", (int)User::PASSIVE),
+					luabind::value("NMDC", (int)User::NMDC),
+					luabind::value("BOT", (int)User::BOT),
+					luabind::value("TLS", (int)User::TLS),
+					luabind::value("OLD_CLIENT", (int)User::OLD_CLIENT),
+					luabind::value("NO_ADC_1_0_PROTOCOL", (int)User::NO_ADC_1_0_PROTOCOL),
+					luabind::value("NO_ADC_0_10_PROTOCOL", (int)User::NO_ADC_0_10_PROTOCOL),
+					luabind::value("NO_ADCS_0_10_PROTOCOL", (int)User::NO_ADCS_0_10_PROTOCOL),
+					luabind::value("PROTECTED", (int)User::PROTECTED),
+					luabind::value("IGNORED", (int)User::IGNORED)
+				]
 			];
 		}
 
@@ -182,13 +170,30 @@ namespace dcpp {
 				.def("isClientType", &Identity::isClientType)
 				.def("getUser", &wrappers::getUser2, luabind::dependency(luabind::result, _1))
 				.def("getSIDString", &Identity::getSIDString)
+				.def("getStatus", &Identity::getStatus)
+				.def("getTag", &Identity::getTag)
+				.enum_("ClientType") [
+					luabind::value("CT_BOT", Identity::CT_BOT),
+					luabind::value("CT_REGGED", Identity::CT_REGGED),
+					luabind::value("CT_OP", Identity::CT_OP),
+					luabind::value("CT_SU", Identity::CT_SU),
+					luabind::value("CT_OWNER", Identity::CT_OWNER),
+					luabind::value("CT_HUB", Identity::CT_HUB)
+				]
+				.enum_("StatusFlags") [
+					luabind::value("NORMAL", Identity::NORMAL),
+					luabind::value("AWAY", Identity::AWAY),
+					luabind::value("SERVER", Identity::SERVER),
+					luabind::value("FIREBALL", Identity::FIREBALL),
+					luabind::value("TLS", Identity::TLS)
+				]
 			];
 		}
 
 		void BindCID(lua_State* L) {
 			luabind::module(L, "dcpp") [
 				luabind::class_<CID>("CID")
-				.def("toBase32", &wrappers::toBase32)
+				.def("toBase32", (string (CID::*)() const)&CID::toBase32)
 				.def("toHash", &CID::toHash)
 				.def("isZero",  &CID::isZero)
 			];
@@ -214,10 +219,14 @@ namespace dcpp {
 				.def("send", &UserConnection::sendRaw)
 				.def("updated", &UserConnection::updated)
 				.def("disconnect", &UserConnection::disconnect)
-				//.enum_("UcFlags") [
-				//	luabind::value("FLAG_NMDC", UserConnection::FLAG_NMDC),
-				//	luabind::value("FLAG_OP", UserConnection::FLAG_OP)
-				//]
+				.enum_("Flags") [
+					luabind::value("NMDC", UserConnection::FLAG_NMDC),
+					luabind::value("OP", UserConnection::FLAG_OP),
+					luabind::value("UPLOAD", UserConnection::FLAG_UPLOAD),
+					luabind::value("DOWNLOAD", UserConnection::FLAG_DOWNLOAD),
+					luabind::value("STEALTH", UserConnection::FLAG_STEALTH),
+					luabind::value("SECURE", UserConnection::FLAG_SECURE)
+				]
 			];
 		}
 
@@ -259,22 +268,5 @@ namespace dcpp {
 				luabind::def("getVersion", &wrappers::getVersion)
 			];
 		}
-
-		// deprecated
-		void BindWinAPI(lua_State* L) {
-			luabind::module(L, "winapi") [
-				luabind::class_<HWND__>("HWND"),
-				luabind::class_<HINSTANCE__>("HINSTANCE"),
-
-				luabind::def("SendMessageA", &wrappers::sendMessageA),
-				luabind::def("PosMessageA", &wrappers::postMessageA),
-				luabind::def("FindWindowA", &wrappers::findWindowA),
-				luabind::def("GetWindowTextA", &wrappers::getWindowTextA),
-				luabind::def("SetWindowTextA", &wrappers::setWindowTextA),
-				luabind::def("GetWindowTextLengthA", &wrappers::getWindowTextLengthA),
-				luabind::def("ShellExecuteA", &wrappers::shellExecuteA)
-			];
-		}
-
 	}
 }

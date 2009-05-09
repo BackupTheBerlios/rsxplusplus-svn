@@ -37,6 +37,7 @@ public:
 	void load(void (*f)(void*, const tstring&), void* p);
 	void close();
 	void exec();
+	void runGC();
 
 	inline void reload() {
 		//close();

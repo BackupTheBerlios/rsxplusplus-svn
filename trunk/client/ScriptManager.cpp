@@ -31,6 +31,7 @@
 
 #include "LuaScript.h"
 #include "ScriptManager.h"
+#include "PluginsManager.h"
 #include "LuaBindings.h"
 
 #include "SimpleXML.h"
@@ -38,8 +39,6 @@
 /* @todo
  - option to open/close hubtab and change focus on them; option to redirect to another url - by ff
  - bind queue
- - fix CID class
- - add option to add custom actions and raws
 */
 
 namespace dcpp {
@@ -87,6 +86,8 @@ void ScriptManager::load(void (*f)(void*, const tstring&), void* p) {
 	parser = lua_open();
 
 	luaL_openlibs(parser);
+	luaopen_bit(parser);
+
 	luabind::open(parser);
 
 	BindScriptManager();
@@ -99,7 +100,8 @@ void ScriptManager::load(void (*f)(void*, const tstring&), void* p) {
 	LuaBindings::BindOnlineUser(parser);
 	LuaBindings::BindUserConnection(parser);
 	LuaBindings::BindClient(parser);
-	LuaBindings::BindWinAPI(parser);
+
+	PluginsManager::getInstance()->plugEvent(DCPP_ACT_LUA_INIT, (void*)parser, 0, 0);
 
 	{
 		Lock l(cs);
@@ -134,12 +136,17 @@ void ScriptManager::exec() {
 			try {
 				luabind::call_function<void>(parser, "main");
 			} catch(const luabind::error& e) { 
-				LogManager::getInstance()->message(e.what());
+				luabind::object error_msg(luabind::from_stack(e.state(), -1));
+				LogManager::getInstance()->message("Lua Error: " + luabind::object_cast<std::string>(error_msg));
 			}
 		}
 	}
 }
 
+void ScriptManager::runGC() {
+	Lock l(cs);
+	lua_gc(parser, LUA_GCCOLLECT, 0);
+}
 void ScriptManager::removeObject(Objects& c, const luabind::object& o) {
 	Objects::iterator i = std::find(c.begin(), c.end(), o);
 	if(i != c.end()) c.erase(i);
@@ -235,8 +242,9 @@ bool ScriptManager::onPmMsgIn(Client* hub, OnlineUser* from, OnlineUser* to, Onl
 		try {
 			bool r = luabind::call_function<bool>(*i, hub, from, to, replyTo, boost::ref(msg), thirdPerson);
 			if(r) ret = true;
-		} catch(const luabind::error&) { 
-			//LogManager::getInstance()->message(e.what());
+		} catch(const luabind::error& e) { 
+			luabind::object error_msg(luabind::from_stack(e.state(), -1));
+			LogManager::getInstance()->message("Lua Error: " + luabind::object_cast<std::string>(error_msg));
 		}
 	}
 	return ret;
@@ -250,8 +258,9 @@ bool ScriptManager::onPmMsgOut(Client* hub, OnlineUser* to, const std::string& m
 		try {
 			bool r = luabind::call_function<bool>(*i, hub, to, boost::ref(msg));
 			if(r) ret = true;
-		} catch(const luabind::error&) { 
-			//LogManager::getInstance()->message(e.what());
+		} catch(const luabind::error& e) { 
+			luabind::object error_msg(luabind::from_stack(e.state(), -1));
+			LogManager::getInstance()->message("Lua Error: " + luabind::object_cast<std::string>(error_msg));
 		}
 	}
 	return ret;
@@ -265,8 +274,9 @@ bool ScriptManager::onHubMsgIn(Client* c, const std::string& msg) {
 		try {
 			bool r = luabind::call_function<bool>(*i, c, boost::ref(msg));
 			if(r) ret = true;
-		} catch(const luabind::error&) { 
-			//LogManager::getInstance()->message(e.what());
+		} catch(const luabind::error& e) { 
+			luabind::object error_msg(luabind::from_stack(e.state(), -1));
+			LogManager::getInstance()->message("Lua Error: " + luabind::object_cast<std::string>(error_msg));
 		}
 	}
 	return ret;
@@ -280,8 +290,9 @@ bool ScriptManager::onHubMsgOut(Client* c, const std::string& msg) {
 		try {
 			bool r = luabind::call_function<bool>(*i, c, boost::ref(msg));
 			if(r) ret = true;
-		} catch(const luabind::error&) { 
-			//LogManager::getInstance()->message(e.what());
+		} catch(const luabind::error& e) { 
+			luabind::object error_msg(luabind::from_stack(e.state(), -1));
+			LogManager::getInstance()->message("Lua Error: " + luabind::object_cast<std::string>(error_msg));
 		}
 	}
 	return ret;
@@ -293,8 +304,9 @@ void ScriptManager::onUserConnected(OnlineUser* user) {
 	for(Objects::const_iterator i = userIn.begin(); i != userOut.end(); ++i) {
 		try {
 			luabind::call_function<bool>(*i, user);
-		} catch(const luabind::error&) { 
-			//LogManager::getInstance()->message(e.what());
+		} catch(const luabind::error& e) { 
+			luabind::object error_msg(luabind::from_stack(e.state(), -1));
+			LogManager::getInstance()->message("Lua Error: " + luabind::object_cast<std::string>(error_msg));
 		}
 	}
 }
@@ -305,8 +317,9 @@ void ScriptManager::onUserDisconnected(OnlineUser* user) {
 	for(Objects::const_iterator i = userOut.begin(); i != userOut.end(); ++i) {
 		try {
 			luabind::call_function<void>(*i, user);
-		} catch(const luabind::error&) { 
-			//LogManager::getInstance()->message(e.what());
+		} catch(const luabind::error& e) { 
+			luabind::object error_msg(luabind::from_stack(e.state(), -1));
+			LogManager::getInstance()->message("Lua Error: " + luabind::object_cast<std::string>(error_msg));
 		}
 	}
 }
@@ -317,8 +330,9 @@ void ScriptManager::onHubConnected(Client* c) {
 	for(Objects::const_iterator i = hubIn.begin(); i != hubIn.end(); ++i) {
 		try {
 			luabind::call_function<void>(*i, c);
-		} catch(const luabind::error&) { 
-			//LogManager::getInstance()->message(e.what());
+		} catch(const luabind::error& e) { 
+			luabind::object error_msg(luabind::from_stack(e.state(), -1));
+			LogManager::getInstance()->message("Lua Error: " + luabind::object_cast<std::string>(error_msg));
 		}
 	}
 }
@@ -329,8 +343,9 @@ void ScriptManager::onHubDisconnected(Client* c) {
 	for(Objects::const_iterator i = hubOut.begin(); i != hubOut.end(); ++i) {
 		try {
 			luabind::call_function<void>(*i, c);
-		} catch(const luabind::error&) { 
-			//LogManager::getInstance()->message(e.what());
+		} catch(const luabind::error& e) { 
+			luabind::object error_msg(luabind::from_stack(e.state(), -1));
+			LogManager::getInstance()->message("Lua Error: " + luabind::object_cast<std::string>(error_msg));
 		}
 	}
 }
@@ -343,8 +358,9 @@ bool ScriptManager::onConnectionIn(UserConnection* uc, const std::string& line) 
 		try {
 			bool r = luabind::call_function<bool>(*i, uc, boost::ref(line));
 			if(r) ret = true;
-		} catch(const luabind::error&) { 
-			//LogManager::getInstance()->message(e.what());
+		} catch(const luabind::error& e) { 
+			luabind::object error_msg(luabind::from_stack(e.state(), -1));
+			LogManager::getInstance()->message("Lua Error: " + luabind::object_cast<std::string>(error_msg));
 		}
 	}
 	return ret;
@@ -358,8 +374,9 @@ bool ScriptManager::onConnectionOut(UserConnection* uc, const std::string& line)
 		try {
 			bool r = luabind::call_function<bool>(*i, uc, boost::ref(line));
 			if(r) ret = true;
-		} catch(const luabind::error&) { 
-			//LogManager::getInstance()->message(e.what());
+		} catch(const luabind::error& e) { 
+			luabind::object error_msg(luabind::from_stack(e.state(), -1));
+			LogManager::getInstance()->message("Lua Error: " + luabind::object_cast<std::string>(error_msg));
 		}
 	}
 	return ret;
@@ -385,8 +402,9 @@ void ScriptManager::on(SettingsManagerListener::Load, SimpleXML& xml) throw() {
 			for(Objects::const_iterator i = cfgLoad.begin(); i != cfgLoad.end(); ++i) {
 				try {
 					luabind::call_function<void>(*i, boost::ref(xml));
-				} catch(const luabind::error&) { 
-					//LogManager::getInstance()->message(e.what());
+				} catch(const luabind::error& e) { 
+					luabind::object error_msg(luabind::from_stack(e.state(), -1));
+					LogManager::getInstance()->message("Lua Error: " + luabind::object_cast<std::string>(error_msg));
 				}
 			}
 		} catch(const SimpleXMLException&) { }
@@ -410,8 +428,9 @@ void ScriptManager::on(SettingsManagerListener::Save, SimpleXML& xml) throw() {
 		for(Objects::const_iterator i = cfgSave.begin(); i != cfgSave.end(); ++i) {
 			try {
 				luabind::call_function<void>(*i, boost::ref(xml));
-			} catch(const luabind::error&) { 
-				//LogManager::getInstance()->message(e.what());
+			} catch(const luabind::error& e) { 
+				luabind::object error_msg(luabind::from_stack(e.state(), -1));
+				LogManager::getInstance()->message("Lua Error: " + luabind::object_cast<std::string>(error_msg));
 			}
 		}
 	} catch(const SimpleXMLException&) { }

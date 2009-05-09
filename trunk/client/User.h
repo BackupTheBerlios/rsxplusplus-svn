@@ -33,7 +33,7 @@
 namespace dcpp {
 
 /** A user connected to one or more hubs. */
-class User : public FastAlloc<User>, public intrusive_ptr_base, public Flags
+class User : public FastAlloc<User>, public intrusive_ptr_base<User>, public Flags
 {
 public:
 	/** Each flag is set if it's true in at least one hub */
@@ -224,7 +224,7 @@ private:
 class NmdcHub;
 #include "UserInfoBase.h"
 
-class OnlineUser : public FastAlloc<OnlineUser>, public intrusive_ptr_base, public UserInfoBase {
+class OnlineUser : public FastAlloc<OnlineUser>, public intrusive_ptr_base<OnlineUser>, public UserInfoBase {
 public:
 	enum {
 		COLUMN_FIRST,
@@ -262,6 +262,7 @@ public:
 
 	operator UserPtr&() { return getUser(); }
 	operator const UserPtr&() const { return getUser(); }
+	operator intrusive_ptr_base*() { return this; }
 
 	UserPtr& getUser() { return getIdentity().getUser(); }
 	const UserPtr& getUser() const { return getIdentity().getUser(); }

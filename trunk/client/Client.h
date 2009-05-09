@@ -71,7 +71,7 @@ public:
 	virtual OnlineUserPtr findUser(const string& aNick) const = 0;
 	virtual OnlineUser* findUser(const CID& aCid) const = 0; //RSX++
 	//RSX++ for lua bindings
-	inline OnlineUser* findOnlineUser(const string& aNick) {
+	inline OnlineUser* findOnlineUser(const string& aNick) const {
 		OnlineUserPtr ou = findUser(aNick);
 		if(ou)
 			return ou.get();

@@ -29,7 +29,7 @@ namespace dcpp {
 
 class SearchManager;
 
-class SearchResult : public FastAlloc<SearchResult>, public intrusive_ptr_base {
+class SearchResult : public FastAlloc<SearchResult>, public intrusive_ptr_base<SearchResult> {
 public:	
 	enum Types {
 		TYPE_FILE,
@@ -63,6 +63,7 @@ public:
 
 private:
 	friend class SearchManager;
+	friend class intrusive_ptr_base<SearchResult>;
 
 	SearchResult();
 	~SearchResult() { }

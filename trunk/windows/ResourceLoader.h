@@ -31,7 +31,7 @@
 #include "../client/FastAlloc.h"
 #include <atlimage.h>
 
-class ExCImage : public FastAlloc<ExCImage>, public intrusive_ptr_base, public CImage
+class ExCImage : public FastAlloc<ExCImage>, public intrusive_ptr_base<ExCImage>, public CImage
 {
 public:
 	ExCImage() throw() { m_hBuffer = NULL; }

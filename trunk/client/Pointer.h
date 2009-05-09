@@ -24,39 +24,35 @@
 
 namespace dcpp {
 
+template<typename T>
 class intrusive_ptr_base
 {
 public:
 	void inc() throw() {
-		dcassert(ref>=0);
 		Thread::safeInc(ref);
 	}
 
 	void dec() throw() {
-		dcassert(ref>0);
-		
-		if ( (Thread::safeDec(ref)) == 0 ) {
-			delete this;
+		if(Thread::safeDec(ref) == 0) {
+			delete static_cast<T*>(this);
 		}
 	}
 
-	bool unique() const throw() {
+	bool unique() throw() {
 		return (ref == 1);
 	}
-	
+
 protected:
 	intrusive_ptr_base() throw() : ref(0) { }
-	
-	virtual ~intrusive_ptr_base() throw() {
-		dcassert(!ref);
-	}
 
 private:
-	volatile long ref;
-};
+	friend void intrusive_ptr_add_ref(T* p) { p->inc(); }
+	friend void intrusive_ptr_release(T* p) { p->dec(); }
+	friend void intrusive_ptr_add_ref(const T* p) { const_cast<T*>(p)->inc(); }
+	friend void intrusive_ptr_release(const T* p) { const_cast<T*>(p)->dec(); }
 
-inline void intrusive_ptr_add_ref(intrusive_ptr_base* p) { p->inc(); }
-inline void intrusive_ptr_release(intrusive_ptr_base* p) { p->dec(); }
+	mutable volatile long ref;
+};
 
 struct DeleteFunction {
 	template<typename T>

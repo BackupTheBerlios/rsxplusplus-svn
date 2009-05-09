@@ -20,7 +20,7 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(SolutionDir)vc_dump\$(PlatformName)\$(ConfigurationName)\$(ProjectName)"
+			OutputDirectory="$(SolutionDir)Components\$(ProjectName)\$(PlatformName)\$(ConfigurationName)"
 			IntermediateDirectory="$(SolutionDir)vc_dump\$(PlatformName)\$(ConfigurationName)\$(ProjectName)"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
@@ -90,7 +90,7 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|x64"
-			OutputDirectory="$(SolutionDir)vc_dump\$(PlatformName)\$(ConfigurationName)\$(ProjectName)"
+			OutputDirectory="$(SolutionDir)Components\$(ProjectName)\$(PlatformName)\$(ConfigurationName)"
 			IntermediateDirectory="$(SolutionDir)vc_dump\$(PlatformName)\$(ConfigurationName)\$(ProjectName)"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
@@ -161,7 +161,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="$(SolutionDir)vc_dump\$(PlatformName)\$(ConfigurationName)\$(ProjectName)"
+			OutputDirectory="$(SolutionDir)Components\$(ProjectName)\$(PlatformName)\$(ConfigurationName)"
 			IntermediateDirectory="$(SolutionDir)vc_dump\$(PlatformName)\$(ConfigurationName)\$(ProjectName)"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
@@ -234,7 +234,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|x64"
-			OutputDirectory="$(SolutionDir)vc_dump\$(PlatformName)\$(ConfigurationName)\$(ProjectName)"
+			OutputDirectory="$(SolutionDir)Components\$(ProjectName)\$(PlatformName)\$(ConfigurationName)"
 			IntermediateDirectory="$(SolutionDir)vc_dump\$(PlatformName)\$(ConfigurationName)\$(ProjectName)"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
@@ -316,6 +316,10 @@
 			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
+			<File
+				RelativePath=".\src\bit.c"
+				>
+			</File>
 			<File
 				RelativePath=".\src\lapi.c"
 				>
@@ -447,7 +451,75 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
+				RelativePath=".\src\bit.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\lapi.h"
+				>
+			</File>
+			<File
 				RelativePath=".\src\lauxlib.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\lcode.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\ldebug.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\ldo.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\lfunc.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\lgc.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\llex.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\llimits.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\lmem.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\lobject.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\lopcodes.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\lparser.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\lstate.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\lstring.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\ltable.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\ltm.h"
 				>
 			</File>
 			<File
@@ -455,7 +527,27 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\luaconf.h"
+				>
+			</File>
+			<File
 				RelativePath=".\src\lualib.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\lunar.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\lundump.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\lvm.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\lzio.h"
 				>
 			</File>
 		</Filter>

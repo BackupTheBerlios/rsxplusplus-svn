@@ -1,3 +1,12 @@
+** SVN 127
+ ** [lua] fixed some lua bindings
+ ** [lua] error handling
+ ** [lua] added enums to Identity, User and UserConnection classes
+ ** [lua] added BitOp extension to get easy way to check many flags
+ ** [lua] removed WinAPI binding (but it can be added via plugin)
+ ** [lua] added methods to Client class: closeHub & redirect
+ ** [sdk] added event DCPP_ACT_LUA_INIT (lua_State* as param)
+
 ** SVN 126
  ** fixed event DCPP_HUB_PRIVATE_MSG_OUT
  ** branches sync

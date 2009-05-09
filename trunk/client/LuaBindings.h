@@ -22,6 +22,7 @@
 extern "C" {
 	#include <lua.h>
 	#include <lualib.h>
+	#include <bit.h>
 }
 
 #include <luabind/luabind.hpp>
@@ -39,7 +40,6 @@ namespace dcpp {
 		void BindFlags(lua_State* L);
 		void BindSimpleXML(lua_State* L);
 		void BindDcppCore(lua_State* L);
-		void BindWinAPI(lua_State* L);
 	}
 }
 

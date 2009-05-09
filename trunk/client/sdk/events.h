@@ -64,6 +64,7 @@
 #define DCPP_ACT_FORMAT_PARAMS				DCPP_ACTION + 2			//#free
 #define DCPP_ACT_CONV_STR_TO_T				DCPP_ACTION + 3			//#free
 #define DCPP_ACT_CONV_STR_FROM_T			DCPP_ACTION + 4			//#free
+#define DCPP_ACT_LUA_INIT					DCPP_ACTION + 5
 
 #define DCPP_CFG_GET						DCPP_CONFIG + 1
 #define DCPP_CFG_SET						DCPP_CONFIG + 2

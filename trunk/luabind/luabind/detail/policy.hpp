@@ -567,7 +567,7 @@ namespace luabind { namespace detail
 		}
 
 		template<class T>
-		void converter_postcall(lua_State* L, by_const_reference<T>, int index) 
+		void converter_postcall(lua_State* /*L*/, by_const_reference<T>, int /*index*/) 
 		{
 		}
 	};

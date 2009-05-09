@@ -31,7 +31,7 @@ namespace dcpp {
 class QueueManager;
 class Download;
 
-class QueueItem : public Flags, public FastAlloc<QueueItem>, public intrusive_ptr_base {
+class QueueItem : public Flags, public FastAlloc<QueueItem>, public intrusive_ptr_base<QueueItem> {
 public:
 	typedef QueueItem* Ptr;
 	typedef deque<Ptr> List;
@@ -83,7 +83,7 @@ public:
 	 * Source parts info
 	 * Meaningful only when Source::FLAG_PARTIAL is set
 	 */
-	class PartialSource : public FastAlloc<PartialSource>, public intrusive_ptr_base {
+	class PartialSource : public FastAlloc<PartialSource>, public intrusive_ptr_base<PartialSource> {
 	public:
 		PartialSource(const string& aMyNick, const string& aHubIpPort, const string& aIp, uint16_t udp) : 
 		  myNick(aMyNick), hubIpPort(aHubIpPort), ip(aIp), udpPort(udp), nextQueryTime(0), pendingQueryCount(0) { }

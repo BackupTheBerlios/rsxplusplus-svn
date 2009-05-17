@@ -704,15 +704,14 @@ LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& 
 				if(bClose) {
 					oldshutdown = true; // nasty...
 					PostMessage(WM_CLOSE);
-				} else if(bShutdown) {
-					shutdownMng->shutdown();
-					setShutDown(false);
 				} else {
 					ctrlStatus.SetIcon(9, hShutdownIcon);
-					if(shTimeLeft > 0)
+					if(shTimeLeft >= 0)
 						ctrlStatus.SetText(9, Util::formatSeconds(shTimeLeft, shTimeLeft < 3600).c_str());
-					else
-						setShutDown(false);
+				}
+				if(bShutdown) {
+					shutdownMng->shutdown();
+					setShutDown(false);
 				}
 			} else {
 				ctrlStatus.SetIcon(9, NULL);

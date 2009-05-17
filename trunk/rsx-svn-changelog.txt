@@ -1,3 +1,6 @@
+** SVN 129
+ ** fixed delayed shutdown (oops)
+
 ** SVN 128
  ** new shutdown sheduler
 

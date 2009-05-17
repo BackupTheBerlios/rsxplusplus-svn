@@ -47,25 +47,24 @@ public:
 	~ShutdownManager() { };
 
 	uint64_t getTimeLeft(bool& close, bool& shutdown) {
-		shutdown = false;
-		if(--delay < 0) {
-			shutdown = true;
-		} else {
-			switch(type) {
-				case DL_COMPLETE: {
-					shutdown = DownloadManager::getInstance()->getDownloadCount() == 0;
-					break;
-				}
-				case TRANSFERS_COMPLETE: {
-					shutdown = DownloadManager::getInstance()->getDownloadCount() == 0 && UploadManager::getInstance()->getUploadCount() == 0;
-					break;
-				}
-				case QUEUE_EMPTY: {
-					shutdown = QueueManager::getInstance()->getQueueSize(false) == 0;
-					break;
-				}
-				default: break;
+		switch(type) {
+			case DL_COMPLETE: {
+				shutdown = DownloadManager::getInstance()->getDownloadCount() == 0;
+				break;
 			}
+			case TRANSFERS_COMPLETE: {
+				shutdown = DownloadManager::getInstance()->getDownloadCount() == 0 && UploadManager::getInstance()->getUploadCount() == 0;
+				break;
+			}
+			case QUEUE_EMPTY: {
+				shutdown = QueueManager::getInstance()->getQueueSize(false) == 0;
+				break;
+			}
+			case DELAY: {
+				shutdown = --delay == 0;
+				break;
+			}
+			default: shutdown = false;
 		}
 		close = act == CLOSE_APP;
 		return delay;

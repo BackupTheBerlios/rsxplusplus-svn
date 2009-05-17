@@ -76,11 +76,9 @@ namespace dcpp {
 			}
 			return 0.0;
 		}
-		inline User* getUser(OnlineUser* ou) {
-			return ou->getUser().get();
-		}
-		inline User* getUser2(Identity* i) {
-			return i->getUser().get();
+		template<typename T>
+		inline User* getUser(T* u) {
+			return u->getUser().get();
 		}
 		inline void sendAction(Client* c, OnlineUser* o, int id) {
 			c->sendActionCommand(*o, id);
@@ -152,7 +150,7 @@ namespace dcpp {
 			luabind::module(L, "dcpp") [
 				luabind::class_<OnlineUser>("OnlineUser")
 				.def("getIdentity", (Identity& (OnlineUser::*)())&OnlineUser::getIdentity, luabind::dependency(luabind::result, _1))
-				.def("getUser", &wrappers::getUser, luabind::dependency(luabind::result, _1))
+				.def("getUser", &wrappers::getUser<OnlineUser>, luabind::dependency(luabind::result, _1))
 				.def("getClient", (Client& (OnlineUser::*)())&OnlineUser::getClient, luabind::dependency(luabind::result, _1))
 				.def("inc", &OnlineUser::inc)
 				.def("dec", &OnlineUser::dec)
@@ -168,7 +166,7 @@ namespace dcpp {
 				.def("isSet", &Identity::isSet)
 				.def("supports", &Identity::supports)
 				.def("isClientType", &Identity::isClientType)
-				.def("getUser", &wrappers::getUser2, luabind::dependency(luabind::result, _1))
+				.def("getUser", &wrappers::getUser<Identity>, luabind::dependency(luabind::result, _1))
 				.def("getSIDString", &Identity::getSIDString)
 				.def("getStatus", &Identity::getStatus)
 				.def("getTag", &Identity::getTag)
@@ -213,6 +211,7 @@ namespace dcpp {
 				.def("getRemoteIp", &UserConnection::getRemoteIp)
 				.def("getPort", &UserConnection::getPort)
 				.def("getHubUrl", &UserConnection::getHubUrl)
+				.def("getUser", &wrappers::getUser<UserConnection>, luabind::dependency(luabind::result, _1))
 				.def("isSecure", &UserConnection::isSecure)
 				.def("isTrusted", &UserConnection::isTrusted)
 				.def("getCipherName", &UserConnection::getCipherName)

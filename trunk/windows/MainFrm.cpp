@@ -62,22 +62,22 @@
 #include "../rsx/RsxUtil.h"
 #include "../rsx/UpdateManager.h"
 #include "../rsx/HTTPDownloadManager.h"
-#include "../client/ScriptManager.h" // Lua
+#include "../client/ScriptManager.h"
 #include "../client/PluginsManager.h"
 #include "UpdateDialog.h"
 #include "PluginsListDlg.h"
+#include "ShutdownManager.h"
+#include "ShutdownDlg.h"
 //END
 
 MainFrame* MainFrame::anyMF = NULL;
-bool MainFrame::bShutdown = false;
-uint64_t MainFrame::iCurrentShutdownTime = 0;
-bool MainFrame::isShutdownStatus = false;
 
 MainFrame::MainFrame() : trayMessage(0), maximized(false), lastUpload(-1), lastUpdate(0), 
 	lastUp(0), lastDown(0), oldshutdown(false), stopperThread(NULL), 
 	closing(false), awaybyminimize(false), missedAutoConnect(false), lastTTHdir(Util::emptyStringT), tabsontop(false),
 	bTrayIcon(false), bAppMinimized(false), bIsPM(false), m_bDisableAutoComplete(false),
-	QuickSearchBoxContainer(WC_COMBOBOX, this, QUICK_SEARCH_MAP), QuickSearchEditContainer(WC_EDIT ,this, QUICK_SEARCH_MAP)
+	QuickSearchBoxContainer(WC_COMBOBOX, this, QUICK_SEARCH_MAP), QuickSearchEditContainer(WC_EDIT ,this, QUICK_SEARCH_MAP),
+	shutdownMng(0) //RSX++
 { 
 		memzero(statusSizes, sizeof(statusSizes));
 		anyMF = this;
@@ -257,10 +257,8 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	ptbarcreated = false; //RSX++
 	HWND hWndToolBar = createToolbar();
 	HWND hWndQuickSearchBar = createQuickSearchBar();
-	HWND hWndPluginToolBar = createPluginsToolbar(); //RSX++
 
 	CreateSimpleReBar(ATL_SIMPLE_REBAR_NOBORDER_STYLE);
-	AddSimpleReBarBand(hWndPluginToolBar, NULL, FALSE, 0, TRUE); //RSX++
 	AddSimpleReBarBand(hWndCmdBar);
 	AddSimpleReBarBand(hWndToolBar, NULL, TRUE);
 	AddSimpleReBarBand(hWndQuickSearchBar, NULL, FALSE, 200, TRUE);
@@ -295,14 +293,12 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	SetSplitterPanes(m_hWndMDIClient, transferView.m_hWnd);
 	SetSplitterExtendedStyle(SPLIT_PROPORTIONAL);
 	m_nProportionalPos = SETTING(TRANSFER_SPLIT_SIZE);
-	UIAddToolBar(hWndPluginToolBar); //RSX++
 	UIAddToolBar(hWndToolBar);
 	UIAddToolBar(hWndQuickSearchBar);
 	UISetCheck(ID_VIEW_TOOLBAR, 1);
 	UISetCheck(ID_VIEW_STATUS_BAR, 1);
 	UISetCheck(ID_VIEW_TRANSFER_VIEW, 1);
 	UISetCheck(ID_TOGGLE_QSEARCH, 1);
-	UISetCheck(ID_VIEW_PLUGIN_TOOLBAR, 1); //RSX++
 
 	// load bars settings
 	WinUtil::loadReBarSettings(m_hWndToolBar);	
@@ -349,7 +345,6 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	if(!BOOLSETTING(SHOW_TOOLBAR)) PostMessage(WM_COMMAND, ID_VIEW_TOOLBAR);
 	if(!BOOLSETTING(SHOW_TRANSFERVIEW))	PostMessage(WM_COMMAND, ID_VIEW_TRANSFER_VIEW);
 	if(!BOOLSETTING(SHOW_QUICK_SEARCH))	PostMessage(WM_COMMAND, ID_TOGGLE_QSEARCH);
-	if(!BOOLSETTING(SHOW_PLUGIN_TOOLBAR)) PostMessage(WM_COMMAND, ID_VIEW_PLUGIN_TOOLBAR); //rsx++
 
 	if(!WinUtil::isShift())
 		PostMessage(WM_SPEAKER, AUTO_CONNECT);
@@ -670,59 +665,7 @@ HWND MainFrame::createToolbar() {
 
 	return ctrlToolbar.m_hWnd;
 }
-//RSX++
-HWND MainFrame::createPluginsToolbar() {
-	if(!ptbarcreated) {
-		ctrlPluginToolbar.Create(m_hWnd, NULL, NULL, ATL_SIMPLE_CMDBAR_PANE_STYLE | TBSTYLE_FLAT | TBSTYLE_LIST | TBSTYLE_TOOLTIPS, 0, ATL_IDW_TOOLBAR);
-		ctrlPluginToolbar.SetExtendedStyle(TBSTYLE_EX_MIXEDBUTTONS);
-		ctrlPluginToolbar.SetBitmapSize(12, 12);
-		ptbarcreated = true;
-	}
 
-	while(ctrlPluginToolbar.GetButtonCount() > 0) {
-		ctrlPluginToolbar.DeleteButton(0);
-	}
-
-	ctrlPluginToolbar.SetButtonStructSize();
-	/*int n = 0;
-	const PluginsManager::Plugins& p = PluginsManager::getInstance()->getPlugins();
-	for(PluginsManager::Plugins::const_iterator i = p.begin(); i != p.end(); ++i) {
-		if((*i)->getIcon() > 0) {
-			HBITMAP b = (HBITMAP)::LoadImage((*i)->getHandle(), MAKEINTRESOURCE((*i)->getIcon()), IMAGE_BITMAP, 12, 12, LR_SHARED);
-			if(b == NULL)
-				continue;
-
-			ctrlPluginToolbar.AddBitmap(1, b);
-
-			TBBUTTON nTB;
-			memzero(&nTB, sizeof(TBBUTTON));
-			nTB.iBitmap = n;
-			nTB.idCommand = (*i)->getId();
-			nTB.fsState = TBSTATE_ENABLED;
-			nTB.fsStyle = TBSTYLE_AUTOSIZE | TBSTYLE_BUTTON;
-
-			tstring pToolTip = (*i)->getName() + _T(" v") + (*i)->getVersion();
-			nTB.iString = ctrlPluginToolbar.AddStrings(pToolTip.c_str());
-
-			ctrlPluginToolbar.AddButtons(1, &nTB);
-			n++;
-		}
-	}*/
-	ctrlPluginToolbar.AutoSize();
-	return ctrlPluginToolbar.m_hWnd;
-}
-
-LRESULT MainFrame::onBnClick(WORD /*wNotifyCode*/, WORD wID, HWND hWndCtl, BOOL& bHandled) {
-	//maybe not the best way, but, at least, it does the job
-	if(hWndCtl == ctrlPluginToolbar.m_hWnd) {
-		//PluginsManager::getInstance()->onToolbarClick(wID, hWndCtl);
-		bHandled = TRUE;
-		return 0;
-	}
-	bHandled = FALSE;
-	return 0;
-}
-//END
 LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/) {
 		
 	if(wParam == DOWNLOAD_LISTING) {
@@ -754,40 +697,28 @@ LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& 
 			::ReleaseDC(ctrlStatus.m_hWnd, dc);
 			if(u)
 				UpdateLayout(TRUE);
-
-			if (bShutdown) {
-				uint64_t iSec = GET_TICK() / 1000;
-				if(!isShutdownStatus) {
-					ctrlStatus.SetIcon(9, hShutdownIcon);
-					isShutdownStatus = true;
-				}
-				if (DownloadManager::getInstance()->getDownloadCount() > 0) {
-					iCurrentShutdownTime = iSec;
-					ctrlStatus.SetText(9, _T(""));
+			//RSX++
+			if(shutdownMng) {
+				bool bClose = false, bShutdown = false;
+				uint64_t shTimeLeft = shutdownMng->getTimeLeft(bClose, bShutdown);
+				if(bClose) {
+					oldshutdown = true; // nasty...
+					PostMessage(WM_CLOSE);
+				} else if(bShutdown) {
+					shutdownMng->shutdown();
+					setShutDown(false);
 				} else {
-					int64_t timeLeft = SETTING(SHUTDOWN_TIMEOUT) - (iSec - iCurrentShutdownTime);
-					ctrlStatus.SetText(9, (_T(" ") + Util::formatSeconds(timeLeft, timeLeft < 3600)).c_str(), SBT_POPOUT);
-					if (iCurrentShutdownTime + SETTING(SHUTDOWN_TIMEOUT) <= iSec) {
-						bool bDidShutDown = false;
-						bDidShutDown = WinUtil::shutDown(SETTING(SHUTDOWN_ACTION));
-						if (bDidShutDown) {
-							// Should we go faster here and force termination?
-							// We "could" do a manual shutdown of this app...
-						} else {
-							ctrlStatus.SetText(0, CTSTRING(FAILED_TO_SHUTDOWN));
-							ctrlStatus.SetText(9, _T(""));
-						}
-						// We better not try again. It WON'T work...
-						bShutdown = false;
-					}
+					ctrlStatus.SetIcon(9, hShutdownIcon);
+					if(shTimeLeft > 0)
+						ctrlStatus.SetText(9, Util::formatSeconds(shTimeLeft, shTimeLeft < 3600).c_str());
+					else
+						setShutDown(false);
 				}
 			} else {
-				if(isShutdownStatus) {
-					ctrlStatus.SetIcon(9, NULL);
-					isShutdownStatus = false;
-				}
+				ctrlStatus.SetIcon(9, NULL);
 				ctrlStatus.SetText(9, _T(""));
 			}
+			//END
 		}
 	} else if(wParam == AUTO_CONNECT) {
 		autoConnect(FavoriteManager::getInstance()->getFavoriteHubs());
@@ -1390,19 +1321,6 @@ LRESULT MainFrame::OnViewQuickSearchBar(WORD /*wNotifyCode*/, WORD /*wID*/, HWND
 	return 0;
 }
 //RSX++
-LRESULT MainFrame::OnViewPluginToolBar(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
-{
-	static BOOL bVisible = TRUE;	// initially visible
-	bVisible = !bVisible;
-	CReBarCtrl rebar = m_hWndToolBar;
-	int nBandIndex = rebar.IdToIndex(ATL_IDW_BAND_FIRST); // plugin toolbar is 1st added band
-	rebar.ShowBand(nBandIndex, bVisible);
-	UISetCheck(ID_VIEW_PLUGIN_TOOLBAR, bVisible);
-	UpdateLayout();
-	SettingsManager::getInstance()->set(SettingsManager::SHOW_PLUGIN_TOOLBAR, bVisible);
-	return 0;
-}
-
 LRESULT MainFrame::onViewPluginsList(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
 	PluginsListDlg dlg;
 	dlg.DoModal();
@@ -1626,6 +1544,35 @@ LRESULT MainFrame::onDisableSounds(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
 	return 0;
 }
 
+LRESULT MainFrame::onShutDown(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+	if(shutdownMng) {
+		delete shutdownMng;
+		shutdownMng = 0;
+		ctrlToolbar.CheckButton(IDC_SHUTDOWN, FALSE);
+	} else {
+		ShutdownDlg dlg(hShutdownIcon);
+		if(dlg.DoModal() == IDOK) {
+			shutdownMng = new ShutdownManager(dlg.action, dlg.type, dlg.timeout);
+			ctrlToolbar.CheckButton(IDC_SHUTDOWN, TRUE);
+		} else {
+			ctrlToolbar.CheckButton(IDC_SHUTDOWN, FALSE);
+		}
+	}
+	return S_OK;
+}
+
+void MainFrame::setShutDown(bool b) {
+	if(!b) {
+		if(anyMF->shutdownMng) {
+			delete anyMF->shutdownMng;
+			anyMF->shutdownMng = 0;
+		}
+		anyMF->ctrlToolbar.CheckButton(IDC_SHUTDOWN, FALSE);
+	} else {
+		anyMF->PostMessage(WM_COMMAND, IDC_SHUTDOWN);
+	}
+}
+
 void MainFrame::on(WebServerListener::Setup) throw() {
 	WSAAsyncSelect(WebServerManager::getInstance()->getServerSocket().getSock(), m_hWnd, WEBSERVER_SOCKET_MESSAGE, FD_ACCEPT);
 }
@@ -1671,6 +1618,11 @@ int MainFrame::FileListQueue::run() {
 }
 
 LRESULT MainFrame::onDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled) {
+	if(shutdownMng) {
+		delete shutdownMng;
+		shutdownMng = 0;
+	}
+
 	LogManager::getInstance()->removeListener(this);
 	QueueManager::getInstance()->removeListener(this);
 	TimerManager::getInstance()->removeListener(this);

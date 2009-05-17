@@ -151,6 +151,7 @@
 #define IDR_TOGGLE_QSEARCH              351
 #define IDD_ADL_POINTS_SETTINGS         352
 #define IDR_RT_MANIFEST1                353
+#define IDD_SHUTDOWN_DLG                354
 #define IDC_REFRESH                     1000
 #define IDC_NICK                        1001
 #define IDC_EMAIL                       1002
@@ -1002,7 +1003,10 @@
 #define IDC_BUTTON3                     1533
 #define IDC_EXPAND                      1533
 #define IDC_EXTENSIONS_CFG              1534
-#define IDC_BUTTON2                     1535
+#define IDC_TYPE                        1536
+#define IDC_TIMEOUT                     1537
+#define IDC_COMBO3                      1538
+#define IDC_TIME_TYPE                   1538
 #define WEBSERVER_SOCKET_MESSAGE        1543
 #define IDC_AUTOPRIORITY                1572
 #define IDC_SETTINGS_ODC_MENUBAR        1612
@@ -1294,9 +1298,9 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        354
+#define _APS_NEXT_RESOURCE_VALUE        355
 #define _APS_NEXT_COMMAND_VALUE         32808
-#define _APS_NEXT_CONTROL_VALUE         1536
+#define _APS_NEXT_CONTROL_VALUE         1539
 #define _APS_NEXT_SYMED_VALUE           134
 #endif
 #endif

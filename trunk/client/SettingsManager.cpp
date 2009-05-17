@@ -76,7 +76,7 @@ const string SettingsManager::settingTags[] =
 	"SkipZeroByte", "AdlsBreakOnFirst",
 	"HubUserCommands", "AutoSearchAutoMatch", "DownloadBarColor", "UploadBarColor", "LogSystem",
 	"LogFilelistTransfers", "ShowStatusbar", "BandwidthSettingMode", "ShowToolbar", "ShowTransferview", 
-	"SearchPassiveAlways", "SetMinislotSize", "ShutdownInterval", "DontAnnounceNewVersions", 
+	"SearchPassiveAlways", "SetMinislotSize", "DontAnnounceNewVersions", 
 	"CzertHiddenSettingA", "CzertHiddenSettingB", "ExtraSlots", "ExtraPartialSlots",
 	"TextGeneralBackColor", "TextGeneralForeColor", "TextGeneralBold", "TextGeneralItalic", 
 	"TextMyOwnBackColor", "TextMyOwnForeColor", "TextMyOwnBold", "TextMyOwnItalic", 
@@ -109,7 +109,7 @@ const string SettingsManager::settingTags[] =
 	"AddFinishedInstantly", "Away", "UseCTRLForLineHistory",
 	"PopupHubConnected", "PopupHubDisconnected", "PopupFavoriteConnected", "PopupCheatingUser", "PopupDownloadStart", 
 	"PopupDownloadFailed", "PopupDownloadFinished", "PopupUploadFinished", "PopupPm", "PopupNewPM", 
-	"PopupType", "WebServer", "WebServerPort", "WebServerLog", "ShutdownAction", "MinimumSearchInterval",
+	"PopupType", "WebServer", "WebServerPort", "WebServerLog", "MinimumSearchInterval",
 	"PopupAway", "PopupMinimized", "ShowShareCheckedUsers", "MaxAutoMatchSource",
     "ReservedSlotColor", "IgnoredColor", "FavoriteColor",
 	"NormalColour", "ClientCheckedColour", "FileListCheckedColour",
@@ -321,7 +321,6 @@ SettingsManager::SettingsManager()
 	setDefault(DEBUG_COMMANDS, false);
 	setDefault(EXTRA_SLOTS, 3);
 	setDefault(EXTRA_PARTIAL_SLOTS, 1);
-	setDefault(SHUTDOWN_TIMEOUT, 150);
 	setDefault(SEARCH_PASSIVE, false);
 	setDefault(MAX_UPLOAD_SPEED_LIMIT_NORMAL, 0);
 	setDefault(MAX_DOWNLOAD_SPEED_LIMIT_NORMAL, 0);
@@ -423,7 +422,6 @@ SettingsManager::SettingsManager()
 	setDefault(POPUP_MINIMIZED, true);
 
 	setDefault(AWAY, false);
-	setDefault(SHUTDOWN_ACTION, 0);
 	setDefault(MINIMUM_SEARCH_INTERVAL, 30);
 
 

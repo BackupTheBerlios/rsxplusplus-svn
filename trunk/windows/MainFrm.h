@@ -51,6 +51,8 @@
 
 #define QUICK_SEARCH_MAP 20
 
+class ShutdownManager; //RSX++
+
 class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFrame>,
 		public CMessageFilter, public CIdleHandler, public CSplitterImpl<MainFrame, false>, public Thread,
 		private TimerManagerListener, private QueueManagerListener,
@@ -124,7 +126,6 @@ public:
 		MESSAGE_HANDLER(WM_ACTIVATEAPP, onActivateApp)
 		MESSAGE_HANDLER(WM_APPCOMMAND, onAppCommand)
 		MESSAGE_HANDLER(IDC_REBUILD_TOOLBAR, OnCreateToolbar)
-		MESSAGE_HANDLER(IDC_REBUILD_PLUGIN_TOOLBAR, OnCreatePluginToolbar) //RSX++
 		MESSAGE_HANDLER(WEBSERVER_SOCKET_MESSAGE, onWebServerSocket)
 		COMMAND_ID_HANDLER(ID_APP_EXIT, OnFileExit)
 		COMMAND_ID_HANDLER(ID_FILE_SETTINGS, OnFileSettings)
@@ -181,7 +182,6 @@ public:
 		//RSX++
 		COMMAND_ID_HANDLER(IDC_VIEW_PLUGINS_LIST, onViewPluginsList)
 		COMMAND_ID_HANDLER(IDC_RECONNECT_DISCONNECTED, onCloseWindows)
-		COMMAND_ID_HANDLER(ID_VIEW_PLUGIN_TOOLBAR, OnViewPluginToolBar)
 		COMMAND_ID_HANDLER(IDC_CHANGE_PRIO_REALTIME, onChangePriority)
 		COMMAND_ID_HANDLER(IDC_CHANGE_PRIO_HIGH, onChangePriority)
 		COMMAND_ID_HANDLER(IDC_CHANGE_PRIO_ABOVE, onChangePriority)
@@ -195,8 +195,6 @@ public:
 		CHAIN_MSG_MAP(CUpdateUI<MainFrame>)
 		CHAIN_MSG_MAP(CMDIFrameWindowImpl<MainFrame>)
 		CHAIN_MSG_MAP(splitterBase);
-	//RSX++
-		COMMAND_CODE_HANDLER(BN_CLICKED, onBnClick)
 	ALT_MSG_MAP(QUICK_SEARCH_MAP)
 		MESSAGE_HANDLER(WM_KILLFOCUS, onKillFocus)
 		MESSAGE_HANDLER(WM_CHAR, onQuickSearchChar)
@@ -207,13 +205,11 @@ public:
 		MESSAGE_HANDLER(WM_CTLCOLORLISTBOX, onQuickSearchColor)
 		COMMAND_CODE_HANDLER(EN_CHANGE, onQuickSearchEditChange)
 	END_MSG_MAP()
-	//END
 	BEGIN_UPDATE_UI_MAP(MainFrame)
 		UPDATE_ELEMENT(ID_VIEW_TOOLBAR, UPDUI_MENUPOPUP)
 		UPDATE_ELEMENT(ID_VIEW_STATUS_BAR, UPDUI_MENUPOPUP)
 		UPDATE_ELEMENT(ID_VIEW_TRANSFER_VIEW, UPDUI_MENUPOPUP)
 		UPDATE_ELEMENT(ID_TOGGLE_QSEARCH, UPDUI_MENUPOPUP)
-		UPDATE_ELEMENT(ID_VIEW_PLUGIN_TOOLBAR, UPDUI_MENUPOPUP)
 	END_UPDATE_UI_MAP()
 
 
@@ -254,12 +250,6 @@ public:
 	LRESULT onViewPluginsList(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT onSwitchWindow(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT onChangePriority(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-	LRESULT OnViewPluginToolBar(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-	LRESULT onBnClick(WORD /*wNotifyCode*/, WORD wID, HWND hWndCtl, BOOL& /*bHandled*/);
-	LRESULT OnCreatePluginToolbar(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
-		createPluginsToolbar();
-		return S_OK;
-	}
 
 	LRESULT onKillFocus(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled) {
 		if(QuickSearchBox.GetWindowTextLength() == 0)	
@@ -366,10 +356,7 @@ public:
 		return 0;
 	}	
 
-	LRESULT onShutDown(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
-		setShutDown(!getShutDown());
-		return S_OK;
-	}
+	LRESULT onShutDown(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	LRESULT OnCreateToolbar(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
 		createToolbar();
 		return S_OK;
@@ -378,13 +365,9 @@ public:
 	bool getAppMinimized() const { return bAppMinimized; }
 	CToolBarCtrl& getToolBar() { return ctrlToolbar; }
 
-	static void setShutDown(bool b) {
-		if (b)
-			iCurrentShutdownTime = GET_TICK() / 1000;
-		bShutdown = b;
-	}
-	static bool getShutDown() { return bShutdown; }
-	
+	static void setShutDown(bool b);
+	static bool getShutDown() { return anyMF->shutdownMng != 0; }
+
 	static void setAwayButton(bool check) {
 		anyMF->ctrlToolbar.CheckButton(IDC_AWAY, check);
 	}
@@ -455,10 +438,11 @@ private:
 	bool m_bDisableAutoComplete;
 	//RSX++
 	string profileVerInfo;
-	CToolBarCtrl ctrlPluginToolbar;
+
 	CImageList toolbarImg;
 	CImageList toolbar20Img;
 	CImageList toolbar20HotImg;
+	ShutdownManager* shutdownMng;
 	//END
 
 	bool tbarcreated, ptbarcreated;
@@ -466,11 +450,8 @@ private:
 	bool bTrayIcon;
 	bool bAppMinimized;
 	bool bIsPM;
-	
-	static bool bShutdown;
-	static uint64_t iCurrentShutdownTime;
+
 	HICON hShutdownIcon;
-	static bool isShutdownStatus;
 
 	CMenu trayMenu;
 	CMenu prioMenu; //RSX++
@@ -499,7 +480,6 @@ private:
 	HWND createToolbar();
 	HWND createQuickSearchBar();
 	//RSX++
-	HWND createPluginsToolbar();
 	void setDefPrioMenu();
 	//END
 

@@ -36,7 +36,6 @@ public:
 	};
 
 	~SDCPage() {
-		ctrlShutdownAction.Detach();
 		free(title);
 	};
 
@@ -54,7 +53,6 @@ protected:
 	static Item items[];
 	static TextItem texts[];
 
-	CComboBox ctrlShutdownAction;
 	CComboBox userlistaction, transferlistaction, chataction;
 
 	TCHAR* title;

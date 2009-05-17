@@ -436,13 +436,12 @@ void WinUtil::init(HWND hWnd) {
 	view.AppendMenu(MF_STRING, IDC_NOTEPAD, CTSTRING(MENU_NOTEPAD));
 	view.AppendMenu(MF_STRING, IDC_HASH_PROGRESS, CTSTRING(MENU_HASH_PROGRESS));
 	view.AppendMenu(MF_STRING, IDC_VIEW_PLUGINS_LIST, _T("Plugins List")); //RSX++
-	//view.AppendMenu(MF_STRING, IDC_VIEW_SCRIPTS_LIST, _T("Scripts List")); //RSX++
+
 	view.AppendMenu(MF_SEPARATOR);
 	view.AppendMenu(MF_STRING, ID_VIEW_TOOLBAR, CTSTRING(MENU_TOOLBAR));
 	view.AppendMenu(MF_STRING, ID_TOGGLE_QSEARCH, CTSTRING(TOGGLE_QSEARCH));	
 	view.AppendMenu(MF_STRING, ID_VIEW_STATUS_BAR, CTSTRING(MENU_STATUS_BAR));
 	view.AppendMenu(MF_STRING, ID_VIEW_TRANSFER_VIEW, CTSTRING(MENU_TRANSFER_VIEW));
-	view.AppendMenu(MF_STRING, ID_VIEW_PLUGIN_TOOLBAR, CTSTRING(MENU_PLUGIN_VIEW)); //RSX++
 
 	mainMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)view, CTSTRING(MENU_VIEW));
 
@@ -1784,7 +1783,7 @@ bool WinUtil::shutDown(int action) {
 		case 4: { SetSuspendState(true, false, false); return true; }
 		case 5: { 
 			if(LOBYTE(LOWORD(GetVersion())) >= 5) {
-				typedef bool (CALLBACK* LPLockWorkStation)(void);
+				typedef int (__stdcall * LPLockWorkStation)();
 				LPLockWorkStation _d_LockWorkStation = (LPLockWorkStation)GetProcAddress(LoadLibrary(_T("user32")), "LockWorkStation");
 				_d_LockWorkStation();
 			}

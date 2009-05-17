@@ -35,14 +35,12 @@ PropPage::TextItem SDCPage::texts[] = {
 	{ IDC_STATIC1, ResourceManager::PORT },
 	{ IDC_STATIC2, ResourceManager::USER },
 	{ IDC_STATIC3, ResourceManager::PASSWORD },
-	{ IDC_SETTINGS_ODC_SHUTDOWNTIMEOUT, ResourceManager::SETTINGS_ODC_SHUTDOWNTIMEOUT },
 	{ IDC_MAXCOMPRESS, ResourceManager::SETTINGS_MAX_COMPRESS },
 	{ IDC_INTERVAL_TEXT, ResourceManager::MINIMUM_SEARCH_INTERVAL },
 	{ IDC_MATCH_QUEUE_TEXT, ResourceManager::SETTINGS_SB_MAX_SOURCES },
 	{ IDC_USERLISTDBLCLICKACTION, ResourceManager::USERLISTDBLCLICKACTION },
 	{ IDC_TRANSFERLISTDBLCLICKACTION, ResourceManager::TRANSFERLISTDBLCLICKACTION },
 	{ IDC_CHATDBLCLICKACTION, ResourceManager::CHATDBLCLICKACTION },
-	{ IDC_SHUTDOWNACTION, ResourceManager::SHUTDOWN_ACTION },
 	{ IDC_SETTINGS_DOWNCONN, ResourceManager::SETTINGS_DOWNCONN },
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
@@ -57,7 +55,6 @@ PropPage::Item SDCPage::items[] = {
 	{ IDC_EDIT1, SettingsManager::WEBSERVER_PORT, PropPage::T_INT }, 
 	{ IDC_EDIT2, SettingsManager::WEBSERVER_USER, PropPage::T_STR }, 
 	{ IDC_EDIT3, SettingsManager::WEBSERVER_PASS, PropPage::T_STR }, 
-	{ IDC_SHUTDOWNTIMEOUT, SettingsManager::SHUTDOWN_TIMEOUT, PropPage::T_INT },
 	{ IDC_MAX_COMPRESSION, SettingsManager::MAX_COMPRESSION, PropPage::T_INT },
 	{ IDC_INTERVAL, SettingsManager::MINIMUM_SEARCH_INTERVAL, PropPage::T_INT },
 	{ IDC_MATCH, SettingsManager::MAX_AUTO_MATCH_SOURCES, PropPage::T_INT },
@@ -83,21 +80,11 @@ LRESULT SDCPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	setMinMax(IDC_TAB_SPIN, 1, 10);
 	setMinMax(IDC_PM_LINESSPIN, 0, 999);
 	setMinMax(IDC_SEARCH_HISTORY_SPIN, 1, 100);
-	setMinMax(IDC_SHUTDOWN_SPIN , 1, 3600);
 	setMinMax(IDC_MAX_COMP_SPIN, 0, 9);
 	setMinMax(IDC_INTERVAL_SPIN, 10, 9999);
 	setMinMax(IDC_MATCH_SPIN, 1, 999);
 	setMinMax(IDC_AUTO_SEARCH_LIMIT_SPIN, 1, 999);
 	setMinMax(IDC_DOWNCONN_SPIN, 0, 100);
-
-	ctrlShutdownAction.Attach(GetDlgItem(IDC_COMBO1));
-	ctrlShutdownAction.AddString(CTSTRING(POWER_OFF));
-	ctrlShutdownAction.AddString(CTSTRING(LOG_OFF));
-	ctrlShutdownAction.AddString(CTSTRING(REBOOT));
-	ctrlShutdownAction.AddString(CTSTRING(SUSPEND));
-	ctrlShutdownAction.AddString(CTSTRING(HIBERNATE));
-
-	ctrlShutdownAction.SetCurSel(SETTING(SHUTDOWN_ACTION));
 
 	// Do specialized reading here
 	userlistaction.Attach(GetDlgItem(IDC_USERLIST_DBLCLICK));
@@ -139,7 +126,6 @@ LRESULT SDCPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 void SDCPage::write()
 {
 	PropPage::write((HWND)*this, items);
-	SettingsManager::getInstance()->set(SettingsManager::SHUTDOWN_ACTION, ctrlShutdownAction.GetCurSel());
 
 	userlistaction.Attach(GetDlgItem(IDC_USERLIST_DBLCLICK));
 	transferlistaction.Attach(GetDlgItem(IDC_TRANSFERLIST_DBLCLICK));

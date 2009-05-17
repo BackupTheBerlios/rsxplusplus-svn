@@ -1,3 +1,6 @@
+** SVN 128
+ ** new shutdown sheduler
+
 ** SVN 127
  ** [lua] fixed some lua bindings
  ** [lua] error handling

@@ -136,6 +136,17 @@ public:
 		}
 		return false;
 	}
+
+	uint64_t getQueueSize(bool filelist) throw() {
+		Lock l(cs);
+		uint64_t size = 0;
+		for(QueueItem::StringIter i = fileQueue.getQueue().begin(); i != fileQueue.getQueue().end(); ++i) {
+			if(!filelist && (i->second->isSet(QueueItem::FLAG_USER_LIST) || i->second->isSet(QueueItem::FLAG_TESTSUR)))
+				continue;
+			size += i->second->getSize();
+		}
+		return size;
+	}
 	//END
 	/** Readd a source that was removed */
 	void readd(const string& target, const UserPtr& aUser, const string& hubHint) throw(QueueException);

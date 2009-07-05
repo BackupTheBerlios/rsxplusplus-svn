@@ -1298,6 +1298,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\client\Codepages.h"
+				>
+			</File>
+			<File
 				RelativePath=".\client\CommandQueue.h"
 				>
 			</File>

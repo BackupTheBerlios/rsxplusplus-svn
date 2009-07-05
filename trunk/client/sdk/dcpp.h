@@ -55,33 +55,53 @@ typedef uint32_t dcpp_ptr_t;
 
 #define SDK_VERSION MAKE_VER(2, 0, 0, 0)
 
+typedef int (__stdcall * DCPP_FUNC)(dcpp_ptr_t, dcpp_ptr_t);
+
 typedef struct {
-	const char*		name;
-	const char*		guid;
-	const char*		author;
-	const char*		description;
-	const char*		website;
-	uint64_t		version;
-	uint64_t		sdkVersion;
+	const char*		name;			// Name of the plugin
+	const char*		guid;			// unique GUID
+	const char*		author;			// Author
+	const char*		description;	// Short description of the plugin
+	const char*		website;		// Website of the plugin
+	uint64_t		version;		// Plugin's version
+	uint64_t		sdkVersion;		// SDK's version used to compile plugin, set to SDK_VERSION
 } DCPP_PLUG_INFO;
 
 typedef struct {
-	// common memory managment functions
+	// Common Memory Managment Functions
 	void* (__cdecl *malloc)		(size_t);
 	void* (__cdecl *calloc)		(size_t, size_t);
 	void* (__cdecl *realloc)	(void*, size_t);
 	void  (__cdecl *free)		(void*);
-
-	void* (__cdecl *call)		(int type, void* p1, void* p2, void* p3);
+	// Call function to comunicate with core
+	dcpp_ptr_t (__stdcall *call)		(int type, dcpp_ptr_t, dcpp_ptr_t, dcpp_ptr_t);
+	// works only with debug builds
 	void  (__cdecl *debug)		(const char*, ...);
+
+	void* (__stdcall *addListener) (int, DCPP_FUNC, dcpp_ptr_t);
+	void (__stdcall *removeListener) (void*);
 } DCPP_FUNCTIONS;
 
-// nasty, but with it we can pass up to 9 params
 typedef struct {
-	void* p1;
-	void* p2;
-	void* p3;
-} DCPP_DATA_PACK;
+	const char* message;
+	dcpp_ptr_t hub;
+} dcppHubMessage;
+
+typedef struct {
+	const char* message;
+	dcpp_ptr_t hub;
+	dcpp_ptr_t from;
+	dcpp_ptr_t to;
+	dcpp_ptr_t replyTo;
+	char thirdPerson;
+} dcppPrivateMessageIn;
+
+typedef struct {
+	const char* message;
+	dcpp_ptr_t hub;
+	dcpp_ptr_t to;
+	char thirdPerson;
+} dcppPrivateMessageOut;
 
 struct dcppLinkedMap {
 	void* first;
@@ -90,6 +110,14 @@ struct dcppLinkedMap {
 };
 
 typedef struct dcppLinkedMap DCPP_LINKED_MAP;
+
+struct dcppLinkedList {
+	void* element;
+	struct dcppLinkedList* next;
+};
+
+typedef struct dcppLinkedList DCPP_LINKED_LIST;
+
 
 #ifdef __cplusplus
 } // extern "C"

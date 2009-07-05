@@ -1005,8 +1005,9 @@
 #define IDC_EXTENSIONS_CFG              1534
 #define IDC_TYPE                        1536
 #define IDC_TIMEOUT                     1537
-#define IDC_COMBO3                      1538
 #define IDC_TIME_TYPE                   1538
+#define IDC_DICTIONARIES                1541
+#define IDC_DICTIONARY                  1541
 #define WEBSERVER_SOCKET_MESSAGE        1543
 #define IDC_AUTOPRIORITY                1572
 #define IDC_SETTINGS_ODC_MENUBAR        1612
@@ -1300,7 +1301,7 @@
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        355
 #define _APS_NEXT_COMMAND_VALUE         32808
-#define _APS_NEXT_CONTROL_VALUE         1539
+#define _APS_NEXT_CONTROL_VALUE         1542
 #define _APS_NEXT_SYMED_VALUE           134
 #endif
 #endif

@@ -25,9 +25,12 @@
 #include "sdk/dcpp.h"
 #include "sdk/events.h"
 
+struct lua_State;
+
 namespace dcpp {
 class Plugin;
 class Client;
+class OnlineUser;
 
 class PluginsManager : public Singleton<PluginsManager> {
 public:
@@ -37,21 +40,54 @@ public:
 	void init(void (*f)(void*, const tstring&), void* p);
 	void load();
 
-	inline void initClose() { plugEvent(DCPP_INIT_CLOSE, 0, 0, 0); }
-
-	inline int plugEvent(int type, void* p1, void* p2, void* p3, bool toAll = true) {
-		if(toAll)
-			return plugEventAll(type, p1, p2, p3);
-		return plugEventBreakAtFirst(type, p1, p2, p3);
+	inline void initClose() { 
+		call<false>(coreEvents, DCPP_INIT_CLOSE, 0);
 	}
 
 	void getPluginsInfo(std::list<DCPP_PLUG_INFO*>& p);
 
+	bool onHubMsgIn(Client* hub, const char* msg);
+	bool onHubMsgOut(Client* hub, const char* msg);
+	bool onPMIn(Client* hub, OnlineUser* from, OnlineUser* to, OnlineUser* replyTo, const char* msg, bool thirdPerson);
+	bool onPMOut(Client* hub, OnlineUser* to, const char* msg);
+	void onHubConnecting(Client* hub);
+	void onHubConnected(Client* hub);
+	void onHubDisconnected(Client* hub);
+	void onUserConnected(OnlineUser* ou);
+	void onUserDisconnected(OnlineUser* ou);
+	void onLuaInit(lua_State*);
+	void onConfigChange();
+
 private:
+	struct PlugListener {
+		PlugListener() : f(0), pData(0) { };
+		PlugListener(DCPP_FUNC _f, dcpp_ptr_t d = 0) : f(_f), pData(d) { };
+
+		DCPP_FUNC f;
+		dcpp_ptr_t pData;
+		template<typename T1, typename T2>
+		int call(T1 p1, T2 p2) {
+			return f((dcpp_ptr_t)p1, (dcpp_ptr_t)p2);
+		}
+	};
+
+	typedef std::list<PlugListener*> Listener;
+	Listener hubEvents;
+	Listener userEvents;
+	Listener coreEvents;
+	Listener connEvents;
+
+	static void* __stdcall addListener(int type, DCPP_FUNC f, dcpp_ptr_t pd);
+	static void  __stdcall removeListener(void* ptr);
+	static dcpp_ptr_t __stdcall callFunc(int type, dcpp_ptr_t p1, dcpp_ptr_t p2, dcpp_ptr_t p3);
 	static void debugDummy(const char*, ...) { }
-	static void* callFunc(int type, void* p1, void* p2, void* p3);
-	int plugEventAll(int type, void* p1, void* p2, void* p3);
-	int plugEventBreakAtFirst(int type, void* p1, void* p2, void* p3);
+
+	void* addPlugListener(int type, DCPP_FUNC f, dcpp_ptr_t pd);
+	void remPlugListener(PlugListener* l);
+	void deleteListener(Listener& l, PlugListener* ls);
+
+	template<bool breakAtFirst, typename T1, typename T2>
+	int call(Listener& l, T1 p1, T2 p2);
 
 	CriticalSection cs;
 	DCPP_FUNCTIONS* dcpp_func;

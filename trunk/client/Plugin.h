@@ -25,12 +25,15 @@ namespace dcpp {
 
 class Plugin {
 public:
-	typedef int (__cdecl *PluginProc)(int, void*, void*, void*);
+	typedef int (__stdcall *PluginLoad)(DCPP_FUNCTIONS*);
+	typedef int (__stdcall *PluginUnload)();
 
 	Plugin(HMODULE h) : handle(h) { }
 	HMODULE handle;
 
-	PluginProc pluginProc;
+	PluginLoad pluginLoad;
+	PluginUnload pluginUnload;
+
 	DCPP_PLUG_INFO* info;
 };
 

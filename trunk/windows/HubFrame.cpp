@@ -239,19 +239,14 @@ LRESULT HubFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 	return 1;
 }
 
-void HubFrame::openWindow(const tstring& aServer
-		, int chatusersplit, bool userliststate,
-       string sColumsOrder, string sColumsWidth, string sColumsVisible) {
+void HubFrame::openWindow(const tstring& aServer, int chatusersplit, bool userliststate, string sColumsOrder, string sColumsWidth, string sColumsVisible) {
 	FrameIter i = frames.find(aServer);
 	if(i == frames.end()) {
 		HubFrame* frm = new HubFrame(aServer
 			, chatusersplit, userliststate);
 		frames[aServer] = frm;
 
-//		int nCmdShow = SW_SHOWDEFAULT;
 		frm->CreateEx(WinUtil::mdiClient, frm->rcDefault);
-//		if(windowtype)
-//			frm->ShowWindow(((nCmdShow == SW_SHOWDEFAULT) || (nCmdShow == SW_SHOWNORMAL)) ? windowtype : nCmdShow);
 	} else {
 		if(::IsIconic(i->second->m_hWnd))
 			::ShowWindow(i->second->m_hWnd, SW_RESTORE);
@@ -1003,6 +998,7 @@ LRESULT HubFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, B
 		SettingsManager::getInstance()->removeListener(this);
 		TimerManager::getInstance()->removeListener(this);
 		FavoriteManager::getInstance()->removeListener(this);
+
 		client->removeListener(this);
 		client->disconnect(true);
 

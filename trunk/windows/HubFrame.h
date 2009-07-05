@@ -41,6 +41,7 @@
 #include "WinUtil.h"
 #include "UCHandler.h"
 #include "ResourceLoader.h" //RSX++
+#include "SpellCheckEdit.h" //RSX++
 
 #define EDIT_MESSAGE_MAP 10		// This could be any number, really...
 #define FILTER_MESSAGE_MAP 8
@@ -132,6 +133,7 @@ public:
 		MESSAGE_HANDLER(WM_KEYUP, onChar)
 		MESSAGE_HANDLER(BM_SETCHECK, onShowUsers)
 		MESSAGE_HANDLER(WM_LBUTTONDBLCLK, onLButton)
+		//CHAIN_MSG_MAP(CSpellCheckEdit)
 		//MESSAGE_HANDLER(WM_CONTEXTMENU, onContextMenu)
 	ALT_MSG_MAP(FILTER_MESSAGE_MAP)
 		MESSAGE_HANDLER(WM_CTLCOLORLISTBOX, onCtlColor)
@@ -407,7 +409,7 @@ private:
 	CButton ctrlShowUsers;
 	CButton ctrlEmoticons;
 	ChatCtrl ctrlClient;
-	CEdit ctrlMessage;
+	CSpellCheckEdit ctrlMessage; //RSX++
 	CEdit ctrlFilter;
 	CComboBox ctrlFilterSel;
 	typedef TypedListViewCtrl<OnlineUser, IDC_USERS> CtrlUsers;

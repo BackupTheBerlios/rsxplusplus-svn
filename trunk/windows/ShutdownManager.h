@@ -43,7 +43,9 @@ public:
 		DELAY
 	};
 
-	ShutdownManager(int a, int t, uint64_t d) : act((Action)a), type((Type)t), delay(d) { };
+	ShutdownManager(int a, int t, uint64_t d) : act((Action)a), type((Type)t), delay(d) { 
+		if(type == DELAY && delay <= 0) delay = 1;
+	};
 	~ShutdownManager() { };
 
 	uint64_t getTimeLeft(bool& close, bool& shutdown) {
@@ -66,6 +68,7 @@ public:
 			}
 			default: shutdown = false;
 		}
+
 		close = act == CLOSE_APP;
 		return delay;
 	}
@@ -80,3 +83,8 @@ private:
 };
 
 #endif
+
+/**
+ * @file
+ * $Id$
+ */

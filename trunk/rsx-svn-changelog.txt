@@ -1,3 +1,11 @@
+** SVN 130
+ ** fixed shutdown manager once for all
+ ** code cleanup
+ ** updated compile.txt
+ ** [sdk] started some documentation in headers
+ ** added spell check (hunspell)
+ ** [sdk] major changes in event handling (now it's event-driven)
+
 ** SVN 129
  ** fixed delayed shutdown (oops)
 

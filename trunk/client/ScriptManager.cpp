@@ -101,7 +101,7 @@ void ScriptManager::load(void (*f)(void*, const tstring&), void* p) {
 	LuaBindings::BindUserConnection(parser);
 	LuaBindings::BindClient(parser);
 
-	PluginsManager::getInstance()->plugEvent(DCPP_ACT_LUA_INIT, (void*)parser, 0, 0);
+	PluginsManager::getInstance()->onLuaInit(parser);
 
 	{
 		Lock l(cs);

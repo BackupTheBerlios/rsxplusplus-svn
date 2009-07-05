@@ -51,5 +51,5 @@ private:
 
 /**
  * @file
- * $Id: RawDlg.h 117 2009-04-11 21:44:24Z adrian_007 $
+ * $Id$
  */

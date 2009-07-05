@@ -1711,12 +1711,13 @@ string WinUtil::generateStats() {
 		int64_t kernelTime = kernelTimeFT.dwLowDateTime | (((int64_t)kernelTimeFT.dwHighDateTime) << 32);
 		int64_t userTime = userTimeFT.dwLowDateTime | (((int64_t)userTimeFT.dwHighDateTime) << 32);  
 
-		string ret = boost::str(boost::format("\r\n\t- %s %s [Core: %s] %s\r\n\
+		string ret = boost::str(boost::format(
+"\r\n\t- %s %s [Core: %s] %s\r\n\
 \t- Uptime: %s | CPU time: %s\r\n\
 \t- Memory usage (peak): %s (%s)\r\n\
 \t- Virtual Memory usage (peak): %s (%s)\r\n\
-\t- Downloaded: %s | Uploaded: %s\r\n\
-\t- Total Download: %s | Total Upload: %s\r\n\
+\t- Downloaded (session/total): %s / %s\r\n\
+\t- Uploadded (session/total): %s / %s\r\n\
 \t- System: %s (Uptime: %s)\r\n\
 \t- CPU: %s\r\n\
 \t- Total clients detected (Successful/Failed): %s/%s\r\n\
@@ -1738,8 +1739,8 @@ string WinUtil::generateStats() {
 			% Util::formatBytes(pmc.PagefileUsage)
 			% Util::formatBytes(pmc.PeakPagefileUsage)
 			% Util::formatBytes(Socket::getTotalDown())
-			% Util::formatBytes(Socket::getTotalUp())
 			% Util::formatBytes(SETTING(TOTAL_DOWNLOAD))
+			% Util::formatBytes(Socket::getTotalUp())
 			% Util::formatBytes(SETTING(TOTAL_UPLOAD))
 			% RsxUtil::getOsVersion()
 			% formatTime(GET_TICK()/1000)
@@ -1784,8 +1785,10 @@ bool WinUtil::shutDown(int action) {
 		case 5: { 
 			if(LOBYTE(LOWORD(GetVersion())) >= 5) {
 				typedef int (__stdcall * LPLockWorkStation)();
-				LPLockWorkStation _d_LockWorkStation = (LPLockWorkStation)GetProcAddress(LoadLibrary(_T("user32")), "LockWorkStation");
+				HMODULE hUser32 = LoadLibrary(_T("user32"));
+				LPLockWorkStation _d_LockWorkStation = (LPLockWorkStation)GetProcAddress(hUser32, "LockWorkStation");
 				_d_LockWorkStation();
+				FreeLibrary(hUser32);
 			}
 			return true;
 		}

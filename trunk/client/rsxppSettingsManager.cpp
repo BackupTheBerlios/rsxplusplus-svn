@@ -26,7 +26,7 @@ const string rsxppSettingsManager::settingTags[] =
 	// Strings
 	"ProtectedUsers", 
 	"UpdateProfiles", "UpdateIpWatch", "UpdateMyInfoProfilesUrl",
-	"HighPrioFiles", "LowPrioFiles", "ShareSkiplist", "DownloadSkiplist", "ProfileVerUrl",
+	"HighPrioFiles", "LowPrioFiles", "ShareSkiplist", "DownloadSkiplist", "ProfileVerUrl", "Dictionary", 
 	"SENTRY", 
 	// Ints
 	"CheckDelay", "SleepTime", "MaxFilelists", "MaxTestSURs", "UseSendDelayedRaw", 
@@ -196,6 +196,7 @@ rsxppSettingsManager::rsxppSettingsManager() {
 	setDefault(LOW_PRIO_FILES,				"");
 	setDefault(SKIPLIST_SHARE,				"*.ioFTPD;*.checked;*.raidenftpd.acl;*.SimSfvChk.log;*.message;Descript.ion;*.upChk.log;thumbs.db;*.crc;*.temp;Desktop.ini");
 	setDefault(SKIPLIST_DOWNLOAD,			"*.ioFTPD;*.checked;*.raidenftpd.acl;*.SimSfvChk.log;*.message;Descript.ion;*.upChk.log;thumbs.db;*.crc;*.temp;Desktop.ini");
+	setDefault(DICTIONARY,					Util::emptyString);
 
 	//others
 	setDefault(USE_CHAT_FILTER,				false);

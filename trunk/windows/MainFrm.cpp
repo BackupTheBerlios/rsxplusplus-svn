@@ -701,21 +701,24 @@ LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& 
 			if(shutdownMng) {
 				bool bClose = false, bShutdown = false;
 				uint64_t shTimeLeft = shutdownMng->getTimeLeft(bClose, bShutdown);
-				if(bClose) {
-					oldshutdown = true; // nasty...
-					PostMessage(WM_CLOSE);
+				if(bShutdown) {
+					if(bClose) {
+						oldshutdown = true; // nasty...
+						PostMessage(WM_CLOSE);
+					} else {
+						shutdownMng->shutdown();
+					}
+					setShutDown(false);
 				} else {
 					ctrlStatus.SetIcon(9, hShutdownIcon);
 					if(shTimeLeft >= 0)
 						ctrlStatus.SetText(9, Util::formatSeconds(shTimeLeft, shTimeLeft < 3600).c_str());
-				}
-				if(bShutdown) {
-					shutdownMng->shutdown();
-					setShutDown(false);
+					else
+						ctrlStatus.SetText(9, NULL);
 				}
 			} else {
 				ctrlStatus.SetIcon(9, NULL);
-				ctrlStatus.SetText(9, _T(""));
+				ctrlStatus.SetText(9, NULL);
 			}
 			//END
 		}
@@ -1547,16 +1550,14 @@ LRESULT MainFrame::onShutDown(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl
 	if(shutdownMng) {
 		delete shutdownMng;
 		shutdownMng = 0;
-		ctrlToolbar.CheckButton(IDC_SHUTDOWN, FALSE);
 	} else {
 		ShutdownDlg dlg(hShutdownIcon);
 		if(dlg.DoModal() == IDOK) {
 			shutdownMng = new ShutdownManager(dlg.action, dlg.type, dlg.timeout);
 			ctrlToolbar.CheckButton(IDC_SHUTDOWN, TRUE);
-		} else {
-			ctrlToolbar.CheckButton(IDC_SHUTDOWN, FALSE);
 		}
 	}
+	ctrlToolbar.CheckButton(IDC_SHUTDOWN, shutdownMng != 0);
 	return S_OK;
 }
 

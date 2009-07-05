@@ -25,6 +25,7 @@
 
 #include "RSX-Page.h"
 #include "LineDlg.h"
+#include "SpellChecker.hpp"
 
 PropPage::TextItem RSXPage::texts[] = {
 	{ IDC_IGNORE_ADD,			ResourceManager::ADD },
@@ -89,6 +90,29 @@ LRESULT RSXPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	ctrlPrio.AddString(CTSTRING(MENU_PRIO_BELOW));
 	ctrlPrio.AddString(CTSTRING(MENU_PRIO_IDLE));
 	ctrlPrio.SetCurSel(RSXPP_SETTING(DEFAULT_PRIO));
+
+	ctrlDictionary.Attach(GetDlgItem(IDC_DICTIONARY));
+	ctrlDictionary.AddString(_T("None/Disabled"));
+	StringList files = File::findFiles(Util::getConfigPath(), "*.dic");
+	{
+		for(StringIter i = files.begin(); i != files.end(); ++i) {
+			string& tmp = *i;
+			dcdebug("tmp: %s\n", tmp.c_str());
+			string file = tmp.substr(0, tmp.length() - 3);
+			file += "aff";
+			if(!Util::fileExists(file))
+				files.erase(i);
+		}
+	}
+	for(StringIter i = files.begin(); i != files.end(); ++i) {
+		tstring file = Util::getFileName(Text::toT(*i));
+		ctrlDictionary.AddString(file.substr(0, file.length()-4).c_str());
+	}
+
+	int pos = ctrlDictionary.FindString(0, Text::toT(RSXPP_SETTING(DICTIONARY)).c_str());
+	if(pos < 0) pos = 0;
+	ctrlDictionary.SetCurSel(pos);
+
 	return TRUE;
 }
 
@@ -96,7 +120,7 @@ void RSXPage::write() {
 	PropPage::write((HWND)*this, items, listItems, GetDlgItem(IDC_RSX_BOOLEANS), true);
 	IgnoreManager::getInstance()->putIgnoredUsers(ignoreList);
 	rsxppSettingsManager::getInstance()->set(rsxppSettingsManager::DEFAULT_PRIO, ctrlPrio.GetCurSel());
-	
+
 	StringList& lst = FavoriteManager::getInstance()->getFavGroups();
 	if(!lst.size()) FavoriteManager::getInstance()->addFavGroup("All Hubs");
 	FavoriteManager::getInstance()->save();
@@ -111,6 +135,14 @@ void RSXPage::write() {
 			::RegDeleteValue(hk, _T(APPNAME));
 		}
 		::RegCloseKey(hk);
+	}
+	if(ctrlDictionary.GetCurSel() > 0) {
+		tstring buf;
+		buf.resize(ctrlDictionary.GetLBTextLen(ctrlDictionary.GetCurSel()));
+		ctrlDictionary.GetLBText(ctrlDictionary.GetCurSel(), &buf[0]);
+		RSXPP_SET(DICTIONARY, Text::fromT(buf));
+	} else {
+		RSXPP_SET(DICTIONARY, Util::emptyString);
 	}
 }
 

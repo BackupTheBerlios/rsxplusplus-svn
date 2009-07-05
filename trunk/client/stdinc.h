@@ -73,12 +73,6 @@ typedef unsigned __int16 uint16_t;
 typedef unsigned __int32 uint32_t;
 typedef unsigned __int64 uint64_t;
 
-#ifdef _WIN64
-typedef int64_t intptr_t;
-#else
-typedef int32_t intptr_t;
-#endif
-
 # ifndef CDECL
 #  define CDECL _cdecl
 # endif

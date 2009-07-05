@@ -1,3 +1,7 @@
+** RSX++ 1.1 ** xx/xx/2009
+
+
+
 ** RSX++ 1.00 ** 10/08/2008
  ** updated to StrongDC++ 2.21
  ** added new detection engine to fit ADC protocol and for optimization

@@ -308,30 +308,21 @@ bool Client::isActionActive(const int aAction) const {
 }
 
 bool Client::extOnMsgIn(const std::string& msg) {
-	bool plugin = PluginsManager::getInstance()->plugEvent(DCPP_HUB_MSG_IN, (void*)this, (void*)msg.c_str(), 0) == DCPP_DROP_EVENT;
+	bool plugin = PluginsManager::getInstance()->onHubMsgIn(this, msg.c_str());
 	bool script = ScriptManager::getInstance()->onHubMsgIn(this, msg);
 	return plugin || script;
 }
 
 bool Client::extOnMsgOut(const std::string& msg) {
-	bool plugin = PluginsManager::getInstance()->plugEvent(DCPP_HUB_MSG_OUT, (void*)this, (void*)msg.c_str(), 0) == DCPP_DROP_EVENT;
+	bool plugin = PluginsManager::getInstance()->onHubMsgOut(this, msg.c_str());
 	bool script = ScriptManager::getInstance()->onHubMsgOut(this, msg);
 	return plugin || script;
 }
 
 bool Client::extOnPmIn(OnlineUser* from, OnlineUser* to, OnlineUser* replyTo, const std::string& msg, bool thirdPerson) {
 	if(ClientManager::getInstance()->getMe() == from->getUser()) return false;
-	DCPP_DATA_PACK p1;
-	DCPP_DATA_PACK p2;
 
-	p1.p1 = (void*)from;
-	p1.p2 = (void*)to;
-	p1.p3 = (void*)replyTo;
-	p2.p1 = (void*)this;
-	p2.p2 = (void*)msg.c_str();
-	p2.p3 = (void*)thirdPerson;
-
-	bool plugin = PluginsManager::getInstance()->plugEvent(DCPP_HUB_PRIVATE_MSG_IN, &p1, &p2, 0) == DCPP_DROP_EVENT;
+	bool plugin = PluginsManager::getInstance()->onPMIn(this, from, to, replyTo, msg.c_str(), thirdPerson);
 	bool script = ScriptManager::getInstance()->onPmMsgIn(this, from, to, replyTo, msg, thirdPerson);
 	return plugin || script;
 }
@@ -340,7 +331,7 @@ bool Client::extOnPmOut(const UserPtr& user, const std::string& msg) {
 	OnlineUser* ou = findUser(user->getCID());
 	if(!ou) return false;
 
-	bool plugin = PluginsManager::getInstance()->plugEvent(DCPP_HUB_PRIVATE_MSG_OUT, this, ou, (void*)msg.c_str()) == DCPP_DROP_EVENT;
+	bool plugin = PluginsManager::getInstance()->onPMOut(this, ou, msg.c_str());
 	bool script = ScriptManager::getInstance()->onPmMsgOut(this, ou, msg);
 	return plugin || script;
 }

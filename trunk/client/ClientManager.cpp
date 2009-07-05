@@ -67,7 +67,7 @@ Client* ClientManager::getClient(const string& aHubURL) {
 	c->addListener(this);
 	//RSX++
 	ScriptManager::getInstance()->onHubConnected(c);
-	PluginsManager::getInstance()->plugEvent(DCPP_HUB_OPENED, reinterpret_cast<void*>((dcpp_ptr_t)c), 0, 0);
+	PluginsManager::getInstance()->onHubConnected(c);
 	//END
 	return c;
 }
@@ -75,7 +75,7 @@ Client* ClientManager::getClient(const string& aHubURL) {
 void ClientManager::putClient(Client* aClient) {
 	//RSX++
 	ScriptManager::getInstance()->onHubDisconnected(aClient);
-	PluginsManager::getInstance()->plugEvent(DCPP_HUB_CLOSED, reinterpret_cast<void*>((dcpp_ptr_t)aClient), 0, 0);
+	PluginsManager::getInstance()->onHubDisconnected(aClient);
 	//END
 	fire(ClientManagerListener::ClientDisconnected(), aClient);
 	aClient->removeListeners();
@@ -272,8 +272,8 @@ void ClientManager::putOnline(OnlineUser* ou) throw() {
 		onlineUsers.insert(make_pair(const_cast<CID*>(&ou->getUser()->getCID()), ou));
 	}
 	//RSX++
-	ScriptManager::getInstance()->onUserConnected(ou); //RSX++
-	PluginsManager::getInstance()->plugEvent(DCPP_USER_CONNECTED, reinterpret_cast<void*>((dcpp_ptr_t)ou), 0, 0);
+	ScriptManager::getInstance()->onUserConnected(ou);
+	PluginsManager::getInstance()->onUserConnected(ou);
 	//END
 	if(!ou->getUser()->isOnline()) {
 		ou->getUser()->setFlag(User::ONLINE);
@@ -286,7 +286,7 @@ void ClientManager::putOffline(OnlineUser* ou, bool disconnect) throw() {
 	bool lastUser = false;
 	//RSX++
 	ScriptManager::getInstance()->onUserDisconnected(ou);
-	PluginsManager::getInstance()->plugEvent(DCPP_USER_DISCONNECTED, reinterpret_cast<void*>((dcpp_ptr_t)ou), 0, 0);
+	PluginsManager::getInstance()->onUserDisconnected(ou);
 	//END
 	{
 		Lock l(cs);
@@ -601,7 +601,7 @@ string ClientManager::getMyNick(const string& hubUrl) const {
 }
 	
 void ClientManager::on(Connected, const Client* c) throw() {
-	PluginsManager::getInstance()->plugEvent(DCPP_HUB_CONNECTED, reinterpret_cast<void*>((dcpp_ptr_t)c), 0, 0); //RSX++
+	PluginsManager::getInstance()->onHubConnected((Client*)c); //RSX++
 	fire(ClientManagerListener::ClientConnected(), c);
 }
 
@@ -621,7 +621,7 @@ void ClientManager::on(HubUpdated, const Client* c) throw() {
 }
 
 void ClientManager::on(Failed, const Client* client, const string&) throw() {
-	PluginsManager::getInstance()->plugEvent(DCPP_HUB_DISCONNECTED, reinterpret_cast<void*>((dcpp_ptr_t)client), 0, 0); //RSX++
+	PluginsManager::getInstance()->onHubDisconnected((Client*)client); //RSX++
 	fire(ClientManagerListener::ClientDisconnected(), client);
 }
 

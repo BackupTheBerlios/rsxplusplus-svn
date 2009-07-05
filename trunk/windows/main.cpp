@@ -340,6 +340,7 @@ void callBack(void* x, const tstring& a) {
 	sText = a;
 	SendMessage((HWND)x, WM_PAINT, 0, 0);
 }
+#include "SpellChecker.hpp"
 
 static int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 {
@@ -396,7 +397,13 @@ static int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 	splash.RedrawWindow();
 
 	startup(callBack, (void*)splash.m_hWnd);
-
+	//RSX++
+	SpellChecker::newInstance();
+	if(!RSXPP_SETTING(DICTIONARY).empty()) {
+		callBack(splash.m_hWnd, _T("Dictionary"));
+		SpellChecker::getInstance()->reload();
+	}
+	//END
 	splash.DestroyWindow();
 	dummy.DestroyWindow();
 
@@ -438,6 +445,7 @@ static int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 	
 	_Module.RemoveMessageLoop();
 
+	SpellChecker::deleteInstance(); //RSX++
 	shutdown();
 
 	return nRet;

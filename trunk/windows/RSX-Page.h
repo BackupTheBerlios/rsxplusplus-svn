@@ -88,6 +88,7 @@ protected:
 	static ListItem listItems[];
 
 	CComboBox ctrlPrio;
+	CComboBox ctrlDictionary;
 	int CurSel;
 };
 

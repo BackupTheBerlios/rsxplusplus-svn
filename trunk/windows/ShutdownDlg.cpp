@@ -86,6 +86,5 @@ LRESULT ShutdownDlg::OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/
 
 /**
  * @file
- * $Id: RawDlg.cpp 117 2009-04-11 21:44:24Z adrian_007 $
+ * $Id$
  */
-

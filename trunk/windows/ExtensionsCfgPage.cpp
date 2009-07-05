@@ -76,7 +76,7 @@ void ExtensionsCfgPage::write() {
 		rsxppSettingsManager::getInstance()->setExtSetting(name, value);
 	}
 	rsxppSettingsManager::getInstance()->unlock();
-	PluginsManager::getInstance()->plugEvent(DCPP_CFG_CHANGED, 0, 0, 0);
+	PluginsManager::getInstance()->onConfigChange();
 }
 
 /**

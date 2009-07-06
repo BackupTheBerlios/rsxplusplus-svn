@@ -65,22 +65,23 @@ typedef struct {
 	const char*		website;		// Website of the plugin
 	uint64_t		version;		// Plugin's version
 	uint64_t		sdkVersion;		// SDK's version used to compile plugin, set to SDK_VERSION
-} DCPP_PLUG_INFO;
+} dcppPluginInformation;
 
 typedef struct {
-	// Common Memory Managment Functions
 	void* (__cdecl *malloc)		(size_t);
 	void* (__cdecl *calloc)		(size_t, size_t);
 	void* (__cdecl *realloc)	(void*, size_t);
 	void  (__cdecl *free)		(void*);
-	// Call function to comunicate with core
-	dcpp_ptr_t (__stdcall *call)		(int type, dcpp_ptr_t, dcpp_ptr_t, dcpp_ptr_t);
-	// works only with debug builds
 	void  (__cdecl *debug)		(const char*, ...);
+
+	dcpp_ptr_t (__stdcall *call)		(int type, dcpp_ptr_t, dcpp_ptr_t, dcpp_ptr_t);
 
 	void* (__stdcall *addListener) (int, DCPP_FUNC, dcpp_ptr_t);
 	void (__stdcall *removeListener) (void*);
-} DCPP_FUNCTIONS;
+} dcppFunctions;
+
+
+
 
 typedef struct {
 	const char* message;
@@ -93,15 +94,25 @@ typedef struct {
 	dcpp_ptr_t from;
 	dcpp_ptr_t to;
 	dcpp_ptr_t replyTo;
-	char thirdPerson;
+	int8_t thirdPerson;
 } dcppPrivateMessageIn;
 
 typedef struct {
 	const char* message;
 	dcpp_ptr_t hub;
 	dcpp_ptr_t to;
-	char thirdPerson;
+	int8_t thirdPerson;
 } dcppPrivateMessageOut;
+
+typedef struct {
+	const char* line;
+	dcpp_ptr_t connection;
+	uint16_t flags;
+} dcppConnectionMessage;
+
+
+
+
 
 struct dcppLinkedMap {
 	void* first;
@@ -109,13 +120,12 @@ struct dcppLinkedMap {
 	struct dcppLinkedMap* next;
 };
 
-typedef struct dcppLinkedMap DCPP_LINKED_MAP;
-
 struct dcppLinkedList {
 	void* element;
 	struct dcppLinkedList* next;
 };
 
+typedef struct dcppLinkedMap DCPP_LINKED_MAP;
 typedef struct dcppLinkedList DCPP_LINKED_LIST;
 
 

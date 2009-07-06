@@ -229,11 +229,11 @@ private:
 
 	void onLine(const string& aLine) throw();
 
-	bool callLua(const string& line); //RSX++
-	void send(const string& aString, bool lua = true) {
+	bool extOnLineOut(const string& line); //RSX++
+	void send(const string& aString, bool ext = true) {
 		lastActivity = GET_TICK();
 		COMMAND_DEBUG(aString, DebugManager::CLIENT_OUT, getRemoteIp());
-		if(lua && callLua(aString)) return;
+		if(ext && extOnLineOut(aString)) return;
 		socket->write(aString);
 	}
 

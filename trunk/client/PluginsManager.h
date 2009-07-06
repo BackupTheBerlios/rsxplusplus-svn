@@ -31,6 +31,7 @@ namespace dcpp {
 class Plugin;
 class Client;
 class OnlineUser;
+class UserConnection;
 
 class PluginsManager : public Singleton<PluginsManager> {
 public:
@@ -40,11 +41,9 @@ public:
 	void init(void (*f)(void*, const tstring&), void* p);
 	void load();
 
-	inline void initClose() { 
-		call<false>(coreEvents, DCPP_INIT_CLOSE, 0);
-	}
+	void initClose();
 
-	void getPluginsInfo(std::list<DCPP_PLUG_INFO*>& p);
+	void getPluginsInfo(std::list<dcppPluginInformation*>& p);
 
 	bool onHubMsgIn(Client* hub, const char* msg);
 	bool onHubMsgOut(Client* hub, const char* msg);
@@ -57,6 +56,8 @@ public:
 	void onUserDisconnected(OnlineUser* ou);
 	void onLuaInit(lua_State*);
 	void onConfigChange();
+	bool onUserConnectionLineIn(UserConnection* uc, const char* line);
+	bool onUserConnectionLineOut(UserConnection* uc, const char* line);
 
 private:
 	struct PlugListener {
@@ -90,7 +91,7 @@ private:
 	int call(Listener& l, T1 p1, T2 p2);
 
 	CriticalSection cs;
-	DCPP_FUNCTIONS* dcpp_func;
+	dcppFunctions* dcpp_func;
 
 	typedef vector<Plugin*> Plugins;
 	Plugins plugins;

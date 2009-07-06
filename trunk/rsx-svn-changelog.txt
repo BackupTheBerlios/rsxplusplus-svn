@@ -1,3 +1,9 @@
+** SVN 131
+ ** [sdk] documentation will be on wiki, not in headers...
+ ** [sdk] cleanup in events.h
+ ** [sdk] implemented user connection listener
+ ** [sdk] little optimization trick in callFunc
+
 ** SVN 130
  ** fixed shutdown manager once for all
  ** code cleanup

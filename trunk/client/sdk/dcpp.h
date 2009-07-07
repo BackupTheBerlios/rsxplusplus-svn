@@ -68,16 +68,16 @@ typedef struct {
 } dcppPluginInformation;
 
 typedef struct {
-	void* (__cdecl *malloc)		(size_t);
-	void* (__cdecl *calloc)		(size_t, size_t);
-	void* (__cdecl *realloc)	(void*, size_t);
-	void  (__cdecl *free)		(void*);
-	void  (__cdecl *debug)		(const char*, ...);
+	void* (__cdecl *malloc) (size_t);
+	void* (__cdecl *calloc) (size_t, size_t);
+	void* (__cdecl *realloc) (void*, size_t);
+	void  (__cdecl *free) (void*);
+	void  (__cdecl *debug) (const char*, ...);
 
-	dcpp_ptr_t (__stdcall *call)		(int type, dcpp_ptr_t, dcpp_ptr_t, dcpp_ptr_t);
+	dcpp_ptr_t (__stdcall *call) (int type, dcpp_ptr_t, dcpp_ptr_t, dcpp_ptr_t);
 
 	void* (__stdcall *addListener) (int, DCPP_FUNC, dcpp_ptr_t);
-	void (__stdcall *removeListener) (void*);
+	void  (__stdcall *removeListener) (void*);
 } dcppFunctions;
 
 

@@ -662,6 +662,7 @@
 #define IDC_FILTER_ITALIC               1308
 #define IDC_FILELIST_DETECTOR_LIST      1308
 #define IDC_FILELIST_DLG_DETECT_STRING  1308
+#define IDC_FIREWALL_NAT_PMP            1308
 #define IDC_SETTINGS_KB4                1309
 #define IDC_BUFFER_SPIN                 1309
 #define IDC_FAV_SEARCH_INTERVAL         1309
@@ -707,6 +708,7 @@
 #define IDC_RAW_LUA                     1314
 #define IDC_ENABLE                      1314
 #define IDC_SHOW_IP                     1314
+#define IDC_NAT_PMP_RANDOM_PORTS        1314
 #define IDC_SETTINGS_CONFIRM_OPTIONS    1315
 #define IDC_PROFILE_MESSAGE             1315
 #define IDC_ADD_ACTION                  1315
@@ -1008,7 +1010,9 @@
 #define IDC_TIME_TYPE                   1538
 #define IDC_DICTIONARIES                1541
 #define IDC_DICTIONARY                  1541
+#define IDC_NAT_PMP_GATEWAY             1542
 #define WEBSERVER_SOCKET_MESSAGE        1543
+#define IDC_SETTINGS_NAT_PMP_GATEWAY    1543
 #define IDC_AUTOPRIORITY                1572
 #define IDC_SETTINGS_ODC_MENUBAR        1612
 #define IDC_SETTINGS_ODC_MENUBAR_USETWO 1613
@@ -1301,7 +1305,7 @@
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        355
 #define _APS_NEXT_COMMAND_VALUE         32808
-#define _APS_NEXT_CONTROL_VALUE         1542
+#define _APS_NEXT_CONTROL_VALUE         1544
 #define _APS_NEXT_SYMED_VALUE           134
 #endif
 #endif

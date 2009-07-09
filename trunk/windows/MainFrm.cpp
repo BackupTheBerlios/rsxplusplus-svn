@@ -64,6 +64,7 @@
 #include "../rsx/HTTPDownloadManager.h"
 #include "../client/ScriptManager.h"
 #include "../client/PluginsManager.h"
+#include "../client/NetworkConfiguration.hpp"
 #include "UpdateDialog.h"
 #include "PluginsListDlg.h"
 #include "ShutdownManager.h"
@@ -522,6 +523,12 @@ void MainFrame::updateQuickSearches() {
 }
 
 void MainFrame::startSocket() {
+	//RSX++
+	if(!NetworkConfiguration::getInstance()->restart() && SETTING(INCOMING_CONNECTIONS) == SettingsManager::INCOMING_FIREWALL_NAT_PMP) {
+		SettingsManager::getInstance()->set(SettingsManager::INCOMING_CONNECTIONS, SettingsManager::INCOMING_FIREWALL_PASSIVE);
+		MessageBox(CTSTRING(UPNP_FAILED_TO_CREATE_MAPPINGS), _T(APPNAME) _T(" ") _T(VERSIONSTRING), MB_OK | MB_ICONWARNING);
+	}
+	//END
 	SearchManager::getInstance()->disconnect();
 	ConnectionManager::getInstance()->disconnect();
 

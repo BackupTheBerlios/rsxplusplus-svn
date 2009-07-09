@@ -59,6 +59,7 @@ const string SettingsManager::settingTags[] =
 	"FinishedVisible", "FinishedULVisible", "DirectoryListingFrameVisible",
 	"RecentFrameOrder", "RecentFrameWidths", "ToolbarSettings",
 	//RSX++
+	"NATPMPGateway",
 	"RawLogFormat", "RawLogFile", "DownSpeed", "UpSpeed",
 	//END
 	"SENTRY", 
@@ -131,6 +132,7 @@ const string SettingsManager::settingTags[] =
 	"FilterEnter", "SortFavUsersFirst", "ShowShellMenu", "SendBloom", "OverlapChunks", "ShowQuickSearch",
 	"UcSubMenu", "AutoSlots", "Coral",
 	//RSX++
+	"FirewallRandPorts",
 	"TopSpeed", "TopUpSpeed", "OdcStyleBumped",
 	"StealthyIndicateSpeeds", "ProgressBarMode",
 	"ShowPluginToolbar", "RawCmdLog",
@@ -565,6 +567,8 @@ SettingsManager::SettingsManager()
 	setDefault(PROGRESSBAR_MODE, 2);
 
 	/* Random RSX++ Settings */
+	setDefault(FIREWALL_RAND_PORTS, false);
+	setDefault(NAT_PMP_GATEWAY, "");
 	setDefault(SHOW_PLUGIN_TOOLBAR, true);
 	setDefault(LOG_RAW_CMD_FORMAT, "[%Y-%m-%d %H:%M] %[userNI] %[userI4] (%[userCS])");
 	setDefault(LOG_RAW_CMD_FILE, "RawCommands.log");

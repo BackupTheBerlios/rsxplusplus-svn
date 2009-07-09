@@ -43,6 +43,7 @@
 #include "PluginsManager.h"
 #include "RawManager.h"
 #include "ScriptManager.h"
+#include "NetworkConfiguration.hpp"
 ////////////////////////////////////////////////////////////
 #include "IgnoreManager.h"
 
@@ -99,6 +100,7 @@ void startup(void (*f)(void*, const tstring&), void* p) {
 	DetectionManager::newInstance();	
 	PopupManager::newInstance();
 	//RSX++ //instances
+	NetworkConfiguration::newInstance();
 	HTTPDownloadManager::newInstance();
 	IgnoreManager::newInstance();
 	ScriptManager::newInstance();
@@ -114,6 +116,7 @@ void startup(void (*f)(void*, const tstring&), void* p) {
 	//+++
 	AutoSearchManager::getInstance()->AutosearchLoad();
 	IpManager::getInstance()->load();
+	NetworkConfiguration::getInstance()->initPorts();
 	//END
 
 	if(!SETTING(LANGUAGE_FILE).empty()) {
@@ -153,6 +156,7 @@ void shutdown() {
 	SettingsManager::getInstance()->save();
 
 	//RSX++
+	NetworkConfiguration::getInstance()->closePorts();
 	PluginsManager::getInstance()->initClose();
 
 	RsxUtil::uinit();
@@ -182,6 +186,7 @@ void shutdown() {
 	ClientManager::deleteInstance();
 	HashManager::deleteInstance();
 	LogManager::deleteInstance();
+	NetworkConfiguration::deleteInstance();
 	rsxppSettingsManager::deleteInstance(); //RSX++
 	SettingsManager::deleteInstance();
 	TimerManager::deleteInstance();

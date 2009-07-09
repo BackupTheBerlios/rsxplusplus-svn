@@ -75,7 +75,11 @@ PropPage::Item NetworkPage::items[] = {
 	{ IDC_SOCKS_PASSWORD, SettingsManager::SOCKS_PASSWORD, PropPage::T_STR },
 	{ IDC_SOCKS_RESOLVE, SettingsManager::SOCKS_RESOLVE, PropPage::T_BOOL },
 	{ IDC_BIND_ADDRESS, SettingsManager::BIND_ADDRESS, PropPage::T_STR },
-	{ IDC_IPUPDATE,		rsxppSettingsManager::IPUPDATE,	PropPage::T_BOOL_RSX }, //RSX++
+	//RSX++
+	{ IDC_NAT_PMP_GATEWAY, SettingsManager::NAT_PMP_GATEWAY, PropPage::T_STR },
+	{ IDC_NAT_PMP_RANDOM_PORTS, SettingsManager::FIREWALL_RAND_PORTS, PropPage::T_BOOL },
+	{ IDC_IPUPDATE,		rsxppSettingsManager::IPUPDATE,	PropPage::T_BOOL_RSX },
+	//END
 	{ 0, 0, PropPage::T_END }
 };
 
@@ -109,6 +113,8 @@ void NetworkPage::write()
 		ct = SettingsManager::INCOMING_FIREWALL_NAT;
 	else if(IsDlgButtonChecked(IDC_FIREWALL_PASSIVE))
 		ct = SettingsManager::INCOMING_FIREWALL_PASSIVE;
+	else if(IsDlgButtonChecked(IDC_FIREWALL_NAT_PMP))
+		ct = SettingsManager::INCOMING_FIREWALL_NAT_PMP;
 
 	if(SETTING(INCOMING_CONNECTIONS) != ct) {
 		settings->set(SettingsManager::INCOMING_CONNECTIONS, ct);
@@ -137,6 +143,7 @@ LRESULT NetworkPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 	switch(SETTING(INCOMING_CONNECTIONS)) {
 		case SettingsManager::INCOMING_DIRECT: CheckDlgButton(IDC_DIRECT, BST_CHECKED); break;
 		case SettingsManager::INCOMING_FIREWALL_UPNP: CheckDlgButton(IDC_FIREWALL_UPNP, BST_CHECKED); break;
+		case SettingsManager::INCOMING_FIREWALL_NAT_PMP: CheckDlgButton(IDC_FIREWALL_NAT_PMP, BST_CHECKED); break;
 		case SettingsManager::INCOMING_FIREWALL_NAT: CheckDlgButton(IDC_FIREWALL_NAT, BST_CHECKED); break;
 		case SettingsManager::INCOMING_FIREWALL_PASSIVE: CheckDlgButton(IDC_FIREWALL_PASSIVE, BST_CHECKED); break;
 		default: CheckDlgButton(IDC_DIRECT, BST_CHECKED); break;
@@ -188,21 +195,28 @@ void NetworkPage::fixControls() {
 	BOOL direct = IsDlgButtonChecked(IDC_DIRECT) == BST_CHECKED;
 	BOOL upnp = IsDlgButtonChecked(IDC_FIREWALL_UPNP) == BST_CHECKED;
 	BOOL nat = IsDlgButtonChecked(IDC_FIREWALL_NAT) == BST_CHECKED;
-
-	::EnableWindow(GetDlgItem(IDC_EXTERNAL_IP), direct || upnp || nat);
-	::EnableWindow(GetDlgItem(IDC_OVERRIDE), direct || upnp || nat);
 	//RSX++
-	::EnableWindow(GetDlgItem(IDC_IPUPDATE), direct || upnp || nat);
-	::EnableWindow(GetDlgItem(IDC_GETIP), direct || upnp || nat);
-	::EnableWindow(GetDlgItem(IDC_SETTINGS_IP), direct || upnp || nat);
-	::EnableWindow(GetDlgItem(IDC_SETTINGS_PORTS), upnp || nat);
-	::EnableWindow(GetDlgItem(IDC_SETTINGS_PORT_TCP), upnp || nat);
-	::EnableWindow(GetDlgItem(IDC_SETTINGS_PORT_UDP), upnp || nat);
-	::EnableWindow(GetDlgItem(IDC_SETTINGS_PORT_TLS), upnp || nat);
+	BOOL natpmp = IsDlgButtonChecked(IDC_FIREWALL_NAT_PMP) == BST_CHECKED;
+	BOOL randPorts = IsDlgButtonChecked(IDC_NAT_PMP_RANDOM_PORTS) == BST_CHECKED;
 	//END
-	::EnableWindow(GetDlgItem(IDC_PORT_TCP), upnp || nat);
-	::EnableWindow(GetDlgItem(IDC_PORT_UDP), upnp || nat);
-	::EnableWindow(GetDlgItem(IDC_PORT_TLS), upnp || nat);
+	::EnableWindow(GetDlgItem(IDC_EXTERNAL_IP), direct || upnp || natpmp || nat);
+	::EnableWindow(GetDlgItem(IDC_OVERRIDE), direct || upnp || natpmp || nat);
+	//RSX++
+	::EnableWindow(GetDlgItem(IDC_NAT_PMP_RANDOM_PORTS), natpmp);
+	::EnableWindow(GetDlgItem(IDC_NAT_PMP_GATEWAY), natpmp);
+	::EnableWindow(GetDlgItem(IDC_SETTINGS_NAT_PMP_GATEWAY), natpmp);
+	::EnableWindow(GetDlgItem(IDC_IPUPDATE), direct || upnp || natpmp || nat);
+	::EnableWindow(GetDlgItem(IDC_GETIP), direct || upnp || natpmp || nat);
+	::EnableWindow(GetDlgItem(IDC_SETTINGS_IP), direct || upnp || natpmp || nat);
+	::EnableWindow(GetDlgItem(IDC_SETTINGS_PORTS), upnp || (natpmp && !randPorts) || nat);
+	::EnableWindow(GetDlgItem(IDC_SETTINGS_PORT_TCP), upnp || (natpmp && !randPorts) || nat);
+	::EnableWindow(GetDlgItem(IDC_SETTINGS_PORT_UDP), upnp || (natpmp && !randPorts) || nat);
+	::EnableWindow(GetDlgItem(IDC_SETTINGS_PORT_TLS), upnp || (natpmp && !randPorts) || nat);
+	::EnableWindow(GetDlgItem(IDC_CON_CHECK), direct || upnp || natpmp || nat);
+	//END
+	::EnableWindow(GetDlgItem(IDC_PORT_TCP), upnp || (natpmp && !randPorts) || nat);
+	::EnableWindow(GetDlgItem(IDC_PORT_UDP), upnp || (natpmp && !randPorts) || nat);
+	::EnableWindow(GetDlgItem(IDC_PORT_TLS), upnp || (natpmp && !randPorts) || nat);
 
 	BOOL socks = IsDlgButtonChecked(IDC_SOCKS5);
 	::EnableWindow(GetDlgItem(IDC_SOCKS_SERVER), socks);
@@ -239,7 +253,7 @@ void NetworkPage::getAddresses() {
 			pAdapterInfo = pAdapterInfo->Next;
 		}
 	}
-	
+
 	if(AdapterInfo)
 		HeapFree(GetProcessHeap(), 0, AdapterInfo);	
 }

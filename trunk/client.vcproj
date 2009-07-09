@@ -881,6 +881,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\client\NetworkConfiguration.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\client\NmdcHub.cpp"
 				>
 			</File>
@@ -1463,6 +1467,10 @@
 			</File>
 			<File
 				RelativePath=".\client\MerkleTree.h"
+				>
+			</File>
+			<File
+				RelativePath=".\client\NetworkConfiguration.hpp"
 				>
 			</File>
 			<File

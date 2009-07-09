@@ -1,3 +1,6 @@
+** SVN 133
+ ** initial support for NAT-PMP
+
 ** SVN 132
  ** missing file
 

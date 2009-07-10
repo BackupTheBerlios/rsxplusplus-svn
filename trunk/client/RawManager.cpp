@@ -248,7 +248,7 @@ void RawManager::editRaw(const Action* a, Raw* old, Raw& _new) throw(Exception) 
 
 bool RawManager::remRaw(Action* a, Raw* r) throw() {
 	for(Action::RawsList::iterator i = a->raw.begin(); i != a->raw.end(); ++i) {
-		if(i == r) { a->raw.erase(i); return true; }
+		if(&(*i) == r) { a->raw.erase(i); return true; }
 	}
 	return false;
 }

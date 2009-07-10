@@ -58,7 +58,7 @@ private:
 
 } // namespace dcpp
 
-#if defined(USE_BOOST_UNORDERED)
+#ifdef BOOST_TR1
 namespace boost {
 #else
 namespace std {

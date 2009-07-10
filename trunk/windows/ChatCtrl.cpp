@@ -302,6 +302,10 @@ void ChatCtrl::AppendTextOnly(const tstring& sMyNick, const TCHAR* sText, CHARFO
 			
 			try {
 				boost::match_results<tstring::const_iterator> result;
+				//RSX++ //workaround for msvc std lib problems
+				tstring::const_iterator start = sMsgLower.begin();
+				tstring::const_iterator end = sMsgLower.end();
+
 				// TODO: complete regexp for URLs
 				boost::wregex reg;
 				if(isMagnet) // magnet links have totally indeferent structure than classic URL // -/?%&=~#'\\w\\.\\+\\*\\(\\)
@@ -309,10 +313,10 @@ void ChatCtrl::AppendTextOnly(const tstring& sMyNick, const TCHAR* sText, CHARFO
 				else
 					reg = _T("^([@\\w-]+(\\.)*)+(:[\\d]+)?(/[\\S]*)*");
 					
-				if(boost::regex_search(sMsgLower.c_str() + linkEnd, result, reg)) {
+				if(boost::regex_search(start + linkEnd, end, result, reg, boost::match_default)) {
 					dcassert(!result.empty());
-					
-					linkEnd += ((tstring)(result[0])).size();
+
+					linkEnd += result.length(0);
 					SetSel(lSelBegin + linkStart, lSelBegin + linkEnd);
 					SetSelectionCharFormat(WinUtil::m_TextStyleURL);
 				}

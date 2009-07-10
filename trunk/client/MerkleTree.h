@@ -234,7 +234,7 @@ private:
 
 } // namespace dcpp
 
-#if defined(USE_BOOST_UNORDERED)
+#ifdef BOOST_TR1
 namespace boost {
 template<>
 struct hash<dcpp::TTHValue> {
@@ -258,7 +258,7 @@ struct equal_to<dcpp::TTHValue*> {
 	}
 };
 } // namespace std
-#endif // USE_BOOST_ORDERED
+#endif // BOOST_TR1
 
 #endif // !defined(MERKLE_TREE_H)
 

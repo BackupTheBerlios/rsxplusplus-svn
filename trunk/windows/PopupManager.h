@@ -19,34 +19,25 @@
 #ifndef POPUPMANAGER_H
 #define POPUPMANAGER_H
 
-#if _MSC_VER >= 1000
-#pragma once
-#endif // _MSC_VER >= 1000
-
-#include "stdafx.h"
-#include "../client/DCPlusPlus.h"
 #include "../client/Singleton.h"
 #include "../client/TimerManager.h"
-#include "../client/CriticalSection.h"
-
-#include "PopupDlg.h"
-#include "WinUtil.h"
 
 #define DOWNLOAD_COMPLETE 6
 
-class PopupManager : public Singleton< PopupManager >, private TimerManagerListener
+class PopupWnd;
+class PopupManager : public dcpp::Singleton<PopupManager>, private dcpp::TimerManagerListener
 {
 public:
 	PopupManager() : height(90), width(200), offset(0), activated(true), id(0) {
-		TimerManager::getInstance()->addListener(this);
+		dcpp::TimerManager::getInstance()->addListener(this);
 
 	}
 	~PopupManager() {
-		TimerManager::getInstance()->removeListener(this);
+		dcpp::TimerManager::getInstance()->removeListener(this);
 	}
 	
 	//call this with a preformatted message
-	void Show(const tstring &aMsg, const tstring &aTitle, int Icon, int iPreview = -1);
+	void Show(const dcpp::tstring &aMsg, const dcpp::tstring &aTitle, int Icon, int iPreview = -1);
 
 	//remove first popup in list and move everyone else
 	void Remove(uint32_t pos = 0);

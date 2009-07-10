@@ -53,7 +53,7 @@ LRESULT RawPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	for(Action::ActionList::const_iterator i = a.begin(); i != a.end(); ++i) {
 		HTREEITEM actionItem = addAction(*i);
 		for(Action::RawsList::const_iterator j = (*i)->raw.begin(); j != (*i)->raw.end(); ++j)
-			addRaw(actionItem, j);
+			addRaw(actionItem, &(*j));
 	}
 
 	ctrlList.SetRedraw(TRUE);

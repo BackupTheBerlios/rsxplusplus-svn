@@ -158,13 +158,23 @@ typedef unsigned __int64 uint64_t;
 #define BOOST_REGEX_NO_LIB 1
 #include <boost/regex.hpp>
 
-/// STL unordered containers conf
-#define USE_BOOST_UNORDERED 1
+#if defined(_MSC_VER)
+#if !defined(_STLPORT_VERSION)
+#define BOOST_TR1 1
+#endif
 
-#if !defined(USE_BOOST_UNORDERED) && (defined(_MSC_VER) || defined(_STLPORT_VERSION))
+#ifdef BOOST_TR1
+#pragma warning(push)
+#pragma warning(disable:4100)
+#pragma warning(disable:4512)
+#endif
 
 #include <unordered_map>
 #include <unordered_set>
+
+#ifdef BOOST_TR1
+#pragma warning(pop)
+#endif
 
 #elif defined(__GLIBCPP__) || defined(__GLIBCXX__)  // Using GNU C++ library?
 
@@ -172,28 +182,12 @@ typedef unsigned __int64 uint64_t;
 #include <tr1/unordered_map>
 
 #else
-#pragma warning(push)
-#pragma warning(disable:4100)
-#pragma warning(disable:4512)
-
-#include <boost/unordered_map.hpp>
-#include <boost/unordered_set.hpp>
-
-#pragma warning(pop)
-#define USE_BOOST_UNORDERED 1
+#error "Unknown STL Library"
 #endif
 
 namespace dcpp {
 using namespace std;
-
-#if defined(USE_BOOST_UNORDERED)
-using boost::unordered_map;
-using boost::unordered_set;
-using boost::unordered_multimap;
-#else
 using namespace std::tr1;
-#endif
-
 }
 
 #endif // !defined(STDINC_H)

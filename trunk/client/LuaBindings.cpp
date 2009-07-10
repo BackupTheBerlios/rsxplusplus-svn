@@ -20,8 +20,6 @@
 #include "DCPlusPlus.h"
 #include "LuaBindings.h"
 
-#include <shellapi.h>
-
 #include <luabind/dependency_policy.hpp>
 #include <luabind/out_value_policy.hpp>
 #include <luabind/raw_policy.hpp>
@@ -37,6 +35,7 @@
 #include "SimpleXML.h"
 #include "AdcCommand.h"
 #include "version.h"
+#include "ShareManager.h"
 
 namespace dcpp {
 
@@ -267,5 +266,15 @@ namespace dcpp {
 				luabind::def("getVersion", &wrappers::getVersion)
 			];
 		}
+
+		void BindShareManager(lua_State* L) {
+			luabind::module(L, "dcpp") [
+				luabind::class_<ShareManager>("ShareManager")
+				.def("addTempFile", &ShareManager::addTempFile)
+				.def("removeTempFile", &ShareManager::removeTempFile),
+
+				luabind::def("getShareManager", &ShareManager::getInstance)
+			];
+		}		
 	}
 }

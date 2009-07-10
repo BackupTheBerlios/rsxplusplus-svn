@@ -1,3 +1,7 @@
+** SVN 135
+ ** [lua] started binding share manager
+ ** added option to add temp files to share manager, accessed by token (ie in GET cmd)
+
 ** SVN 134
  ** fixed change random => manual port setting when NAT-PMP is used
  ** fixed timer when NAT-PMP is used

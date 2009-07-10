@@ -40,6 +40,7 @@ namespace dcpp {
 		void BindFlags(lua_State* L);
 		void BindSimpleXML(lua_State* L);
 		void BindDcppCore(lua_State* L);
+		void BindShareManager(lua_State* L);
 	}
 }
 

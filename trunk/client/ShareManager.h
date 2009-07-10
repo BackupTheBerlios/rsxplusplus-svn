@@ -48,6 +48,8 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 	private HashManagerListener, private DownloadManagerListener
 {
 public:
+	~ShareManager(); //RSX++
+
 	/**
 	 * @param aDirectory Physical directory location
 	 * @param aName Virtual name
@@ -107,6 +109,26 @@ public:
 	}
 	//RSX++
 	static bool checkType(const string& aString, int aType);
+	bool isTempFile(string& path, const string& token) {
+		Lock l(cs);
+		StringMap::const_iterator i = tempFiles.find(token);
+		if(i != tempFiles.end()) {
+			path = i->second;
+			return true;
+		}
+		return false;
+	}
+	void addTempFile(const string& token, const string& realPath) {
+		Lock l(cs);
+		tempFiles[token] = realPath;
+	}
+	void removeTempFile(const string& token) {
+		Lock l(cs);
+		StringMap::iterator i = tempFiles.find(token);
+		if(i != tempFiles.end()) {
+			tempFiles.erase(i);
+		}
+	}
 	//END
 
 	GETSET(size_t, hits, Hits);
@@ -206,8 +228,8 @@ private:
 
 	friend class Singleton<ShareManager>;
 	ShareManager();
-	
-	~ShareManager();
+
+	//~ShareManager(); //RSX++
 	
 	struct AdcSearch {
 		AdcSearch(const StringList& params);
@@ -298,6 +320,9 @@ private:
 
 	Directory* getDirectory(const string& fname);
 
+	//RSX++ // temporary files, available in c-c connection, to get file, request virtual name in CGET
+	StringMap tempFiles;
+	//END
 	int run();
 
 	// DownloadManagerListener

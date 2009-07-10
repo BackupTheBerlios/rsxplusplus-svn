@@ -167,7 +167,11 @@ string ShareManager::toReal(const string& virtualFile, bool isInSharingHub) thro
 		//END
 		return getBZXmlFile();
 	}
-
+	//RSX++
+	string tmp(Util::emptyString);
+	if(isTempFile(tmp, virtualFile))
+		return tmp;
+	//END
 	return findFile(virtualFile)->getRealPath();
 }
 

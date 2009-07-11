@@ -82,6 +82,9 @@ namespace dcpp {
 		inline void sendAction(Client* c, OnlineUser* o, int id) {
 			c->sendActionCommand(*o, id);
 		}
+		inline void OnlineUserConnect(OnlineUser* ou, const string& token) {
+			ou->getClient().connect(*ou, token);
+		}
 	}
 
 	namespace LuaBindings {
@@ -151,6 +154,7 @@ namespace dcpp {
 				.def("getIdentity", (Identity& (OnlineUser::*)())&OnlineUser::getIdentity, luabind::dependency(luabind::result, _1))
 				.def("getUser", &wrappers::getUser<OnlineUser>, luabind::dependency(luabind::result, _1))
 				.def("getClient", (Client& (OnlineUser::*)())&OnlineUser::getClient, luabind::dependency(luabind::result, _1))
+				.def("connect", &wrappers::OnlineUserConnect)
 				.def("inc", &OnlineUser::inc)
 				.def("dec", &OnlineUser::dec)
 				.def("unique", &OnlineUser::unique)
@@ -217,6 +221,8 @@ namespace dcpp {
 				.def("send", &UserConnection::sendRaw)
 				.def("updated", &UserConnection::updated)
 				.def("disconnect", &UserConnection::disconnect)
+				.def("get", &UserConnection::get)
+				.def("snd", &UserConnection::snd)
 				.enum_("Flags") [
 					luabind::value("NMDC", UserConnection::FLAG_NMDC),
 					luabind::value("OP", UserConnection::FLAG_OP),
@@ -270,11 +276,12 @@ namespace dcpp {
 		void BindShareManager(lua_State* L) {
 			luabind::module(L, "dcpp") [
 				luabind::class_<ShareManager>("ShareManager")
-				.def("addTempFile", &ShareManager::addTempFile)
-				.def("removeTempFile", &ShareManager::removeTempFile),
+				.def("setHiddenDirectory", &ShareManager::setHiddenDirectory)
+				.def("addDirectory", &ShareManager::addDirectory)
+				.def("removeDirectory", &ShareManager::removeDirectory),
 
 				luabind::def("getShareManager", &ShareManager::getInstance)
 			];
-		}		
+		}
 	}
 }

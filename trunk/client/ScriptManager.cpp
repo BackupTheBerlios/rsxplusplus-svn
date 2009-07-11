@@ -100,6 +100,7 @@ void ScriptManager::load(void (*f)(void*, const tstring&), void* p) {
 	LuaBindings::BindOnlineUser(parser);
 	LuaBindings::BindUserConnection(parser);
 	LuaBindings::BindClient(parser);
+	LuaBindings::BindShareManager(parser);
 
 	PluginsManager::getInstance()->onLuaInit(parser);
 

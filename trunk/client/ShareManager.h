@@ -109,25 +109,17 @@ public:
 	}
 	//RSX++
 	static bool checkType(const string& aString, int aType);
-	bool isTempFile(string& path, const string& token) {
+	void setHiddenDirectory(const string& vname, bool set) {
 		Lock l(cs);
-		StringMap::const_iterator i = tempFiles.find(token);
-		if(i != tempFiles.end()) {
-			path = i->second;
-			return true;
-		}
-		return false;
+		StringList::iterator i = std::find(hiddenDirectories.begin(), hiddenDirectories.end(), vname);
+		if(i == hiddenDirectories.end())
+			if(set) hiddenDirectories.push_back(vname);
+		else
+			if(!set) hiddenDirectories.erase(i);
 	}
-	void addTempFile(const string& token, const string& realPath) {
+	bool isHiddenDirectory(const string& vname) {
 		Lock l(cs);
-		tempFiles[token] = realPath;
-	}
-	void removeTempFile(const string& token) {
-		Lock l(cs);
-		StringMap::iterator i = tempFiles.find(token);
-		if(i != tempFiles.end()) {
-			tempFiles.erase(i);
-		}
+		return isHiddenDir(vname);
 	}
 	//END
 
@@ -320,8 +312,12 @@ private:
 
 	Directory* getDirectory(const string& fname);
 
-	//RSX++ // temporary files, available in c-c connection, to get file, request virtual name in CGET
-	StringMap tempFiles;
+	//RSX++
+	StringList hiddenDirectories;
+	bool isHiddenDir(const string& vname) {
+		StringList::const_iterator i = std::find(hiddenDirectories.begin(), hiddenDirectories.end(), vname);
+		return i != hiddenDirectories.end();
+	}
 	//END
 	int run();
 

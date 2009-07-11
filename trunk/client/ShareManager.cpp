@@ -167,11 +167,7 @@ string ShareManager::toReal(const string& virtualFile, bool isInSharingHub) thro
 		//END
 		return getBZXmlFile();
 	}
-	//RSX++
-	string tmp(Util::emptyString);
-	if(isTempFile(tmp, virtualFile))
-		return tmp;
-	//END
+
 	return findFile(virtualFile)->getRealPath();
 }
 
@@ -425,6 +421,7 @@ void ShareManager::save(SimpleXML& aXml) {
 	aXml.addTag("Share");
 	aXml.stepIn();
 	for(StringMapIter i = shares.begin(); i != shares.end(); ++i) {
+		if(isHiddenDir(i->second)) continue; //RSX++
 		aXml.addTag("Directory", i->first);
 		aXml.addChildAttrib("Virtual", i->second);
 	}
@@ -1011,6 +1008,7 @@ void ShareManager::generateXmlList() {
 				newXmlFile.write(SimpleXML::utf8Header);
 				newXmlFile.write("<FileListing Version=\"1\" CID=\"" + ClientManager::getInstance()->getMe()->getCID().toBase32() + "\" Base=\"/\" Generator=\"DC++ " DCVERSIONSTRING "\">\r\n");
 				for(DirList::const_iterator i = directories.begin(); i != directories.end(); ++i) {
+					if(isHiddenDir((*i)->getName())) continue; //RSX++
 					(*i)->toXml(newXmlFile, indent, tmp2, true);
 				}
 				newXmlFile.write("</FileListing>");
@@ -1363,6 +1361,7 @@ void ShareManager::search(SearchResultList& results, const string& aString, int 
 			TTHValue tth(aString.substr(4));
 			HashFileMap::const_iterator i = tthIndex.find(tth);
 			if(i != tthIndex.end()) {
+				if(isHiddenDir(i->second->getName())) return; //RSX++ // check if works here
 				SearchResultPtr sr(new SearchResult(SearchResult::TYPE_FILE, i->second->getSize(), 
 					i->second->getParent()->getFullName() + i->second->getName(), i->second->getTTH()));
 
@@ -1387,6 +1386,7 @@ void ShareManager::search(SearchResultList& results, const string& aString, int 
 		return;
 
 	for(DirList::const_iterator j = directories.begin(); (j != directories.end()) && (results.size() < maxResults); ++j) {
+		if(isHiddenDir((*j)->getName())) continue; //RSX++
 		(*j)->search(results, ssl, aSearchType, aSize, aFileType, aClient, maxResults);
 	}
 }
@@ -1516,6 +1516,7 @@ void ShareManager::search(SearchResultList& results, const StringList& params, S
 	}
 
 	for(DirList::const_iterator j = directories.begin(); (j != directories.end()) && (results.size() < maxResults); ++j) {
+		if(isHiddenDir((*j)->getName())) continue; //RSX++
 		(*j)->search(results, srch, maxResults);
 	}
 }

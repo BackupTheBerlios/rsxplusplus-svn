@@ -1,3 +1,7 @@
+** SVN 136
+ ** [lua] more share manager bindings
+ ** temp folders replaced with hidden folders in share manager (need twearking)
+
 ** SVN 135
  ** [lua] started binding share manager
  ** added option to add temp files to share manager, accessed by token (ie in GET cmd)

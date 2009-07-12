@@ -267,8 +267,14 @@ ShareManager::Directory::File::Set::const_iterator ShareManager::findFile(const 
 			throw ShareException(UserConnection::FILE_NOT_AVAILABLE);
 		d = mi->second;
 	}
-	
+	dcdebug(">>> Directory: %s\n", d->getName().c_str());
+	dcdebug(">>> Virtual File: %s (%s)\n", virtualFile.c_str(), virtualFile.substr(j).c_str());
+	for(Directory::File::Set::const_iterator ii = d->files.begin(); ii != d->files.end(); ++ii) {
+		dcdebug(">>>%s Files: %s\n",ii->getName().find("test") != string::npos ? ">>" : "", ii->getName().c_str());
+	}
+
 	Directory::File::Set::const_iterator it = find_if(d->files.begin(), d->files.end(), Directory::File::StringComp(virtualFile.substr(j)));
+
 	if(it == d->files.end())
 		throw ShareException(UserConnection::FILE_NOT_AVAILABLE);
 	return it;

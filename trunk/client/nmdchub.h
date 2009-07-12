@@ -112,7 +112,10 @@ private:
 
 	OnlineUser& getUser(const string& aNick);
 	OnlineUserPtr findUser(const string& aNick) const;
-	OnlineUser* findUser(const CID& aCid) const; //RSX++
+	//RSX++
+	OnlineUser* findUser(const CID& aCid) const;
+	OnlineUser* findUser(const uint32_t) const { return 0; } //dummy
+	//END
 	void putUser(const string& aNick);
 	
 	string toUtf8(const string& str) const { return Text::toUtf8(str, *getEncoding()); }

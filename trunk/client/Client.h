@@ -69,7 +69,9 @@ public:
 	virtual void refreshUserList(bool) = 0;
 	virtual void getUserList(OnlineUserList& list) const = 0;
 	virtual OnlineUserPtr findUser(const string& aNick) const = 0;
-	virtual OnlineUser* findUser(const CID& aCid) const = 0; //RSX++
+	//RSX++
+	virtual OnlineUser* findUser(const CID& aCid) const = 0;
+	virtual OnlineUser* findUser(const uint32_t sid) const = 0;
 	//RSX++ for lua bindings
 	inline OnlineUser* findOnlineUser(const string& aNick) const {
 		OnlineUserPtr ou = findUser(aNick);

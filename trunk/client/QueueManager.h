@@ -75,6 +75,8 @@ class QueueManager : public Singleton<QueueManager>, public Speaker<QueueManager
 	private SearchManagerListener, private ClientManagerListener
 {
 public:
+	~QueueManager() throw(); //RSX++
+
 	/** Add a file to the queue. */
 	void add(const string& aTarget, int64_t aSize, const TTHValue& root, const UserPtr& aUser, const string& hubHint,
 		Flags::MaskType aFlags = 0, bool addBad = true) throw(QueueException, FileException);
@@ -347,7 +349,6 @@ private:
 	friend class Singleton<QueueManager>;
 	
 	QueueManager();
-	~QueueManager() throw();
 	
 	mutable CriticalSection cs;
 	

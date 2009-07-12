@@ -41,6 +41,9 @@ namespace dcpp {
 		void BindSimpleXML(lua_State* L);
 		void BindDcppCore(lua_State* L);
 		void BindShareManager(lua_State* L);
+		void BindConnectionManager(lua_State* L);
+		void BindQueueManager(lua_State* L);
+		void BindTTHValue(lua_State* L);
 	}
 }
 

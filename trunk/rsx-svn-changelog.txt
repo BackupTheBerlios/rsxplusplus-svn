@@ -1,3 +1,9 @@
+** SVN 137
+ ** fixed renewing port mapping with NAT-PMP
+ ** [lua] enum to client class with message styles
+ ** [lua] bound queue manager
+ ** some more cosmetic work
+
 ** SVN 136
  ** [lua] more share manager bindings
  ** temp folders replaced with hidden folders in share manager (need twearking)

@@ -29,6 +29,7 @@
 #include "LogManager.h"
 #include "Client.h"
 #include "User.h"
+#include "ConnectionManager.h"
 #include "UserConnection.h"
 #include "rsxppSettingsManager.h"
 #include "ScriptManager.h"
@@ -36,6 +37,27 @@
 #include "AdcCommand.h"
 #include "version.h"
 #include "ShareManager.h"
+#include "QueueManager.h"
+
+// we need custom converter, since lua stores all values as double afaik...
+//@todo better way to keep precision?
+
+namespace luabind {
+	template <>
+	struct default_converter<int64_t> : native_converter_base<int64_t> {
+      static int compute_score(lua_State* L, int index) {
+          return default_converter<int>::compute_score(L, index);
+      }
+
+      int64_t from(lua_State* L, int index) {
+          return (int64_t)lua_tonumber(L, index);
+      }
+
+      void to(lua_State* L, int64_t value) {
+          lua_pushnumber(L, value);
+      }
+	};
+}
 
 namespace dcpp {
 
@@ -85,6 +107,16 @@ namespace dcpp {
 		inline void OnlineUserConnect(OnlineUser* ou, const string& token) {
 			ou->getClient().connect(*ou, token);
 		}
+		inline void getDownloadConnection(ConnectionManager* cm, User* u, const string& hubUrl) {
+			cm->getDownloadConnection(u, hubUrl);
+		}
+		inline bool QueueManager_addFile(QueueManager* q, const string& aTarget, int64_t aSize, const string& root, User* aUser, const string& hubHint, int aFlags, bool addBad) {
+			try {
+				q->add(aTarget, aSize, TTHValue(root), aUser, hubHint, (Flags::MaskType)aFlags, addBad);
+				return true;
+			} catch(...) { }
+			return false;
+		}
 	}
 
 	namespace LuaBindings {
@@ -120,7 +152,17 @@ namespace dcpp {
 				.def("getHubIdentity", (Identity& (Client::*)())&Client::getHubIdentity, luabind::dependency(luabind::result, _1))
 				.def("findUserByNick", (OnlineUser* (Client::*)(const string&) const)&Client::findOnlineUser)
 				.def("findUserByCID", (OnlineUser* (Client::*)(const CID&) const)&Client::findUser)
+				.def("findUserBySID", (OnlineUser* (Client::*)(const uint32_t) const)&Client::findUser)
 				.def("getUserList", &wrappers::getUsers, luabind::raw(_1))
+				.enum_("MessageStyle") [
+					luabind::value("STYLE_GENERAL", 0),
+					luabind::value("STYLE_MY_OWN", 1),
+					luabind::value("STYLE_SERVER", 2),
+					luabind::value("STYLE_SYSTEM", 3),
+					luabind::value("STYLE_LOG", 4),
+					luabind::value("STYLE_CHEAT", 5),
+					luabind::value("STYLE_STATUS", 6)
+				]
 			];
 		}
 
@@ -152,7 +194,7 @@ namespace dcpp {
 			luabind::module(L, "dcpp") [
 				luabind::class_<OnlineUser>("OnlineUser")
 				.def("getIdentity", (Identity& (OnlineUser::*)())&OnlineUser::getIdentity, luabind::dependency(luabind::result, _1))
-				.def("getUser", &wrappers::getUser<OnlineUser>, luabind::dependency(luabind::result, _1))
+				.def("getUser", &wrappers::getUser<OnlineUser>)
 				.def("getClient", (Client& (OnlineUser::*)())&OnlineUser::getClient, luabind::dependency(luabind::result, _1))
 				.def("connect", &wrappers::OnlineUserConnect)
 				.def("inc", &OnlineUser::inc)
@@ -169,7 +211,7 @@ namespace dcpp {
 				.def("isSet", &Identity::isSet)
 				.def("supports", &Identity::supports)
 				.def("isClientType", &Identity::isClientType)
-				.def("getUser", &wrappers::getUser<Identity>, luabind::dependency(luabind::result, _1))
+				.def("getUser", &wrappers::getUser<Identity>)
 				.def("getSIDString", &Identity::getSIDString)
 				.def("getStatus", &Identity::getStatus)
 				.def("getTag", &Identity::getTag)
@@ -200,12 +242,16 @@ namespace dcpp {
 			];
 		}
 
-		void BindAdcCommand(lua_State* /*L*/) {
-			/*luabind::module(L, "dcpp") [
+		void BindAdcCommand(lua_State* L) {
+			luabind::module(L, "dcpp") [
 				luabind::class_<AdcCommand>("AdcCommand")
-				.def(luabind::constructor<uint32_t, char>())
-				.def(luabind::constructor<uint32_t, const uint32_t, char>())
-			];*/
+				//.def(luabind::constructor<uint32_t, char>())
+				//.def(luabind::constructor<uint32_t, const uint32_t, char>())
+				.scope [
+					luabind::def("toSID", &AdcCommand::toSID),
+					luabind::def("fromSID", &AdcCommand::fromSID)
+				]
+			];
 		}
 
 		void BindUserConnection(lua_State* L) {
@@ -282,6 +328,30 @@ namespace dcpp {
 
 				luabind::def("getShareManager", &ShareManager::getInstance)
 			];
+		}
+
+		void BindConnectionManager(lua_State* L) {
+			luabind::module(L, "dcpp") [
+				luabind::class_<ConnectionManager>("ConnectionManager")
+				.def("addNmdcFeature", &ConnectionManager::addNmdcFeat)
+				.def("addAdcFeature", &ConnectionManager::addAdcFeat),
+				
+				luabind::def("getConnectionManager", &ConnectionManager::getInstance)
+			];
+		}
+
+		void BindQueueManager(lua_State* L) {
+			luabind::module(L, "dcpp") [
+				luabind::class_<QueueManager>("QueueManager")
+				.def("add", &wrappers::QueueManager_addFile)
+				.def("remove", &QueueManager::remove),
+
+				luabind::def("getQueueManager", &QueueManager::getInstance)
+			];
+		}
+
+		void BindTTHValue(lua_State* /*L*/) {
+
 		}
 	}
 }

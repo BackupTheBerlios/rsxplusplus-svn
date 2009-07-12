@@ -234,7 +234,7 @@ void NetworkConfiguration::on(TimerManagerListener::Minute, uint64_t /*tick*/) {
 	if(--count == 0) {
 		count = 60;
 		dcdebug("NAT-PMP::ACT Renewing port's mappings\n");
-		openPorts();
+		restart();
 	}
 }
 }

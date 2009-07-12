@@ -27,13 +27,12 @@
 
 #include "Client.h"
 #include "User.h"
-#include "ConnectionManager.h"
 
 #include "LuaScript.h"
 #include "ScriptManager.h"
 #include "PluginsManager.h"
 #include "LuaBindings.h"
-
+#include "UserConnection.h"
 #include "SimpleXML.h"
 
 /* @todo
@@ -70,14 +69,8 @@ void ScriptManager::BindScriptManager() {
 		.def("addAction", &rsxppSettingsManager::addAction)
 		.def("getActionId", &rsxppSettingsManager::getActionId),
 
-
-		luabind::class_<ConnectionManager>("ConnectionManager")
-		.def("addNmdcFeature", &ConnectionManager::addNmdcFeat)
-		.def("addAdcFeature", &ConnectionManager::addAdcFeat),
-
 		luabind::def("getScriptManager", &ScriptManager::getInstance),
 		luabind::def("getSettingsManager", &SettingsManager::getInstance),
-		luabind::def("getConnectionManager", &ConnectionManager::getInstance),
 		luabind::def("getRSXSettingsManager", &rsxppSettingsManager::getInstance)
 	];
 }
@@ -101,6 +94,10 @@ void ScriptManager::load(void (*f)(void*, const tstring&), void* p) {
 	LuaBindings::BindUserConnection(parser);
 	LuaBindings::BindClient(parser);
 	LuaBindings::BindShareManager(parser);
+	LuaBindings::BindConnectionManager(parser);
+	LuaBindings::BindQueueManager(parser);
+	LuaBindings::BindAdcCommand(parser);
+	//LuaBindings::BindTTHValue(parser);
 
 	PluginsManager::getInstance()->onLuaInit(parser);
 

@@ -1,3 +1,7 @@
+** SVN 138
+ ** fixed libhunspell build in x64 mode
+ ** some twearks in nat-pmp
+
 ** SVN 137
  ** fixed renewing port mapping with NAT-PMP
  ** [lua] enum to client class with message styles

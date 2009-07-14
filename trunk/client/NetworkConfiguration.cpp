@@ -25,7 +25,7 @@
 
 namespace dcpp {
 const int natpmp_version = 0;
-const int natpmp_lifetime = 3720; // 1 hour + 2 minutes, just in case
+const int natpmp_lifetime = 3600;
 const int natpmp_deadtime = 0;
 
 NetworkConfiguration::NetworkConfiguration() : count(60), ok(false), ip(Util::emptyString) {
@@ -87,6 +87,7 @@ void NetworkConfiguration::closePorts() {
 }
 
 bool NetworkConfiguration::restart() {
+	count = 60;
 	if(SETTING(INCOMING_CONNECTIONS) == SettingsManager::INCOMING_FIREWALL_NAT_PMP) {
 		setPorts(true);
 		try {
@@ -98,7 +99,6 @@ bool NetworkConfiguration::restart() {
 			ok = false;
 			dcdebug("NAT-PMP::SocketException %s\n", e.getError().c_str());
 		}
-		count = 60;
 		checkState();
 	} else {
 		closePorts();

@@ -96,12 +96,15 @@ LRESULT RSXPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	StringList files = File::findFiles(Util::getConfigPath(), "*.dic");
 	{
 		for(StringIter i = files.begin(); i != files.end(); ++i) {
-			string& tmp = *i;
-			dcdebug("tmp: %s\n", tmp.c_str());
-			string file = tmp.substr(0, tmp.length() - 3);
-			file += "aff";
-			if(!Util::fileExists(file))
-				files.erase(i);
+			try {
+				string tmp(*i);
+				if(tmp.length() < 3) continue;
+				string file = tmp.substr(0, tmp.length() - 3);
+				file += "aff";
+				if(!Util::fileExists(file))
+					files.erase(i);
+			} catch(...) {
+			}
 		}
 	}
 	for(StringIter i = files.begin(); i != files.end(); ++i) {

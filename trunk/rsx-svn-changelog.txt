@@ -1,3 +1,7 @@
+** SVN 140
+ ** fixed ensuring scripts dir
+ ** try to fix odd crash in rsx++ page in settings
+
 ** SVN 139
  ** fixed random ports when nat-pmp is disabled
  ** [lua] more bindings (util and text)

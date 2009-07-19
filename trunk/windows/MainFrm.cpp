@@ -356,7 +356,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 		File::ensureDirectory(SETTING(LOG_DIRECTORY));
 		//RSX++
 		File::ensureDirectory(Util::getDataPath() + "Plugins" PATH_SEPARATOR_STR);
-		File::ensureDirectory(Util::getDataPath() + "scripts" PATH_SEPARATOR_STR);
+		File::ensureDirectory(Util::getDataPath() + "LuaScripts" PATH_SEPARATOR_STR);
 		File::ensureDirectory(Util::getDataPath() + "EmoPacks" PATH_SEPARATOR_STR);
 		//END
 	} catch (const FileException) {	}

@@ -51,6 +51,7 @@
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				DefaultCharIsUnsigned="true"
+				RuntimeTypeInfo="false"
 				UsePrecompiledHeader="0"
 				ProgramDataBaseFileName="$(IntDir)\$(ProjectName).pdb"
 				WarningLevel="2"
@@ -120,11 +121,12 @@
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				DefaultCharIsUnsigned="true"
+				RuntimeTypeInfo="false"
 				UsePrecompiledHeader="0"
 				ProgramDataBaseFileName="$(IntDir)\$(ProjectName).pdb"
 				WarningLevel="2"
 				Detect64BitPortabilityProblems="false"
-				DebugInformationFormat="3"
+				DebugInformationFormat="4"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -183,6 +185,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalOptions="/MP"
 				Optimization="3"
 				InlineFunctionExpansion="1"
 				FavorSizeOrSpeed="1"
@@ -196,11 +199,12 @@
 				EnableFunctionLevelLinking="true"
 				FloatingPointModel="2"
 				DefaultCharIsUnsigned="true"
+				RuntimeTypeInfo="false"
 				UsePrecompiledHeader="0"
 				ProgramDataBaseFileName="$(IntDir)\$(ProjectName).pdb"
 				WarningLevel="2"
 				Detect64BitPortabilityProblems="false"
-				DebugInformationFormat="0"
+				DebugInformationFormat="3"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -262,6 +266,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalOptions="/MP"
 				Optimization="3"
 				InlineFunctionExpansion="1"
 				FavorSizeOrSpeed="1"
@@ -275,11 +280,12 @@
 				EnableFunctionLevelLinking="true"
 				FloatingPointModel="2"
 				DefaultCharIsUnsigned="true"
+				RuntimeTypeInfo="false"
 				UsePrecompiledHeader="0"
 				ProgramDataBaseFileName="$(IntDir)\$(ProjectName).pdb"
 				WarningLevel="2"
 				Detect64BitPortabilityProblems="false"
-				DebugInformationFormat="0"
+				DebugInformationFormat="3"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -347,6 +353,7 @@
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				DefaultCharIsUnsigned="true"
+				RuntimeTypeInfo="false"
 				UsePrecompiledHeader="0"
 				ProgramDataBaseFileName="$(IntDir)\$(ProjectName).pdb"
 				WarningLevel="2"
@@ -416,11 +423,12 @@
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				DefaultCharIsUnsigned="true"
+				RuntimeTypeInfo="false"
 				UsePrecompiledHeader="0"
 				ProgramDataBaseFileName="$(IntDir)\$(ProjectName).pdb"
 				WarningLevel="2"
 				Detect64BitPortabilityProblems="false"
-				DebugInformationFormat="3"
+				DebugInformationFormat="4"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -479,6 +487,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalOptions="/MP"
 				Optimization="3"
 				InlineFunctionExpansion="1"
 				FavorSizeOrSpeed="1"
@@ -492,11 +501,12 @@
 				EnableFunctionLevelLinking="true"
 				FloatingPointModel="2"
 				DefaultCharIsUnsigned="true"
+				RuntimeTypeInfo="false"
 				UsePrecompiledHeader="0"
 				ProgramDataBaseFileName="$(IntDir)\$(ProjectName).pdb"
 				WarningLevel="2"
 				Detect64BitPortabilityProblems="false"
-				DebugInformationFormat="0"
+				DebugInformationFormat="3"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -558,6 +568,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalOptions="/MP"
 				Optimization="3"
 				InlineFunctionExpansion="1"
 				FavorSizeOrSpeed="1"
@@ -571,11 +582,12 @@
 				EnableFunctionLevelLinking="true"
 				FloatingPointModel="2"
 				DefaultCharIsUnsigned="true"
+				RuntimeTypeInfo="false"
 				UsePrecompiledHeader="0"
 				ProgramDataBaseFileName="$(IntDir)\$(ProjectName).pdb"
 				WarningLevel="2"
 				Detect64BitPortabilityProblems="false"
-				DebugInformationFormat="0"
+				DebugInformationFormat="3"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -637,6 +649,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalOptions="/MP"
 				Optimization="3"
 				InlineFunctionExpansion="1"
 				FavorSizeOrSpeed="1"
@@ -650,11 +663,12 @@
 				EnableFunctionLevelLinking="true"
 				FloatingPointModel="2"
 				DefaultCharIsUnsigned="true"
+				RuntimeTypeInfo="false"
 				UsePrecompiledHeader="0"
 				ProgramDataBaseFileName="$(IntDir)\$(ProjectName).pdb"
 				WarningLevel="2"
 				Detect64BitPortabilityProblems="false"
-				DebugInformationFormat="0"
+				DebugInformationFormat="3"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -716,6 +730,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalOptions="/MP"
 				Optimization="3"
 				InlineFunctionExpansion="1"
 				FavorSizeOrSpeed="1"
@@ -729,11 +744,12 @@
 				EnableFunctionLevelLinking="true"
 				FloatingPointModel="2"
 				DefaultCharIsUnsigned="true"
+				RuntimeTypeInfo="false"
 				UsePrecompiledHeader="0"
 				ProgramDataBaseFileName="$(IntDir)\$(ProjectName).pdb"
 				WarningLevel="2"
 				Detect64BitPortabilityProblems="false"
-				DebugInformationFormat="0"
+				DebugInformationFormat="3"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"

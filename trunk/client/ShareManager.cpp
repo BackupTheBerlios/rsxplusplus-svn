@@ -1651,7 +1651,14 @@ bool ShareManager::shareFolder(const string& path, bool thoroughCheck /* = false
 	return true;
 }
 
-int64_t ShareManager::addExcludeFolder(const string &path) {
+int64_t ShareManager::addExcludeFolder(const string &path, bool checkForDouble /*= false*/) {
+	//RSX++
+	if(checkForDouble) {
+		StringList::const_iterator i = std::find(notShared.begin(), notShared.end(), path);
+		if(i != notShared.end())
+			return 0;
+	}
+	//END
 	// make sure this is a sub folder of a shared folder
 	bool result = false;
 	for(StringMap::const_iterator i = shares.begin(); i != shares.end(); ++i)

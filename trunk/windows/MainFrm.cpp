@@ -1309,7 +1309,7 @@ LRESULT MainFrame::OnViewToolBar(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWnd
 	static BOOL bVisible = TRUE;	// initially visible
 	bVisible = !bVisible;
 	CReBarCtrl rebar = m_hWndToolBar;
-	int nBandIndex = rebar.IdToIndex(ATL_IDW_BAND_FIRST + 2);	// toolbar is 3nd added band
+	int nBandIndex = rebar.IdToIndex(ATL_IDW_BAND_FIRST + 1);	// toolbar is 2nd added band
 	rebar.ShowBand(nBandIndex, bVisible);
 	UISetCheck(ID_VIEW_TOOLBAR, bVisible);
 	UpdateLayout();
@@ -1322,7 +1322,7 @@ LRESULT MainFrame::OnViewQuickSearchBar(WORD /*wNotifyCode*/, WORD /*wID*/, HWND
 	static BOOL bVisible = TRUE;	// initially visible
 	bVisible = !bVisible;
 	CReBarCtrl rebar = m_hWndToolBar;
-	int nBandIndex = rebar.IdToIndex(ATL_IDW_BAND_FIRST + 3);	// quick search is 4th added band
+	int nBandIndex = rebar.IdToIndex(ATL_IDW_BAND_FIRST + 2);	// quick search is 3rd added band
 	rebar.ShowBand(nBandIndex, bVisible);
 	UISetCheck(ID_TOGGLE_QSEARCH, bVisible);
 	UpdateLayout();

@@ -100,7 +100,7 @@
 				ProgramDatabaseFile="$(SolutionDir)compiled/$(ProjectName).pdb"
 				SubSystem="2"
 				StackReserveSize="131072"
-				ImportLibrary="$(SolutionDir)compiled/$(ProjectName)32.lib"
+				ImportLibrary=""
 				TargetMachine="1"
 			/>
 			<Tool
@@ -179,7 +179,7 @@
 				PrecompiledHeaderThrough="stdafx.h"
 				WarningLevel="4"
 				Detect64BitPortabilityProblems="false"
-				DebugInformationFormat="3"
+				DebugInformationFormat="4"
 				CallingConvention="0"
 				CompileAs="0"
 				DisableSpecificWarnings="4996"
@@ -212,7 +212,7 @@
 				ProgramDatabaseFile="$(SolutionDir)compiled/$(ProjectName).pdb"
 				SubSystem="2"
 				StackReserveSize="131072"
-				ImportLibrary="$(SolutionDir)compiled/$(ProjectName)64.lib"
+				ImportLibrary=""
 				TargetMachine="17"
 			/>
 			<Tool
@@ -340,7 +340,7 @@
 				EnableCOMDATFolding="2"
 				OptimizeForWindows98="1"
 				SetChecksum="true"
-				ImportLibrary="$(SolutionDir)compiled/$(ProjectName)32.lib"
+				ImportLibrary=""
 				TargetMachine="1"
 				FixedBaseAddress="0"
 			/>
@@ -470,7 +470,7 @@
 				EnableCOMDATFolding="2"
 				OptimizeForWindows98="1"
 				SetChecksum="true"
-				ImportLibrary="$(SolutionDir)compiled/$(ProjectName)64.lib"
+				ImportLibrary=""
 				TargetMachine="17"
 				FixedBaseAddress="0"
 			/>
@@ -600,7 +600,7 @@
 				EnableCOMDATFolding="2"
 				OptimizeForWindows98="1"
 				SetChecksum="true"
-				ImportLibrary="$(SolutionDir)compiled/$(ProjectName)32.lib"
+				ImportLibrary=""
 				TargetMachine="1"
 				FixedBaseAddress="0"
 			/>
@@ -732,7 +732,7 @@
 				EnableCOMDATFolding="2"
 				OptimizeForWindows98="1"
 				SetChecksum="true"
-				ImportLibrary="$(SolutionDir)compiled/$(ProjectName)64.lib"
+				ImportLibrary=""
 				TargetMachine="17"
 				FixedBaseAddress="0"
 			/>
@@ -845,7 +845,7 @@
 				ProgramDatabaseFile="$(SolutionDir)compiled/$(ProjectName).pdb"
 				SubSystem="2"
 				StackReserveSize="131072"
-				ImportLibrary="$(SolutionDir)compiled/$(ProjectName)32.lib"
+				ImportLibrary=""
 				TargetMachine="1"
 			/>
 			<Tool
@@ -924,7 +924,7 @@
 				PrecompiledHeaderThrough="stdafx.h"
 				WarningLevel="4"
 				Detect64BitPortabilityProblems="false"
-				DebugInformationFormat="3"
+				DebugInformationFormat="4"
 				CallingConvention="0"
 				CompileAs="0"
 				DisableSpecificWarnings="4996"
@@ -957,7 +957,7 @@
 				ProgramDatabaseFile="$(SolutionDir)compiled/$(ProjectName).pdb"
 				SubSystem="2"
 				StackReserveSize="131072"
-				ImportLibrary="$(SolutionDir)compiled/$(ProjectName)64.lib"
+				ImportLibrary=""
 				TargetMachine="17"
 			/>
 			<Tool
@@ -1085,7 +1085,7 @@
 				EnableCOMDATFolding="2"
 				OptimizeForWindows98="1"
 				SetChecksum="true"
-				ImportLibrary="$(SolutionDir)compiled/$(ProjectName)32.lib"
+				ImportLibrary=""
 				TargetMachine="1"
 				FixedBaseAddress="0"
 			/>
@@ -1215,7 +1215,7 @@
 				EnableCOMDATFolding="2"
 				OptimizeForWindows98="1"
 				SetChecksum="true"
-				ImportLibrary="$(SolutionDir)compiled/$(ProjectName)64.lib"
+				ImportLibrary=""
 				TargetMachine="17"
 				FixedBaseAddress="0"
 			/>
@@ -1345,7 +1345,7 @@
 				EnableCOMDATFolding="2"
 				OptimizeForWindows98="1"
 				SetChecksum="true"
-				ImportLibrary="$(SolutionDir)compiled/$(ProjectName)32.lib"
+				ImportLibrary=""
 				TargetMachine="1"
 				FixedBaseAddress="0"
 			/>
@@ -1477,7 +1477,7 @@
 				EnableCOMDATFolding="2"
 				OptimizeForWindows98="1"
 				SetChecksum="true"
-				ImportLibrary="$(SolutionDir)compiled/$(ProjectName)64.lib"
+				ImportLibrary=""
 				TargetMachine="17"
 				FixedBaseAddress="0"
 			/>
@@ -2085,10 +2085,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\windows\PluginsPage.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\windows\PopupManager.cpp"
 				>
 			</File>
@@ -2614,19 +2610,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\windows\PGListDlg.h"
-				>
-			</File>
-			<File
 				RelativePath=".\windows\PluginsListDlg.h"
-				>
-			</File>
-			<File
-				RelativePath=".\rsx\PluginAPI\PluginsManager.h"
-				>
-			</File>
-			<File
-				RelativePath=".\windows\PluginsPage.h"
 				>
 			</File>
 			<File
@@ -2755,10 +2739,6 @@
 			</File>
 			<File
 				RelativePath=".\windows\stdafx.h"
-				>
-			</File>
-			<File
-				RelativePath=".\stdafx.h"
 				>
 			</File>
 			<File

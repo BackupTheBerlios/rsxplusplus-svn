@@ -67,6 +67,7 @@ public:
 
 	bool isOnline() const { return isSet(ONLINE); }
 	bool isNMDC() const { return isSet(NMDC); }
+	bool isFavorite();
 
 	GETSET(bool, soundActive, SoundActive); //RSX++
 private:

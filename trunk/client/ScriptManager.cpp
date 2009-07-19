@@ -37,7 +37,6 @@
 
 /* @todo
  - option to open/close hubtab and change focus on them; option to redirect to another url - by ff
- - bind queue
 */
 
 namespace dcpp {
@@ -106,11 +105,12 @@ void ScriptManager::load(void (*f)(void*, const tstring&), void* p) {
 		StringList libs = File::findFiles(Util::getDataPath() + "LuaScripts" PATH_SEPARATOR_STR, "*.lua");
 		for(StringIter i = libs.begin(); i != libs.end(); ++i) {
 			LuaScript* scr = new LuaScript;
-			scr->path = *i;
+			scr->path = Text::toT(*i);
 			scr->enabled = false;
+			scr->loaded = false;
 			scripts.push_back(scr);
 			if(f != NULL)
-				(*f)(p, Util::getFileName(Text::toT(*i)));
+				(*f)(p, Util::getFileName(scr->path));
 		}
 	}
 }
@@ -129,10 +129,11 @@ void ScriptManager::exec() {
 	Lock l(cs);
 	for(Scripts::const_iterator i = scripts.begin(); i != scripts.end(); ++i) {
 		if(!(*i)->enabled) continue;
-		int error = luaL_loadfile(parser, (*i)->path.c_str()) || lua_pcall(parser, 0, 0, 0);
+		int error = luaL_loadfile(parser, Text::fromT((*i)->path).c_str()) || lua_pcall(parser, 0, 0, 0);
 		if(!error) {
 			try {
 				luabind::call_function<void>(parser, "main");
+				(*i)->loaded = true;
 			} catch(const luabind::error& e) { 
 				luabind::object error_msg(luabind::from_stack(e.state(), -1));
 				LogManager::getInstance()->message("Lua Error: " + luabind::object_cast<std::string>(error_msg));
@@ -145,6 +146,7 @@ void ScriptManager::runGC() {
 	Lock l(cs);
 	lua_gc(parser, LUA_GCCOLLECT, 0);
 }
+
 void ScriptManager::removeObject(Objects& c, const luabind::object& o) {
 	Objects::iterator i = std::find(c.begin(), c.end(), o);
 	if(i != c.end()) c.erase(i);
@@ -386,7 +388,7 @@ void ScriptManager::on(SettingsManagerListener::Load, SimpleXML& xml) throw() {
 		while(xml.findChild("Script")) {
 			string file = xml.getChildAttrib("File");
 			for(Scripts::iterator i = scripts.begin(); i != scripts.end(); ++i) {
-				if(stricmp(file, (*i)->path) == 0) {
+				if(stricmp(file, Text::fromT((*i)->path)) == 0) {
 					(*i)->enabled = xml.getBoolChildAttrib("Enabled");
 					break;
 				}
@@ -415,7 +417,7 @@ void ScriptManager::on(SettingsManagerListener::Save, SimpleXML& xml) throw() {
 	xml.stepIn();
 	for(Scripts::const_iterator j = scripts.begin(); j != scripts.end(); ++j) {
 		xml.addTag("Script");
-		xml.addChildAttrib("File", (*j)->path);
+		xml.addChildAttrib("File", Text::fromT((*j)->path));
 		xml.addChildAttrib("Enabled", (*j)->enabled);
 	}
 	xml.stepOut();

@@ -67,7 +67,7 @@ public:
 	
 	bool shareFolder(const string& path, bool thoroughCheck = false) const;
 	int64_t removeExcludeFolder(const string &path, bool returnSize = true);
-	int64_t addExcludeFolder(const string &path);
+	int64_t addExcludeFolder(const string &path, bool checkForDouble = false);
 
 	void search(SearchResultList& l, const string& aString, int aSearchType, int64_t aSize, int aFileType, Client* aClient, StringList::size_type maxResults) throw();
 	void search(SearchResultList& l, const StringList& params, StringList::size_type maxResults) throw();

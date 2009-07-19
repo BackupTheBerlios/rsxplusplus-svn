@@ -36,13 +36,7 @@ public:
 
 	void load(void (*f)(void*, const tstring&), void* p);
 	void close();
-	void exec();
 	void runGC();
-
-	inline void reload() {
-		//close();
-		//load();
-	}
 
 	bool onHubMsgIn(Client* c, const std::string& msg);
 	bool onHubMsgOut(Client* c, const std::string& msg);
@@ -76,6 +70,7 @@ private:
 	void remSlot(const luabind::object& o, const std::string& name);
 	void addNmdcFeat(const std::string& feat);
 	void addAdcFeat(const std::string& feat);
+	void exec();
 
 	void BindScriptManager();
 

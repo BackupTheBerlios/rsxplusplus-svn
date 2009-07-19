@@ -30,14 +30,22 @@ LRESULT ScriptsListPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /
 
 	ctrlList.Attach(GetDlgItem(IDC_SCRIPTS_LIST));
 	ctrlList.GetClientRect(rc);
-	ctrlList.InsertColumn(0, _T("Script"), LVCFMT_LEFT, rc.Width() - 20, 0);
+	ctrlList.InsertColumn(0, _T("Script"), LVCFMT_LEFT, rc.Width() - 70, 0);
+	ctrlList.InsertColumn(1, _T("Loaded"), LVCFMT_LEFT, 50, 0);
+
 	ctrlList.SetExtendedListViewStyle(LVS_EX_CHECKBOXES | LVS_EX_FULLROWSELECT);
 
 	const ScriptManager::Scripts& list = ScriptManager::getInstance()->getScripts();
 	int count = 0;
+	TStringList l;
 	for(ScriptManager::Scripts::const_iterator i = list.begin(); i != list.end(); ++i, ++count) {
-		int item = ctrlList.insert(ctrlList.GetItemCount(), Text::toT((*i)->getFileName()), 0, 0);
+		l.push_back((*i)->getFileName());
+		l.push_back((*i)->loaded ? _T("*") : Util::emptyStringT);
+
+		int item = ctrlList.insert(l, 0, 0);
+		ctrlList.SetItemData(item, (DWORD_PTR)(*i)->path.c_str());
 		ctrlList.SetCheckState(item, (*i)->enabled);
+		l.clear();
 	}
 	::SetWindowText(GetDlgItem(IDC_STATIC1), Text::toT("Scripts Dir: " + Util::getConfigPath() + "scripts\\").c_str());
 	::SetWindowText(GetDlgItem(IDC_STATIC2), Text::toT("Scripts Count: " + Util::toString(count)).c_str());
@@ -46,15 +54,13 @@ LRESULT ScriptsListPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /
 
 void ScriptsListPage::write() {
 	int items = ctrlList.GetItemCount();
-	TCHAR buf[1024];
 	ScriptManager::Scripts& list = ScriptManager::getInstance()->getScripts();
 
 	for(int i = 0; i < items; ++i) {
-		ctrlList.GetItemText(i, 0, buf, 1024);
+		TCHAR* path = (TCHAR*)ctrlList.GetItemData(i);
 		bool state = ctrlList.GetCheckState(i) != 0;
-		string fn = Text::fromT(buf);
 		for(ScriptManager::Scripts::iterator j = list.begin(); j != list.end(); ++j) {
-			if(stricmp(fn, (*j)->getFileName()) == 0) {
+			if(stricmp(path, (*j)->path) == 0) {
 				(*j)->enabled = state;
 				break;
 			}

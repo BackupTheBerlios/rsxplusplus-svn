@@ -54,8 +54,10 @@
 				RuntimeLibrary="1"
 				BufferSecurityCheck="true"
 				EnableFunctionLevelLinking="true"
+				DefaultCharIsUnsigned="true"
 				TreatWChar_tAsBuiltInType="true"
 				ForceConformanceInForLoopScope="true"
+				RuntimeTypeInfo="false"
 				UsePrecompiledHeader="0"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="4"
@@ -126,7 +128,9 @@
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				EnableFunctionLevelLinking="true"
-				DebugInformationFormat="3"
+				DefaultCharIsUnsigned="true"
+				RuntimeTypeInfo="false"
+				DebugInformationFormat="4"
 				CallingConvention="0"
 			/>
 			<Tool
@@ -343,8 +347,10 @@
 				RuntimeLibrary="1"
 				BufferSecurityCheck="true"
 				EnableFunctionLevelLinking="true"
+				DefaultCharIsUnsigned="true"
 				TreatWChar_tAsBuiltInType="true"
 				ForceConformanceInForLoopScope="true"
+				RuntimeTypeInfo="false"
 				UsePrecompiledHeader="0"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="4"
@@ -415,7 +421,9 @@
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				EnableFunctionLevelLinking="true"
-				DebugInformationFormat="3"
+				DefaultCharIsUnsigned="true"
+				RuntimeTypeInfo="false"
+				DebugInformationFormat="4"
 				CallingConvention="0"
 			/>
 			<Tool

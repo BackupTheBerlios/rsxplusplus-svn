@@ -439,9 +439,9 @@ void WinUtil::init(HWND hWnd) {
 
 	view.AppendMenu(MF_SEPARATOR);
 	view.AppendMenu(MF_STRING, ID_VIEW_TOOLBAR, CTSTRING(MENU_TOOLBAR));
-	view.AppendMenu(MF_STRING, ID_TOGGLE_QSEARCH, CTSTRING(TOGGLE_QSEARCH));	
 	view.AppendMenu(MF_STRING, ID_VIEW_STATUS_BAR, CTSTRING(MENU_STATUS_BAR));
 	view.AppendMenu(MF_STRING, ID_VIEW_TRANSFER_VIEW, CTSTRING(MENU_TRANSFER_VIEW));
+	view.AppendMenu(MF_STRING, ID_TOGGLE_QSEARCH, CTSTRING(TOGGLE_QSEARCH));	
 
 	mainMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)view, CTSTRING(MENU_VIEW));
 
@@ -1066,12 +1066,6 @@ bool WinUtil::checkCommand(tstring& cmd, tstring& param, tstring& message, tstri
 		} else {
 			status = TSTRING(SHUTDOWN_OFF);
 		}
-	//RSX++
-#if SVNBUILD || _DEBUG
-	} else if(stricmp(cmd.c_str(), _T("luareload")) == 0) {
-		ScriptManager::getInstance()->reload();
-#endif
-	//END
 	} else {
 		return false;
 	}

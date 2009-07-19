@@ -69,7 +69,7 @@ LRESULT FavHubProperties::OnInitDialog(UINT, WPARAM, LPARAM, BOOL&)
 	ctrlTabs.AddTab(_T("Custom"), ctrlCustomTab, 0, true);
 	ctrlTabs.AddTab(_T("Actions and Raws"), ctrlRaws,  1, true);
 	ctrlTabs.AddTab(_T("Detector"), ctrlOpTab, 2, true);
-	ctrlTabs.AddTab(_T("Raw Settings"), ctrlSettingsTab, 3, true);
+	ctrlTabs.AddTab(_T("Add-ons Settings"), ctrlSettingsTab, 3, true);
 
 	ResourceLoader::LoadImageList(IDP_FAVTABS, images, 16, 16);
 	ctrlTabs.SetImageList(images);

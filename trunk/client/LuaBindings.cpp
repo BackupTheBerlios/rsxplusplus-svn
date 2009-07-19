@@ -73,6 +73,7 @@ namespace dcpp {
 			if(luabind::type(o) == LUA_TTABLE) {
 				StringMap params;
 				luabind::iterator i(o), end;
+
 				for( ; i != end; ++i )
 					params[luabind::object_cast<std::string>(i.key())] = luabind::object_cast<std::string>(*i);
 				return Util::formatParams(format, params, false);
@@ -80,7 +81,7 @@ namespace dcpp {
 			return Util::emptyString;
 		}
 		luabind::object getUsers(lua_State* L, Client* c) {
-			luabind::object o = luabind::newtable(L);
+			luabind::object o(luabind::newtable(L));
 			OnlineUserList list;
 			c->getUserList(list);
 			for(OnlineUserList::iterator i = list.begin(); i != list.end(); ++i) {
@@ -94,6 +95,20 @@ namespace dcpp {
 				case 1: return VERSIONFLOAT;
 				case 2: return DCVERSIONFLOAT;
 				case 3: return SVN_REVISION;
+				case 4: 
+#ifdef _WIN64
+					return 64.0;
+#else
+					return 32.0;
+#endif
+				case 5:
+#ifdef _DEBUG
+					return 3;
+#elif SVNBUILD
+					return 2;
+#else
+					return 1;
+#endif
 			}
 			return 0.0;
 		}
@@ -116,6 +131,9 @@ namespace dcpp {
 				return true;
 			} catch(...) { }
 			return false;
+		}
+		inline string getSystemCharset() {
+			return Text::systemCharset;
 		}
 	}
 
@@ -154,6 +172,7 @@ namespace dcpp {
 				.def("findUserByCID", (OnlineUser* (Client::*)(const CID&) const)&Client::findUser)
 				.def("findUserBySID", (OnlineUser* (Client::*)(const uint32_t) const)&Client::findUser)
 				.def("getUserList", &wrappers::getUsers, luabind::raw(_1))
+				//.def("sendAdcCommand", (void (Client::*)(const AdcCommand&))&Client::send, luabind::adopt(luabind::result))
 				.enum_("MessageStyle") [
 					luabind::value("STYLE_GENERAL", 0),
 					luabind::value("STYLE_MY_OWN", 1),
@@ -170,6 +189,7 @@ namespace dcpp {
 			luabind::module(L, "dcpp") [
 				luabind::class_<User, Flags>("User")
 				.def("getCID", &User::getCID, luabind::dependency(luabind::result, _1))
+				.def("isFavorite", &User::isFavorite)
 				.def("inc", &User::inc)
 				.def("dec", &User::dec)
 				.def("unique", &User::unique)
@@ -238,7 +258,7 @@ namespace dcpp {
 				luabind::class_<CID>("CID")
 				.def("toBase32", (string (CID::*)() const)&CID::toBase32)
 				.def("toHash", &CID::toHash)
-				.def("isZero",  &CID::isZero)
+				.def("isZero", &CID::isZero)
 			];
 		}
 
@@ -247,6 +267,11 @@ namespace dcpp {
 				luabind::class_<AdcCommand>("AdcCommand")
 				//.def(luabind::constructor<uint32_t, char>())
 				//.def(luabind::constructor<uint32_t, const uint32_t, char>())
+				//.def(luabind::constructor<const string&, bool>())
+				//.def("parse", &AdcCommand::parse)
+				//.def("addParam", (AdcCommand& (AdcCommand::*)(const string&, const string&))&AdcCommand::addParam, luabind::dependency(luabind::result, _1))
+				//.def("getParam", (const string& (AdcCommand::*)(size_t) const)&AdcCommand::getParam)
+				//.def("toString", (string (AdcCommand::*)(uint32_t, bool) const)&AdcCommand::toString)
 				.scope [
 					luabind::def("toSID", &AdcCommand::toSID),
 					luabind::def("fromSID", &AdcCommand::fromSID)
@@ -260,7 +285,7 @@ namespace dcpp {
 				.def("getRemoteIp", &UserConnection::getRemoteIp)
 				.def("getPort", &UserConnection::getPort)
 				.def("getHubUrl", &UserConnection::getHubUrl)
-				.def("getUser", &wrappers::getUser<UserConnection>, luabind::dependency(luabind::result, _1))
+				.def("getUser", &wrappers::getUser<UserConnection>/*, luabind::dependency(luabind::result, _1)*/)
 				.def("isSecure", &UserConnection::isSecure)
 				.def("isTrusted", &UserConnection::isTrusted)
 				.def("getCipherName", &UserConnection::getCipherName)
@@ -312,10 +337,25 @@ namespace dcpp {
 		void BindDcppCore(lua_State* L) {
 			luabind::module(L, "dcpp") [
 				luabind::def("LogMessage", &wrappers::LogMessage),
-				luabind::def("TextToUTF8", (string (*)(const string&))&Text::acpToUtf8),
-				luabind::def("EncodeURI", &Util::encodeURI),
-				luabind::def("formatParams", &wrappers::makeParams),
-				luabind::def("getVersion", &wrappers::getVersion)
+				luabind::namespace_("Text") [
+					luabind::def("acpToUtf8", (string (*)(const string&))&Text::acpToUtf8),
+					luabind::def("utf8ToAcp", (string (*)(const string&))&Text::utf8ToAcp),
+					luabind::def("isAscii", (bool (*)(const char*))&Text::isAscii),
+					luabind::def("getSystemCharset", &wrappers::getSystemCharset),
+					luabind::def("convert", (string (*)(const string&, const string&, const string&))&Text::convert)
+				],
+				luabind::namespace_("Utils") [
+					luabind::def("encodeURI", &Util::encodeURI),
+					luabind::def("formatParams", &wrappers::makeParams),
+					luabind::def("getVersion", &wrappers::getVersion),
+					luabind::def("getTempPath", &Util::getTempPath),
+					luabind::def("getConfigPath", &Util::getConfigPath),
+					luabind::def("getDataPath", &Util::getDataPath),
+					luabind::def("getSystemPath", &Util::getSystemPath)
+					//luabind::def("getAway", &Util::getAway),
+					//luabind::def("setAway", &Util::setAway),
+					//luabind::def("setAwayMessage", &Util::setAwayMessage)
+				]
 			];
 		}
 
@@ -324,7 +364,9 @@ namespace dcpp {
 				luabind::class_<ShareManager>("ShareManager")
 				.def("setHiddenDirectory", &ShareManager::setHiddenDirectory)
 				.def("addDirectory", &ShareManager::addDirectory)
-				.def("removeDirectory", &ShareManager::removeDirectory),
+				.def("removeDirectory", &ShareManager::removeDirectory)
+				.def("addExcludeFolder", &ShareManager::addExcludeFolder)
+				.def("removeExcludeFolder", &ShareManager::removeExcludeFolder),
 
 				luabind::def("getShareManager", &ShareManager::getInstance)
 			];

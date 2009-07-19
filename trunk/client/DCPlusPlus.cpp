@@ -116,7 +116,6 @@ void startup(void (*f)(void*, const tstring&), void* p) {
 	//+++
 	AutoSearchManager::getInstance()->AutosearchLoad();
 	IpManager::getInstance()->load();
-	NetworkConfiguration::getInstance()->initPorts();
 	//END
 
 	if(!SETTING(LANGUAGE_FILE).empty()) {

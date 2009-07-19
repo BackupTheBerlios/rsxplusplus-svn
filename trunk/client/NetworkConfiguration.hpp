@@ -32,7 +32,6 @@ public:
 	NetworkConfiguration();
 	~NetworkConfiguration();
 
-	void initPorts() { setPorts(); }
 	bool openPorts();
 	void closePorts();
 	bool restart();

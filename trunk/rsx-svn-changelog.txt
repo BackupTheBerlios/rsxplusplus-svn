@@ -1,3 +1,11 @@
+** SVN 139
+ ** fixed random ports when nat-pmp is disabled
+ ** [lua] more bindings (util and text)
+ ** some improvements in scripts dialog
+ ** build cleanup
+ ** fixed toolbar hotkeys
+ ** removed plugins page from settings
+
 ** SVN 138
  ** fixed libhunspell build in x64 mode
  ** some twearks in nat-pmp

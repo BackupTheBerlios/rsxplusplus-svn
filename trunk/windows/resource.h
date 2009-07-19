@@ -1136,7 +1136,6 @@
 #define IDD_FAV_TAB_PLUGINS             10055
 #define IDD_FAV_TAB_RAWSETTINGS         10055
 #define IDC_WHOIS_IP                    10056
-#define IDD_PLUGINS_PAGE                10056
 #define IDC_BAN_IP                      10057
 #define IDD_EXTENSIONS_CFG              10057
 #define IDC_UNBAN_IP                    10058

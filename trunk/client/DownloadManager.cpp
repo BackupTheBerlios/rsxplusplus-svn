@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,6 +33,7 @@
 #include "ZUtils.h"
 
 #include <limits>
+#include <cmath>
 
 // some strange mac definition
 #ifdef ff
@@ -43,8 +44,7 @@ namespace dcpp {
 
 static const string DOWNLOAD_AREA = "Downloads";
 
-DownloadManager::DownloadManager() : mDownloadLimit(0), mBytesSpokenFor(0),
-	mCycleTime(0), mByteSlice(0), mThrottleEnable(BOOLSETTING(THROTTLE_ENABLE)) {
+DownloadManager::DownloadManager() {
 	TimerManager::getInstance()->addListener(this);
 }
 
@@ -71,7 +71,6 @@ void DownloadManager::on(TimerManagerListener::Second, uint64_t aTick) throw() {
 		Lock l(cs);
 
 		DownloadList tickList;
-		throttleSetup();
 
 		// Tick each ongoing download
 		for(DownloadList::const_iterator i = downloads.begin(); i != downloads.end(); ++i) {
@@ -217,6 +216,9 @@ void DownloadManager::checkDownloads(UserConnection* aConn) {
 		downloads.push_back(d);
 	}
 	fire(DownloadManagerListener::Requesting(), d);
+
+	dcdebug("Requesting " I64_FMT "/" I64_FMT "\n", d->getStartPos(), d->getSize());
+
 	aConn->send(d->getCommand(aConn->isSet(UserConnection::FLAG_SUPPORTS_ZLIB_GET)));
 }
 
@@ -376,7 +378,7 @@ void DownloadManager::endData(UserConnection* aSource) {
 			return;
 		}
 
-		aSource->setSpeed(d->getAverageSpeed());
+		aSource->setSpeed(static_cast<int64_t>(d->getAverageSpeed()));
 		aSource->updateChunkSize(d->getTigerTree().getBlockSize(), d->getSize(), GET_TICK() - d->getStart());
 		
 		dcdebug("Download finished: %s, size " I64_FMT ", downloaded " I64_FMT "\n", d->getPath().c_str(), d->getSize(), d->getPos());
@@ -384,7 +386,7 @@ void DownloadManager::endData(UserConnection* aSource) {
 
 	removeDownload(d);
 
-	if(d->getType() == Transfer::TYPE_TREE || d->getType() == Transfer::TYPE_PARTIAL_LIST)
+	if(d->getType() != Transfer::TYPE_FILE)
 		fire(DownloadManagerListener::Complete(), d, d->getType() == Transfer::TYPE_TREE);
 
 	QueueManager::getInstance()->putDownload(d, true, false);	
@@ -396,7 +398,7 @@ int64_t DownloadManager::getRunningAverage() {
 	int64_t avg = 0;
 	for(DownloadList::const_iterator i = downloads.begin(); i != downloads.end(); ++i) {
 		Download* d = *i;
-		avg += d->getAverageSpeed();
+		avg += static_cast<int64_t>(d->getAverageSpeed());
 	}
 	return avg;
 }
@@ -545,6 +547,28 @@ void DownloadManager::on(UserConnectionListener::Updated, UserConnection* aSourc
 	checkDownloads(aSource);
 }
 
+// Download throttling
+size_t DownloadManager::throttle(size_t readSize) {
+	Lock l(cs);
+	
+	if(downloads.size() == 0)
+		return readSize;
+
+	if(bandwidthAvailable > 0)
+	{
+		size_t slice = (SETTING(MAX_DOWNLOAD_SPEED_LIMIT) * 1024) / downloads.size();
+		
+		readSize = min(slice, min(readSize, static_cast<size_t>(bandwidthAvailable)));
+		bandwidthAvailable -= readSize;
+	}
+	else
+	{
+		readSize = 0;
+	}
+	
+	return readSize;
+}
+
 void DownloadManager::fileNotAvailable(UserConnection* aSource) {
 	if(aSource->getState() != UserConnection::STATE_SND) {
 		dcdebug("DM::fileNotAvailable Invalid state, disconnecting");
@@ -585,56 +609,9 @@ void DownloadManager::fileNotAvailable(UserConnection* aSource) {
 	checkDownloads(aSource);
 }
 
-void DownloadManager::throttleReturnBytes(size_t b) {
-	if (b > 0 && b < 2*mByteSlice) {
-		mBytesSpokenFor -= b;
-		if (mBytesSpokenFor < 0)
-			mBytesSpokenFor = 0;
-	}
-}
-
-size_t DownloadManager::throttleGetSlice() {
-	if (mThrottleEnable) {
-		size_t left = mDownloadLimit - mBytesSpokenFor;
-		if (left > 0) {
-			if (left > 2*mByteSlice) {
-				mBytesSpokenFor += mByteSlice;
-				return mByteSlice;
-			} else {
-				mBytesSpokenFor += left;
-				return left;
-			}
-		} else
-			return 0;
-	} else {
-		return (size_t)-1;
-	}
-}
-
-void DownloadManager::throttleSetup() {
-	// called once a second
-	// with 64k, a few people get winsock error 0x2747
-	size_t num_transfers = downloads.size();
-	mDownloadLimit = (SETTING(MAX_DOWNLOAD_SPEED_LIMIT) * 1024);
-	mThrottleEnable = BOOLSETTING(THROTTLE_ENABLE) && (mDownloadLimit > 0) && (num_transfers > 0);
-	if (mThrottleEnable) {
-		size_t inbufSize = SETTING(SOCKET_IN_BUFFER);
-		if (mDownloadLimit <= (inbufSize * 10 * num_transfers)) {
-			mByteSlice = mDownloadLimit / (7 * num_transfers);
-			if (mByteSlice > inbufSize)
-				mByteSlice = inbufSize;
-			mCycleTime = 100;
-		} else {
-			mByteSlice = inbufSize;
-			mCycleTime = 1000 * inbufSize / mDownloadLimit;
-		}
-	}
-	mBytesSpokenFor = 0;
-}
-
 } // namespace dcpp
 
 /**
  * @file
- * $Id: DownloadManager.cpp 432 2009-02-12 17:16:50Z BigMuscle $
+ * $Id: DownloadManager.cpp 453 2009-08-04 15:46:31Z BigMuscle $
  */

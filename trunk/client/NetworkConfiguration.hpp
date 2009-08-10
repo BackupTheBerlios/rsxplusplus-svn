@@ -32,6 +32,8 @@ public:
 	NetworkConfiguration();
 	~NetworkConfiguration();
 
+	void setupPorts() { setPorts(true); }
+
 	bool openPorts();
 	void closePorts();
 	bool restart();
@@ -49,6 +51,8 @@ private:
 	uint16_t tcpPort;
 	uint16_t udpPort;
 	uint16_t tlsPort;
+	uint16_t dhtPort;
+
 	std::string ip;
 
 	friend class Singleton<NetworkConfiguration>;
@@ -57,6 +61,7 @@ private:
 	void setPorts(bool flush = false);
 
 	bool ok;
+	bool randDone;
 };
 }
 

@@ -468,7 +468,6 @@ void WinUtil::init(HWND hWnd) {
 	window.AppendMenu(MF_STRING, ID_WINDOW_MINIMIZE_ALL, CTSTRING(MENU_MINIMIZE_ALL));
 	window.AppendMenu(MF_STRING, ID_WINDOW_RESTORE_ALL, CTSTRING(MENU_RESTORE_ALL));
 	window.AppendMenu(MF_SEPARATOR);
-//	window.AppendMenu(MF_STRING, IDC_CLOSE_ALL_HUBS, CTSTRING(MENU_CLOSE_ALL_HUBS));
 	window.AppendMenu(MF_STRING, IDC_CLOSE_DISCONNECTED, CTSTRING(MENU_CLOSE_DISCONNECTED));
 	window.AppendMenu(MF_STRING, IDC_CLOSE_ALL_PM, CTSTRING(MENU_CLOSE_ALL_PM));
 	window.AppendMenu(MF_STRING, IDC_CLOSE_ALL_OFFLINE_PM, CTSTRING(MENU_CLOSE_ALL_OFFLINE_PM));
@@ -914,9 +913,9 @@ bool WinUtil::getUCParams(HWND parent, const UserCommand& uc, StringMap& sm) thr
 }
 
 #ifdef SVNBUILD
-#define LINE2 _T("-- <RSX++ ") _T(VERSIONSTRING) _T(" SVN:") _T(BOOST_STRINGIZE(SVN_REVISION)) _T("> ") _T(__HOMESITE)
+#define LINE2 _T("-- <RSX++ ") _T(VERSIONSTRING) _T(" SVN:") _T(BOOST_STRINGIZE(SVN_REVISION)) _T("> ") _T(RSXPP_SITE)
 #else
-#define LINE2 _T("-- <RSX++ ") _T(VERSIONSTRING) _T(" / ") _T(DCVERSIONSTRING) _T("> ") _T(__HOMESITE)
+#define LINE2 _T("-- <RSX++ ") _T(VERSIONSTRING) _T(" / ") _T(DCVERSIONSTRING) _T("> ") _T(RSXPP_SITE)
 #endif
 TCHAR *msgs[] = { _T("\r\n-- I'm a happy RSX++ user. You could be happy too.\r\n") LINE2,
 _T("\r\n-- CZ-...what? Nope...never heard of it...\r\n") LINE2,
@@ -924,15 +923,7 @@ _T("\r\n-- Evolution of species: Ape --> Man\r\n-- Evolution of science: \"The E
 _T("\r\n-- I share, therefore I am.\r\n") LINE2,
 _T("\r\n-- I came, I searched, I found...\r\n") LINE2,
 _T("\r\n-- I came, I shared, I sent...\r\n") LINE2,
-_T("\r\n-- I can add multiple users to the same file and download from them simultaneously :)\r\n") LINE2/*,
-_T("\r\n-- Ja jsem byl prvni klient, ktery nemuze ztratit slot pri segmentovem stahovani :-P\r\n") LINE2,
-_T("\r\n-- Ja jsem byl prvni klient, ktery umi seskupovat prenosy se stejnym nazvem souboru :-P\r\n") LINE2,
-_T("\r\n-- Umim stahovat segmentove bez poskozeni souboru :-))\r\n") LINE2,
-_T("\r\n-- Dokazu seskupovat vysledky hledani se stejnym TTH pod jednu polozku ;)\r\n") LINE2,
-_T("\r\n-- Nedovolim stahovat soubory bez TTH a predejdu tak poskozeni souboru :-)\r\n") LINE2,
-_T("\r\n-- Kontroluji data behem prenosu a zarucim spravnou integritu dat :)\r\n") LINE2,
-_T("\r\n-- Nekdo ma a nekdo nema....ja mam (ale nedam :-)) )\r\n") LINE2,
-_T("\r\n-- Muzu omezit rychlost sveho downloadu, aby mi zbyla linka pro brouzdani na webu :-D\r\n") LINE2*/
+_T("\r\n-- I can add multiple users to the same file and download from them simultaneously :)\r\n") LINE2
 };
 
 #define MSGS 7
@@ -1219,9 +1210,13 @@ void WinUtil::openLink(const tstring& url) {
 		return;
 	}
 	if(_strnicmp(Text::fromT(url).c_str(), "dchub://", 8) == 0) {
-		parseDchubUrl(url);
+		parseDchubUrl(url, false);
 		return;
 	}
+	if(_strnicmp(Text::fromT(url).c_str(), "nmdcs://", 8) == 0) {
+		parseDchubUrl(url, true);
+		return;
+	}	
 	if(_strnicmp(Text::fromT(url).c_str(), "adc://", 6) == 0) {
 		parseADChubUrl(url, false);
 		return;
@@ -1234,13 +1229,13 @@ void WinUtil::openLink(const tstring& url) {
 	::ShellExecute(NULL, NULL, url.c_str(), NULL, NULL, SW_SHOWNORMAL);
 }
 
-void WinUtil::parseDchubUrl(const tstring& aUrl) {
+void WinUtil::parseDchubUrl(const tstring& aUrl, bool secure) {
 	string server, file;
 	uint16_t port = 411;
 	Util::decodeUrl(Text::fromT(aUrl), server, port, file);
 	string url = server + ":" + Util::toString(port);
 	if(!server.empty()) {
-		HubFrame::openWindow(Text::toT(server) + _T(":") + Util::toStringW(port));
+		HubFrame::openWindow((secure ? _T("nmdcs://") : _T("")) + Text::toT(server) + _T(":") + Util::toStringW(port));
 	}
 	if(!file.empty()) {
 		if(file[0] == '/') // Remove any '/' in from of the file
@@ -1377,8 +1372,11 @@ bool WinUtil::parseDBLClick(const tstring& aString, string::size_type start, str
 		openLink(aString.substr(start, end-start));
 		return true;
 	} else if(strnicmp(aString.c_str() + start, _T("dchub://"), 8) == 0) {
-		parseDchubUrl(aString.substr(start, end-start));
+		parseDchubUrl(aString.substr(start, end-start), false);
 		return true;
+	} else if(strnicmp(aString.c_str() + start, _T("nmdcs://"), 8) == 0) {
+		parseDchubUrl(aString.substr(start, end-start), true);
+		return true;	
 	} else if(strnicmp(aString.c_str() + start, _T("magnet:?"), 8) == 0) {
 		parseMagnetUri(aString.substr(start, end-start));
 		return true;
@@ -1921,5 +1919,5 @@ tstring WinUtil::getWindowText(HWND _hwnd, int ctrlID) {
 //END
 /**
  * @file
- * $Id: WinUtil.cpp 430 2009-02-08 11:08:00Z BigMuscle $
+ * $Id: WinUtil.cpp 451 2009-07-10 21:24:08Z BigMuscle $
  */

@@ -165,7 +165,9 @@ public:
 		bool nonFavOnly;
 	};
 
-	void appendUserItems(CMenu& menu) {
+	void appendUserItems(CMenu& menu, const string& _hubHint) {
+		hubHint = _hubHint;
+		
 		UserTraits traits = ((T*)this)->getUserList().forEachSelectedT(UserTraits()); 
 
 		menu.AppendMenu(MF_STRING, IDC_PRIVATEMESSAGE, CTSTRING(SEND_PRIVATE_MESSAGE));
@@ -399,7 +401,7 @@ public:
 	static void unRegisterDchubHandler();
 	static void unRegisterADChubHandler();
 	static void unRegisterMagnetHandler();
-	static void parseDchubUrl(const tstring& /*aUrl*/);
+	static void parseDchubUrl(const tstring& /*aUrl*/, bool secure);
 	static void parseADChubUrl(const tstring& /*aUrl*/, bool secure);
 	static void parseMagnetUri(const tstring& /*aUrl*/, bool aOverride = false);
 	static bool parseDBLClick(const tstring& /*aString*/, string::size_type start, string::size_type end);
@@ -506,5 +508,5 @@ private:
 
 /**
  * @file
- * $Id: WinUtil.h 427 2009-01-10 19:29:09Z BigMuscle $
+ * $Id: WinUtil.h 451 2009-07-10 21:24:08Z BigMuscle $
  */

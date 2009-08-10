@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -86,20 +86,15 @@ void Client::shutdown() {
 
 void Client::reloadSettings(bool updateNick) {
 	const FavoriteHubEntry* hub = FavoriteManager::getInstance()->getFavoriteHubEntry(getHubUrl());
-	//RSX++
-	string speedDescription = Util::emptyString;
-	if(BOOLSETTING(SHOW_DESCRIPTION_SPEED))
-		speedDescription = "["+SETTING(DOWN_SPEED)+"/"+SETTING(UP_SPEED)+"]";
-	//END
 	if(hub) {
 		if(updateNick) {
 			setCurrentNick(checkNick(hub->getNick(true)));
 		}		
 
 		if(!hub->getUserDescription().empty()) {
-			setCurrentDescription(speedDescription + hub->getUserDescription());
+			setCurrentDescription(hub->getUserDescription());
 		} else {
-			setCurrentDescription(speedDescription + SETTING(DESCRIPTION));
+			setCurrentDescription(SETTING(DESCRIPTION));
 		}
 		if(!hub->getPassword().empty())
 			setPassword(hub->getPassword());
@@ -132,7 +127,7 @@ void Client::reloadSettings(bool updateNick) {
 }
 
 bool Client::isActive() const {
-	return ClientManager::getInstance()->getMode(hubUrl) != SettingsManager::INCOMING_FIREWALL_PASSIVE;
+	return ClientManager::getInstance()->isActive(hubUrl);
 }
 
 void Client::connect() {
@@ -341,5 +336,5 @@ bool Client::extOnPmOut(const UserPtr& user, const std::string& msg) {
 
 /**
  * @file
- * $Id: Client.cpp 401 2008-07-07 17:02:03Z BigMuscle $
+ * $Id: Client.cpp 449 2009-07-02 20:42:24Z BigMuscle $
  */

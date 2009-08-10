@@ -76,7 +76,7 @@ void IpManager::WatchSave() {
 		}
 		xml.stepOut();
 
-		string fname = Util::getConfigPath() + "IPWatch.xml";
+		string fname = Util::getPath(Util::PATH_USER_CONFIG) + "IPWatch.xml";
 		File f(fname + ".tmp", File::WRITE, File::CREATE | File::TRUNCATE);
 		f.write(SimpleXML::utf8Header);
 		f.write(xml.toXML());
@@ -112,7 +112,7 @@ void IpManager::loadWatch(SimpleXML& aXml){
 void IpManager::WatchLoad() {
 	try {
 		SimpleXML xml;
-		xml.fromXML(File(Util::getConfigPath() + "IPWatch.xml", File::READ, File::OPEN).read());
+		xml.fromXML(File(Util::getPath(Util::PATH_USER_CONFIG) + "IPWatch.xml", File::READ, File::OPEN).read());
 		if(xml.findChild("IPWatch")) {
 			xml.stepIn();
 			loadWatch(xml);

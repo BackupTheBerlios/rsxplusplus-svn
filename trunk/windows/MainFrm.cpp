@@ -70,6 +70,7 @@
 #include "ShutdownManager.h"
 #include "ShutdownDlg.h"
 //END
+#include "../dht/dht.h"
 
 MainFrame* MainFrame::anyMF = NULL;
 
@@ -255,7 +256,6 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	SetMenu(NULL);
 
 	tbarcreated = false;
-	ptbarcreated = false; //RSX++
 	HWND hWndToolBar = createToolbar();
 	HWND hWndQuickSearchBar = createQuickSearchBar();
 
@@ -300,7 +300,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	UISetCheck(ID_VIEW_STATUS_BAR, 1);
 	UISetCheck(ID_VIEW_TRANSFER_VIEW, 1);
 	UISetCheck(ID_TOGGLE_QSEARCH, 1);
-
+	
 	// load bars settings
 	WinUtil::loadReBarSettings(m_hWndToolBar);	
 
@@ -334,6 +334,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	if(BOOLSETTING(OPEN_PUBLIC)) PostMessage(WM_COMMAND, ID_FILE_CONNECT);
 	if(BOOLSETTING(OPEN_FAVORITE_HUBS)) PostMessage(WM_COMMAND, IDC_FAVORITES);
 	if(BOOLSETTING(OPEN_FAVORITE_USERS)) PostMessage(WM_COMMAND, IDC_FAVUSERS);
+	if(BOOLSETTING(OPEN_RECENT_HUBS)) PostMessage(WM_COMMAND, IDC_RECENTS);	
 	if(BOOLSETTING(OPEN_QUEUE)) PostMessage(WM_COMMAND, IDC_QUEUE);
 	if(BOOLSETTING(OPEN_FINISHED_DOWNLOADS)) PostMessage(WM_COMMAND, IDC_FINISHED);
 	if(BOOLSETTING(OPEN_WAITING_USERS)) PostMessage(WM_COMMAND, IDC_UPLOAD_QUEUE);
@@ -355,9 +356,9 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	try {
 		File::ensureDirectory(SETTING(LOG_DIRECTORY));
 		//RSX++
-		File::ensureDirectory(Util::getDataPath() + "Plugins" PATH_SEPARATOR_STR);
-		File::ensureDirectory(Util::getDataPath() + "LuaScripts" PATH_SEPARATOR_STR);
-		File::ensureDirectory(Util::getDataPath() + "EmoPacks" PATH_SEPARATOR_STR);
+		File::ensureDirectory(Util::getPath(Util::PATH_GLOBAL_CONFIG) + "Plugins" PATH_SEPARATOR_STR);
+		File::ensureDirectory(Util::getPath(Util::PATH_GLOBAL_CONFIG) + "LuaScripts" PATH_SEPARATOR_STR);
+		File::ensureDirectory(Util::getPath(Util::PATH_EMOPACKS));
 		//END
 	} catch (const FileException) {	}
 
@@ -531,6 +532,7 @@ void MainFrame::startSocket() {
 	//END
 	SearchManager::getInstance()->disconnect();
 	ConnectionManager::getInstance()->disconnect();
+	DHT::getInstance()->disconnect();
 
 //	if(ClientManager::getInstance()->isActive()) {
 		try {
@@ -543,6 +545,11 @@ void MainFrame::startSocket() {
 		} catch(const Exception&) {
 			MessageBox(CTSTRING(TCP_PORT_BUSY), _T(APPNAME) _T(" ") _T(VERSIONSTRING), MB_ICONSTOP | MB_OK);
 		}
+		try {
+			DHT::getInstance()->listen();
+		} catch(const Exception&) {
+			MessageBox(CTSTRING(TCP_PORT_BUSY), _T(APPNAME) _T(" ") _T(VERSIONSTRING), MB_ICONSTOP | MB_OK);
+		}		
 //	}
 
 	startUPnP();
@@ -569,7 +576,18 @@ void MainFrame::startUPnP() {
 			UPnP_UDP.reset(new UPnP( Util::getLocalIp(), "UDP", APPNAME " Search Port (" + Util::toString(port) + " UDP)", port));
 			ok &= UPnP_UDP->open();
 		}
-
+		if(BOOLSETTING(USE_DHT)) {
+			port = DHT::getInstance()->getPort();
+			if(port != 0) {
+				UPnP_DHT.reset(new UPnP( Util::getLocalIp(), "UDP", APPNAME " DHT Port (" + Util::toString(port) + " UDP)", port));
+				if (!UPnP_DHT->open())
+				{
+					LogManager::getInstance()->message(STRING(UPNP_FAILED_TO_CREATE_MAPPINGS));
+					UPnP_DHT.reset();
+				}
+			}
+		}
+	
 		if(ok) {
 			if(!BOOLSETTING(NO_IP_OVERRIDE)) {
 				// now lets configure the external IP (connect to me) address
@@ -612,11 +630,11 @@ void MainFrame::stopUPnP() {
 		}
 		UPnP_UDP.reset();
 	}	
-	if(UPnP_DSN.get()) {
-		if(!UPnP_DSN->close()) {
+	if(UPnP_DHT.get()) {
+		if(!UPnP_DHT->close()) {
 			LogManager::getInstance()->message(STRING(UPNP_FAILED_TO_REMOVE_MAPPINGS));
 		}
-		UPnP_DSN.reset();
+		UPnP_DHT.reset();
 	}
 }
 
@@ -672,6 +690,8 @@ HWND MainFrame::createToolbar() {
 
 	return ctrlToolbar.m_hWnd;
 }
+
+
 
 LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/) {
 		
@@ -778,8 +798,11 @@ void MainFrame::parseCommandLine(const tstring& cmdLine)
 	string::size_type j;
 
 	if( (j = cmdLine.find(_T("dchub://"), i)) != string::npos) {
-		WinUtil::parseDchubUrl(cmdLine.substr(j));
-		}
+		WinUtil::parseDchubUrl(cmdLine.substr(j), false);
+	}
+	if( (j = cmdLine.find(_T("nmdcs://"), i)) != string::npos) {
+		WinUtil::parseDchubUrl(cmdLine.substr(j), true);
+	}	
 	if( (j = cmdLine.find(_T("adc://"), i)) != string::npos) {
 		WinUtil::parseADChubUrl(cmdLine.substr(j), false);
 	}
@@ -894,7 +917,7 @@ void MainFrame::on(UpdateManagerListener::VersionUpdated, const VersionInfo::Cli
 #ifndef SVNBUILD
 	if(client.veryOldVersion >= SVN_REVISION) {
 		string msg = "Your version of RSX++ contains a serious bug that affects all users of the DC network or the security of your computer.";
-		string url = client.url.empty() ? __HOMESITE : client.url;
+		string url = client.url.empty() ? RSXPP_SITE : client.url;
 		if(MessageBox(Text::toT(msg + "\r\nPlease get a new one at " + url).c_str(), _T("Old RSX++ version"), MB_YESNO | MB_ICONEXCLAMATION) == IDYES)
 			WinUtil::openLink(Text::toT(url));
 		oldshutdown = true;
@@ -905,7 +928,7 @@ void MainFrame::on(UpdateManagerListener::VersionUpdated, const VersionInfo::Cli
 	for(vector<double>::const_iterator i = client.badVersions.begin(); i != client.badVersions.end(); ++i) {
 		if(*i == SVN_REVISION) {
 			string msg = "Your version of RSX++ contains a serious bug that affects all users of the DC network or the security of your computer.";
-			string url = client.url.empty() ? __HOMESITE : client.url;
+			string url = client.url.empty() ? RSXPP_SITE : client.url;
 			if(MessageBox(Text::toT(msg + "\r\nPlease get a new one at " + url).c_str(), _T("Bad RSX++ version"), MB_YESNO | MB_ICONEXCLAMATION) == IDYES)
 				WinUtil::openLink(Text::toT(url));
 			oldshutdown = true;
@@ -1134,11 +1157,11 @@ LRESULT MainFrame::onLink(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL
 	tstring site;
 	bool isFile = false;
 	switch(wID) {
-		case IDC_HELP_HOMEPAGE: site = _T(__HOMESITE); break;
+		case IDC_HELP_HOMEPAGE: site = _T(RSXPP_SITE); break;
 		case IDC_HELP_GEOIPFILE: site = _T("http://www.maxmind.com/download/geoip/database/GeoIPCountryCSV.zip"); break;
-		case IDC_HELP_TRANSLATIONS: site = _T(__HOMESITE); break;
-		case IDC_HELP_FAQ: site = _T(__WIKI); break;
-		case IDC_HELP_DISCUSS: site = _T(__FORUM); break;
+		case IDC_HELP_TRANSLATIONS: site = _T(RSXPP_SITE); break;
+		case IDC_HELP_FAQ: site = _T(RSXPP_TRAC); break;
+		case IDC_HELP_DISCUSS: site = _T(RSXPP_FORUM); break;
 		default: dcassert(0);
 	}
 
@@ -1376,6 +1399,7 @@ LRESULT MainFrame::onCloseWindows(WORD , WORD wID, HWND , BOOL& ) {
 
 LRESULT MainFrame::onLimiter(WORD , WORD , HWND, BOOL& ) {
 	SettingsManager::getInstance()->set(SettingsManager::THROTTLE_ENABLE, !BOOLSETTING(THROTTLE_ENABLE));
+	ClientManager::getInstance()->infoUpdated();
 	return 0;
 }
 
@@ -1482,14 +1506,14 @@ void MainFrame::on(QueueManagerListener::Finished, const QueueItem* qi, const st
 	if(qi->isSet(QueueItem::FLAG_CLIENT_VIEW)) {
 		if(qi->isSet(QueueItem::FLAG_USER_LIST)) {
 			// This is a file listing, show it...
-			DirectoryListInfo* i = new DirectoryListInfo(qi->getDownloads()[0]->getUser(), Text::toT(qi->getListName()), Text::toT(dir), download->getAverageSpeed());
+			DirectoryListInfo* i = new DirectoryListInfo(qi->getDownloads()[0]->getUser(), Text::toT(qi->getListName()), Text::toT(dir), static_cast<int64_t>(download->getAverageSpeed()));
 
 			PostMessage(WM_SPEAKER, DOWNLOAD_LISTING, (LPARAM)i);
 		} else if(qi->isSet(QueueItem::FLAG_TEXT)) {
 			PostMessage(WM_SPEAKER, VIEW_FILE_AND_DELETE, (LPARAM) new tstring(Text::toT(qi->getTarget())));
 		}
 	} else if(qi->isSet(QueueItem::FLAG_USER_LIST) && qi->isSet(QueueItem::FLAG_CHECK_FILE_LIST)) {
-		DirectoryListInfo* i = new DirectoryListInfo(qi->getDownloads()[0]->getUser(), Text::toT(qi->getListName()), Text::toT(dir), download->getAverageSpeed());
+		DirectoryListInfo* i = new DirectoryListInfo(qi->getDownloads()[0]->getUser(), Text::toT(qi->getListName()), Text::toT(dir), static_cast<int64_t>(download->getAverageSpeed()));
 		
 		if(listQueue.stop) {
 			listQueue.stop = false;

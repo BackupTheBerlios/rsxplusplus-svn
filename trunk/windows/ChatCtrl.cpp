@@ -309,9 +309,9 @@ void ChatCtrl::AppendTextOnly(const tstring& sMyNick, const TCHAR* sText, CHARFO
 				// TODO: complete regexp for URLs
 				boost::wregex reg;
 				if(isMagnet) // magnet links have totally indeferent structure than classic URL // -/?%&=~#'\\w\\.\\+\\*\\(\\)
-					reg =       _T("^(\\w)+=[:\\w]+(&(\\w)+=[\\S]*)*");
+					reg =       _T("^(\\w)+=[:\\w]+(&(\\w)+=[\\S]*)*[^\\s<>.,;!(){}]+");
 				else
-					reg = _T("^([@\\w-]+(\\.)*)+(:[\\d]+)?(/[\\S]*)*");
+					reg = _T("^([@\\w-]+(\\.)*)+(:[\\d]+)?(/[\\S]*)*[^\\s<>.,;!(){}]+");
 					
 				if(boost::regex_search(start + linkEnd, end, result, reg, boost::match_default)) {
 					dcassert(!result.empty());

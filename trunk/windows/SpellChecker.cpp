@@ -33,7 +33,7 @@
 #include <hunspell/csutil.hxx>
 
 void SpellChecker::reload() {
-	string fname_t = Util::getConfigPath() + RSXPP_SETTING(DICTIONARY);
+	string fname_t = Util::getPath(Util::PATH_USER_CONFIG) + RSXPP_SETTING(DICTIONARY);
 	if(!Util::fileExists(string(fname_t + ".dic")) || !Util::fileExists(string(fname_t + ".aff"))) {
 		RSXPP_SET(DICTIONARY, Util::emptyString);
 	} else {

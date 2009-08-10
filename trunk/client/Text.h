@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -99,7 +99,13 @@ namespace Text {
 
 	inline char asciiToLower(char c) { dcassert((((uint8_t)c) & 0x80) == 0); return (char)tolower(c); }
 
-	wchar_t toLower(wchar_t c) throw();
+	inline wchar_t toLower(wchar_t c) throw() {
+#ifdef _WIN32
+		return static_cast<wchar_t>(reinterpret_cast<ptrdiff_t>(CharLowerW((LPWSTR)c)));
+#else
+		return (wchar_t)towlower(c);
+#endif
+	}
 	
 	const wstring& toLower(const wstring& str, wstring& tmp) throw();
 	inline wstring toLower(const wstring& str) throw() {

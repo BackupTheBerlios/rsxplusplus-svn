@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,6 +27,8 @@
 #include "File.h"
 #include "version.h"
 #include "CID.h"
+
+#include "../dht/dht.h"
 
 namespace dcpp {
 
@@ -60,7 +62,7 @@ const string SettingsManager::settingTags[] =
 	"RecentFrameOrder", "RecentFrameWidths", "ToolbarSettings",
 	//RSX++
 	"NATPMPGateway",
-	"RawLogFormat", "RawLogFile", "DownSpeed", "UpSpeed",
+	"RawLogFormat", "RawLogFile",
 	//END
 	"SENTRY", 
 	// Ints
@@ -121,7 +123,7 @@ const string SettingsManager::settingTags[] =
  	"UserListDoubleClick", "TransferListDoubleClick", "ChatDoubleClick", "AdcDebug",
 	"ToggleActiveWindow", /*"ProgressbaroDCStyle",*/ "SearchHistory", 
 	"AcceptedDisconnects", "AcceptedTimeouts",
-	"OpenPublic", "OpenFavoriteHubs", "OpenFavoriteUsers", "OpenQueue", "OpenFinishedDownloads",
+	"OpenPublic", "OpenFavoriteHubs", "OpenFavoriteUsers", "OpenRecentHubs", "OpenQueue", "OpenFinishedDownloads",
 	"OpenFinishedUploads", "OpenSearchSpy", "OpenNetworkStatistics", "OpenNotepad", "OutgoingConnections",
 	"NoIPOverride", "GroupSearchResults", "BoldFinishedDownloads", "BoldFinishedUploads", "BoldQueue", 
 	"BoldHub", "BoldPm", "BoldSearch", "TabsOnTop", "SocketInBuffer", "SocketOutBuffer", 
@@ -130,12 +132,10 @@ const string SettingsManager::settingTags[] =
  	"AllowUntrustedHubs", "AllowUntrustedClients", "TLSPort", "FastHash", "DownConnPerSec",
 	"HighestPrioSize", "HighPrioSize", "NormalPrioSize", "LowPrioSize", "LowestPrio",
 	"FilterEnter", "SortFavUsersFirst", "ShowShellMenu", "SendBloom", "OverlapChunks", "ShowQuickSearch",
-	"UcSubMenu", "AutoSlots", "Coral",
+	"UcSubMenu", "AutoSlots", "Coral", "UseDHT", "DHTPort", "UpdateIP",
 	//RSX++
-	"FirewallRandPorts",
-	"TopSpeed", "TopUpSpeed", "OdcStyleBumped",
-	"StealthyIndicateSpeeds", "ProgressBarMode",
-	"ShowPluginToolbar", "RawCmdLog",
+	"FirewallRandPorts", "OdcStyleBumped", "StealthyIndicateSpeeds", "ProgressBarMode", "RawCmdLog",
+	"TopSpeed", "TopUpSpeed",
 	//END
 	"SENTRY",
 	// Int64
@@ -143,13 +143,8 @@ const string SettingsManager::settingTags[] =
 	"SENTRY"
 };
 
-const string SettingsManager::speeds[] = {"64K","128K","150K","192K",
-"256K","384K","512K","600K","768K","1M","1.5M","2M","4M+" };
-
 SettingsManager::SettingsManager()
 {
-
-	connectionSpeeds.push_back("0.005");
 	connectionSpeeds.push_back("0.01");
 	connectionSpeeds.push_back("0.02");
 	connectionSpeeds.push_back("0.05");
@@ -177,12 +172,13 @@ SettingsManager::SettingsManager()
 		int64Settings[k] = 0;
 	}
 	
-	setDefault(DOWNLOAD_DIRECTORY, Util::getDataPath() + "Downloads" PATH_SEPARATOR_STR);
-	setDefault(TEMP_DOWNLOAD_DIRECTORY, Util::getDataPath() + "Incomplete" PATH_SEPARATOR_STR);
+	setDefault(DOWNLOAD_DIRECTORY, Util::getPath(Util::PATH_DOWNLOADS));
+	setDefault(TEMP_DOWNLOAD_DIRECTORY, Util::getPath(Util::PATH_USER_LOCAL) + "Incomplete" PATH_SEPARATOR_STR);
 	setDefault(SLOTS, 2);
 	setDefault(TCP_PORT, 0);
 	setDefault(UDP_PORT, 0);
 	setDefault(TLS_PORT, 0);
+	setDefault(DHT_PORT, DHT_UDPPORT);
 	setDefault(INCOMING_CONNECTIONS, Util::isPrivateIp(Util::getLocalIp()) ? INCOMING_FIREWALL_PASSIVE : INCOMING_DIRECT);
 	setDefault(OUTGOING_CONNECTIONS, OUTGOING_DIRECT);
 	setDefault(AUTO_FOLLOW, true);
@@ -202,7 +198,7 @@ SettingsManager::SettingsManager()
 	setDefault(DOWNLOAD_SLOTS, 50);
     setDefault(FILE_SLOTS, 15);
 	setDefault(MAX_DOWNLOAD_SPEED, 0);
-	setDefault(LOG_DIRECTORY, Util::getDataPath() + "Logs" PATH_SEPARATOR_STR);
+	setDefault(LOG_DIRECTORY, Util::getPath(Util::PATH_USER_LOCAL) + "Logs" PATH_SEPARATOR_STR);
 	setDefault(LOG_UPLOADS, false);
 	setDefault(LOG_DOWNLOADS, false);
 	setDefault(LOG_PRIVATE_CHAT, false);
@@ -284,6 +280,7 @@ SettingsManager::SettingsManager()
 	setDefault(OPEN_PUBLIC, false);
 	setDefault(OPEN_FAVORITE_HUBS, false);
 	setDefault(OPEN_FAVORITE_USERS, false);
+	setDefault(OPEN_RECENT_HUBS, false);
 	setDefault(OPEN_QUEUE, false);
 	setDefault(OPEN_FINISHED_DOWNLOADS, false);
 	setDefault(OPEN_FINISHED_UPLOADS, false);
@@ -294,9 +291,9 @@ SettingsManager::SettingsManager()
 	setDefault(SOCKET_IN_BUFFER, 64*1024);
 	setDefault(SOCKET_OUT_BUFFER, 64*1024);
 	setDefault(OPEN_WAITING_USERS, false);
-	setDefault(TLS_TRUSTED_CERTIFICATES_PATH, Util::getConfigPath() + "Certificates" PATH_SEPARATOR_STR);
-	setDefault(TLS_PRIVATE_KEY_FILE, Util::getConfigPath() + "Certificates" PATH_SEPARATOR_STR "client.key");
-	setDefault(TLS_CERTIFICATE_FILE, Util::getConfigPath() + "Certificates" PATH_SEPARATOR_STR "client.crt");
+	setDefault(TLS_TRUSTED_CERTIFICATES_PATH, Util::getPath(Util::PATH_USER_CONFIG) + "Certificates" PATH_SEPARATOR_STR);
+	setDefault(TLS_PRIVATE_KEY_FILE, Util::getPath(Util::PATH_USER_CONFIG) + "Certificates" PATH_SEPARATOR_STR "client.key");
+	setDefault(TLS_CERTIFICATE_FILE, Util::getPath(Util::PATH_USER_CONFIG) + "Certificates" PATH_SEPARATOR_STR "client.crt");
 	setDefault(BOLD_FINISHED_DOWNLOADS, true);
 	setDefault(BOLD_FINISHED_UPLOADS, true);
 	setDefault(BOLD_QUEUE, true);
@@ -323,6 +320,7 @@ SettingsManager::SettingsManager()
 	setDefault(DEBUG_COMMANDS, false);
 	setDefault(EXTRA_SLOTS, 3);
 	setDefault(EXTRA_PARTIAL_SLOTS, 1);
+	//setDefault(SHUTDOWN_TIMEOUT, 150); //RSX++
 	setDefault(SEARCH_PASSIVE, false);
 	setDefault(MAX_UPLOAD_SPEED_LIMIT_NORMAL, 0);
 	setDefault(MAX_DOWNLOAD_SPEED_LIMIT_NORMAL, 0);
@@ -424,14 +422,15 @@ SettingsManager::SettingsManager()
 	setDefault(POPUP_MINIMIZED, true);
 
 	setDefault(AWAY, false);
+	//setDefault(SHUTDOWN_ACTION, 0); //RSX++
 	setDefault(MINIMUM_SEARCH_INTERVAL, 30);
-
+	//setDefault(PROGRESSBAR_ODC_STYLE, true); //RSX++
 
 	setDefault(MAX_AUTO_MATCH_SOURCES, 5);
 	setDefault(MULTI_CHUNK, true);
 	setDefault(USERLIST_DBLCLICK, 6);
 	setDefault(TRANSFERLIST_DBLCLICK, 0);
-	setDefault(CHAT_DBLCLICK, 0);
+	setDefault(CHAT_DBLCLICK, 0);	
 	setDefault(HUBFRAME_VISIBLE, "1,1,0,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
 	setDefault(DIRECTORYLISTINGFRAME_VISIBLE, "1,1,0,1,1");	
 	setDefault(FINISHED_VISIBLE, "1,1,1,1,1,1,1,1");
@@ -558,6 +557,9 @@ SettingsManager::SettingsManager()
 	setDefault(COLOR_RUNNING, RGB(0, 150, 0));
 	setDefault(COLOR_DOWNLOADED, RGB(255, 255, 100));
 	setDefault(COLOR_DONE, RGB(222, 160, 0));
+	
+	setDefault(USE_DHT, true);
+	setDefault(UPDATE_IP, false);
 	//RSX++
 	setDefault(TOP_SPEED, 100);
 	setDefault(TOP_UP_SPEED, 50);
@@ -569,7 +571,6 @@ SettingsManager::SettingsManager()
 	/* Random RSX++ Settings */
 	setDefault(FIREWALL_RAND_PORTS, false);
 	setDefault(NAT_PMP_GATEWAY, "");
-	setDefault(SHOW_PLUGIN_TOOLBAR, true);
 	setDefault(LOG_RAW_CMD_FORMAT, "[%Y-%m-%d %H:%M] %[userNI] %[userI4] (%[userCS])");
 	setDefault(LOG_RAW_CMD_FILE, "RawCommands.log");
 	setDefault(LOG_RAW_CMD, true);
@@ -782,5 +783,5 @@ const string& SettingsManager::getString(const string& sname) const {
 
 /**
  * @file
- * $Id: SettingsManager.cpp 425 2008-12-24 22:17:02Z BigMuscle $
+ * $Id: SettingsManager.cpp 453 2009-08-04 15:46:31Z BigMuscle $
  */

@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
-// Used by w:\Visual Studio Projects\rsxplusplus\trunk\RSXPlusPlus.rc
+// Used by W:\Visual Studio Projects\rsxplusplus\trunk\RSXPlusPlus.rc
 //
 #define IDD_ABOUTBOX                    100
 #define IDC_FILETYPES                   101
@@ -747,6 +747,7 @@
 #define IDC_PROFILE_COUNT               1319
 #define IDC_RSX_BOOLEANS                1319
 #define IDC_SKIPLIST_SHARE              1319
+#define IDC_PORT_DHT                    1319
 #define IDC_SETTINGS_SOCKET_IN_BUFFER   1320
 #define IDC_REMOVE_RAW                  1320
 #define IDC_PROFILE_VERSION             1320
@@ -920,6 +921,7 @@
 #define IDC_SETTINGS_PORT_TLS           1427
 #define IDC_MATCH_ALL                   1428
 #define IDC_FILTER_HAS_BG_COLOR         1428
+#define IDC_SETTINGS_PORT_DHT           1428
 #define IDC_CP_ID                       1429
 #define IDC_MP_ID                       1430
 #define IDC_ADL_POINTS                  1431

@@ -620,8 +620,8 @@ private:
 	}	
 };
 
-// Copyright (C) 2005-2008 Big Muscle, StrongDC++
-template<class T, int ctrlId, class key, class hashFunc, class equalKey>
+// Copyright (C) 2005-2009 Big Muscle, StrongDC++
+template<class T, int ctrlId, class K, class hashFunc, class equalKey>
 class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId> 
 {
 public:
@@ -629,7 +629,7 @@ public:
 	TypedTreeListViewCtrl() { }
 	~TypedTreeListViewCtrl() { states.Destroy(); }
 
-	typedef TypedTreeListViewCtrl<T, ctrlId, key, hashFunc, equalKey> thisClass;
+	typedef TypedTreeListViewCtrl<T, ctrlId, K, hashFunc, equalKey> thisClass;
 	typedef TypedListViewCtrl<T, ctrlId> baseClass;
 	
 	struct ParentPair {
@@ -637,7 +637,7 @@ public:
 		vector<T*> children;
 	};
 
-	typedef unordered_map<key*, ParentPair, hashFunc, equalKey> ParentMap;
+	typedef unordered_map<K*, ParentPair, hashFunc, equalKey> ParentMap;
 
 	BEGIN_MSG_MAP(thisClass)
 		MESSAGE_HANDLER(WM_CREATE, onCreate)
@@ -722,19 +722,19 @@ public:
 		InsertItem(&lvi);
 	}
 
-	inline T* findParent(const key& groupCond) const {
-		ParentMap::const_iterator i = parents.find(const_cast<key*>(&groupCond));
+	inline T* findParent(const K& groupCond) const {
+		ParentMap::const_iterator i = parents.find(const_cast<K*>(&groupCond));
 		return i != parents.end() ? (*i).second.parent : NULL;
 	}
 
 	static const vector<T*> emptyVector;
-	inline const vector<T*>& findChildren(const key& groupCond) const {
-		ParentMap::const_iterator i = parents.find(const_cast<key*>(&groupCond));
+	inline const vector<T*>& findChildren(const K& groupCond) const {
+		ParentMap::const_iterator i = parents.find(const_cast<K*>(&groupCond));
 		return i != parents.end() ? (*i).second.children : emptyVector;
 	}
 
-	inline ParentPair* findParentPair(const key& groupCond) {
-		ParentMap::iterator i = parents.find(const_cast<key*>(&groupCond));
+	inline ParentPair* findParentPair(const K& groupCond) {
+		ParentMap::iterator i = parents.find(const_cast<K*>(&groupCond));
 		return i != parents.end() ? &((*i).second) : NULL;
 	}
 
@@ -748,7 +748,7 @@ public:
 			parent = item;
 
 			ParentPair newPP = { parent };
-			parents.insert(make_pair(const_cast<key*>(&parent->getGroupCond()), newPP));
+			parents.insert(make_pair(const_cast<K*>(&parent->getGroupCond()), newPP));
 
 			parent->parent = NULL; // ensure that parent of this item is really NULL
 			insertItem(getSortPos(parent), parent, parent->imageIndex());
@@ -758,11 +758,11 @@ public:
 			parent = oldParent->createParent();
 			if(parent != oldParent) {
 				uniqueParent = true;
-				parents.erase(const_cast<key*>(&oldParent->getGroupCond()));
+				parents.erase(const_cast<K*>(&oldParent->getGroupCond()));
 				deleteItem(oldParent);
 
 				ParentPair newPP = { parent };
-				pp = &(parents.insert(make_pair(const_cast<key*>(&parent->getGroupCond()), newPP)).first->second);
+				pp = &(parents.insert(make_pair(const_cast<K*>(&parent->getGroupCond()), newPP)).first->second);
 
 				parent->parent = NULL; // ensure that parent of this item is really NULL
 				oldParent->parent = parent;
@@ -809,7 +809,7 @@ public:
 				delete *i;
 			}
 			pp->children.clear();
-			parents.erase(const_cast<key*>(&parent->getGroupCond()));
+			parents.erase(const_cast<K*>(&parent->getGroupCond()));
 		}
 		deleteItem(parent);
 	}
@@ -836,11 +836,11 @@ public:
 					parent = pp->children.front();
 
 					deleteItem(oldParent);
-					parents.erase(const_cast<key*>(&oldParent->getGroupCond()));
+					parents.erase(const_cast<K*>(&oldParent->getGroupCond()));
 					delete oldParent;
 
 					ParentPair newPP = { parent };
-					parents.insert(make_pair(const_cast<key*>(&parent->getGroupCond()), newPP));
+					parents.insert(make_pair(const_cast<K*>(&parent->getGroupCond()), newPP));
 
 					parent->parent = NULL; // ensure that parent of this item is really NULL
 					deleteItem(parent);
@@ -991,12 +991,12 @@ private:
 	}
 };
 
-template<class T, int ctrlId, class key, class hashFunc, class equalKey>
-const vector<T*> TypedTreeListViewCtrl<T, ctrlId, key, hashFunc, equalKey>::emptyVector;
+template<class T, int ctrlId, class K, class hashFunc, class equalKey>
+const vector<T*> TypedTreeListViewCtrl<T, ctrlId, K, hashFunc, equalKey>::emptyVector;
 
 #endif // !defined(TYPED_LIST_VIEW_CTRL_H)
 
 /**
  * @file
- * $Id: TypedListViewCtrl.h 425 2008-12-24 22:17:02Z BigMuscle $
+ * $Id: TypedListViewCtrl.h 453 2009-08-04 15:46:31Z BigMuscle $
  */

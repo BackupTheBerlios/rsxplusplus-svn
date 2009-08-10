@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -658,5 +658,5 @@ string Socket::getRemoteHost(const string& aIp) {
 
 /**
  * @file
- * $Id: Socket.cpp 413 2008-07-30 09:32:53Z BigMuscle $
+ * $Id: Socket.cpp 434 2009-03-29 11:09:33Z BigMuscle $
  */

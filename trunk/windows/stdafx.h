@@ -22,8 +22,10 @@
 
 #include "../client/stdinc.h"
 #include "../client/ResourceManager.h"
+#include "../dht/stdafx.h"
 
 using namespace dcpp;
+using namespace dht;
 
 #ifdef _WIN32
 
@@ -68,5 +70,5 @@ extern CAppModule _Module;
 
 /**
  * @file
- * $Id: stdafx.h 394 2008-06-28 22:28:44Z BigMuscle $
+ * $Id: stdafx.h 436 2009-06-15 21:14:05Z BigMuscle $
  */

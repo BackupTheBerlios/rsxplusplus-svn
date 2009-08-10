@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -160,24 +160,18 @@ void BufferedSocket::threadRead() throw(Exception) {
 	if(state != RUNNING)
 		return;
 
-	DownloadManager *dm = DownloadManager::getInstance();
 	size_t readsize = inbuf.size();
-	bool throttling = false;
 	if(mode == MODE_DATA)
 	{
-		size_t getMaximum;
-		throttling = dm->throttle();
-		if (throttling)
+		if (BOOLSETTING(THROTTLE_ENABLE) && SETTING(MAX_DOWNLOAD_SPEED_LIMIT) > 0)
 		{
-			getMaximum = dm->throttleGetSlice();
-			readsize = (uint32_t)min((int64_t)inbuf.size(), (int64_t)getMaximum);
-			if (readsize <= 0  || readsize > inbuf.size()) { // FIX
-				Thread::sleep(dm->throttleCycleTime());
+			readsize = DownloadManager::getInstance()->throttle(readsize);
+			if (readsize == 0) {
+				Thread::sleep(20);	// TODO: better sleeping (correct would be "sleep until next bw reset")
 				return;
 			}
 		}
 	}
-	
 	int left = sock->read(&inbuf[0], (int)readsize);
 	if(left == -1) {
 	// EWOULDBLOCK, no data received...
@@ -269,12 +263,6 @@ void BufferedSocket::threadRead() throw(Exception) {
 							fire(BufferedSocketListener::ModeChange());
 						}
 					}
-					if (throttling) {
-						if (left > 0 && left < (int)readsize) {
-							dm->throttleReturnBytes(left - readsize);
-						}
-						Thread::sleep(dm->throttleCycleTime());
-					}
 				}
 				break;
 		}
@@ -303,25 +291,10 @@ void BufferedSocket::threadSendFile(InputStream* file) throw(Exception) {
 	bool readDone = false;
 	dcdebug("Starting threadSend\n");
 	UploadManager *um = UploadManager::getInstance();
-	size_t sendMaximum;
-	uint64_t start = 0;
-	bool throttling;
-	while(true) {
-		if(disconnecting)
-			return;
-		throttling = BOOLSETTING(THROTTLE_ENABLE);
+	while(!disconnecting) {
 		if(!readDone && readBuf.size() > readPos) {
 			// Fill read buffer
 			size_t bytesRead = readBuf.size() - readPos;
-			if(throttling) {
-				start = GET_TICK();
-				sendMaximum = um->throttleGetSlice();
-				if (sendMaximum < 0) {
-					throttling = false;
-					sendMaximum = bytesRead;
-				}
-				bytesRead = min(bytesRead, sendMaximum);
-			}
 			size_t actual = file->read(&readBuf[readPos], bytesRead);
 
 			if(bytesRead > 0) {
@@ -345,30 +318,37 @@ void BufferedSocket::threadSendFile(InputStream* file) throw(Exception) {
 		writeBuf.resize(readPos);
 		readPos = 0;
 
-		size_t writePos = 0;
+		size_t writePos = 0, writeSize = 0;
+		int written = 0;
 
 		while(writePos < writeBuf.size()) {
 			if(disconnecting)
 				return;
-			size_t writeSize = min(sockSize / 2, writeBuf.size() - writePos);
-			int written = sock->write(&writeBuf[writePos], writeSize);
+				
+			if(written != -1) // limit packet only if the last one was sent (to prevent double limiting)
+			{
+				writeSize = min(sockSize / 2, writeBuf.size() - writePos);
+				if(BOOLSETTING(THROTTLE_ENABLE) && SETTING(MAX_UPLOAD_SPEED_LIMIT) > 0)
+				{
+					writeSize = um->throttle(writeSize);
+					if(writeSize == 0)
+					{
+						Thread::sleep(20);	// TODO: better sleeping (correct would be "sleep until next bw reset")
+						continue;
+					}
+				}
+			}
+			
+			written = sock->write(&writeBuf[writePos], writeSize);
 			if(written > 0) {
 				writePos += written;
 
 				fire(BufferedSocketListener::BytesSent(), 0, written);
+
 			} else if(written == -1) {
 				if(!readDone && readPos < readBuf.size()) {
 					// Read a little since we're blocking anyway...
 					size_t bytesRead = min(readBuf.size() - readPos, readBuf.size() / 2);
-					if(throttling) {
-						start = GET_TICK();
-						sendMaximum = um->throttleGetSlice();
-						if (sendMaximum < 0) {
-							throttling = false;
-							sendMaximum = bytesRead;
-						}
-						bytesRead = (uint32_t)min((int64_t)bytesRead, (int64_t)sendMaximum);
-					}
 					size_t actual = file->read(&readBuf[readPos], bytesRead);
 
 					if(bytesRead > 0) {
@@ -391,13 +371,6 @@ void BufferedSocket::threadSendFile(InputStream* file) throw(Exception) {
 						}
 					}
 				}	
-			}
-			if(throttling) {
-				size_t cycle_time = um->throttleCycleTime();
-				uint64_t sleep_time = cycle_time - (GET_TICK() - start);
-				if (sleep_time > 0 && sleep_time <= cycle_time) {
-					Thread::sleep(sleep_time);
-				}
 			}
 		}
 	}
@@ -547,5 +520,5 @@ void BufferedSocket::addTask(Tasks task, TaskData* data) {
 
 /**
  * @file
- * $Id: BufferedSocket.cpp 431 2009-02-10 13:09:57Z BigMuscle $
+ * $Id: BufferedSocket.cpp 453 2009-08-04 15:46:31Z BigMuscle $
  */

@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -68,6 +68,7 @@ void SearchManager::listen() throw(SocketException) {
 		socket.reset(new Socket);
 		socket->create(Socket::TYPE_UDP);
 		socket->setBlocking(true);
+		socket->setSocketOpt(SO_RCVBUF, SETTING(SOCKET_IN_BUFFER));
 		port = socket->bind(static_cast<uint16_t>(SETTING(UDP_PORT)), SETTING(BIND_ADDRESS));
 	
 		start();
@@ -114,6 +115,7 @@ int SearchManager::run() {
 				socket->disconnect();
 				socket->create(Socket::TYPE_UDP);
 				socket->setBlocking(true);
+				socket->setSocketOpt(SO_RCVBUF, SETTING(SOCKET_IN_BUFFER));
 				socket->bind(port, SETTING(BIND_ADDRESS));
 				if(failed) {
 					LogManager::getInstance()->message("Search enabled again"); // TODO: translate
@@ -339,10 +341,11 @@ void SearchManager::onRES(const AdcCommand& cmd, const UserPtr& from, const stri
 		SearchResult::Types type = (file[file.length() - 1] == '\\' ? SearchResult::TYPE_DIRECTORY : SearchResult::TYPE_FILE);
 		if(type == SearchResult::TYPE_FILE && tth.empty())
 			return;
-		/// @todo Something about the slots
-		SearchResultPtr sr(new SearchResult(from, type, 0, (uint8_t)freeSlots, size,
+		
+		uint8_t slots = ClientManager::getInstance()->getSlots(from->getCID());
+		SearchResultPtr sr(new SearchResult(from, type, slots, (uint8_t)freeSlots, size,
 			file, hubName, hub, remoteIp, TTHValue(tth), token));
-			fire(SearchManagerListener::SR(), sr);
+		fire(SearchManagerListener::SR(), sr);
 	}
 }
 
@@ -358,7 +361,7 @@ void SearchManager::onPSR(const AdcCommand& cmd, UserPtr from, const string& rem
 	for(StringIterC i = cmd.getParameters().begin(); i != cmd.getParameters().end(); ++i) {
 		const string& str = *i;
 		if(str.compare(0, 2, "U4") == 0) {
-			udpPort = (uint16_t)Util::toInt(str.substr(2));
+			udpPort = static_cast<uint16_t>(Util::toInt(str.substr(2)));
 		} else if(str.compare(0, 2, "NI") == 0) {
 			nick = str.substr(2);
 		} else if(str.compare(0, 2, "HI") == 0) {
@@ -506,5 +509,5 @@ AdcCommand SearchManager::toPSR(bool wantResponse, const string& myNick, const s
 
 /**
  * @file
- * $Id: SearchManager.cpp 427 2009-01-10 19:29:09Z BigMuscle $
+ * $Id: SearchManager.cpp 450 2009-07-05 15:02:34Z BigMuscle $
  */

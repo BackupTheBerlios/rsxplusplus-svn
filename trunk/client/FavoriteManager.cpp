@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -560,7 +560,7 @@ void FavoriteManager::recentsave() {
 		xml.stepOut();
 		xml.stepOut();
 		
-		string fname = Util::getConfigPath() + "Recents.xml";
+		string fname = Util::getPath(Util::PATH_USER_CONFIG) + "Recents.xml";
 
 		File f(fname + ".tmp", File::WRITE, File::CREATE | File::TRUNCATE);
 		f.write(SimpleXML::utf8Header);
@@ -619,7 +619,7 @@ void FavoriteManager::filtersSave() {
 			xml.stepOut();
 		xml.stepOut();
 
-		string fname = Util::getConfigPath() + "Filters.xml";
+		string fname = Util::getPath(Util::PATH_USER_CONFIG) + "Filters.xml";
 
 		File f(fname + ".tmp", File::WRITE, File::CREATE | File::TRUNCATE);
 		f.write(SimpleXML::utf8Header);
@@ -651,7 +651,7 @@ void FavoriteManager::loadFilters(SimpleXML& aXml){
 void FavoriteManager::loadFilters(){
 	try {
 		SimpleXML xml;
-		xml.fromXML(File(Util::getConfigPath() + "Filters.xml", File::READ, File::OPEN).read());
+		xml.fromXML(File(Util::getPath(Util::PATH_USER_CONFIG) + "Filters.xml", File::READ, File::OPEN).read());
 		if(xml.findChild("Filters")) {
 			xml.stepIn();
 			loadFilters(xml);
@@ -696,6 +696,7 @@ void FavoriteManager::load() {
 
 	try {
 		SimpleXML xml;
+		Util::migrate(getConfigFile());
 		xml.fromXML(File(getConfigFile(), File::READ, File::OPEN).read());
 		
 		if(xml.findChild("Favorites")) {
@@ -708,8 +709,10 @@ void FavoriteManager::load() {
 	}
 
 	try {
+		Util::migrate(Util::getPath(Util::PATH_USER_CONFIG) + "Recents.xml");
+		
 		SimpleXML xml;
-		xml.fromXML(File(Util::getConfigPath() + "Recents.xml", File::READ, File::OPEN).read());
+		xml.fromXML(File(Util::getPath(Util::PATH_USER_CONFIG) + "Recents.xml", File::READ, File::OPEN).read());
 		
 		if(xml.findChild("Recents")) {
 			xml.stepIn();
@@ -1227,5 +1230,5 @@ string FavoriteManager::getAwayMessage(const string& aServer) {
 
 /**
  * @file
- * $Id: FavoriteManager.cpp 399 2008-07-06 19:48:02Z BigMuscle $
+ * $Id: FavoriteManager.cpp 453 2009-08-04 15:46:31Z BigMuscle $
  */

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -137,6 +137,10 @@ CryptoManager::CryptoManager()
 				SSL_CTX_set_tmp_dh(serverVerContext, (DH*)dh);
 			}
 		}
+
+		/// @todo remove when hubs accept this
+		SSL_CTX_set_options(clientContext, SSL_OP_NO_TICKET);
+		SSL_CTX_set_options(clientVerContext, SSL_OP_NO_TICKET);
 
 		SSL_CTX_set_verify(serverContext, SSL_VERIFY_NONE, 0);
 		SSL_CTX_set_verify(clientContext, SSL_VERIFY_NONE, 0);
@@ -460,7 +464,7 @@ string CryptoManager::makeKey(const string& aLock) {
 }
 
 #ifndef YASSL_VERSION
-void CryptoManager::locking_function(int mode, int n, const char * /*file*/, int /*line*/)
+void CryptoManager::locking_function(int mode, int n, const char *file, int line)
 {
     if (mode & CRYPTO_LOCK) {
         cs[n].enter();
@@ -474,5 +478,5 @@ void CryptoManager::locking_function(int mode, int n, const char * /*file*/, int
 
 /**
  * @file
- * $Id: CryptoManager.cpp 431 2009-02-10 13:09:57Z BigMuscle $
+ * $Id: CryptoManager.cpp 435 2009-06-02 19:21:43Z BigMuscle $
  */

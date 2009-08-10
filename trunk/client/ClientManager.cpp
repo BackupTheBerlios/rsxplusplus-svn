@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,6 +44,9 @@
 #include "ScriptManager.h"
 #include "ADLSearch.h"
 //END
+// strange thing: include it before script manager and it will give you bunch of odd errors
+// hope it won't make any troubles....
+#include "../dht/dht.h"
 
 namespace dcpp {
 
@@ -93,7 +96,7 @@ StringList ClientManager::getHubs(const CID& cid) const {
 	StringList lst;
 	OnlinePairC op = onlineUsers.equal_range(const_cast<CID*>(&cid));
 	for(OnlineIterC i = op.first; i != op.second; ++i) {
-		lst.push_back(i->second->getClient().getHubUrl());
+		lst.push_back(i->second->getClientBase().getHubUrl());
 	}
 	return lst;
 }
@@ -103,7 +106,7 @@ StringList ClientManager::getHubNames(const CID& cid) const {
 	StringList lst;
 	OnlinePairC op = onlineUsers.equal_range(const_cast<CID*>(&cid));
 	for(OnlineIterC i = op.first; i != op.second; ++i) {
-		lst.push_back(i->second->getClient().getHubName());
+		lst.push_back(i->second->getClientBase().getHubName());		
 	}
 	return lst;
 }
@@ -134,6 +137,16 @@ string ClientManager::getConnection(const CID& cid) const {
 		return i->second->getIdentity().getConnection();
 	}
 	return STRING(OFFLINE);
+}
+
+uint8_t ClientManager::getSlots(const CID& cid) const
+{
+	Lock l(cs);
+	OnlineIterC i = onlineUsers.find(const_cast<CID*>(&cid));
+	if(i != onlineUsers.end()) {
+		return static_cast<uint8_t>(Util::toInt(i->second->getIdentity().get("SL")));
+	}
+	return 0;
 }
 
 bool ClientManager::isConnected(const string& aUrl) const {
@@ -318,7 +331,7 @@ void ClientManager::connect(const UserPtr& p, const string& token, const string&
 	OnlineUser* u = findOnlineUser(p->getCID(), hintUrl);
 
 	if(u) {
-		u->getClient().connect(*u, token);
+		u->getClientBase().connect(*u, token);
 	}
 }
 
@@ -327,10 +340,10 @@ OnlineUser* ClientManager::findOnlineUser(const CID& cid, const string& hintUrl)
 	if(p.first == p.second)
 		return 0;
 
-	if(!hintUrl.empty()) {
+	if(!p.first->second->getUser()->isSet(User::DHT) && !hintUrl.empty()) {
 		for(OnlineIter i = p.first; i != p.second; ++i) {
 			OnlineUser* u = i->second;
-			if(u->getClient().getHubUrl() == hintUrl) {
+			if(u->getClientBase().getHubUrl() == hintUrl) {
 				return u;
 			}
 		}
@@ -345,7 +358,7 @@ void ClientManager::privateMessage(const UserPtr& p, const string& msg, bool thi
 	OnlineUser* u = findOnlineUser(p->getCID(), hintUrl);
 	
 	if(u) {
-		u->getClient().privateMessage(u, msg, thirdPerson);
+		u->getClientBase().privateMessage(u, msg, thirdPerson);
 	}
 }
 
@@ -442,7 +455,7 @@ void ClientManager::on(NmdcSearch, Client* aClient, const string& aSeeker, int a
 		try {
 			AdcCommand cmd = SearchManager::getInstance()->toPSR(true, aClient->getMyNick(), aClient->getIpPort(), aTTH.toBase32(), partialInfo);
 			Socket s;
-			s.writeTo(Socket::resolve(ip), port, cmd.toString(ClientManager::getInstance()->getMyCID()));
+			s.writeTo(Socket::resolve(ip), port, cmd.toString(ClientManager::getInstance()->getMe()->getCID()));
 		} catch(...) {
 			dcdebug("Partial search caught error\n");		
 		}
@@ -452,7 +465,7 @@ void ClientManager::on(NmdcSearch, Client* aClient, const string& aSeeker, int a
 void ClientManager::userCommand(const UserPtr& p, const UserCommand& uc, StringMap& params, bool compatibility) {
 	Lock l(cs);
 	OnlineIterC i = onlineUsers.find(const_cast<CID*>(&p->getCID()));
-	if(i == onlineUsers.end())
+	if(i == onlineUsers.end() || i->second->getClientBase().type == ClientBase::DHT)
 		return;
 
 	OnlineUser& ou = *i->second;
@@ -469,10 +482,12 @@ void ClientManager::sendRawCommand(const UserPtr& user, const string& aRaw, bool
 		bool skipRaw = false;
 		Lock l(cs);
 		if(checkProtection) {
-			OnlineIterC i = onlineUsers.find(const_cast<CID*>(&user->getCID()));
-			if(i == onlineUsers.end())
-				return;
-			skipRaw = i->second->isProtectedUser();
+			//OnlineIterC i = onlineUsers.find(const_cast<CID*>(&user->getCID()));
+			//if(i == onlineUsers.end())
+			//	return;
+			OnlineUser* ou = findOnlineUser(user->getCID(), Util::emptyString);
+			if(!ou) return;
+			skipRaw = ou->isProtectedUser();
 		}
 		if(!skipRaw || !checkProtection) {
 			StringMap ucParams;
@@ -505,6 +520,9 @@ void ClientManager::on(AdcSearch, const Client* c, const AdcCommand& adc, const 
 }
 
 void ClientManager::search(int aSizeMode, int64_t aSize, int aFileType, const string& aString, const string& aToken, void* aOwner) {
+	if(BOOLSETTING(USE_DHT) && aFileType == SearchManager::TYPE_TTH)
+		dht::DHT::getInstance()->findFile(aString);
+		
 	Lock l(cs);
 
 	for(Client::Iter i = clients.begin(); i != clients.end(); ++i) {
@@ -516,6 +534,9 @@ void ClientManager::search(int aSizeMode, int64_t aSize, int aFileType, const st
 }
 
 uint64_t ClientManager::search(StringList& who, int aSizeMode, int64_t aSize, int aFileType, const string& aString, const string& aToken, void* aOwner) {
+	if(BOOLSETTING(USE_DHT) && aFileType == SearchManager::TYPE_TTH)
+		dht::DHT::getInstance()->findFile(aString, aToken);
+
 	Lock l(cs);
 
 	uint64_t estimateSearchSpan = 0;
@@ -640,11 +661,15 @@ void ClientManager::on(HubUserCommand, const Client* client, int aType, int ctx,
 }
 
 void ClientManager::setListLength(const UserPtr& p, const string& listLen) {
-	Lock l(cs);
-	OnlineIterC i = onlineUsers.find(const_cast<CID*>(&p->getCID()));
-	if(i != onlineUsers.end()) {
-		i->second->getIdentity().set("LL", listLen);
+	OnlineUser* ou = findOnlineUser(p->getCID(), Util::emptyString);
+	if(ou) {
+		ou->getIdentity().set("LL", listLen);
 	}
+	//Lock l(cs);
+	//OnlineIterC i = onlineUsers.find(const_cast<CID*>(&p->getCID()));
+	//if(i != onlineUsers.end()) {
+	//	i->second->getIdentity().set("LL", listLen);
+	//}
 }
 
 void ClientManager::fileListDisconnected(const UserPtr& p) {
@@ -1190,5 +1215,5 @@ void ClientManager::sendAction(OnlineUser& ou, const int aAction) {
 
 /**
  * @file
- * $Id: ClientManager.cpp 432 2009-02-12 17:16:50Z BigMuscle $
+ * $Id: ClientManager.cpp 453 2009-08-04 15:46:31Z BigMuscle $
  */

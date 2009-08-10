@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,15 +31,20 @@
 
 namespace dcpp {
 
+struct WaitingUser {
+	UserPtr user;
+	string token;
+	
+	operator const UserPtr&() const { return user; }
+};
+
 class UploadQueueItem : public FastAlloc<UploadQueueItem>, public intrusive_ptr_base<UploadQueueItem>, public UserInfoBase {
 public:
-	UploadQueueItem(UserPtr u, const string& file, int64_t p, int64_t sz, uint64_t itime) :
-		user(u), file(file), pos(p), size(sz), time(itime) { inc(); }
-	
-	~UploadQueueItem() throw() { }
+	UploadQueueItem(UserPtr u, const string& _file, int64_t p, int64_t sz, uint64_t itime) :
+		user(u), file(_file), pos(p), size(sz), time(itime) { inc(); }
 	
 	typedef vector<UploadQueueItem*> List;
-	typedef deque<pair<UserPtr, UploadQueueItem::List>> SlotQueue;
+	typedef deque<pair<WaitingUser, UploadQueueItem::List>> SlotQueue;
 
 	static int compareItems(const UploadQueueItem* a, const UploadQueueItem* b, uint8_t col) {
 		switch(col) {
@@ -74,6 +79,7 @@ public:
 	uint64_t getTime() const { return time; }
 
 	GETSET(int64_t, pos, Pos);
+	
 private:
 	string file;
 	int64_t size;
@@ -119,22 +125,20 @@ public:
 	void addConnection(UserConnectionPtr conn);
 	void removeDelayUpload(const UserPtr& aUser);
 	void abortUpload(const string& aFile, bool waiting = true);
-	
-	// Upload throttling
-	size_t throttleGetSlice();
-	inline size_t throttleCycleTime() const { return mThrottleEnable ? mCycleTime : 0; }
-	
+		
 	GETSET(uint8_t, extraPartial, ExtraPartial);
 	GETSET(uint8_t, extra, Extra);
 	GETSET(uint64_t, lastGrant, LastGrant);
 
+	// Upload throttling
+	size_t throttle(size_t writeSize);
+	
 private:
 	bool isFireball;
 	bool isFileServer;
-	bool mThrottleEnable;
 	uint8_t running;
-
-	size_t mBytesSpokenFor, mUploadLimit, mCycleTime, mByteSlice;
+	
+	int64_t bandwidthAvailable;
 	uint64_t m_iHighSpeedStartTick;
 
 	UploadList uploads;
@@ -147,10 +151,8 @@ private:
 	SlotMap connectingUsers;
 	UploadQueueItem::SlotQueue waitingUsers;
 
-	size_t addFailedUpload(const UserPtr& aUser, const string& file, int64_t pos, int64_t size);
+	size_t addFailedUpload(const UserPtr& aUser, const string& token, const string& file, int64_t pos, int64_t size);
 	void notifyQueuedUsers();
-
-	void throttleSetup();
 
 	friend class Singleton<UploadManager>;
 	UploadManager() throw();
@@ -188,5 +190,5 @@ private:
 
 /**
  * @file
- * $Id: UploadManager.h 427 2009-01-10 19:29:09Z BigMuscle $
+ * $Id: UploadManager.h 452 2009-07-26 16:11:52Z BigMuscle $
  */

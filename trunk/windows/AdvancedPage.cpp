@@ -57,6 +57,7 @@ AdvancedPage::ListItem AdvancedPage::listItems[] = {
 	{ SettingsManager::MAGNET_ASK, ResourceManager::MAGNET_ASK },
 	{ SettingsManager::CORAL, ResourceManager::CORAL },
 	{ SettingsManager::FAST_HASH, ResourceManager::FAST_HASH },
+	{ SettingsManager::USE_DHT, ResourceManager::USE_DHT },
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
 
@@ -74,5 +75,5 @@ void AdvancedPage::write() {
 
 /**
  * @file
- * $Id: AdvancedPage.cpp 425 2008-12-24 22:17:02Z BigMuscle $
+ * $Id: AdvancedPage.cpp 451 2009-07-10 21:24:08Z BigMuscle $
  */

@@ -176,7 +176,7 @@ LRESULT UpdateDialog::OnButton(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/,
 			cProgress.SetPos(0);
 			int curPos = 0;
 			for(UpdateMap::const_iterator j = updateItems.begin(); j != updateItems.end(); ++j) {
-				string fname = Util::getConfigPath() + RsxUtil::getUpdateFileNames((int)j->first);
+				string fname = Util::getPath(Util::PATH_USER_CONFIG) + RsxUtil::getUpdateFileNames((int)j->first);
 				try {
 					File::renameFile(fname + ".old", fname + ".tmp");
 					if(Util::fileExists(fname))
@@ -234,7 +234,7 @@ LRESULT UpdateDialog::OnButton(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/,
 }
 
 void UpdateDialog::saveFile(const string& data, const string& fileName) {
-	string fname = Util::getConfigPath() + fileName;
+	string fname = Util::getPath(Util::PATH_USER_CONFIG) + fileName;
 	File f(fname + ".tmp", File::WRITE, File::CREATE | File::TRUNCATE);
 	f.write(data);
 	f.close();
@@ -383,9 +383,9 @@ void UpdateDialog::fixControls() {
 	BOOL ispActive = is_checked(IDC_ISP_ACTIVE);
 
 	::EnableWindow(GetDlgItem(IDC_LOAD_BACKUP), 
-		(clientActive && Util::fileExists(Util::getConfigPath() + "Profiles.xml.old")) || 
-		(myinfoActive && Util::fileExists(Util::getConfigPath() + "UserInfoProfiles.xml.old")) || 
-		(ispActive && Util::fileExists(Util::getConfigPath() + "IPWatch.xml.old")));
+		(clientActive && Util::fileExists(Util::getPath(Util::PATH_USER_CONFIG) + "Profiles.xml.old")) || 
+		(myinfoActive && Util::fileExists(Util::getPath(Util::PATH_USER_CONFIG) + "UserInfoProfiles.xml.old")) || 
+		(ispActive && Util::fileExists(Util::getPath(Util::PATH_USER_CONFIG) + "IPWatch.xml.old")));
 
 	::EnableWindow(GetDlgItem(IDC_UPDATE),		(clientActive || myinfoActive || ispActive) && !isRunning);
 	::EnableWindow(GetDlgItem(IDC_PROGRESS),	(clientActive || myinfoActive || ispActive) && !isRunning);

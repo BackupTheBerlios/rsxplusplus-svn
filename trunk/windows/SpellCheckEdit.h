@@ -102,6 +102,7 @@ protected:
 		int iChar = LineIndex(iLine);
 		int iLineLen = LineLength(iChar);
 		int iLineCount = GetLineCount();
+
 		CRect clientRect;
 		BOOL bContinue = TRUE;
 		{
@@ -164,7 +165,7 @@ protected:
 	void DrawError(LPCTSTR lpszWord, int iChar, CClientDC& dc)
 	{
 		ATLASSERT(lpszWord);
-		ATLASSERT(iChar >= 0);
+		//ATLASSERT(iChar >= 0);
 
 		if (SpellChecker::getInstance()->isWordOk(lpszWord))
 		{
@@ -237,65 +238,59 @@ protected:
 
 	void RedrawErrors(int iLine, int iLineLen, int iChar, LPCTSTR lpszText, CClientDC& dc)
 	{
+		if(_tcslen(lpszText) == 0)
+			return;
 		ATLASSERT(lpszText);
 		ATLASSERT(iLine >= 0);
 		ATLASSERT(iLineLen >= 0);
 		ATLASSERT(iChar >= 0);
 
 		string_t strWord;
+
 		int iLineBegins = -1;
 		TCHAR cThisChar = 0;
 		int iCharPos = iChar;
 
 		// extract words from line
 		while (lpszText[iCharPos] != 0
-			&& lpszText[iCharPos] != _T('\r')
-			&& lpszText[iCharPos] != _T('\n')
-			&& iCharPos < iChar + iLineLen)
+			//&& lpszText[iCharPos] != _T('\r')
+			//&& lpszText[iCharPos] != _T('\n')
+			&& iCharPos <= (iChar + iLineLen))
 		{
 			cThisChar = lpszText[iCharPos];
+			strWord += lpszText[iCharPos];
+			dcdebug("string %s %i %i %i\n", Text::fromT(strWord).c_str(), iCharPos, iLineLen, strWord.length());
+			if(IsWordBreak(cThisChar) || iCharPos == iLineLen-1) {
+				trimString(strWord);
 
-			if (IsWordBreak(cThisChar))
-			{
-				while(strWord.size() && IsWordBreak(strWord[0]))
-					strWord.erase((string_t::size_type)0);
-
-				while(strWord.size() && IsWordBreak(strWord[strWord.size()-1]))
-					strWord.erase(strWord.size()-1);
-
-				if (strWord.size())
-				{
+				if(strWord.size()) {
+					dcdebug("drawing...\n");
 					DrawError(strWord.c_str(), iLineBegins, dc);
 				}
-
 				strWord.clear();
 				iLineBegins = -1;
-			}
-			else
-			{
-				strWord += lpszText[iCharPos];
+			} else {
 				if (iLineBegins == -1 && strWord.size())
-				{
 					iLineBegins = iCharPos;
-				}
 			}
 
 			iCharPos++;
 		}
 
-		if (strWord.size())
-		{
-			while(strWord.size() && IsWordBreak(strWord[0]))
-				strWord.erase((string_t::size_type)0);
+		if(strWord.size()) {
+			trimString(strWord);
 
-			while(strWord.size() && IsWordBreak(strWord[strWord.size()-1]))
-				strWord.erase(strWord.size()-1);
-
-			if (strWord.size())
-			{
+			if(strWord.size())
 				DrawError(strWord.c_str(), iLineBegins, dc);
-			}
 		}
+	}
+
+	void trimString(string_t& str) {
+		while(str.size() && IsWordBreak(str[0]))
+			str.erase((string_t::size_type)0);
+
+		while(str.size() && IsWordBreak(str[str.size()-1]))
+			str.erase(str.size()-1);
 	}
 
 	void InvalidateCheck()

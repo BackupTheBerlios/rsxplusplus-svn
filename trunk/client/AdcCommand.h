@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -106,6 +106,7 @@ public:
 	// Extensions
 	C(CMD, 'C','M','D');
 	C(PSR, 'P','S','R');
+	C(PUB, 'P','U','B');		
 #undef C
 
 	static const uint32_t HUB_SID = 0xffffffff;		// No client will have this sid
@@ -217,5 +218,5 @@ public:
 
 /**
 * @file
-* $Id: AdcCommand.h 429 2009-02-06 17:26:54Z BigMuscle $
+* $Id: AdcCommand.h 446 2009-06-28 09:52:00Z BigMuscle $
 */

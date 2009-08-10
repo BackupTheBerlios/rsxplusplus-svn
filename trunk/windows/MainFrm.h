@@ -205,6 +205,7 @@ public:
 		MESSAGE_HANDLER(WM_CTLCOLORLISTBOX, onQuickSearchColor)
 		COMMAND_CODE_HANDLER(EN_CHANGE, onQuickSearchEditChange)
 	END_MSG_MAP()
+
 	BEGIN_UPDATE_UI_MAP(MainFrame)
 		UPDATE_ELEMENT(ID_VIEW_TOOLBAR, UPDUI_MENUPOPUP)
 		UPDATE_ELEMENT(ID_VIEW_STATUS_BAR, UPDUI_MENUPOPUP)
@@ -445,7 +446,7 @@ private:
 	ShutdownManager* shutdownMng;
 	//END
 
-	bool tbarcreated, ptbarcreated;
+	bool tbarcreated;
 	bool awaybyminimize;
 	bool bTrayIcon;
 	bool bAppMinimized;
@@ -519,12 +520,12 @@ private:
 	std::auto_ptr<UPnP> UPnP_TCP;
 	std::auto_ptr<UPnP> UPnP_TLS;
 	std::auto_ptr<UPnP> UPnP_UDP;
-	std::auto_ptr<UPnP> UPnP_DSN;
+	std::auto_ptr<UPnP> UPnP_DHT;
 };
 
 #endif // !defined(MAIN_FRM_H)
 
 /**
  * @file
- * $Id: MainFrm.h 411 2008-07-20 22:39:42Z BigMuscle $
+ * $Id: MainFrm.h 436 2009-06-15 21:14:05Z BigMuscle $
  */

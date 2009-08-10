@@ -348,10 +348,7 @@ namespace dcpp {
 					luabind::def("encodeURI", &Util::encodeURI),
 					luabind::def("formatParams", &wrappers::makeParams),
 					luabind::def("getVersion", &wrappers::getVersion),
-					luabind::def("getTempPath", &Util::getTempPath),
-					luabind::def("getConfigPath", &Util::getConfigPath),
-					luabind::def("getDataPath", &Util::getDataPath),
-					luabind::def("getSystemPath", &Util::getSystemPath)
+					luabind::def("getPath", &Util::getPath)
 					//luabind::def("getAway", &Util::getAway),
 					//luabind::def("setAway", &Util::setAway),
 					//luabind::def("setAwayMessage", &Util::setAwayMessage)
@@ -394,6 +391,21 @@ namespace dcpp {
 
 		void BindTTHValue(lua_State* /*L*/) {
 
+		}
+
+		void BindSettingsManager(lua_State* L) {
+			luabind::module(L, "dcpp") [
+				luabind::class_<SettingsManager>("SettingsManager")
+				.def("getString", &SettingsManager::getString)
+				.def("getInt", &SettingsManager::getInt),
+
+				luabind::class_<rsxppSettingsManager>("rsxppSettingsManager")
+				.def("addAction", &rsxppSettingsManager::addAction)
+				.def("getActionId", &rsxppSettingsManager::getActionId),
+
+				luabind::def("getSettingsManager", &SettingsManager::getInstance),
+				luabind::def("getRSXSettingsManager", &rsxppSettingsManager::getInstance)
+			];
 		}
 	}
 }

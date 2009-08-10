@@ -26,6 +26,7 @@ extern "C" {
 }
 
 #include <luabind/luabind.hpp>
+#include <luabind/object.hpp>
 
 namespace dcpp {
 
@@ -44,6 +45,7 @@ namespace dcpp {
 		void BindConnectionManager(lua_State* L);
 		void BindQueueManager(lua_State* L);
 		void BindTTHValue(lua_State* L);
+		void BindSettingsManager(lua_State* L);
 	}
 }
 

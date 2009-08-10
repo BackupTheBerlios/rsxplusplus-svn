@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,11 +26,15 @@
 #include "CriticalSection.h"
 #include "Flags.h"
 #include "forward.h"
+
+#include "StringPool.h"
 //RSX++
 #include "TimerManager.h"
 //END
 
 namespace dcpp {
+
+class ClientBase;
 
 /** A user connected to one or more hubs. */
 class User : public FastAlloc<User>, public intrusive_ptr_base<User>, public Flags
@@ -43,14 +47,15 @@ public:
 		PASSIVE		= 0x04,
 		NMDC		= 0x08,
 		BOT			= 0x10,
-		TLS			= 0x20,					//< Client supports TLS
-		OLD_CLIENT	= 0x40,					//< Can't download - old client
+		TLS			= 0x20,	//< Client supports TLS
+		OLD_CLIENT	= 0x40, //< Can't download - old client
 		NO_ADC_1_0_PROTOCOL		=  0x80,	//< Doesn't support "ADC/1.0" (dc++ <=0.703)
 		NO_ADC_0_10_PROTOCOL	= 0x100,	//< Doesn't support "ADC/0.10"
 		NO_ADCS_0_10_PROTOCOL	= 0x200,	//< Doesn't support "ADCS/0.10"
+		DHT			= 0x400,
 		//RSX++
-		PROTECTED 				= 0x400,	//< User protected
-		IGNORED					= 0x800		//< User ignored
+		PROTECTED 				= 0x800,	//< User protected
+		IGNORED					= 0x1000	//< User ignored
 		//END
 	};
 
@@ -158,7 +163,7 @@ public:
 	bool isClientType(ClientType ct) const;
 
 	string getReport() const;
-	void getParams(StringMap& map, const string& prefix, bool compatibility) const;
+	void getParams(StringMap& map, const string& prefix, bool compatibility, bool dth = false) const;
 
 	//RSX++
 	string setCheat(const Client& c, const string& aCheatDescription, bool aBadClient, bool aBadFilelist = false, bool aDisplayCheat = true);
@@ -182,7 +187,7 @@ public:
 	GETSET(UserPtr, user, User);
 	GETSET(uint64_t, loggedIn, LoggedIn); //RSX++
 private:
-	typedef unordered_map<short, string> InfMap;
+	typedef std::tr1::unordered_map<short, pooled_string> InfMap;
 	typedef InfMap::const_iterator InfIter;
 	InfMap info;
 
@@ -211,15 +216,6 @@ private:
 	string getDetectionField(const string& aName) const;
 	void getDetectionParams(StringMap& p);
 	string getPkVersion() const;
-
-	/*bool shouldRecheck() { 
-		if(get("R1").empty()) { 
-			set("R1", "1"); 
-			return true; 
-		} 
-		return false; 
-	}*/
-	//END
 };
 
 class NmdcHub;
@@ -258,22 +254,24 @@ public:
 		size_t operator()(const OnlineUserPtr& x) const { return ((size_t)(&(*x)))/sizeof(OnlineUser); }
 	};
 
-	OnlineUser(const UserPtr& ptr, Client& client_, uint32_t sid_);
-	~OnlineUser() { }
+	OnlineUser(const UserPtr& ptr, ClientBase& client_, uint32_t sid_);
+	virtual ~OnlineUser() throw() { dcdebug("User %s removed\n", getIdentity().get("NI").c_str()); }
 
 	operator UserPtr&() { return getUser(); }
 	operator const UserPtr&() const { return getUser(); }
-	operator intrusive_ptr_base*() { return this; }
 
 	UserPtr& getUser() { return getIdentity().getUser(); }
 	const UserPtr& getUser() const { return getIdentity().getUser(); }
 	Identity& getIdentity() { return identity; }
-	Client& getClient() { return client; }
-	const Client& getClient() const { return client; }
+	Client& getClient() { return (Client&)client; }
+	const Client& getClient() const { return (const Client&)client; }
+	
+	ClientBase& getClientBase() { return client; }	
+	const ClientBase& getClientBase() const { return client; }
 
 	/* UserInfo */
 	bool update(int sortCol, const tstring& oldText = Util::emptyStringT);
-	uint8_t imageIndex() const { return UserInfoBase::getImage(identity, &client); }
+	uint8_t imageIndex() const { return UserInfoBase::getImage(identity, &getClient()); }
 	static int compareItems(const OnlineUser* a, const OnlineUser* b, uint8_t col);
 	bool isHidden() const { return identity.isHidden(); }
 	
@@ -331,7 +329,7 @@ private:
 	OnlineUser(const OnlineUser&);
 	OnlineUser& operator=(const OnlineUser&);
 
-	Client& client;
+	ClientBase& client;
 };
 
 } // namespace dcpp
@@ -340,5 +338,5 @@ private:
 
 /**
  * @file
- * $Id: User.h 429 2009-02-06 17:26:54Z BigMuscle $
+ * $Id: User.h 452 2009-07-26 16:11:52Z BigMuscle $
  */

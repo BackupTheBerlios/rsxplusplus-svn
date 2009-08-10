@@ -93,24 +93,43 @@ LRESULT RSXPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 
 	ctrlDictionary.Attach(GetDlgItem(IDC_DICTIONARY));
 	ctrlDictionary.AddString(_T("None/Disabled"));
-	StringList files = File::findFiles(Util::getConfigPath(), "*.dic");
+
+	WIN32_FIND_DATA data;
+	HANDLE hFind;
+	DWORD attr;
+	tstring cfg(Text::toT(Util::getPath(Util::PATH_USER_CONFIG)));
+
+	hFind = FindFirstFile(Text::toT(Util::getPath(Util::PATH_USER_CONFIG) + "*.dic").c_str(), &data);
+	if(hFind != INVALID_HANDLE_VALUE) {
+		do {
+			tstring name = data.cFileName;
+			tstring::size_type i = name.rfind('.');
+			name = name.substr(0, i);
+
+			attr = GetFileAttributes(tstring(cfg + name + _T(".aff")).c_str());
+			if(attr != 0xFFFFFFFF) {
+				ctrlDictionary.AddString(name.c_str());
+			}
+		} while(FindNextFile(hFind, &data));
+		FindClose(hFind);
+	}
+
+/*	StringList files = File::findFiles(Util::getPath(Util::PATH_USER_CONFIG), "*.dic");
+#error fixme
 	{
 		for(StringIter i = files.begin(); i != files.end(); ++i) {
-			try {
-				string tmp(*i);
-				if(tmp.length() < 3) continue;
-				string file = tmp.substr(0, tmp.length() - 3);
-				file += "aff";
-				if(!Util::fileExists(file))
-					files.erase(i);
-			} catch(...) {
-			}
+			string tmp(*i);
+			if(tmp.length() < 3) continue;
+			string file = tmp.substr(0, tmp.length() - 3);
+			file += "aff";
+			if(!Util::fileExists(file))
+				files.erase(i);
 		}
 	}
 	for(StringIter i = files.begin(); i != files.end(); ++i) {
 		tstring file = Util::getFileName(Text::toT(*i));
 		ctrlDictionary.AddString(file.substr(0, file.length()-4).c_str());
-	}
+	}*/
 
 	int pos = ctrlDictionary.FindString(0, Text::toT(RSXPP_SETTING(DICTIONARY)).c_str());
 	if(pos < 0) pos = 0;
@@ -129,7 +148,7 @@ void RSXPage::write() {
 	FavoriteManager::getInstance()->save();
 	
 	HKEY hk;
-	tstring app = _T("\"") + Text::toT(Util::getSystemPath()) + _T("RSXPlusPlus.exe\"");
+	tstring app = _T("\"") + Text::toT(Util::getPath(Util::PATH_GLOBAL_CONFIG)) + _T("RSXPlusPlus.exe\"");
 	if(::RegOpenKeyEx(HKEY_CURRENT_USER, _T("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run"), 0, KEY_WRITE | KEY_READ, &hk) == ERROR_SUCCESS) {
 		if(RSXPP_BOOLSETTING(AUTO_START)) {
 			::RegCreateKey(HKEY_CURRENT_USER, _T("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run"), &hk);

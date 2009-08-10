@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@
 #include "MainFrm.h"
 
 #include "BarShader.h"
-#include "ResourceLoader.h"
+#include "ResourceLoader.h" //RSX++
 
 int TransferView::columnIndexes[] = { COLUMN_USER, COLUMN_HUB, COLUMN_STATUS, COLUMN_TIMELEFT, COLUMN_SPEED, COLUMN_FILE, COLUMN_SIZE, COLUMN_PATH, COLUMN_CIPHER, COLUMN_IP, COLUMN_RATIO };
 int TransferView::columnSizes[] = { 150, 150, 250, 75, 75, 175, 100, 200, 100, 150, 50 };
@@ -128,7 +128,7 @@ LRESULT TransferView::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
 
 		if(!parent) {
 			transferMenu.InsertSeparatorFirst(TSTRING(MENU_TRANSFERS));
-			appendUserItems(transferMenu);
+			appendUserItems(transferMenu, Util::emptyString); // TODO: hubhint
 			transferMenu.AppendMenu(MF_SEPARATOR);
 			transferMenu.AppendMenu(MF_STRING, IDC_FORCE, CTSTRING(FORCE_ATTEMPT));
 			if(ii->download) {
@@ -409,7 +409,7 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 					if(indicateSpeeds) {
 						const string& path = Text::fromT(ii->target);
 						// Draw icon - Nasty way to do the filelist icon, but couldn't get other ways to work well, TODO: do separating filelists from other transfers the proper way...
-						if(!path.empty() && (path.find(Util::getListPath()) != string::npos || path.find(Util::getConfigPath()) != string::npos)) {
+						if(!path.empty() && (path.find(Util::getPath(Util::PATH_FILE_LISTS)) != string::npos || path.find(Util::getPath(Util::PATH_USER_CONFIG)) != string::npos)) {
 							DrawIconEx(dc, rc.left + 4, rc.top + ((rc.Height() - 16)/2), user, 16, 16, NULL, NULL, DI_NORMAL | DI_COMPAT);
 						} else if(ii->status == ItemInfo::STATUS_RUNNING) {
 							RECT rc2 = rc;
@@ -702,19 +702,17 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 				if(ui->download) {
 					ItemInfo* parent = ii->parent ? ii->parent : ii;
 
-					/* parent item must be updated with correct info about whole file */
-					if(	(ui->status == ItemInfo::STATUS_RUNNING || ui->status == ItemInfo::STATUS_REQUESTING) && (parent->hits == -1))
+					if(ui->type == Transfer::TYPE_FILE || ui->type == Transfer::TYPE_TREE)
 					{
-						ui->updateMask &= ~UpdateInfo::MASK_POS;
-						ui->updateMask &= ~UpdateInfo::MASK_ACTUAL;
-						ui->updateMask &= ~UpdateInfo::MASK_SIZE;
-						ui->updateMask &= ~UpdateInfo::MASK_STATUS_STRING;
-						ui->updateMask &= ~UpdateInfo::MASK_TIMELEFT;
-					}
-					
-					if(ui->status == ItemInfo::STATUS_REQUESTING)
-					{
-						ui->updateMask &= ~UpdateInfo::MASK_STATUS;
+						/* parent item must be updated with correct info about whole file */
+						if(ui->status == ItemInfo::STATUS_RUNNING && parent->hits == -1)
+						{
+							ui->updateMask &= ~UpdateInfo::MASK_POS;
+							ui->updateMask &= ~UpdateInfo::MASK_ACTUAL;
+							ui->updateMask &= ~UpdateInfo::MASK_SIZE;
+							ui->updateMask &= ~UpdateInfo::MASK_STATUS_STRING;
+							ui->updateMask &= ~UpdateInfo::MASK_TIMELEFT;
+						}
 					}
 
 					/* if target has changed, regroup the item */
@@ -727,9 +725,7 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 					if(changeParent) {
 						ctrlTransfers.insertGroupedItem(ii, false);
 						parent = ii->parent ? ii->parent : ii;
-					}
-
-					if(ii == parent || !parent->collapsed) {
+					} else if(ii == parent || !parent->collapsed) {
 						updateItem(ctrlTransfers.findItem(ii), ui->updateMask);
 					}
 					continue;
@@ -985,7 +981,6 @@ void TransferView::on(DownloadManagerListener::Requesting, const Download* d) th
 	
 	ui->setActual(d->getActual());
 	ui->setSize(d->getSize());
-	ui->setStatus(ItemInfo::STATUS_REQUESTING);
 	ui->setStatusString(TSTRING(REQUESTING) + _T(" ") + getFile(d->getType(), Text::toT(Util::getFileName(d->getPath()))) + _T("..."));
 
 	speak(UPDATE_ITEM, ui);
@@ -1012,7 +1007,7 @@ void TransferView::on(DownloadManagerListener::Tick, const DownloadList& dl) {
 		ui->setPos(d->getPos());
 		ui->setSize(d->getSize());
 		ui->setTimeLeft(d->getSecondsLeft());
-		ui->setSpeed(d->getAverageSpeed());
+		ui->setSpeed(static_cast<int64_t>(d->getAverageSpeed()));
 
 		tstring pos = Util::formatBytesW(d->getPos());
 		double percent = (double)d->getPos()*100.0/(double)d->getSize();
@@ -1095,6 +1090,7 @@ void TransferView::on(UploadManagerListener::Starting, const Upload* aUpload) {
 	ui->setStatus(ItemInfo::STATUS_RUNNING);
 	ui->setActual(aUpload->getStartPos() + aUpload->getActual());
 	ui->setSize(aUpload->getType() == Transfer::TYPE_TREE ? aUpload->getSize() : aUpload->getFileSize());
+	ui->setRunning(1);
 	
 	if(!aUpload->isSet(Upload::FLAG_RESUMED)) {
 		ui->setStatusString(TSTRING(UPLOAD_STARTING));
@@ -1113,7 +1109,7 @@ void TransferView::on(UploadManagerListener::Tick, const UploadList& ul) {
 		ui->setActual(u->getStartPos() + u->getActual());
 		ui->setPos(u->getStartPos() + u->getPos());
 		ui->setTimeLeft(u->getSecondsLeft(true)); // we are interested when whole file is finished and not only one chunk
-		ui->setSpeed(u->getAverageSpeed());
+		ui->setSpeed(static_cast<int64_t>(u->getAverageSpeed()));
 
 		tstring pos = Util::formatBytesW(ui->pos);
 		double percent = (double)ui->pos*100.0/(double)(u->getType() == Transfer::TYPE_TREE ? u->getSize() : u->getFileSize());
@@ -1156,6 +1152,7 @@ void TransferView::onTransferComplete(const Transfer* aTransfer, bool isUpload, 
 	ui->setStatus(ItemInfo::STATUS_WAITING);	
 	ui->setPos(0);
 	ui->setStatusString(isUpload ? TSTRING(UPLOAD_FINISHED_IDLE) : TSTRING(DOWNLOAD_FINISHED_IDLE));
+	ui->setRunning(0);
 
 	if(isUpload && BOOLSETTING(POPUP_UPLOAD_FINISHED) && !isTree) {
 		MainFrame::getMainFrame()->ShowBalloonTip(
@@ -1286,20 +1283,15 @@ void TransferView::on(SettingsManagerListener::Save, SimpleXML& /*xml*/) throw()
 }
 
 void TransferView::on(QueueManagerListener::StatusUpdated, const QueueItem* qi) throw() {
+	
+	if(qi->getFlags() & QueueItem::FLAG_USER_LIST || qi->getFlags() & QueueItem::FLAG_TESTSUR)
+		return;
+
 	UpdateInfo* ui = new UpdateInfo(const_cast<QueueItem*>(qi), true);
 	ui->setTarget(Text::toT(qi->getTarget()));
+	ui->setType(Transfer::TYPE_FILE);
 
-	Transfer::Type type = Transfer::TYPE_FILE;
-	if(qi->getFlags() & QueueItem::FLAG_USER_LIST)
-		type = Transfer::TYPE_FULL_LIST;
-	else if(qi->getFlags() & QueueItem::FLAG_PARTIAL_LIST)
-		type = Transfer::TYPE_PARTIAL_LIST;
-	else if(qi->getFlags() & QueueItem::FLAG_TESTSUR)
-		type = Transfer::TYPE_TESTSUR;
-	
-	ui->setType(type);
-
-	if(qi->isRunning() && !qi->isSet(QueueItem::FLAG_TESTSUR)) {
+	if(qi->isRunning()) {
 		double ratio = 0;
 		int64_t totalSpeed = 0;
 		int16_t segs = 0;
@@ -1332,7 +1324,7 @@ void TransferView::on(QueueManagerListener::StatusUpdated, const QueueItem* qi) 
 					chunked = true;
 				}
 		
-				totalSpeed += d->getAverageSpeed();
+				totalSpeed += static_cast<int64_t>(d->getAverageSpeed());
 				ratio += d->getPos() > 0 ? (double)d->getActual() / (double)d->getPos() : 1.00;
 			}
 		}
@@ -1342,8 +1334,8 @@ void TransferView::on(QueueManagerListener::StatusUpdated, const QueueItem* qi) 
 			ratio = ratio / segs;
 
 			ui->setStatus(ItemInfo::STATUS_RUNNING);
-			ui->setSize(qi->isSet(QueueItem::FLAG_USER_LIST) ? qi->getDownloads()[0]->getSize() : qi->getSize());
-			ui->setPos(qi->isSet(QueueItem::FLAG_USER_LIST) ? qi->getDownloads()[0]->getPos() : qi->getDownloadedBytes());
+			ui->setSize(qi->getSize());
+			ui->setPos(qi->getDownloadedBytes());
 			ui->setActual((int64_t)((double)ui->pos * (ratio == 0 ? 1.00 : ratio)));
 			ui->setTimeLeft((totalSpeed > 0) ? ((ui->size - ui->pos) / totalSpeed) : 0);
 			ui->setSpeed(totalSpeed);
@@ -1406,6 +1398,10 @@ void TransferView::on(QueueManagerListener::StatusUpdated, const QueueItem* qi) 
 }
 
 void TransferView::on(QueueManagerListener::Finished, const QueueItem* qi, const string&, const Download* download) throw() {
+
+	if(qi->getFlags() & QueueItem::FLAG_USER_LIST || qi->getFlags() & QueueItem::FLAG_TESTSUR)
+		return;
+
 	// update download item
 	UpdateInfo* ui = new UpdateInfo(download->getUser(), true);
 	//RSX++
@@ -1437,6 +1433,10 @@ void TransferView::on(QueueManagerListener::Finished, const QueueItem* qi, const
 }
 
 void TransferView::on(QueueManagerListener::Removed, const QueueItem* qi) throw() {
+
+	if(qi->getFlags() & QueueItem::FLAG_USER_LIST || qi->getFlags() & QueueItem::FLAG_TESTSUR)
+		return;
+		
 	UpdateInfo* ui = new UpdateInfo(const_cast<QueueItem*>(qi), true);
 	ui->setTarget(Text::toT(qi->getTarget()));
 	ui->setPos(0);
@@ -1451,5 +1451,5 @@ void TransferView::on(QueueManagerListener::Removed, const QueueItem* qi) throw(
 
 /**
  * @file
- * $Id: TransferView.cpp 427 2009-01-10 19:29:09Z BigMuscle $
+ * $Id: TransferView.cpp 453 2009-08-04 15:46:31Z BigMuscle $
  */

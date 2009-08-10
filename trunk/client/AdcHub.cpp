@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,6 +31,7 @@
 #include "CryptoManager.h"
 #include "ResourceManager.h"
 #include "LogManager.h"
+#include "UploadManager.h"
 #include "ScriptManager.h" //RSX++
 
 namespace dcpp {
@@ -68,6 +69,7 @@ OnlineUser& AdcHub::getUser(const uint32_t aSID, const CID& aCID) {
 	{
 		Lock l(cs);
 		ou = users.insert(make_pair(aSID, new OnlineUser(p, *this, aSID))).first->second;
+		ou->inc();
 		userCount++; //RSX++
 	}
 
@@ -187,12 +189,7 @@ void AdcHub::handle(AdcCommand::INF, AdcCommand& c) throw() {
 	}
 
 	if(!u->getIdentity().get("US").empty()) {
-		char buf[16];
-		snprintf(buf, sizeof(buf), "%.3g", Util::toDouble(u->getIdentity().get("US")) * 8 / 1024 / 1024);
-
-		char *cp;
-		if( (cp=strchr(buf, ',')) != NULL) *cp='.';
-		u->getIdentity().setConnection(buf);
+		u->getIdentity().setConnection(Util::formatBytes(u->getIdentity().get("US")) + "/s");
 	}
 	//RSX++ // $MyINFO check
 	if(getCheckedAtConnect() && getCheckMyInfo()) {
@@ -489,7 +486,7 @@ void AdcHub::handle(AdcCommand::STA, AdcCommand& c) throw() {
 	if(c.getParameters().size() < 2)
 		return;
 
-	OnlineUser* u = findUser(c.getFrom());
+	OnlineUser* u = c.getFrom() == AdcCommand::HUB_SID ? &getUser(c.getFrom(), CID()) : findUser(c.getFrom());
 	if(!u)
 		return;
 
@@ -577,7 +574,7 @@ void AdcHub::handle(AdcCommand::GET, AdcCommand& c) throw() {
 		size_t n = ShareManager::getInstance()->getSharedFiles();
 		
 		// Ideal size for m is n * k / ln(2), but we allow some slack
-		if(m > (5 * n * k / log(2.)) || m > (size_t)(1 << h)) {
+		if(m > (5 * n * k / log(2.)) || m > static_cast<size_t>(1 << h)) {
 			send(AdcCommand(AdcCommand::SEV_FATAL, AdcCommand::ERROR_TRANSFER_GENERIC, "Unsupported m"));
 			return;
 		}
@@ -650,7 +647,6 @@ void AdcHub::hubMessage(const string& aMessage, bool thirdPerson) {
 void AdcHub::privateMessage(const OnlineUserPtr& user, const string& aMessage, bool thirdPerson) {
 	if(state != STATE_NORMAL)
 		return;
-
 	AdcCommand c(AdcCommand::CMD_MSG, user->getIdentity().getSID(), AdcCommand::TYPE_ECHO);
 	c.addParam(aMessage);
 	if(thirdPerson)
@@ -745,7 +741,7 @@ void AdcHub::info(bool /*alwaysSend*/) {
 	addParam(lastInfoMap, c, "PD", ClientManager::getInstance()->getMyPID().toBase32());
 	addParam(lastInfoMap, c, "NI", getCurrentNick());
 	addParam(lastInfoMap, c, "DE", getCurrentDescription());
-	addParam(lastInfoMap, c, "SL", Util::toString(SETTING(SLOTS)));
+	addParam(lastInfoMap, c, "SL", Util::toString(UploadManager::getInstance()->getSlots()));
 	addParam(lastInfoMap, c, "SS", getHideShare() ? "0" : ShareManager::getInstance()->getShareSizeString());
 	addParam(lastInfoMap, c, "SF", getHideShare() ? "0" : Util::toString(ShareManager::getInstance()->getSharedFiles()));
 	addParam(lastInfoMap, c, "EM", getCurrentEmail());
@@ -763,7 +759,7 @@ void AdcHub::info(bool /*alwaysSend*/) {
 	addParam(lastInfoMap, c, "AW", Util::getAway() ? "1" : Util::emptyString);
 	
 	if(SETTING(THROTTLE_ENABLE) && SETTING(MAX_DOWNLOAD_SPEED_LIMIT) != 0) {
-		addParam(lastInfoMap, c, "DS", Util::toString((SETTING(MAX_DOWNLOAD_SPEED_LIMIT)*1024/8)));
+		addParam(lastInfoMap, c, "DS", Util::toString((SETTING(MAX_DOWNLOAD_SPEED_LIMIT)*1024)));
 	} else {
 		addParam(lastInfoMap, c, "DS", Util::emptyString);
 	}
@@ -848,12 +844,18 @@ void AdcHub::on(Connected c) throw() {
 void AdcHub::on(Line l, const string& aLine) throw() {
 	Client::on(l, aLine);
 
+	if(!Text::validateUtf8(aLine)) {
+		// @todo report to user?
+		return;
+	}
+
 	if(BOOLSETTING(ADC_DEBUG)) {
 		fire(ClientListener::StatusMessage(), this, "<ADC>" + aLine + "</ADC>");
 	}
-
-	if(extOnMsgIn(aLine)) return; //RSX++
-
+	//RSX++
+	if(extOnMsgIn(aLine))
+		return;
+	//END
 	dispatch(aLine);
 }
 
@@ -873,5 +875,5 @@ void AdcHub::on(Second s, uint64_t aTick) throw() {
 
 /**
  * @file
- * $Id: AdcHub.cpp 429 2009-02-06 17:26:54Z BigMuscle $
+ * $Id: AdcHub.cpp 450 2009-07-05 15:02:34Z BigMuscle $
  */

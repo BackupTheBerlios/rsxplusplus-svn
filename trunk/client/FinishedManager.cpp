@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -82,7 +82,7 @@ void FinishedManager::on(QueueManagerListener::Finished, const QueueItem* qi, co
 		FinishedItemPtr item = new FinishedItem(
 			qi->getTarget(), d->getUser(),
 			Util::toString(ClientManager::getInstance()->getHubNames(d->getUser()->getCID())),
-			qi->getSize(), d->getAverageSpeed(), GET_TIME(), qi->getTTH().toBase32());
+			qi->getSize(), static_cast<int64_t>(d->getAverageSpeed()), GET_TIME(), qi->getTTH().toBase32());
 		{
 			Lock l(cs);
 			downloads.push_back(item);
@@ -112,7 +112,7 @@ void FinishedManager::on(UploadManagerListener::Complete, const Upload* u) throw
 		FinishedItemPtr item = new FinishedItem(
 			u->getPath(), u->getUser(),
 			Util::toString(ClientManager::getInstance()->getHubNames(u->getUser()->getCID())),
-			u->getFileSize(), u->getAverageSpeed(), GET_TIME());
+			u->getFileSize(), static_cast<int64_t>(u->getAverageSpeed()), GET_TIME());
 		{
 			Lock l(cs);
 			uploads.push_back(item);
@@ -169,5 +169,5 @@ bool FinishedManager::handlePartialRequest(const TTHValue& tth, vector<uint16_t>
 
 /**
  * @file
- * $Id: FinishedManager.cpp 403 2008-07-10 21:27:57Z BigMuscle $
+ * $Id: FinishedManager.cpp 451 2009-07-10 21:24:08Z BigMuscle $
  */

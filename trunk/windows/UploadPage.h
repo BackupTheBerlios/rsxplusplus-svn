@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2008 Big Muscle
+ * Copyright (C) 2008-2009 Big Muscle
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -56,5 +56,5 @@ protected:
 
 /**
  * @file
- * $Id: UploadPage.h 395 2008-06-30 12:11:32Z BigMuscle $
+ * $Id: UploadPage.h 434 2009-03-29 11:09:33Z BigMuscle $
  */

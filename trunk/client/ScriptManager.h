@@ -20,13 +20,15 @@
 #define RSXPLUSPLUS_SCRIPT_MANAGER
 
 #include "Singleton.h"
+
+#include <luabind/luabind.hpp>
 #include <luabind/object.hpp>
 
 namespace dcpp {
-class Client;
-class CriticalSection;
-class UserConnection;
-class LuaScript;
+	class Client;
+	class CriticalSection;
+	class UserConnection;
+	class LuaScript;
 
 class ScriptManager : public Singleton<ScriptManager>, private SettingsManagerListener {
 public:
@@ -53,73 +55,62 @@ public:
 		return scripts;
 	}
 
-	inline void getNmdcFeats(StringList& feats) {
+	void getNmdcFeats(StringList& feats) {
 		feats.insert(feats.end(), nmdcFeats.begin(), nmdcFeats.end());
 	}
 
-	inline void getAdcFeats(std::string& feats) {
+	void getAdcFeats(std::string& feats) {
 		for(StringList::const_iterator i = adcFeats.begin(); i != adcFeats.end(); ++i)
 			feats += *i + ",";
 	}
 
 private:
-	void on(SettingsManagerListener::Load, SimpleXML&) throw();
-	void on(SettingsManagerListener::Save, SimpleXML&) throw();
-
-	void addSlot(const luabind::object& o, const std::string& name);
-	void remSlot(const luabind::object& o, const std::string& name);
-	void addNmdcFeat(const std::string& feat);
-	void addAdcFeat(const std::string& feat);
-	void exec();
-
-	void BindScriptManager();
-
 	friend class Singleton<ScriptManager>;
 
-	Scripts scripts;
+	typedef std::vector<luabind::object> Objects;
+	typedef std::vector<Objects> Listeners;
 
-	typedef vector<luabind::adl::object> Objects;
-	void removeObject(Objects& c, const luabind::object& o);
-	int getIndex(const std::string& name);
+	enum {
+		HUB_LINE_IN = 0,
+		HUB_LINE_OUT,
+		USER_PM_IN,
+		USER_PM_OUT,
+		USER_CONNECTED,
+		USER_DISCONNECTED,
+		HUB_CONNECTED,
+		HUB_DISCONNECTED,
+		CONNECTION_LINE_IN,
+		CONNECTION_LINE_OUT,
+		SETTINGS_SAVE,
+		SETTINGS_LOAD,
+		TIMER_ON_SECOND,
+		TIMER_ON_MINUTE,
+		LISTENERS_LAST
+	};
 
-	Objects msgIn;
-	Objects msgOut;
+	void BindScriptManager();
+	void addSlot(int type, const luabind::object& o);
+	void remSlot(int type, const luabind::object& o);
+	void addNmdcFeat(const std::string& feat);
+	void addAdcFeat(const std::string& feat);
 
-	Objects pmIn;
-	Objects pmOut;
-
-	Objects userIn;
-	Objects userOut;
-
-	Objects hubIn;
-	Objects hubOut;
-
-	Objects connIn;
-	Objects connOut;
-
-	Objects cfgLoad;
-	Objects cfgSave;
-
-	void freeObjects() {
-		msgIn.clear();
-		msgOut.clear();
-		pmIn.clear();
-		pmOut.clear();
-		userIn.clear();
-		userOut.clear();
-		hubIn.clear();
-		hubOut.clear();
-		connIn.clear();
-		connOut.clear();
-		cfgLoad.clear();
-		cfgSave.clear();
+	void exec();	void freeObjects() {
+		//for(Listeners::const_iterator i = listeners.begin(); i != listeners.end(); ++i)
+		//	(*i).clear();
+		listeners.clear();
 	}
+
+	Scripts scripts;
+	Listeners listeners;
 
 	StringList nmdcFeats;
 	StringList adcFeats;
 
 	static CriticalSection cs;
 	static lua_State* parser;
+
+	void on(SettingsManagerListener::Load, SimpleXML&) throw();
+	void on(SettingsManagerListener::Save, SimpleXML&) throw();
 
 };
 } // namespace dcpp

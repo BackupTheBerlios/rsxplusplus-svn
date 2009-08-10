@@ -328,7 +328,7 @@ void AutoSearchManager::AutosearchSave() {
 
 		xml.stepOut();
 		
-		string fname = Util::getConfigPath() + AUTOSEARCH_FILE;
+		string fname = Util::getPath(Util::PATH_USER_CONFIG) + AUTOSEARCH_FILE;
 
 		File f(fname + ".tmp", File::WRITE, File::CREATE | File::TRUNCATE);
 		f.write(SimpleXML::utf8Header);
@@ -372,7 +372,7 @@ void AutoSearchManager::loadAutosearch(SimpleXML& aXml) {
 void AutoSearchManager::AutosearchLoad() {
 	try {
 		SimpleXML xml;
-		xml.fromXML(File(Util::getConfigPath() + AUTOSEARCH_FILE, File::READ, File::OPEN).read());
+		xml.fromXML(File(Util::getPath(Util::PATH_USER_CONFIG) + AUTOSEARCH_FILE, File::READ, File::OPEN).read());
 		if(xml.findChild("Autosearch")) {
 			xml.stepIn();
 			loadAutosearch(xml);

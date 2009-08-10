@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -233,7 +233,7 @@ private:
 };
 
 } // namespace dcpp
-
+//RSX++
 #ifdef BOOST_TR1
 namespace boost {
 template<>
@@ -259,10 +259,10 @@ struct equal_to<dcpp::TTHValue*> {
 };
 } // namespace std
 #endif // BOOST_TR1
-
+//END
 #endif // !defined(MERKLE_TREE_H)
 
 /**
  * @file
- * $Id: MerkleTree.h 403 2008-07-10 21:27:57Z BigMuscle $
+ * $Id: MerkleTree.h 434 2009-03-29 11:09:33Z BigMuscle $
  */

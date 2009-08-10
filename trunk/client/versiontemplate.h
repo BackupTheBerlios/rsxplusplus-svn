@@ -20,16 +20,16 @@
 #define VERSIONSTRING "1.1"
 #define VERSIONFLOAT 1.1
 
-#define DCVERSIONSTRING "0.7091"
-#define DCVERSIONFLOAT 0.7091
+#define DCVERSIONSTRING "0.75"
+#define DCVERSIONFLOAT 0.75
 
-#define SVNVERSION "svn432"
+#define SVNVERSION "svn453"
 
 #define SVN_REVISION $WCREV$
 
-#define __HOMESITE "http://rsxplusplus.sf.net/"
-#define __WIKI "http://rsxplusplus.wiki.sourceforge.net/"
-#define __FORUM "http://rsxplusplus.sf.net/forum/"
+#define RSXPP_SITE "http://rsxplusplus.sf.net/"
+#define RSXPP_TRAC "http://sourceforge.net/apps/trac/rsxplusplus/"
+#define RSXPP_FORUM "http://sourceforge.net/apps/phpbb/rsxplusplus/"
 #define VERSION_URL "http://rsxplusplus.sf.net/version.xml"
 
 /* Update the .rc file as well... */

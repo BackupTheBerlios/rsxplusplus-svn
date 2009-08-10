@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -119,9 +119,6 @@ typedef unsigned __int64 uint64_t;
 # define memcpy memcpy2
 # define memset memset2
 #endif
-//RSX++
-#define todo_message(x) message(__FILE__ "(" BOOST_STRINGIZE(__LINE__) ") \t\t\t@todo: " x)
-//END
 
 #ifdef _MSC_VER
 #include <crtdbg.h>
@@ -182,7 +179,7 @@ typedef unsigned __int64 uint64_t;
 #include <tr1/unordered_map>
 
 #else
-#error "Unknown STL Library"
+#error "Unknown STL, please configure accordingly"
 #endif
 
 namespace dcpp {
@@ -194,5 +191,5 @@ using namespace std::tr1;
 
 /**
  * @file
- * $Id: stdinc.h 403 2008-07-10 21:27:57Z BigMuscle $
+ * $Id: stdinc.h 434 2009-03-29 11:09:33Z BigMuscle $
  */

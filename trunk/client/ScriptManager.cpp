@@ -55,26 +55,37 @@ ScriptManager::~ScriptManager() {
 void ScriptManager::BindScriptManager() {
 	luabind::module(parser, "dcpp") [
 		luabind::class_<ScriptManager>("ScriptManager")
-		.def("connectSlot", &ScriptManager::addSlot)
-		.def("disconnectSlot", &ScriptManager::remSlot)
+		.def("addListener", &ScriptManager::addSlot)
+		.def("removeListener", &ScriptManager::remSlot)
 		.def("addAdcHubFeature", &ScriptManager::addAdcFeat)
-		.def("addNmdcHubFeature", &ScriptManager::addNmdcFeat),
+		.def("addNmdcHubFeature", &ScriptManager::addNmdcFeat)
+		.enum_("ListenerType") [
+			luabind::value("HUB_LINE_IN", HUB_LINE_IN),
+			luabind::value("HUB_LINE_OUT", HUB_LINE_OUT),
+			luabind::value("USER_PM_IN", USER_PM_IN),
+			luabind::value("USER_PM_OUT", USER_PM_OUT),
+			luabind::value("USER_CONNECTED", USER_CONNECTED),
+			luabind::value("USER_DISCONNECTED", USER_DISCONNECTED),
+			luabind::value("HUB_CONNECTED", HUB_CONNECTED),
+			luabind::value("HUB_DISCONNECTED", HUB_DISCONNECTED),
+			luabind::value("CONNECTION_LINE_IN", CONNECTION_LINE_IN),
+			luabind::value("CONNECTION_LINE_OUT", CONNECTION_LINE_OUT),
+			luabind::value("SETTINGS_SAVE", SETTINGS_SAVE),
+			luabind::value("SETTINGS_LOAD", SETTINGS_LOAD),
+			luabind::value("TIMER_ON_SECOND", TIMER_ON_SECOND),
+			luabind::value("TIMER_ON_MINUTE", TIMER_ON_MINUTE)
+		],
 
-		luabind::class_<SettingsManager>("SettingsManager")
-		.def("getString", &SettingsManager::getString)
-		.def("getInt", &SettingsManager::getInt),
-
-		luabind::class_<rsxppSettingsManager>("rsxppSettingsManager")
-		.def("addAction", &rsxppSettingsManager::addAction)
-		.def("getActionId", &rsxppSettingsManager::getActionId),
-
-		luabind::def("getScriptManager", &ScriptManager::getInstance),
-		luabind::def("getSettingsManager", &SettingsManager::getInstance),
-		luabind::def("getRSXSettingsManager", &rsxppSettingsManager::getInstance)
+		luabind::def("getScriptManager", &ScriptManager::getInstance)
 	];
 }
 
 void ScriptManager::load(void (*f)(void*, const tstring&), void* p) {
+	// init listeners
+	listeners.resize(LISTENERS_LAST);
+	for(int i = 0; i < LISTENERS_LAST; ++i)
+		listeners.push_back(Objects());
+
 	parser = lua_open();
 
 	luaL_openlibs(parser);
@@ -97,12 +108,13 @@ void ScriptManager::load(void (*f)(void*, const tstring&), void* p) {
 	LuaBindings::BindQueueManager(parser);
 	LuaBindings::BindAdcCommand(parser);
 	//LuaBindings::BindTTHValue(parser);
+	LuaBindings::BindSettingsManager(parser);
 
 	PluginsManager::getInstance()->onLuaInit(parser);
 
 	{
 		Lock l(cs);
-		StringList libs = File::findFiles(Util::getDataPath() + "LuaScripts" PATH_SEPARATOR_STR, "*.lua");
+		StringList libs = File::findFiles(Util::getPath(Util::PATH_GLOBAL_CONFIG) + "LuaScripts" PATH_SEPARATOR_STR, "*.lua");
 		for(StringIter i = libs.begin(); i != libs.end(); ++i) {
 			LuaScript* scr = new LuaScript;
 			scr->path = Text::toT(*i);
@@ -147,80 +159,19 @@ void ScriptManager::runGC() {
 	lua_gc(parser, LUA_GCCOLLECT, 0);
 }
 
-void ScriptManager::removeObject(Objects& c, const luabind::object& o) {
-	Objects::iterator i = std::find(c.begin(), c.end(), o);
-	if(i != c.end()) c.erase(i);
-}
-
-int ScriptManager::getIndex(const std::string& name) {
-	if(stricmp(name, "MessageIn") == 0)
-		return 1;
-	if(stricmp(name, "MessageOut") == 0)
-		return 2;
-	if(stricmp(name, "PrivateMessageIn") == 0)
-		return 3;
-	if(stricmp(name, "PrivateMessageOut") == 0)
-		return 4;
-	if(stricmp(name, "UserConnected") == 0)
-		return 5;
-	if(stricmp(name, "UserDisconnected") == 0)
-		return 6;
-	if(stricmp(name, "HubConnected") == 0)
-		return 7;
-	if(stricmp(name, "HubDisconnected") == 0)
-		return 8;
-	if(stricmp(name, "UserConnectionIn") == 0)
-		return 9;
-	if(stricmp(name, "UserConnectionOut") == 0)
-		return 10;
-	if(stricmp(name, "ConfigLoad") == 0)
-		return 11;
-	if(stricmp(name, "ConfigSave") == 0)
-		return 12;
-	return 0;
-}
-
-void ScriptManager::addSlot(const luabind::object& o, const std::string& name) {
-	if(luabind::type(o) == LUA_TFUNCTION) {
+void ScriptManager::addSlot(int type, const luabind::adl::object& o) {
+	if(luabind::type(o) == LUA_TFUNCTION && type < LISTENERS_LAST && type >= 0) {
 		Lock l(cs);
-		int type = getIndex(name);
-		switch(type) {
-			case 1: msgIn.push_back(o); break;
-			case 2: msgOut.push_back(o); break;
-			case 3: pmIn.push_back(o); break;
-			case 4: pmOut.push_back(o); break;
-			case 5: userIn.push_back(o); break;
-			case 6: userOut.push_back(o); break;
-			case 7: hubIn.push_back(o); break;
-			case 8: hubOut.push_back(o); break;
-			case 9: connIn.push_back(o); break;
-			case 10: connOut.push_back(o); break;
-			case 11: cfgLoad.push_back(o); break;
-			case 12: cfgSave.push_back(o); break;
-			default: break;
-		}
+		listeners[type].push_back(o);
 	}
 }
 
-void ScriptManager::remSlot(const luabind::object& o, const std::string& name) {
-	if(luabind::type(o) == LUA_TFUNCTION) {
-		Lock l(cs);
-		int type = getIndex(name);
-		switch(type) {
-			case 1: removeObject(msgIn, o); break;
-			case 2: removeObject(msgOut, o); break;
-			case 3: removeObject(pmIn, o); break;
-			case 4: removeObject(pmOut, o); break;
-			case 5: removeObject(userIn, o); break;
-			case 6: removeObject(userOut, o); break;
-			case 7: removeObject(hubIn, o); break;
-			case 8: removeObject(hubOut, o); break;
-			case 9: removeObject(connIn, o); break;
-			case 10: removeObject(connOut, o); break;
-			case 11: removeObject(cfgLoad, o); break;
-			case 12: removeObject(cfgSave, o); break;
-			default: break;
-		}
+void ScriptManager::remSlot(int type, const luabind::adl::object& o) {
+	if(luabind::type(o) == LUA_TFUNCTION && type < LISTENERS_LAST && type >= 0) {
+		Lock lock(cs);
+		Objects& l = listeners[type];		Objects::iterator i = std::find(l.begin(), l.end(), o);
+		if(i != l.end())
+			l.erase(i);
 	}
 }
 
@@ -235,10 +186,11 @@ void ScriptManager::addAdcFeat(const std::string& feat) {
 }
 
 bool ScriptManager::onPmMsgIn(Client* hub, OnlineUser* from, OnlineUser* to, OnlineUser* replyTo, const std::string& msg, bool thirdPerson) {
-	if(pmIn.empty()) return false;
+	Objects& obj = listeners[USER_PM_IN];
+	if(obj.empty()) return false;
 	Lock l(cs);
 	bool ret = false;
-	for(Objects::const_iterator i = pmIn.begin(); i != pmIn.end(); ++i) {
+	for(Objects::const_iterator i = obj.begin(); i != obj.end(); ++i) {
 		try {
 			bool r = luabind::call_function<bool>(*i, hub, from, to, replyTo, boost::ref(msg), thirdPerson);
 			if(r) ret = true;
@@ -251,10 +203,11 @@ bool ScriptManager::onPmMsgIn(Client* hub, OnlineUser* from, OnlineUser* to, Onl
 }
 
 bool ScriptManager::onPmMsgOut(Client* hub, OnlineUser* to, const std::string& msg) {
-	if(pmOut.empty()) return false;
+	Objects& obj = listeners[USER_PM_OUT];
+	if(obj.empty()) return false;
 	Lock l(cs);
 	bool ret = false;
-	for(Objects::const_iterator i = pmOut.begin(); i != pmOut.end(); ++i) {
+	for(Objects::const_iterator i = obj.begin(); i != obj.end(); ++i) {
 		try {
 			bool r = luabind::call_function<bool>(*i, hub, to, boost::ref(msg));
 			if(r) ret = true;
@@ -267,10 +220,11 @@ bool ScriptManager::onPmMsgOut(Client* hub, OnlineUser* to, const std::string& m
 }
 
 bool ScriptManager::onHubMsgIn(Client* c, const std::string& msg) {
-	if(msgIn.empty()) return false;
+	Objects& obj = listeners[HUB_LINE_IN];
+	if(obj.empty()) return false;
 	Lock l(cs);
 	bool ret = false;
-	for(Objects::const_iterator i = msgIn.begin(); i != msgIn.end(); ++i) {
+	for(Objects::const_iterator i = obj.begin(); i != obj.end(); ++i) {
 		try {
 			bool r = luabind::call_function<bool>(*i, c, boost::ref(msg));
 			if(r) ret = true;
@@ -283,10 +237,11 @@ bool ScriptManager::onHubMsgIn(Client* c, const std::string& msg) {
 }
 
 bool ScriptManager::onHubMsgOut(Client* c, const std::string& msg) {
-	if(msgOut.empty()) return false;
+	Objects& obj = listeners[HUB_LINE_OUT];
+	if(obj.empty()) return false;
 	Lock l(cs);
 	bool ret = false;
-	for(Objects::const_iterator i = msgOut.begin(); i != msgOut.end(); ++i) {
+	for(Objects::const_iterator i = obj.begin(); i != obj.end(); ++i) {
 		try {
 			bool r = luabind::call_function<bool>(*i, c, boost::ref(msg));
 			if(r) ret = true;
@@ -299,9 +254,10 @@ bool ScriptManager::onHubMsgOut(Client* c, const std::string& msg) {
 }
 
 void ScriptManager::onUserConnected(OnlineUser* user) {
-	if(userIn.empty()) return;
+	Objects& obj = listeners[USER_CONNECTED];
+	if(obj.empty()) return;
 	Lock l(cs);
-	for(Objects::const_iterator i = userIn.begin(); i != userOut.end(); ++i) {
+	for(Objects::const_iterator i = obj.begin(); i != obj.end(); ++i) {
 		try {
 			luabind::call_function<bool>(*i, user);
 		} catch(const luabind::error& e) { 
@@ -312,9 +268,10 @@ void ScriptManager::onUserConnected(OnlineUser* user) {
 }
 
 void ScriptManager::onUserDisconnected(OnlineUser* user) {
-	if(userOut.empty()) return;
+	Objects& obj = listeners[USER_DISCONNECTED];
+	if(obj.empty()) return;
 	Lock l(cs);
-	for(Objects::const_iterator i = userOut.begin(); i != userOut.end(); ++i) {
+	for(Objects::const_iterator i = obj.begin(); i != obj.end(); ++i) {
 		try {
 			luabind::call_function<void>(*i, user);
 		} catch(const luabind::error& e) { 
@@ -325,9 +282,10 @@ void ScriptManager::onUserDisconnected(OnlineUser* user) {
 }
 
 void ScriptManager::onHubConnected(Client* c) {
-	if(hubIn.empty()) return;
+	Objects& obj = listeners[HUB_CONNECTED];
+	if(obj.empty()) return;
 	Lock l(cs);
-	for(Objects::const_iterator i = hubIn.begin(); i != hubIn.end(); ++i) {
+	for(Objects::const_iterator i = obj.begin(); i != obj.end(); ++i) {
 		try {
 			luabind::call_function<void>(*i, c);
 		} catch(const luabind::error& e) { 
@@ -338,9 +296,10 @@ void ScriptManager::onHubConnected(Client* c) {
 }
 
 void ScriptManager::onHubDisconnected(Client* c) {
-	if(hubOut.empty()) return;
+	Objects& obj = listeners[HUB_DISCONNECTED];
+	if(obj.empty()) return;
 	Lock l(cs);
-	for(Objects::const_iterator i = hubOut.begin(); i != hubOut.end(); ++i) {
+	for(Objects::const_iterator i = obj.begin(); i != obj.end(); ++i) {
 		try {
 			luabind::call_function<void>(*i, c);
 		} catch(const luabind::error& e) { 
@@ -351,10 +310,11 @@ void ScriptManager::onHubDisconnected(Client* c) {
 }
 
 bool ScriptManager::onConnectionIn(UserConnection* uc, const std::string& line) {
-	if(connIn.empty()) return false;
+	Objects& obj = listeners[CONNECTION_LINE_IN];
+	if(obj.empty()) return false;
 	Lock l(cs);
 	bool ret = false;
-	for(Objects::const_iterator i = connIn.begin(); i != connIn.end(); ++i) {
+	for(Objects::const_iterator i = obj.begin(); i != obj.end(); ++i) {
 		try {
 			bool r = luabind::call_function<bool>(*i, uc, boost::ref(line));
 			if(r) ret = true;
@@ -367,10 +327,11 @@ bool ScriptManager::onConnectionIn(UserConnection* uc, const std::string& line) 
 }
 
 bool ScriptManager::onConnectionOut(UserConnection* uc, const std::string& line) {
-	if(connOut.empty()) return false;													
+	Objects& obj = listeners[CONNECTION_LINE_OUT];
+	if(obj.empty()) return false;
 	Lock l(cs);
 	bool ret = false;
-	for(Objects::const_iterator i = connOut.begin(); i != connOut.end(); ++i) {
+	for(Objects::const_iterator i = obj.begin(); i != obj.end(); ++i) {
 		try {
 			bool r = luabind::call_function<bool>(*i, uc, boost::ref(line));
 			if(r) ret = true;
@@ -396,10 +357,13 @@ void ScriptManager::on(SettingsManagerListener::Load, SimpleXML& xml) throw() {
 		}
 		exec();
 		xml.stepOut();
-	} else if(xml.findChild("LuaSettings")) {
+	}
+	if(xml.findChild("LuaSettings")) {
 		xml.stepIn();
 		try {
-			for(Objects::const_iterator i = cfgLoad.begin(); i != cfgLoad.end(); ++i) {
+			Lock l(cs);
+			Objects& obj = listeners[SETTINGS_LOAD];
+			for(Objects::const_iterator i = obj.begin(); i != obj.end(); ++i) {
 				try {
 					luabind::call_function<void>(*i, boost::ref(xml));
 				} catch(const luabind::error& e) { 
@@ -425,7 +389,9 @@ void ScriptManager::on(SettingsManagerListener::Save, SimpleXML& xml) throw() {
 	xml.addTag("LuaSettings");
 	xml.stepIn();
 	try {
-		for(Objects::const_iterator i = cfgSave.begin(); i != cfgSave.end(); ++i) {
+		Lock l(cs);
+		Objects& obj = listeners[SETTINGS_SAVE];
+		for(Objects::const_iterator i = obj.begin(); i != obj.end(); ++i) {
 			try {
 				luabind::call_function<void>(*i, boost::ref(xml));
 			} catch(const luabind::error& e) { 

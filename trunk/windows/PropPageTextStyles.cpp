@@ -146,7 +146,7 @@ LRESULT PropPageTextStyles::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARA
 	ctrlStyles.AddString(CTSTRING(SETSTRONGDC_BLACK_WHITE));
 	WIN32_FIND_DATA data;
 	HANDLE hFind;
-	hFind = FindFirstFile(Text::toT(Util::getDataPath() + "Styles\\*.xml").c_str(), &data);
+	hFind = FindFirstFile(Text::toT(Util::getPath(Util::PATH_GLOBAL_CONFIG) + "Styles\\*.xml").c_str(), &data);
 	if(hFind != INVALID_HANDLE_VALUE) {
 		do {
 			tstring name = data.cFileName;
@@ -794,7 +794,7 @@ LRESULT PropPageTextStyles::onSelectStylesChange(WORD /*wNotifyCode*/, WORD /*wI
 		} else if (sel > 2) {
 			TCHAR tmp[1024];
 			GetDlgItemText(IDC_SELECT_STYLES, tmp, 1024);
-			string file = Util::getDataPath() + "Styles\\" + Text::fromT(tmp) + ".xml";
+			string file = Util::getPath(Util::PATH_GLOBAL_CONFIG) + "Styles\\" + Text::fromT(tmp) + ".xml";
 
 			try {
 				SimpleXML xml;

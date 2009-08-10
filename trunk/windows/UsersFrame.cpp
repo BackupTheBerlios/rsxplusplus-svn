@@ -84,7 +84,7 @@ LRESULT UsersFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, B
 		usersMenu.CreatePopupMenu();
 		usersMenu.AppendMenu(MF_STRING, IDC_OPEN_USER_LOG, CTSTRING(OPEN_USER_LOG));
 		usersMenu.AppendMenu(MF_SEPARATOR);
-		appendUserItems(usersMenu);
+		appendUserItems(usersMenu, Util::emptyString); // TODO: hubhint
 		usersMenu.AppendMenu(MF_SEPARATOR);
 		usersMenu.AppendMenu(MF_STRING, IDC_EDIT, CTSTRING(PROPERTIES));
 		usersMenu.AppendMenu(MF_STRING, IDC_REMOVE, CTSTRING(REMOVE));
@@ -302,5 +302,5 @@ void UsersFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/) throw() {
 
 /**
  * @file
- * $Id: UsersFrame.cpp 398 2008-07-05 20:54:25Z BigMuscle $
+ * $Id: UsersFrame.cpp 435 2009-06-02 19:21:43Z BigMuscle $
  */

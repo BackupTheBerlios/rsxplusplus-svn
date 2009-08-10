@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2008 adrian_007, adrian-007 on o2 point pl
+ * Copyright (C) 2007-2009 adrian_007, adrian-007 on o2 point pl
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,8 +30,10 @@ namespace dcpp {
 
 void DetectionManager::ProfilesLoad() {
 	try {
+		Util::migrate(Util::getPath(Util::PATH_USER_CONFIG) + "Profiles.xml");
+		
 		SimpleXML xml;
-		xml.fromXML(File(Util::getConfigPath() + "Profiles.xml", File::READ, File::OPEN).read());
+		xml.fromXML(File(Util::getPath(Util::PATH_USER_CONFIG) + "Profiles.xml", File::READ, File::OPEN).read());
 
 		if(xml.findChild("Profiles")) {
 			xml.stepIn();
@@ -152,7 +154,7 @@ void DetectionManager::ProfilesLoad() {
 void DetectionManager::UserInfoLoad() {
 	try {
 		SimpleXML xml;
-		xml.fromXML(File(Util::getConfigPath() + "UserInfoProfiles.xml", File::READ, File::OPEN).read());
+		xml.fromXML(File(Util::getPath(Util::PATH_USER_CONFIG) + "UserInfoProfiles.xml", File::READ, File::OPEN).read());
 
 		if(xml.findChild("Profiles")) {
 			xml.stepIn();
@@ -350,7 +352,7 @@ void DetectionManager::UserInfoSave() {
 		xml.stepOut();
 		xml.stepOut();
 
-		string fname = Util::getConfigPath() + "UserInfoProfiles.xml";
+		string fname = Util::getPath(Util::PATH_USER_CONFIG) + "UserInfoProfiles.xml";
 
 		File f(fname + ".tmp", File::WRITE, File::CREATE | File::TRUNCATE);
 		f.write(SimpleXML::utf8Header);
@@ -587,7 +589,7 @@ void DetectionManager::ProfilesSave() {
 		xml.stepOut();
 		xml.stepOut();
 
-		string fname = Util::getConfigPath() + "Profiles.xml";
+		string fname = Util::getPath(Util::PATH_USER_CONFIG) + "Profiles.xml";
 
 		File f(fname + ".tmp", File::WRITE, File::CREATE | File::TRUNCATE);
 		f.write(SimpleXML::utf8Header);
@@ -603,7 +605,7 @@ void DetectionManager::ProfilesSave() {
 
 void DetectionManager::loadCompressedProfiles() {
 	string xml = Util::emptyString;
-	string file = Util::getConfigPath() + "Profiles.xml";
+	string file = Util::getPath(Util::PATH_USER_CONFIG) + "Profiles.xml";
 	if(!Util::fileExists(file + ".bz2"))
 		return;
 	try {

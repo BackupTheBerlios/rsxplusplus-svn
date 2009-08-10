@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,6 +28,7 @@
 #include "CryptoManager.h"
 #include "ConnectionManager.h"
 
+
 #include "Socket.h"
 #include "UserCommand.h"
 #include "StringTokenizer.h"
@@ -37,6 +38,7 @@
 #include "ScriptManager.h" //RSX++
 
 namespace dcpp {
+
 NmdcHub::NmdcHub(const string& aHubURL, bool secure) : Client(aHubURL, '|', secure), supportFlags(0),
 	lastBytesShared(0), lastUpdate(0)
 {
@@ -95,6 +97,7 @@ OnlineUser& NmdcHub::getUser(const string& aNick) {
 	{
 		Lock l(cs);
 		u = users.insert(make_pair(aNick, new OnlineUser(p, *this, 0))).first->second;
+		u->inc();
 		u->getIdentity().setNick(aNick);
 		if(u->getUser() == getMyIdentity().getUser()) {
 			setMyIdentity(u->getIdentity());
@@ -138,7 +141,7 @@ void NmdcHub::putUser(const string& aNick) {
 			return;
 		ou = i->second;
 		users.erase(i);
-	userCount--;
+		userCount--;
 		availableBytes -= ou->getIdentity().getBytesShared();
 	}
 	ClientManager::getInstance()->putOffline(ou);
@@ -150,7 +153,7 @@ void NmdcHub::clearUsers() {
 	stopMyINFOCheck();
 	//END
 	NickMap u2;
-	
+
 	{
 		Lock l(cs);
 		u2.swap(users);
@@ -930,11 +933,13 @@ void NmdcHub::myInfo(bool alwaysSend) {
 		if (UploadManager::getInstance()->getFireballStatus()) {
 			StatusMode |= Identity::FIREBALL;
 		}
-		if (CryptoManager::getInstance()->TLSOk()) {
-			StatusMode |= Identity::TLS;
-		}
 	}
 	string extVer = getStealth() ? "<RSX++ " VERSIONSTRING ">" : Util::emptyString; //RSX++
+
+	if (CryptoManager::getInstance()->TLSOk()) {
+		StatusMode |= Identity::TLS;
+	}	
+
 	if (BOOLSETTING(THROTTLE_ENABLE) && SETTING(MAX_UPLOAD_SPEED_LIMIT) != 0) {
 		snprintf(tag, sizeof(tag), "%s %s V:%s,M:%c,H:%s,S:%d,L:%d>", extVer.c_str(), dc.c_str(), version.c_str(), modeChar, getCounts().c_str(), UploadManager::getInstance()->getSlots(), SETTING(MAX_UPLOAD_SPEED_LIMIT));
 	} else {
@@ -1055,9 +1060,10 @@ void NmdcHub::on(Connected) throw() {
 
 void NmdcHub::on(Line, const string& aLine) throw() {
 	Client::on(Line(), aLine);
-
-	if(extOnMsgIn(toUtf8(aLine))) return; //RSX++
-
+	//RSX++
+	if(extOnMsgIn(toUtf8(aLine)))
+		return;
+	//END
 	onLine(aLine);
 }
 
@@ -1079,5 +1085,5 @@ void NmdcHub::on(Second, uint64_t aTick) throw() {
 
 /**
  * @file
- * $Id: nmdchub.cpp 429 2009-02-06 17:26:54Z BigMuscle $
+ * $Id: nmdchub.cpp 442 2009-06-23 16:38:39Z BigMuscle $
  */

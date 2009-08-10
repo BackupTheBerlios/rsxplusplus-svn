@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -52,7 +52,10 @@
 #include "DebugManager.h"
 #include "DetectionManager.h"
 #include "WebServerManager.h"
+
+#include "../dht/dht.h"
 #include "../windows/PopupManager.h"
+
 /*
 #ifdef _STLP_DEBUG
 void __stl_debug_terminate() {
@@ -109,6 +112,8 @@ void startup(void (*f)(void*, const tstring&), void* p) {
 	IpManager::newInstance();
 	PluginsManager::newInstance();
 
+	NetworkConfiguration::getInstance()->setupPorts();
+
 	PluginsManager::getInstance()->init(f, p);
 	ScriptManager::getInstance()->load(f, p);
 	//---
@@ -126,6 +131,8 @@ void startup(void (*f)(void*, const tstring&), void* p) {
 	CryptoManager::getInstance()->loadCertificates();
 	DetectionManager::getInstance()->load();
 	WebServerManager::newInstance();
+	
+	dht::DHT::newInstance();
 
 	if(f != NULL)
 		(*f)(p, TSTRING(HASH_DATABASE));
@@ -151,9 +158,10 @@ void shutdown() {
 
 	BufferedSocket::waitShutdown();
 	
-	QueueManager::getInstance()->saveQueue();
+	QueueManager::getInstance()->saveQueue(true);
 	SettingsManager::getInstance()->save();
 
+	dht::DHT::deleteInstance();
 	//RSX++
 	NetworkConfiguration::getInstance()->closePorts();
 	PluginsManager::getInstance()->initClose();
@@ -200,5 +208,5 @@ void shutdown() {
 
 /**
  * @file
- * $Id: DCPlusPlus.cpp 421 2008-09-03 17:20:45Z BigMuscle $
+ * $Id: DCPlusPlus.cpp 436 2009-06-15 21:14:05Z BigMuscle $
  */

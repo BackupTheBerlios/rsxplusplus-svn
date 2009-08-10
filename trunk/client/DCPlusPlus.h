@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -55,6 +55,7 @@ _CrtDbgBreak(); } } while(false)
 #define dcassert(exp) assert(exp)
 #endif
 #define dcdrun(exp) exp
+#define dcdebug_use(x) x
 #else //_DEBUG
 #ifdef _MSC_VER
 #define dcasserta(exp) __assume(exp)
@@ -64,6 +65,7 @@ _CrtDbgBreak(); } } while(false)
 #define dcdebug if (false) printf
 #define dcassert(exp)
 #define dcdrun(exp)
+#define dcdebug_use(x)
 #endif //_DEBUG
 
 // Make sure we're using the templates from algorithm...
@@ -84,10 +86,10 @@ typedef pair<string, string> StringPair;
 typedef vector<StringPair> StringPairList;
 typedef StringPairList::iterator StringPairIter;
 
-typedef unordered_map<string, string> StringMap;
+typedef std::tr1::unordered_map<string, string> StringMap;
 typedef StringMap::iterator StringMapIter;
 
-typedef unordered_set<string> StringSet;
+typedef std::tr1::unordered_set<string> StringSet;
 typedef StringSet::iterator StringSetIter;
 
 typedef vector<wstring> WStringList;
@@ -188,5 +190,5 @@ extern void shutdown();
 
 /**
  * @file
- * $Id: DCPlusPlus.h 403 2008-07-10 21:27:57Z BigMuscle $
+ * $Id: DCPlusPlus.h 434 2009-03-29 11:09:33Z BigMuscle $
  */

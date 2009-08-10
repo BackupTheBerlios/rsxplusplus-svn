@@ -34,7 +34,6 @@ public:
 
 	bool operator==(const CID& rhs) const { return memcmp(cid, rhs.cid, sizeof(cid)) == 0; }
 	bool operator<(const CID& rhs) const { return memcmp(cid, rhs.cid, sizeof(cid)) < 0; }
-	CID& operator=(const CID& rhs) { memcpy(cid, rhs.cid, sizeof(cid)); return *this; }
 
 	string toBase32() const { return Encoder::toBase32(cid, sizeof(cid)); }
 	string& toBase32(string& tmp) const { return Encoder::toBase32(cid, sizeof(cid), tmp); }
@@ -57,11 +56,12 @@ private:
 };
 
 } // namespace dcpp
-
+//RSX++
 #ifdef BOOST_TR1
 namespace boost {
 #else
 namespace std {
+//END
 #endif
 template<>
 struct hash<dcpp::CID> {
@@ -90,5 +90,5 @@ struct equal_to<dcpp::CID*> {
 
 /**
 * @file
-* $Id: CID.h 413 2008-07-30 09:32:53Z BigMuscle $
+* $Id: CID.h 450 2009-07-05 15:02:34Z BigMuscle $
 */

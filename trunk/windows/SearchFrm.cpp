@@ -1229,7 +1229,7 @@ LRESULT SearchFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, 
 			resultsMenu.AppendMenu(MF_STRING, IDC_BITZI_LOOKUP, CTSTRING(BITZI_LOOKUP));
 			resultsMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)copyMenu, CTSTRING(COPY));
 			resultsMenu.AppendMenu(MF_SEPARATOR);
-			appendUserItems(resultsMenu);
+			appendUserItems(resultsMenu, Util::emptyString); // TODO: hubhint
 			prepareMenu(resultsMenu, UserCommand::CONTEXT_SEARCH, cs.hubs);
 			resultsMenu.AppendMenu(MF_SEPARATOR);
 			resultsMenu.AppendMenu(MF_STRING, IDC_REMOVE, CTSTRING(REMOVE));
@@ -1687,5 +1687,5 @@ void SearchFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/) throw() 
 
 /**
  * @file
- * $Id: SearchFrm.cpp 427 2009-01-10 19:29:09Z BigMuscle $
+ * $Id: SearchFrm.cpp 435 2009-06-02 19:21:43Z BigMuscle $
  */

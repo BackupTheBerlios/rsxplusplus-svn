@@ -130,7 +130,7 @@
 				EnableFunctionLevelLinking="true"
 				DefaultCharIsUnsigned="true"
 				RuntimeTypeInfo="false"
-				DebugInformationFormat="4"
+				DebugInformationFormat="3"
 				CallingConvention="0"
 			/>
 			<Tool
@@ -423,7 +423,7 @@
 				EnableFunctionLevelLinking="true"
 				DefaultCharIsUnsigned="true"
 				RuntimeTypeInfo="false"
-				DebugInformationFormat="4"
+				DebugInformationFormat="3"
 				CallingConvention="0"
 			/>
 			<Tool

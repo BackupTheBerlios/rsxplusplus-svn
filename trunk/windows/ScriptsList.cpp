@@ -47,7 +47,7 @@ LRESULT ScriptsListPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /
 		ctrlList.SetCheckState(item, (*i)->enabled);
 		l.clear();
 	}
-	::SetWindowText(GetDlgItem(IDC_STATIC1), Text::toT("Scripts Dir: " + Util::getConfigPath() + "scripts\\").c_str());
+	::SetWindowText(GetDlgItem(IDC_STATIC1), Text::toT("Scripts Dir: " + Util::getPath(Util::PATH_GLOBAL_CONFIG) + "LuaScripts").c_str());
 	::SetWindowText(GetDlgItem(IDC_STATIC2), Text::toT("Scripts Count: " + Util::toString(count)).c_str());
 	return 0;
 }

@@ -42,7 +42,10 @@
 
 #include "MainFrm.h"
 #include "PopupManager.h"
+//RSX++
 #include "ResourceLoader.h"
+#include "SpellChecker.hpp"
+//END
 
 #include <delayimp.h>
 CAppModule _Module;
@@ -118,11 +121,11 @@ LONG __stdcall DCUnhandledExceptionFilter( LPEXCEPTION_POINTERS e )
 #endif
 
 	if(firstException) {
-		File::deleteFile(Util::getDataPath() + "exceptioninfo.txt");
+		File::deleteFile(Util::getPath(Util::PATH_RESOURCES) + "exceptioninfo.txt");
 		firstException = false;
 	}
 
-	if(File::getSize(Util::getDataPath() + "RSXPlusPlus.pdb") == -1) {
+	if(File::getSize(Util::getPath(Util::PATH_RESOURCES) + "RSXPlusPlus.pdb") == -1) {
 		// No debug symbols, we're not interested...
 		::MessageBox(WinUtil::mainWnd, _T("RSX++ has crashed and you don't have RSXPlusPlus32.pdb/RSXPlusPlus64.pdb file installed. Hence, I can't find out why it crashed, so don't report this as a bug unless you find a solution..."), _T("RSX++ has crashed"), MB_OK);
 #ifndef _DEBUG
@@ -132,7 +135,7 @@ LONG __stdcall DCUnhandledExceptionFilter( LPEXCEPTION_POINTERS e )
 #endif
 	}
 
-	File f(Util::getConfigPath() + "exceptioninfo.txt", File::WRITE, File::OPEN | File::CREATE);
+	File f(Util::getPath(Util::PATH_RESOURCES) + "exceptioninfo.txt", File::WRITE, File::OPEN | File::CREATE);
 	f.setEndPos(0);
 	
 	DWORD exceptionCode = e->ExceptionRecord->ExceptionCode ;
@@ -197,7 +200,7 @@ LONG __stdcall DCUnhandledExceptionFilter( LPEXCEPTION_POINTERS e )
 	Shell_NotifyIcon(NIM_MODIFY, &m_nid);
 
 	if(MessageBox(WinUtil::mainWnd, _T("RSX++ just encountered a fatal bug and should have written an exceptioninfo.txt the same directory as the executable. You can post exceptioninfo on forum. Go there now?"), _T("RSX++ Has Crashed"), MB_YESNO | MB_ICONERROR) == IDYES) {
-		WinUtil::openLink(_T(__FORUM));
+		WinUtil::openLink(_T(RSXPP_FORUM));
 	}
 
 #ifndef _DEBUG
@@ -340,7 +343,6 @@ void callBack(void* x, const tstring& a) {
 	sText = a;
 	SendMessage((HWND)x, WM_PAINT, 0, 0);
 }
-#include "SpellChecker.hpp"
 
 static int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 {
@@ -435,7 +437,7 @@ static int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 		ATLTRACE(_T("Main window creation failed!\n"));
 		return 0;
 	}
-
+	
 	if(BOOLSETTING(MINIMIZE_ON_STARTUP)) {
 		wndMain.ShowWindow(SW_SHOWMINIMIZED);
 	} else {
@@ -490,7 +492,7 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 	// For SHBrowseForFolder, UPnP
 	HRESULT hRes = ::CoInitializeEx(NULL, COINIT_APARTMENTTHREADED); 
 #ifdef _DEBUG
-	EXTENDEDTRACEINITIALIZE( Util::getDataPath().c_str() );
+	EXTENDEDTRACEINITIALIZE(Util::getPath(Util::PATH_RESOURCES).c_str());
 	//File::deleteFile(Util::getDataPath() + "exceptioninfo.txt");
 #endif
 	LPTOP_LEVEL_EXCEPTION_FILTER pOldSEHFilter = NULL;
@@ -542,5 +544,5 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 
 /**
  * @file
- * $Id: main.cpp 394 2008-06-28 22:28:44Z BigMuscle $
+ * $Id: main.cpp 453 2009-08-04 15:46:31Z BigMuscle $
  */

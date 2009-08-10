@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -115,7 +115,7 @@ public:
 	void listLen(const string& aLength) { send("$ListLen " + aLength + '|'); }
 	
 	void maxedOut(size_t qPos = 0) {
-		bool sendPos = !isSet(UserConnection::FLAG_STEALTH) && qPos > 0;
+		bool sendPos = qPos > 0;
 
 		if(isSet(FLAG_NMDC)) {
 			send("$MaxedOut" + (sendPos ? (" " + Util::toString(qPos)) : Util::emptyString) + "|");
@@ -195,12 +195,12 @@ public:
 	GETSET(uint8_t, slotType, SlotType);
 	
 	BufferedSocket const* getSocket() { return socket; } 
-
+	//RSX++
 	~UserConnection() throw() {
 		BufferedSocket::putSocket(socket);
 		dcassert(!download);
 	}
-
+	//END
 private:
 	int64_t chunkSize;
 	BufferedSocket* socket;
@@ -253,5 +253,5 @@ private:
 
 /**
  * @file
- * $Id: UserConnection.h 427 2009-01-10 19:29:09Z BigMuscle $
+ * $Id: UserConnection.h 435 2009-06-02 19:21:43Z BigMuscle $
  */

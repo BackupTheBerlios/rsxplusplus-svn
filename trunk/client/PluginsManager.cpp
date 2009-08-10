@@ -147,7 +147,7 @@ int PluginsManager::call(Listener& l, T1 p1, T2 p2) {
 void PluginsManager::init(void (*f)(void*, const tstring&), void* pv) {
 	typedef dcppPluginInformation* (__stdcall *plugInfo)(int, int);
 
-	StringList libs = File::findFiles(Util::getDataPath() + "Plugins" PATH_SEPARATOR_STR, "*.dll");
+	StringList libs = File::findFiles(Util::getPath(Util::PATH_GLOBAL_CONFIG) + "Plugins" PATH_SEPARATOR_STR, "*.dll");
 	{
 		Lock l(cs);
 		for(StringIter i = libs.begin(); i != libs.end(); ++i) {
@@ -329,124 +329,123 @@ dcpp_ptr_t PluginsManager::callFunc(int type, dcpp_ptr_t p1, dcpp_ptr_t p2, dcpp
 			default: return 0;
 		}
 	} else if(type > DCPP_CONNECTION) {
+		UserConnection* uc = reinterpret_cast<UserConnection*>(p1);
+		if(!uc) return 0;
+
 		switch(type) {
 			case DCPP_CONNECTION_WRITE: {
-				UserConnection* uc = reinterpret_cast<UserConnection*>(p1);
-				if(uc) {
-					uc->sendRaw(reinterpret_cast<char*>(p2));
+				uc->sendRaw(reinterpret_cast<char*>(p2));
+				break;
+			}
+			case DCPP_CONNECTION_DISCONNECT: {
+				uc->disconnect(p2 ? true : false);
+				break;
+			}
+			case DCPP_CONNECTION_FLAG_GET: {
+				return uc->getFlags();
+			}
+			case DCPP_CONNECTION_FLAG_SET: {
+				uc->setFlag(static_cast<Flags::MaskType>(p2));
+				break;
+			}
+			case DCPP_CONNECTION_FLAG_UNSET: {
+				uc->unsetFlag(static_cast<Flags::MaskType>(p2));
+				break;
+			}
+			case DCPP_CONNECTION_FLAG_ISSET: {
+				if(p3) {
+					uc->isAnySet(static_cast<Flags::MaskType>(p2));
+				} else {
+					uc->isSet(static_cast<Flags::MaskType>(p2));
 				}
 				break;
 			}
 			default: return 0;
 		}
 	} else if(type > DCPP_USER) {
+		OnlineUser* ou = reinterpret_cast<OnlineUser*>(p1);
+		if(!ou) return 0;
 		switch(type) {
 			case DCPP_USER_FIELD_GET: {
-				OnlineUser* ou = reinterpret_cast<OnlineUser*>(p1);
-				if(ou) {
-					if(p3) {
-						return ou->getIdentity().isSet(reinterpret_cast<char*>(p2)) ? 1 : 0;
-					} else {
-						return (dcpp_ptr_t)ou->getIdentity().get(reinterpret_cast<char*>(p2)).c_str();
-					}
+				if(p3) {
+					return ou->getIdentity().isSet(reinterpret_cast<char*>(p2)) ? 1 : 0;
+				} else {
+					return (dcpp_ptr_t)ou->getIdentity().get(reinterpret_cast<char*>(p2)).c_str();
 				}
 				break;
 			}
 			case DCPP_USER_FIELD_SET: {
-				OnlineUser* ou = reinterpret_cast<OnlineUser*>(p1);
-				if(ou)
-					ou->getIdentity().set(reinterpret_cast<char*>(p2), string(reinterpret_cast<char*>(p3)));
+				ou->getIdentity().set(reinterpret_cast<char*>(p2), string(reinterpret_cast<char*>(p3)));
 				break;
 			}
 			default: return 0;
 		}
 	} else if(type > DCPP_HUB) {
+		if(type == DCPP_HUB_OPEN) {
+			Client* c = ClientManager::getInstance()->getClient(reinterpret_cast<char*>(p1));
+			if(p2) {
+				//@todo with frame
+			}
+			return (dcpp_ptr_t)c;
+		}
+		Client* c = reinterpret_cast<Client*>(p1);
+		if(!c) return 0;
+
 		switch(type) {
 			case DCPP_HUB_FIELD_GET: {
-				Client* c = reinterpret_cast<Client*>(p1);
-				if(c) {
-					if(p3) {
-						return c->getHubIdentity().isSet(reinterpret_cast<char*>(p2)) ? 1 : 0;
-					} else {
-						return (dcpp_ptr_t)c->getHubIdentity().get(reinterpret_cast<char*>(p2)).c_str();
-					}
+				if(p3) {
+					return c->getHubIdentity().isSet(reinterpret_cast<char*>(p2)) ? 1 : 0;
+				} else {
+					return (dcpp_ptr_t)c->getHubIdentity().get(reinterpret_cast<char*>(p2)).c_str();
 				}
 				break;
 			}
 			case DCPP_HUB_FIELD_SET: {
-				Client* c = reinterpret_cast<Client*>(p1);
-				if(c)
-					c->getHubIdentity().set(reinterpret_cast<char*>(p2), string(reinterpret_cast<char*>(p3)));
+				c->getHubIdentity().set(reinterpret_cast<char*>(p2), string(reinterpret_cast<char*>(p3)));
 				break;
 			}
 			case DCPP_HUB_FIELD_MY_GET: {
-				Client* c = reinterpret_cast<Client*>(p1);
-				if(c) {
-					if(p3) {
-						return c->getMyIdentity().isSet(reinterpret_cast<char*>(p2)) ? 1 : 0;
-					} else {
-						return (dcpp_ptr_t)c->getMyIdentity().get(reinterpret_cast<char*>(p2)).c_str();
-					}
+				if(p3) {
+					return c->getMyIdentity().isSet(reinterpret_cast<char*>(p2)) ? 1 : 0;
+				} else {
+					return (dcpp_ptr_t)c->getMyIdentity().get(reinterpret_cast<char*>(p2)).c_str();
 				}
 				break;
 			}
 			case DCPP_HUB_FIELD_MY_SET: {
-				Client* c = reinterpret_cast<Client*>(p1);
-				if(c)
-					c->getMyIdentity().set(reinterpret_cast<char*>(p2), string(reinterpret_cast<char*>(p3)));
+				c->getMyIdentity().set(reinterpret_cast<char*>(p2), string(reinterpret_cast<char*>(p3)));
 				break;
 			}
 			case DCPP_HUB_SOCKET_WRITE: {
-				Client* c = reinterpret_cast<Client*>(p1);
-				if(c)
-					c->send(reinterpret_cast<char*>(p2));
+				c->send(reinterpret_cast<char*>(p2));
 				break;
 			}
 			case DCPP_HUB_SEND_MESSAGE: {
-				Client* c = reinterpret_cast<Client*>(p1);
-				if(c) {
-					char* msg = reinterpret_cast<char*>(p2);
-					if(strncmp(msg, "/me", 3) == 0)
-						c->hubMessage(msg+3, true);
-					else
-						c->hubMessage(msg, false);
-				}
+				char* msg = reinterpret_cast<char*>(p2);
+				if(strncmp(msg, "/me ", 4) == 0)
+					c->hubMessage(msg+4, true);
+				else
+					c->hubMessage(msg, false);
 				break;
 			}
 			case DCPP_HUB_SEND_USER_COMMAND: {
-				Client* c = reinterpret_cast<Client*>(p1);
-				if(c)
-					c->sendUserCmd(reinterpret_cast<char*>(p2));
+				c->sendUserCmd(reinterpret_cast<char*>(p2));
 				break;
 			}
 			case DCPP_HUB_WRITE_LINE: {
-				Client* c = reinterpret_cast<Client*>(p1);
-				if(c)
-					c->addHubLine(reinterpret_cast<char*>(p2), (int)p3);
+				c->addHubLine(reinterpret_cast<char*>(p2), (int)p3);
 				break;
 			}
 			case DCPP_HUB_CLOSE: {
-				Client* c = reinterpret_cast<Client*>(p1);
-				if(c) {
-					if(!p2)
-						c->closeHub();
-					else
-						ClientManager::getInstance()->putClient(c);
-				}
+				if(!p2)
+					c->closeHub();
+				else
+					ClientManager::getInstance()->putClient(c);
 				break;
 			}
  			case DCPP_HUB_REDIRECT: {
-				Client* c = reinterpret_cast<Client*>(p1);
-				if(c)
-					c->redirect(reinterpret_cast<char*>(p2));
+				c->redirect(reinterpret_cast<char*>(p2));
 				break;
-			}
-			case DCPP_HUB_OPEN: {
-				Client* c = ClientManager::getInstance()->getClient(reinterpret_cast<char*>(p1));
-				if(p2) {
-					//@todo with frame
-				}
-				return (dcpp_ptr_t)c;
 			}
 			default: return 0;
 		}

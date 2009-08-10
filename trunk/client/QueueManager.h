@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -86,7 +86,7 @@ public:
 	void addTestSUR(UserPtr aUser, const string& hubHint, bool checkList = false) throw(QueueException, FileException) {
 		StringList nicks = ClientManager::getInstance()->getNicks(*aUser);
 		string nick = nicks.empty() ? Util::emptyString : Util::cleanPathChars(nicks[0]) + ".";
-		string target = Util::getConfigPath() + "TestSURs\\" + RsxUtil::getTestSURString() + nick + aUser->getCID().toBase32();
+		string target = Util::getPath(Util::PATH_USER_CONFIG) + "TestSURs\\" + RsxUtil::getTestSURString() + nick + aUser->getCID().toBase32();
 
 		add(target, -1, TTHValue(), aUser, hubHint, (Flags::MaskType)((checkList ? QueueItem::FLAG_CHECK_FILE_LIST : 0) | QueueItem::FLAG_TESTSUR));
 	}
@@ -95,7 +95,7 @@ public:
 		try {
 			StringList nicks = ClientManager::getInstance()->getNicks(*aUser);
 			string nick = nicks.empty() ? Util::emptyString : Util::cleanPathChars(nicks[0]) + ".";
-			string target = Util::getConfigPath() + "TestSURs\\" + RsxUtil::getTestSURString() + nick + aUser->getCID().toBase32();
+			string target = Util::getPath(Util::PATH_USER_CONFIG) + "TestSURs\\" + RsxUtil::getTestSURString() + nick + aUser->getCID().toBase32();
 
 			remove(target);
 		} catch(...) {
@@ -109,7 +109,7 @@ public:
 		string nick = nicks.empty() ? Util::emptyString : Util::cleanPathChars(nicks[0]) + ".";
 		string filename = RsxUtil::getTestSURString() + nick + aUser->getCID().toBase32();
 
-		add(Util::getConfigPath() + "TestSURs\\" + filename, -1, TTHValue(), aUser, hubHint, QueueItem::FLAG_TESTSUR);
+		add(Util::getPath(Util::PATH_USER_CONFIG) + "TestSURs\\" + filename, -1, TTHValue(), aUser, hubHint, QueueItem::FLAG_TESTSUR);
 		return filename;
 	}
 
@@ -189,8 +189,10 @@ public:
 	QueueItem::Priority hasDownload(const UserPtr& aUser) throw();
 	
 	void loadQueue() throw();
-	void saveQueue() throw();
+	void saveQueue(bool force = false) throw();
 
+	void noDeleteFileList(const string& path);
+	
 	bool handlePartialSearch(const TTHValue& tth, PartsInfo& _outPartsInfo);
 	bool handlePartialResult(const UserPtr& aUser, const string& hubHint, const TTHValue& tth, const QueueItem::PartialSource& partialSource, PartsInfo& outPartialInfo);
 	
@@ -301,6 +303,9 @@ public:
 		// find some PFS sources to exchange parts info
 		void findPFSSources(PFSSourceList&);
 
+		// return a PFS tth to DHT publish
+		TTHValue* findPFSPubTTH();
+		
 		QueueItem* findAutoSearch(deque<string>& recent) const;
 		size_t getSize() const { return queue.size(); }
 		const QueueItem::StringMap& getQueue() const { return queue; }
@@ -349,6 +354,7 @@ private:
 	friend class Singleton<QueueManager>;
 	
 	QueueManager();
+	//~QueueManager() throw(); //RSX++
 	
 	mutable CriticalSection cs;
 	
@@ -362,10 +368,12 @@ private:
 	bool dirty;
 	/** Next search */
 	uint64_t nextSearch;
+	/** File lists not to delete */
+	StringList protectedFileLists;
 	/** Sanity check for the target filename */
 	static string checkTarget(const string& aTarget, int64_t aSize) throw(QueueException, FileException);
 	/** Add a source to an existing queue item */
-	bool addSource(QueueItem* qi, const UserPtr& aUser, Flags::MaskType addBad) throw(QueueException, FileException);
+	bool addSource(QueueItem* qi, const UserPtr& aUser, const string& hubHint, Flags::MaskType addBad) throw(QueueException, FileException);
 
 	void processList(const string& name, UserPtr& user, int flags);
 
@@ -396,5 +404,5 @@ private:
 
 /**
  * @file
- * $Id: QueueManager.h 429 2009-02-06 17:26:54Z BigMuscle $
+ * $Id: QueueManager.h 453 2009-08-04 15:46:31Z BigMuscle $
  */

@@ -193,7 +193,8 @@ private:
 	typedef FrameMap::const_iterator FrameIter;
 	static FrameMap frames;
 	ChatCtrl ctrlClient;
-	CEdit ctrlMessage;
+	//CEdit ctrlMessage;
+	CSpellCheckEdit ctrlMessage; //RSX++
 	CStatusBarCtrl ctrlStatus;
 
 	int menuItems;

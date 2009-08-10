@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,8 +35,25 @@
 //END
 namespace dcpp {
 
+class ClientBase
+{
+public:
+	
+	ClientBase() : type(DIRECT_CONNECT) { }
+
+	enum P2PType { DIRECT_CONNECT, DHT };
+	P2PType type;
+	
+	virtual const string& getHubUrl() const = 0;
+	virtual string getHubName() const = 0;
+	virtual bool isOp() const = 0;
+	virtual void connect(const OnlineUser& user, const string& token) = 0;
+	virtual void privateMessage(const OnlineUserPtr& user, const string& aMessage, bool thirdPerson = false) = 0;
+	
+};
+
 /** Yes, this should probably be called a Hub */
-class Client : public Speaker<ClientListener>, public BufferedSocketListener, protected TimerManagerListener, 
+class Client : public ClientBase, public Speaker<ClientListener>, public BufferedSocketListener, protected TimerManagerListener, 
 	/*RSX++*/public HubSettings/*END*/ {
 public:
 	typedef unordered_map<string*, Client*, noCaseStringHash, noCaseStringEq> List;
@@ -148,8 +165,7 @@ public:
 	string getHubDescription() const { return getHubIdentity().getDescription(); }
 
 	Identity& getHubIdentity() { return hubIdentity; }
-	Identity& getMyIdentity() { return myIdentity; }
-	//Identity& getMe() { return myIdentity; }
+	Identity& getMyIdentity() { return myIdentity; } //RSX++
 
 	const string& getHubUrl() const { return hubUrl; }
 
@@ -271,5 +287,5 @@ private:
 
 /**
  * @file
- * $Id: Client.h 412 2008-07-23 22:35:40Z BigMuscle $
+ * $Id: Client.h 440 2009-06-21 17:24:05Z BigMuscle $
  */

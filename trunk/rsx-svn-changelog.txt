@@ -1,3 +1,14 @@
+** SVN 141
+ ** some spell mistakes drawing issues
+ ** [sdk] flags in user connection
+ ** less code in plugin call func
+ ** spell check in private frame
+ ** [lua] changed slots to listeners (just a name) which means new loading method
+
+ ** sdc merge... damn, 20 revs! aaded DHT btw.
+ ** some issues with random ports in NAT-PMP
+ ** [lua] fixed loading xml event (txh Thor)
+
 ** SVN 140
  ** fixed ensuring scripts dir
  ** try to fix odd crash in rsx++ page in settings

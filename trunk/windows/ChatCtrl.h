@@ -181,5 +181,4 @@ private:
 	//END
 };
 
-
-#endif //!defined(CHAT_CTRL_H)
+#endif //CHAT_CTRL_H

@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -77,7 +77,6 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) throw
 		disconnect(true);
 		return;
 	}
-
 	string cmd;
 	string param;
 
@@ -287,5 +286,5 @@ bool UserConnection::extOnLineOut(const string& line) {
 
 /**
  * @file
- * $Id: UserConnection.cpp 414 2008-08-01 19:16:45Z BigMuscle $
+ * $Id: UserConnection.cpp 434 2009-03-29 11:09:33Z BigMuscle $
  */

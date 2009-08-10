@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,30 +29,28 @@ class intrusive_ptr_base
 {
 public:
 	void inc() throw() {
-		Thread::safeInc(ref);
+		intrusive_ptr_add_ref(this);
 	}
 
 	void dec() throw() {
-		if(Thread::safeDec(ref) == 0) {
-			delete static_cast<T*>(this);
-		}
+		intrusive_ptr_release(this);
 	}
 
-	bool unique() throw() {
+	bool unique() const throw() {
 		return (ref == 1);
 	}
-
+	
 protected:
 	intrusive_ptr_base() throw() : ref(0) { }
-
+	virtual ~intrusive_ptr_base() { }
+	
 private:
-	friend void intrusive_ptr_add_ref(T* p) { p->inc(); }
-	friend void intrusive_ptr_release(T* p) { p->dec(); }
-	friend void intrusive_ptr_add_ref(const T* p) { const_cast<T*>(p)->inc(); }
-	friend void intrusive_ptr_release(const T* p) { const_cast<T*>(p)->dec(); }
+	friend void intrusive_ptr_add_ref(intrusive_ptr_base* p) { Thread::safeInc(p->ref); }
+	friend void intrusive_ptr_release(intrusive_ptr_base* p) { if(Thread::safeDec(p->ref) == 0) { delete static_cast<T*>(p); } }
 
-	mutable volatile long ref;
+	volatile long ref;
 };
+
 
 struct DeleteFunction {
 	template<typename T>
@@ -65,5 +63,5 @@ struct DeleteFunction {
 
 /**
  * @file
- * $Id: Pointer.h 412 2008-07-23 22:35:40Z BigMuscle $
+ * $Id: Pointer.h 437 2009-06-16 22:07:15Z BigMuscle $
  */

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -102,45 +102,34 @@ public:
 		Lock l(cs);
 		store.save();
 	}
-	// KUL - hash progress dialog patch (begin)
-	void pause() {
-		//fire(HashManagerListener::Paused());
-		hasher.pause();
-	}
 
-	void resume() {
-		hasher.resume();
-		//fire(HashManagerListener::Resumed());
-	}
+	struct HashPauser {
+		HashPauser();
+		~HashPauser();
+	};
+	
+	unsigned getPaused() const { return hasher.getPaused(); }
+	void pauseHashing();
+	void resumeHashing();	
 
-	bool isPaused() const { return hasher.isPaused(); }
-	// KUL - hash progress dialog patch (end)
 private:
 	class Hasher : public Thread {
 	public:
-		Hasher() : stop(false), running(false), paused(false), rebuild(false), currentSize(0) { } // KUL - hash progress dialog patch
+		Hasher() : stop(false), running(false), paused(0), rebuild(false), currentSize(0) { }
 
 		void hashFile(const string& fileName, int64_t size);
+
+		void pauseHashing();
+		void resumeHashing();
+		unsigned getPaused() const { return paused; }
 
 		void stopHashing(const string& baseDir);
 		int run();
 		bool fastHash(const string& fname, uint8_t* buf, TigerTree& tth, int64_t size);
 		void getStats(string& curFile, int64_t& bytesLeft, size_t& filesLeft);
-		void shutdown() { stop = true; s.signal(); p.signal(); }
+		void shutdown() { stop = true; s.signal(); }
 		void scheduleRebuild() { rebuild = true; s.signal(); }
 
-		// KUL - hash progress dialog patch (begin)
-		void pause() {
-			paused = true;
-		}
-
-		void resume() {
-			paused = false;
-			p.signal();
-		}
-
-		bool isPaused() const { return paused; }
-		// KUL - hash progress dialog patch (end)
 	private:
 		// Case-sensitive (faster), it is rather unlikely that case changes, and if it does it's harmless.
 		// map because it's sorted (to avoid random hash order that would create quite strange shares while hashing)
@@ -150,11 +139,10 @@ private:
 		WorkMap w;
 		CriticalSection cs;
 		Semaphore s;
-		Semaphore p; // KUL - hash progress dialog patch
 
-		bool paused; // KUL - hash progress dialog patch
 		bool stop;
 		bool running;
+		unsigned paused;
 		bool rebuild;
 		string currentFile;
 		int64_t currentSize;
@@ -230,8 +218,8 @@ private:
 		bool loadTree(File& dataFile, const TreeInfo& ti, const TTHValue& root, TigerTree& tt);
 		int64_t saveTree(File& dataFile, const TigerTree& tt) throw(FileException);
 
-		string getIndexFile() { return Util::getConfigPath() + "HashIndex.xml"; }
-		string getDataFile() { return Util::getConfigPath() + "HashData.dat"; }
+		string getIndexFile() { return Util::getPath(Util::PATH_USER_CONFIG) + "HashIndex.xml"; }
+		string getDataFile() { return Util::getPath(Util::PATH_USER_CONFIG) + "HashData.dat"; }
 	};
 
 	friend class HashLoader;
@@ -261,5 +249,5 @@ private:
 
 /**
  * @file
- * $Id: HashManager.h 403 2008-07-10 21:27:57Z BigMuscle $
+ * $Id: HashManager.h 453 2009-08-04 15:46:31Z BigMuscle $
  */

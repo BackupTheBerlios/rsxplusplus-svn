@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -60,18 +60,12 @@ public:
 
 	bool startDownload(QueueItem::Priority prio);
 
-	// the following functions were added to help download throttle
-	inline bool throttle() const { return mThrottleEnable; }
-	void throttleReturnBytes(size_t b);
-	size_t throttleGetSlice();
-	inline size_t throttleCycleTime() const { return mThrottleEnable ? mCycleTime : 0; }
-
-private:
-	void throttleSetup();
-	bool mThrottleEnable;
-	size_t mCycleTime;
-	size_t mBytesSpokenFor, mDownloadLimit, mByteSlice;
+	// Download throttling
+	size_t throttle(size_t readSize);
 	
+private:
+	
+	int64_t bandwidthAvailable;
 	CriticalSection cs;
 	DownloadList downloads;
 	UserConnectionList idlers;
@@ -115,5 +109,5 @@ private:
 
 /**
  * @file
- * $Id: DownloadManager.h 403 2008-07-10 21:27:57Z BigMuscle $
+ * $Id: DownloadManager.h 453 2009-08-04 15:46:31Z BigMuscle $
  */

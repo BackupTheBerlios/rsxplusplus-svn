@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -367,14 +367,14 @@ void ConnectionManager::adcConnect(const OnlineUser& aUser, uint16_t aPort, cons
 	if(shuttingDown)
 		return;
 
-	if(checkIpFlood(aUser.getIdentity().getIp(), aPort, "ADC Nick: " + aUser.getIdentity().getNick() + ", Hub: " + aUser.getClient().getHubName()))
+	if(checkIpFlood(aUser.getIdentity().getIp(), aPort, "ADC Nick: " + aUser.getIdentity().getNick() + ", Hub: " + aUser.getClientBase().getHubName()))
 		return;
 
 	UserConnection* uc = getConnection(false, secure);
 	uc->setToken(aToken);
 	uc->setEncoding(const_cast<string*>(&Text::utf8));
 	uc->setState(UserConnection::STATE_CONNECT);
-	uc->setHubUrl(aUser.getClient().getHubUrl());
+	uc->setHubUrl(&aUser.getClient() == NULL ? "DHT" : aUser.getClient().getHubUrl());
 	if(aUser.getIdentity().isOp()) {
 		uc->setFlag(UserConnection::FLAG_OP);
 	}
@@ -839,5 +839,5 @@ void ConnectionManager::on(UserConnectionListener::Supports, UserConnection* con
 
 /**
  * @file
- * $Id: ConnectionManager.cpp 429 2009-02-06 17:26:54Z BigMuscle $
+ * $Id: ConnectionManager.cpp 451 2009-07-10 21:24:08Z BigMuscle $
  */

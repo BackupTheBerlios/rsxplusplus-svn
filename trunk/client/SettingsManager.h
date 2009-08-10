@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,7 +50,6 @@ public:
 	};
 	//END
 	static StringList connectionSpeeds;
-	static const string speeds[];
 
 	enum StrSetting { STR_FIRST,
 		NICK = STR_FIRST, UPLOAD_SPEED, DESCRIPTION, DOWNLOAD_DIRECTORY, EMAIL, EXTERNAL_IP,
@@ -78,7 +77,7 @@ public:
 		RECENTFRAME_ORDER, RECENTFRAME_WIDTHS, TOOLBAR_SETTINGS,
 		//RSX++
 		NAT_PMP_GATEWAY, 
-		LOG_RAW_CMD_FORMAT, LOG_RAW_CMD_FILE, DOWN_SPEED, UP_SPEED,
+		LOG_RAW_CMD_FORMAT, LOG_RAW_CMD_FILE,
 		//END
 		STR_LAST };
 
@@ -140,7 +139,7 @@ public:
 		USERLIST_DBLCLICK, TRANSFERLIST_DBLCLICK, CHAT_DBLCLICK, ADC_DEBUG,
 		TOGGLE_ACTIVE_WINDOW, /*PROGRESSBAR_ODC_STYLE,*/ SEARCH_HISTORY,
 		ACCEPTED_DISCONNECTS, ACCEPTED_TIMEOUTS,
-		OPEN_PUBLIC, OPEN_FAVORITE_HUBS, OPEN_FAVORITE_USERS, OPEN_QUEUE, OPEN_FINISHED_DOWNLOADS, 
+		OPEN_PUBLIC, OPEN_FAVORITE_HUBS, OPEN_FAVORITE_USERS, OPEN_RECENT_HUBS, OPEN_QUEUE, OPEN_FINISHED_DOWNLOADS, 
 		OPEN_FINISHED_UPLOADS, OPEN_SEARCH_SPY, OPEN_NETWORK_STATISTICS, OPEN_NOTEPAD, OUTGOING_CONNECTIONS, 
 		NO_IP_OVERRIDE, GROUP_SEARCH_RESULTS, BOLD_FINISHED_DOWNLOADS, BOLD_FINISHED_UPLOADS, BOLD_QUEUE, 
 		BOLD_HUB, BOLD_PM, BOLD_SEARCH, TABS_ON_TOP, SOCKET_IN_BUFFER, SOCKET_OUT_BUFFER,
@@ -149,12 +148,10 @@ public:
 		ALLOW_UNTRUSTED_HUBS, ALLOW_UNTRUSTED_CLIENTS, TLS_PORT, FAST_HASH, DOWNCONN_PER_SEC,
 		PRIO_HIGHEST_SIZE, PRIO_HIGH_SIZE, PRIO_NORMAL_SIZE, PRIO_LOW_SIZE, PRIO_LOWEST,
 		FILTER_ENTER, SORT_FAVUSERS_FIRST, SHOW_SHELL_MENU, SEND_BLOOM, OVERLAP_CHUNKS, SHOW_QUICK_SEARCH,
-		UC_SUBMENU, AUTO_SLOTS, CORAL, 
+		UC_SUBMENU, AUTO_SLOTS, CORAL, USE_DHT, DHT_PORT, UPDATE_IP,
 		//RSX++
-		FIREWALL_RAND_PORTS,
-		TOP_SPEED, TOP_UP_SPEED, PROGRESSBAR_ODC_BUMPED,
-		STEALTHY_INDICATE_SPEEDS, PROGRESSBAR_MODE,
-		SHOW_PLUGIN_TOOLBAR, LOG_RAW_CMD,
+		FIREWALL_RAND_PORTS, PROGRESSBAR_ODC_BUMPED, STEALTHY_INDICATE_SPEEDS, PROGRESSBAR_MODE, LOG_RAW_CMD,
+		TOP_SPEED, TOP_UP_SPEED,
 		//END
 		INT_LAST };
 
@@ -171,12 +168,6 @@ public:
 	enum {	INCOMING_DIRECT, INCOMING_FIREWALL_UPNP, INCOMING_FIREWALL_NAT_PMP, INCOMING_FIREWALL_NAT,
 		INCOMING_FIREWALL_PASSIVE };
 	enum {	OUTGOING_DIRECT, OUTGOING_SOCKS5 };
-
-	enum {	SPEED_64, SPEED_128, SPEED_150, SPEED_192,
-			SPEED_256, SPEED_384, SPEED_512, SPEED_600, SPEED_768, SPEED_1M, SPEED_15M,
-			SPEED_2M, SPEED_4M, SP_LAST };
-
-	enum { SIZE_64, SIZE_128, SIZE_256, SIZE_512, SIZE_1024, SIZE_LAST };
 
 	enum {  MAGNET_AUTO_SEARCH, MAGNET_AUTO_DOWNLOAD };
 
@@ -285,20 +276,25 @@ public:
 	bool isDefault(int aSet) { return !isSet[aSet]; }
 
 	void load() {
-		load(Util::getConfigPath() + "DCPlusPlus.xml");
+		Util::migrate(getConfigFile());
+		load(getConfigFile());
 	}
 	void save() {
-		save(Util::getConfigPath() + "DCPlusPlus.xml");
+		save(getConfigFile());
 	}
 
 	void load(const string& aFileName);
 	void save(const string& aFileName);
-
+	//RSX++
 	SettingsManager();
 	~SettingsManager() throw() { }
-
+	//END
 private:
 	friend class Singleton<SettingsManager>;
+	//RSX++
+	//SettingsManager();
+	//~SettingsManager() throw() { }
+	//END
 
 	static const string settingTags[SETTINGS_LAST+1];
 
@@ -309,6 +305,8 @@ private:
 	int    intDefaults[INT_LAST - INT_FIRST];
 	int64_t int64Defaults[INT64_LAST - INT64_FIRST];
 	bool isSet[SETTINGS_LAST];
+
+	string getConfigFile() { return Util::getPath(Util::PATH_USER_CONFIG) + "DCPlusPlus.xml"; }
 };
 
 // Shorthand accessor macros
@@ -321,5 +319,5 @@ private:
 
 /**
  * @file
- * $Id: SettingsManager.h 425 2008-12-24 22:17:02Z BigMuscle $
+ * $Id: SettingsManager.h 453 2009-08-04 15:46:31Z BigMuscle $
  */

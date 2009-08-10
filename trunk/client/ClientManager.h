@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,6 +49,7 @@ public:
 	StringList getHubNames(const CID& cid) const;
 	StringList getNicks(const CID& cid) const;
 	string getConnection(const CID& cid) const;
+	uint8_t getSlots(const CID& cid) const;
 
 	bool isConnected(const string& aUrl) const;
 	
@@ -160,7 +161,7 @@ public:
 	void sendRawCommand(const UserPtr& user, const string& aRaw, bool checkProtection = false);
 
 	int getMode(const string& aHubUrl) const;
-	bool isActive(const string& aHubUrl) const { return getMode(aHubUrl) != SettingsManager::INCOMING_FIREWALL_PASSIVE; }
+	bool isActive(const string& aHubUrl = Util::emptyString) const { return getMode(aHubUrl) != SettingsManager::INCOMING_FIREWALL_PASSIVE; }
 
 	void lock() throw() { cs.enter(); }
 	void unlock() throw() { cs.leave(); }
@@ -259,5 +260,5 @@ private:
 
 /**
  * @file
- * $Id: ClientManager.h 432 2009-02-12 17:16:50Z BigMuscle $
+ * $Id: ClientManager.h 450 2009-07-05 15:02:34Z BigMuscle $
  */

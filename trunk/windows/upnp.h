@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,5 +43,5 @@ private:
 
 /**
  * @file
- * $Id: upnp.h 411 2008-07-20 22:39:42Z BigMuscle $
+ * $Id: upnp.h 434 2009-03-29 11:09:33Z BigMuscle $
  */

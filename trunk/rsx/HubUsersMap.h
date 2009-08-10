@@ -167,11 +167,11 @@ private:
 			for(OnlineUserList::const_iterator i = ul.begin(); i != ul.end(); ++i) {
 				const Identity& id = (*i)->getIdentity();
 				if(id.isClientQueued()) {
-					string path = Util::getConfigPath() + "TestSURs\\" + id.getTestSURQueued();
+					string path = Util::getPath(Util::PATH_USER_CONFIG) + "TestSURs\\" + id.getTestSURQueued();
 					items.push_back(path);
 				}
 				if(id.isFileListQueued()) {
-					string path = Util::getListPath() + id.getFileListQueued();
+					string path = Util::getPath(Util::PATH_USER_CONFIG) + id.getFileListQueued();
 					items.push_back(path);
 				}
 			}
@@ -327,7 +327,7 @@ private:
 								//
 							}
 						} else if(action & REMOVE_CLIENT_CHECK) {
-							string path = Util::getConfigPath() + "TestSURs\\" + ou->getIdentity().getTestSURQueued();
+							string path = Util::getPath(Util::PATH_USER_CONFIG) + "TestSURs\\" + ou->getIdentity().getTestSURQueued();
 							if(!Util::fileExists(path)) {
 								ou->getIdentity().setTestSURQueued(Util::emptyString);
 							}

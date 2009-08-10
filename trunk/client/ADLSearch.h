@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -354,7 +354,7 @@ private:
 		}		
 	}
 
-	string getConfigFile() { return Util::getConfigPath() + "ADLSearch.xml"; }
+	string getConfigFile() { return Util::getPath(Util::PATH_USER_CONFIG) + "ADLSearch.xml"; }
 };
 
 } // namespace dcpp
@@ -364,5 +364,5 @@ private:
 
 /**
  * @file
- * $Id: ADLSearch.h 412 2008-07-23 22:35:40Z BigMuscle $
+ * $Id: ADLSearch.h 453 2009-08-04 15:46:31Z BigMuscle $
   */

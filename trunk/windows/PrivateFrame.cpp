@@ -644,7 +644,7 @@ LRESULT PrivateFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
 		// nacteme seznam emoticon packu (vsechny *.xml v adresari EmoPacks)
 		WIN32_FIND_DATA data;
 		HANDLE hFind;
-		hFind = FindFirstFile(Text::toT(Util::getDataPath()+"EmoPacks\\*.xml").c_str(), &data);
+		hFind = FindFirstFile(Text::toT(Util::getPath(Util::PATH_EMOPACKS) + "*.xml").c_str(), &data);
 		if(hFind != INVALID_HANDLE_VALUE) {
 			do {
 				tstring name = data.cFileName;
@@ -818,5 +818,5 @@ string PrivateFrame::getCustomAway() const {
 
 /**
  * @file
- * $Id: PrivateFrame.cpp 428 2009-02-01 18:14:42Z BigMuscle $
+ * $Id: PrivateFrame.cpp 453 2009-08-04 15:46:31Z BigMuscle $
  */

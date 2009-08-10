@@ -39,6 +39,7 @@ WindowsPage::ListItem WindowsPage::listItems[] = {
 	{ SettingsManager::OPEN_PUBLIC, ResourceManager::PUBLIC_HUBS },
 	{ SettingsManager::OPEN_FAVORITE_HUBS, ResourceManager::FAVORITE_HUBS },
 	{ SettingsManager::OPEN_FAVORITE_USERS, ResourceManager::FAVORITE_USERS },
+	{ SettingsManager::OPEN_RECENT_HUBS, ResourceManager::RECENT_HUBS },	
 	{ SettingsManager::OPEN_QUEUE, ResourceManager::DOWNLOAD_QUEUE },
 	{ SettingsManager::OPEN_FINISHED_DOWNLOADS, ResourceManager::FINISHED_DOWNLOADS },
 	{ SettingsManager::OPEN_WAITING_USERS, ResourceManager::WAITING_USERS },
@@ -89,5 +90,5 @@ void WindowsPage::write() {
 
 /**
  * @file
- * $Id: WindowsPage.cpp 373 2008-02-06 17:23:49Z bigmuscle $
+ * $Id: WindowsPage.cpp 452 2009-07-26 16:11:52Z BigMuscle $
  */

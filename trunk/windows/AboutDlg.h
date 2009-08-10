@@ -54,10 +54,10 @@ public:
 		SetDlgItemText(IDC_TOTALS, (_T("Upload: ") + Util::formatBytesW(SETTING(TOTAL_UPLOAD)) + _T(", Download: ") + 
 			Util::formatBytesW(SETTING(TOTAL_DOWNLOAD))).c_str());
 
-		SetDlgItemText(IDC_ABOUT_LINK, Text::toT(__HOMESITE).c_str());
+		SetDlgItemText(IDC_ABOUT_LINK, Text::toT(RSXPP_SITE).c_str());
 		url.SubclassWindow(GetDlgItem(IDC_ABOUT_LINK));
 		url.SetHyperLinkExtendedStyle(HLINK_COMMANDBUTTON|HLINK_UNDERLINEHOVER);
-		url.m_tip.AddTool(url, Text::toT(__HOMESITE).c_str(), &url.m_rcLink, 1);
+		url.m_tip.AddTool(url, Text::toT(RSXPP_SITE).c_str(), &url.m_rcLink, 1);
 
 		TCHAR buf[128];
 		if(SETTING(TOTAL_DOWNLOAD) > 0) {
@@ -83,7 +83,7 @@ public:
 	}
 
 	LRESULT onLink(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
-		WinUtil::openLink(Text::toT(__HOMESITE).c_str());
+		WinUtil::openLink(Text::toT(RSXPP_SITE).c_str());
 		return 0;
 	}
 

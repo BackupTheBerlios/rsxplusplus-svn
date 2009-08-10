@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,12 +37,13 @@
 #include "QueueManager.h"
 #include "FinishedManager.h"
 
+#include <cmath>
+
 namespace dcpp {
 
 static const string UPLOAD_AREA = "Uploads";
 
-UploadManager::UploadManager() throw() : running(0), extra(0), lastGrant(0), mUploadLimit(0), 
-	mBytesSpokenFor(0), mCycleTime(0), mByteSlice(0), mThrottleEnable(BOOLSETTING(THROTTLE_ENABLE)), 
+UploadManager::UploadManager() throw() : running(0), extra(0), lastGrant(0), bandwidthAvailable(0),
 	m_iHighSpeedStartTick(0), isFireball(false), isFileServer(false), extraPartial(0) {	
 	ClientManager::getInstance()->addListener(this);
 	TimerManager::getInstance()->addListener(this);
@@ -270,8 +271,8 @@ ok:
 			
 		if(!(hasReserved || isFavorite || getAutoSlot() || hasFreeSlot)) {
 			bool supportsFree = aSource.isSet(UserConnection::FLAG_SUPPORTS_MINISLOTS);
-			bool allowedFree = aSource.isSet(UserConnection::FLAG_OP) || getFreeExtraSlots() > 0;
-			bool partialFree = partial && extraPartial < SETTING(EXTRA_PARTIAL_SLOTS);
+			bool allowedFree = (slotType == UserConnection::EXTRASLOT) || aSource.isSet(UserConnection::FLAG_OP) || getFreeExtraSlots() > 0;
+			bool partialFree = partial && ((slotType == UserConnection::PARTIALSLOT) || (extraPartial < SETTING(EXTRA_PARTIAL_SLOTS)));
 			
 			if(free && supportsFree && allowedFree) {
 				slotType = UserConnection::EXTRASLOT;
@@ -279,7 +280,7 @@ ok:
 				slotType = UserConnection::PARTIALSLOT;
 			} else {
 				delete is;
-				aSource.maxedOut(addFailedUpload(aSource.getUser(), sourceFile, aStartPos, fileSize));
+				aSource.maxedOut(addFailedUpload(aSource.getUser(), aSource.getToken(), sourceFile, aStartPos, fileSize));
 				aSource.disconnect();
 				return false;
 			}
@@ -332,8 +333,6 @@ ok:
 
 	uploads.push_back(u);
 
-	throttleSetup();
-
 	if(aSource.getSlotType() != slotType) {
 		// remove old count
 		switch(aSource.getSlotType()) {
@@ -360,7 +359,7 @@ int64_t UploadManager::getRunningAverage() {
 	int64_t avg = 0;
 	for(UploadList::const_iterator i = uploads.begin(); i != uploads.end(); ++i) {
 		Upload* u = *i;
-		avg += u->getAverageSpeed();
+		avg += static_cast<int64_t>(u->getAverageSpeed());
 	}
 	return avg;
 }
@@ -384,8 +383,6 @@ void UploadManager::removeUpload(Upload* aUpload, bool delay) {
 	dcassert(find(uploads.begin(), uploads.end(), aUpload) != uploads.end());
 	uploads.erase(remove(uploads.begin(), uploads.end(), aUpload), uploads.end());
 	
-	throttleSetup();
-
 	if(delay) {
 		delayUploads.push_back(aUpload);
 	} else {
@@ -398,8 +395,21 @@ void UploadManager::reserveSlot(const UserPtr& aUser, uint64_t aTime, const stri
 		Lock l(cs);
 		reservedSlots[aUser] = GET_TICK() + aTime*1000;
 	}
+	
 	if(aUser->isOnline())
-		ClientManager::getInstance()->connect(aUser, Util::toString(Util::rand()), hubHint);	
+	{
+		string token;
+		
+		// find user in uploadqueue to connect with correct token
+		UploadQueueItem::SlotQueue::iterator it = find_if(waitingUsers.begin(), waitingUsers.end(), CompareFirst<UserPtr, UploadQueueItem::List>(aUser));
+		if(it != waitingUsers.end()) {
+			token = it->first.token;
+		} else {
+			token = Util::toString(Util::rand());
+		}
+		
+		ClientManager::getInstance()->connect(aUser, token, hubHint);
+	}
 }
 
 void UploadManager::unreserveSlot(const UserPtr& aUser) {
@@ -520,12 +530,13 @@ void UploadManager::logUpload(const Upload* u) {
 	fire(UploadManagerListener::Complete(), u);
 }
 
-size_t UploadManager::addFailedUpload(const UserPtr& aUser, const string& file, int64_t pos, int64_t size) {
+size_t UploadManager::addFailedUpload(const UserPtr& aUser, const string& token, const string& file, int64_t pos, int64_t size) {
 	uint64_t currentTime = GET_TIME();
 	bool found = false;
 
 	UploadQueueItem::SlotQueue::iterator it = find_if(waitingUsers.begin(), waitingUsers.end(), CompareFirst<UserPtr, UploadQueueItem::List>(aUser));
 	if(it != waitingUsers.end()) {
+		it->first.token = token;
 		for(UploadQueueItem::List::const_iterator i = it->second.begin(); i != it->second.end(); i++) {
 			if((*i)->getFile() == file) {
 				(*i)->setPos(pos);
@@ -540,7 +551,12 @@ size_t UploadManager::addFailedUpload(const UserPtr& aUser, const string& file, 
 		if(it == waitingUsers.end()) {
 			UploadQueueItem::List list;
 			list.push_back(uqi);
-			waitingUsers.push_back(make_pair(aUser, list));
+			
+			WaitingUser wu;
+			wu.token = token;
+			wu.user = aUser;
+			
+			waitingUsers.push_back(make_pair(wu, list));
 			it = waitingUsers.end() - 1;
 		} else {
 			it->second.push_back(uqi);
@@ -593,15 +609,15 @@ void UploadManager::notifyQueuedUsers() {
 	if(freeslots > 0)
 	{
 		freeslots -= connectingUsers.size();
-		while(freeslots > 0) {
+		while(!waitingUsers.empty() && freeslots > 0) {
 			// let's keep him in the connectingList until he asks for a file
-			UserPtr u = waitingUsers.front().first;
-			clearUserFiles(u);
+			WaitingUser wu = waitingUsers.front().first;
+			clearUserFiles(wu.user);
 			
-			connectingUsers[u] = GET_TICK();
+			connectingUsers[wu.user] = GET_TICK();
 			
 			// TODO hubHint
-			ClientManager::getInstance()->connect(u, Util::toString(Util::rand()), Util::emptyString);
+			ClientManager::getInstance()->connect(wu.user, wu.token, Util::emptyString);
 
 			freeslots--;
 		}
@@ -692,7 +708,8 @@ void UploadManager::on(TimerManagerListener::Second, uint64_t aTick) throw() {
 		Lock l(cs);
 		UploadList ticks;
 		
-		throttleSetup();
+		if(BOOLSETTING(THROTTLE_ENABLE) && SETTING(MAX_UPLOAD_SPEED_LIMIT) > 0)
+			bandwidthAvailable = SETTING(MAX_UPLOAD_SPEED_LIMIT) * 1024;
 
 		for(UploadList::iterator i = delayUploads.begin(); i != delayUploads.end();) {
 			Upload* u = *i;
@@ -754,45 +771,6 @@ void UploadManager::on(ClientManagerListener::UserDisconnected, const UserPtr& a
 	}
 }
 
-size_t UploadManager::throttleGetSlice()  {
-	if (mThrottleEnable) {
-		size_t left = mUploadLimit - mBytesSpokenFor;
-		if (left > 0) {
-			if (left > 2*mByteSlice) {
-				mBytesSpokenFor += mByteSlice;
-				return mByteSlice;
-			} else {
-				mBytesSpokenFor += left;
-				return left;
-			}
-		} else {
-			return 16; // must send > 0 bytes or threadSendFile thinks the transfer is complete
-		}
-	} else {
-		return (size_t)-1;
-	}
-}
-
-void UploadManager::throttleSetup() {
-	// called once a second
-	size_t num_transfers = uploads.size();
-	mUploadLimit = SETTING(MAX_UPLOAD_SPEED_LIMIT) * 1024;
-	mThrottleEnable = BOOLSETTING(THROTTLE_ENABLE) && (mUploadLimit > 0) && (num_transfers > 0);
-	if (mThrottleEnable) {
-		size_t inbufSize = SETTING(SOCKET_OUT_BUFFER);	
-		if (mUploadLimit <= (inbufSize * 10 * num_transfers)) {
-			mByteSlice = mUploadLimit / (5 * num_transfers);
-			if (mByteSlice > inbufSize)
-				mByteSlice = inbufSize;
-			mCycleTime = 100;
-		} else {
-			mByteSlice = inbufSize;
-			mCycleTime = 1000 * inbufSize / mUploadLimit;
-		}
-		mBytesSpokenFor = 0;
-	}
-}
-
 void UploadManager::removeDelayUpload(const UserPtr& aUser) {
 	Lock l(cs);
 	for(UploadList::iterator i = delayUploads.begin(); i != delayUploads.end(); ++i) {
@@ -803,6 +781,28 @@ void UploadManager::removeDelayUpload(const UserPtr& aUser) {
 			break;
 		}
 	}		
+}
+
+// Upload throttling
+size_t UploadManager::throttle(size_t writeSize) {
+	Lock l(cs);
+
+	if(uploads.size() == 0)
+		return writeSize;
+		
+	if(bandwidthAvailable > 0)
+	{
+		size_t slice = (SETTING(MAX_UPLOAD_SPEED_LIMIT) * 1024) / uploads.size();
+		
+		writeSize = min(slice, min(writeSize, static_cast<size_t>(bandwidthAvailable)));
+		bandwidthAvailable -= writeSize;
+	}
+	else
+	{
+		writeSize = 0;
+	}
+	
+	return writeSize;
 }
 	
 /**
@@ -853,5 +853,5 @@ void UploadManager::abortUpload(const string& aFile, bool waiting){
 
 /**
  * @file
- * $Id: UploadManager.cpp 427 2009-01-10 19:29:09Z BigMuscle $
+ * $Id: UploadManager.cpp 453 2009-08-04 15:46:31Z BigMuscle $
  */

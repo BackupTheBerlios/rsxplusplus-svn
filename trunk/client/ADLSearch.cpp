@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -47,6 +47,7 @@ void ADLSearchManager::Load()
 	// Load file as a string
 	try {
 		SimpleXML xml;
+		Util::migrate(getConfigFile());
 		xml.fromXML(File(getConfigFile(), File::READ, File::OPEN).read());
 
 		if(xml.findChild("ADLSearch")) {
@@ -401,5 +402,5 @@ void ADLSearchManager::matchRecurse(DestDirList &aDestList, DirectoryListing::Di
 
 /**
  * @file
- * $Id: ADLSearch.cpp 427 2009-01-10 19:29:09Z BigMuscle $
+ * $Id: ADLSearch.cpp 453 2009-08-04 15:46:31Z BigMuscle $
  */

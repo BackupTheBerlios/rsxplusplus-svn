@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2008 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,19 +40,19 @@ namespace dcpp {
 
 FastCriticalSection Identity::cs;
 
-OnlineUser::OnlineUser(const UserPtr& ptr, Client& client_, uint32_t sid_) : identity(ptr, sid_), client(client_), isInList(false) { 
-	inc();
-	identity.isProtectedUser(client, true); //RSX++ // run init check
+OnlineUser::OnlineUser(const UserPtr& ptr, ClientBase& client_, uint32_t sid_) : identity(ptr, sid_), client(client_), isInList(false) { 
+	if(!getUser()->isSet(User::DHT))
+		identity.isProtectedUser(getClient(), true); //RSX++ // run init check
 }
 
-void Identity::getParams(StringMap& sm, const string& prefix, bool compatibility) const {
+void Identity::getParams(StringMap& sm, const string& prefix, bool compatibility, bool dht) const {
 	{
 		FastLock l(cs);
 		for(InfIter i = info.begin(); i != info.end(); ++i) {
 			sm[prefix + string((char*)(&i->first), 2)] = i->second;
 		}
 	}
-	if(user) {
+	if(!dht && user) {
 		sm[prefix + "NI"] = getNick();
 		sm[prefix + "SID"] = getSIDString();
 		sm[prefix + "CID"] = user->getCID().toBase32();
@@ -362,9 +362,20 @@ string Identity::getDetectionField(const string& aName) const {
 }
 
 void Identity::getDetectionParams(StringMap& p) {
-	getParams(p, "", false);
+	getParams(p, Util::emptyString, false);
 	p["PKVE"] = getPkVersion();
-	p["VEformat"] = getVersion();
+	//p["VEformat"] = getVersion();
+   
+	if(!user->isSet(User::NMDC)) {
+		string version = get("VE");
+		string::size_type i = version.find(' ');
+		if(i != string::npos)
+			p["VEformat"] = version.substr(i+1);
+		else
+			p["VEformat"] = version;
+	} else {
+		p["VEformat"] = get("VE");
+	}
 
 	// convert all special chars to make regex happy
 	for(StringMap::iterator i = p.begin(); i != p.end(); ++i) {
@@ -834,7 +845,7 @@ tstring OnlineUser::getText(uint8_t col) const {
 		}
 		case COLUMN_EMAIL: return Text::toT(identity.getEmail());
 		case COLUMN_VERSION: return Text::toT(identity.getVersion());
-		case COLUMN_MODE: return identity.isTcpActive(&client) ? _T("A") : _T("P");
+		case COLUMN_MODE: return identity.isTcpActive(&getClient()) ? _T("A") : _T("P");
 		case COLUMN_HUBS: {
 			const tstring hn = Text::toT(identity.get("HN"));
 			const tstring hr = Text::toT(identity.get("HR"));
@@ -900,5 +911,5 @@ bool OnlineUser::update(int sortCol, const tstring& oldText) {
 
 /**
  * @file
- * $Id: User.cpp 429 2009-02-06 17:26:54Z BigMuscle $
+ * $Id: User.cpp 453 2009-08-04 15:46:31Z BigMuscle $
  */

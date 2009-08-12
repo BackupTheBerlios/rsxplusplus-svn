@@ -167,10 +167,8 @@ protected:
 		ATLASSERT(lpszWord);
 		//ATLASSERT(iChar >= 0);
 
-		if (SpellChecker::getInstance()->isWordOk(lpszWord))
-		{
+		if(!SpellChecker::getInstance()->spell(lpszWord))
 			return;
-		}
 
 		_hasErrors = true;
 
@@ -499,10 +497,10 @@ public:
 				SendMessage(cmdId, 0, -1);
 				break;
 
-			case ID_SPELLCHECK_ADD:
-				SpellChecker::getInstance()->addWord(thisError.word);
-				InvalidateCheck();
-				break;
+			//case ID_SPELLCHECK_ADD:
+			//	SpellChecker::getInstance()->addWord(thisError.word);
+			//	InvalidateCheck();
+			//	break;
 
 			default:
 				if (optMap.find(cmdId) != optMap.end())

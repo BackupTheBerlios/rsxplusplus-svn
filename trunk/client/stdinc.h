@@ -26,6 +26,12 @@
 # define BOOST_DISABLE_ASSERTS 1
 #endif
 
+#ifdef _WIN64
+#define _STLP_LIB_NAME_MOTIF "64"
+#else
+#define _STLP_LIB_NAME_MOTIF "32"
+#endif
+
 // This enables stlport's debug mode (and slows it down to a crawl...)
 //#define _STLP_DEBUG 1
 //#define _STLP_USE_MALLOC 1

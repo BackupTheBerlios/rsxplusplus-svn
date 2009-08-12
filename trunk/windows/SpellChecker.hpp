@@ -20,26 +20,25 @@
 #define SPELL_CHECKER_HPP
 
 #include "../client/Singleton.h"
-
-class Hunspell;
+#include "libhunspell.hpp"
 
 class SpellChecker : public Singleton<SpellChecker> {
 public:
-	SpellChecker();
-	~SpellChecker();
+	SpellChecker() { }
 
-	void reload();
+	void load();
 
-	bool isWordOk(const dcpp::tstring& word);
-	void suggest(const dcpp::tstring& word, std::list<dcpp::tstring>& sl);
-	void addWord(const dcpp::tstring& word);
-	bool isRunning();
+	inline bool spell(const dcpp::tstring& word) {
+		return lib.spell(word);
+	}
+	inline void suggest(const dcpp::tstring& word, std::list<dcpp::tstring>& list) {
+		lib.suggest(word, list);
+	}
+	inline bool isRunning() {
+		return lib.isRunning();
+	}
 private:
-	std::wstring toWide(const char* str) const;
-	std::string fromWide(const std::wstring& str) const;
-
-	unsigned encoding;
-	Hunspell* dic;
+	libhunspell lib;
 };
 #endif
 

@@ -1,3 +1,10 @@
+** SVN 142
+ ** changes to stlport (i finally updated it) - now there's only one bat file to compile both x64 and x86 libs, see stlport/rsxpp-readme.txt
+ ** spellcheck now works as a dll - not as a static library (put dll where exe is)
+ ** sdc svn merge
+ ** fixed (svn)release build
+ ** resource info updated
+
 ** SVN 141
  ** some spell mistakes drawing issues
  ** [sdk] flags in user connection

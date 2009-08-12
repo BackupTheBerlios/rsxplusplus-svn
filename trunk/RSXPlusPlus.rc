@@ -2293,7 +2293,7 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 0,7,0,9
+ FILEVERSION 0,7,5,0
  PRODUCTVERSION 1,1,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
@@ -2309,9 +2309,9 @@ BEGIN
     BEGIN
         BLOCK "040904b0"
         BEGIN
-            VALUE "Comments", "http://rsxplusplus.sf.net"
+            VALUE "Comments", "http://rsxplusplus.sourceforge.net"
             VALUE "FileDescription", "RSX++"
-            VALUE "FileVersion", "0, 7, 0, 9"
+            VALUE "FileVersion", "0, 7, 5, 0"
             VALUE "InternalName", "RSX++"
             VALUE "LegalCopyright", "Based on StrongDC++"
             VALUE "OriginalFilename", "RSXPlusPlus.exe"

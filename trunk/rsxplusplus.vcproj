@@ -50,7 +50,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost\boost\tr1\tr1&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)luabind&quot;;&quot;$(SolutionDir)hunspell&quot;;&quot;$(SolutionDir)hunspell\src&quot;;&quot;$(SolutionDir)hunspell\src\win_api&quot;;&quot;$(SolutionDir)hunspell\src\hunspell&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost\boost\tr1\tr1&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)luabind&quot;"
 				StringPooling="true"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
@@ -87,7 +87,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/FIXED:NO /SAFESEH:NO"
-				AdditionalDependencies="libeay32.lib ssleay32.lib SHFolder.lib unicows.lib ws2_32.lib powrprof.lib  msimg32.lib"
+				AdditionalDependencies="stlportd_static_32.lib libeay32.lib ssleay32.lib SHFolder.lib unicows.lib ws2_32.lib powrprof.lib msimg32.lib"
 				OutputFile="$(SolutionDir)compiled/$(ProjectName).exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
@@ -162,7 +162,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost\boost\tr1\tr1&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)luabind&quot;;&quot;$(SolutionDir)hunspell&quot;;&quot;$(SolutionDir)hunspell\src&quot;;&quot;$(SolutionDir)hunspell\src\win_api&quot;;&quot;$(SolutionDir)hunspell\src\hunspell&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost\boost\tr1\tr1&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)luabind&quot;"
 				StringPooling="true"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
@@ -199,7 +199,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/FIXED:NO /SAFESEH:NO"
-				AdditionalDependencies="libeay64.lib ssleay64.lib SHFolder.lib ws2_32.lib powrprof.lib msimg32.lib winmm.lib"
+				AdditionalDependencies="stlportd_static_64.lib libeay64.lib ssleay64.lib SHFolder.lib ws2_32.lib powrprof.lib msimg32.lib winmm.lib"
 				OutputFile="$(SolutionDir)compiled/$(ProjectName).exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
@@ -283,7 +283,7 @@
 				FavorSizeOrSpeed="2"
 				OmitFramePointers="false"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost\boost\tr1\tr1&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)luabind&quot;;&quot;$(SolutionDir)hunspell&quot;;&quot;$(SolutionDir)hunspell\src&quot;;&quot;$(SolutionDir)hunspell\src\win_api&quot;;&quot;$(SolutionDir)hunspell\src\hunspell&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost\boost\tr1\tr1&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)luabind&quot;"
 				StringPooling="true"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
@@ -320,7 +320,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/FIXED:NO /SAFESEH:NO"
-				AdditionalDependencies="libeay32.lib ssleay32.lib SHFolder.lib unicows.lib ws2_32.lib powrprof.lib  msimg32.lib"
+				AdditionalDependencies="stlport_static_32.lib libeay32.lib ssleay32.lib SHFolder.lib unicows.lib ws2_32.lib powrprof.lib msimg32.lib"
 				OutputFile="$(SolutionDir)compiled/$(ProjectName).exe"
 				Version=""
 				LinkIncremental="1"
@@ -412,7 +412,7 @@
 				FavorSizeOrSpeed="2"
 				OmitFramePointers="false"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost\boost\tr1\tr1&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)luabind&quot;;&quot;$(SolutionDir)hunspell&quot;;&quot;$(SolutionDir)hunspell\src&quot;;&quot;$(SolutionDir)hunspell\src\win_api&quot;;&quot;$(SolutionDir)hunspell\src\hunspell&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost\boost\tr1\tr1&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)luabind&quot;"
 				StringPooling="true"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
@@ -450,7 +450,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/FIXED:NO /SAFESEH:NO"
-				AdditionalDependencies="libeay64.lib ssleay64.lib SHFolder.lib ws2_32.lib powrprof.lib msimg32.lib winmm.lib"
+				AdditionalDependencies="stlport_static_64.lib libeay64.lib ssleay64.lib SHFolder.lib ws2_32.lib powrprof.lib msimg32.lib winmm.lib"
 				OutputFile="$(SolutionDir)compiled/$(ProjectName).exe"
 				Version=""
 				LinkIncremental="1"
@@ -542,7 +542,7 @@
 				FavorSizeOrSpeed="2"
 				OmitFramePointers="false"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost\boost\tr1\tr1&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)luabind&quot;;&quot;$(SolutionDir)hunspell&quot;;&quot;$(SolutionDir)hunspell\src&quot;;&quot;$(SolutionDir)hunspell\src\win_api&quot;;&quot;$(SolutionDir)hunspell\src\hunspell&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost\boost\tr1\tr1&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)luabind&quot;"
 				PreprocessorDefinitions="SVNBUILD"
 				StringPooling="true"
 				MinimalRebuild="true"
@@ -580,7 +580,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/FIXED:NO /SAFESEH:NO"
-				AdditionalDependencies="libeay32.lib ssleay32.lib SHFolder.lib unicows.lib ws2_32.lib powrprof.lib  msimg32.lib"
+				AdditionalDependencies="stlport_static_32.lib libeay32.lib ssleay32.lib SHFolder.lib unicows.lib ws2_32.lib powrprof.lib msimg32.lib"
 				OutputFile="$(SolutionDir)compiled/$(ProjectName).exe"
 				Version=""
 				LinkIncremental="1"
@@ -673,7 +673,7 @@
 				FavorSizeOrSpeed="2"
 				OmitFramePointers="false"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost\boost\tr1\tr1&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)luabind&quot;;&quot;$(SolutionDir)hunspell&quot;;&quot;$(SolutionDir)hunspell\src&quot;;&quot;$(SolutionDir)hunspell\src\win_api&quot;;&quot;$(SolutionDir)hunspell\src\hunspell&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost\boost\tr1\tr1&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)luabind&quot;"
 				PreprocessorDefinitions="SVNBUILD"
 				StringPooling="true"
 				MinimalRebuild="true"
@@ -712,7 +712,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/FIXED:NO /SAFESEH:NO"
-				AdditionalDependencies="libeay64.lib ssleay64.lib SHFolder.lib ws2_32.lib powrprof.lib msimg32.lib winmm.lib"
+				AdditionalDependencies="stlport_static_64.lib libeay64.lib ssleay64.lib SHFolder.lib ws2_32.lib powrprof.lib msimg32.lib winmm.lib"
 				OutputFile="$(SolutionDir)compiled/$(ProjectName).exe"
 				Version=""
 				LinkIncremental="1"
@@ -795,7 +795,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)luabind&quot;;&quot;$(SolutionDir)hunspell&quot;;&quot;$(SolutionDir)hunspell\src&quot;;&quot;$(SolutionDir)hunspell\src\win_api&quot;;&quot;$(SolutionDir)hunspell\src\hunspell&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)luabind&quot;"
 				StringPooling="true"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
@@ -832,11 +832,11 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/FIXED:NO /SAFESEH:NO"
-				AdditionalDependencies="libeay32.lib ssleay32.lib SHFolder.lib unicows.lib ws2_32.lib powrprof.lib  msimg32.lib"
+				AdditionalDependencies="libeay32.lib ssleay32.lib SHFolder.lib unicows.lib ws2_32.lib powrprof.lib msimg32.lib"
 				OutputFile="$(SolutionDir)compiled/$(ProjectName).exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;$(SolutionDir)openssl/lib&quot;;&quot;$(SolutionDir)stlport\lib32&quot;"
+				AdditionalLibraryDirectories="&quot;$(SolutionDir)openssl\lib&quot;;&quot;$(SolutionDir)stlport\lib&quot;"
 				GenerateManifest="true"
 				AdditionalManifestDependencies="type=&apos;win32&apos; name=&apos;Microsoft.Windows.Common-Controls&apos; version=&apos;6.0.0.0&apos; processorArchitecture=&apos;*&apos; publicKeyToken=&apos;6595b64144ccf1df&apos; language=&apos;*&apos;"
 				IgnoreAllDefaultLibraries="false"
@@ -907,7 +907,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)luabind&quot;;&quot;$(SolutionDir)hunspell&quot;;&quot;$(SolutionDir)hunspell\src&quot;;&quot;$(SolutionDir)hunspell\src\win_api&quot;;&quot;$(SolutionDir)hunspell\src\hunspell&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)luabind&quot;"
 				StringPooling="true"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
@@ -948,7 +948,7 @@
 				OutputFile="$(SolutionDir)compiled/$(ProjectName).exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;$(SolutionDir)openssl/lib&quot;;&quot;$(SolutionDir)stlport\lib64&quot;"
+				AdditionalLibraryDirectories="&quot;$(SolutionDir)openssl\lib&quot;;&quot;$(SolutionDir)stlport\lib&quot;"
 				GenerateManifest="true"
 				AdditionalManifestDependencies="type=&apos;win32&apos; name=&apos;Microsoft.Windows.Common-Controls&apos; version=&apos;6.0.0.0&apos; processorArchitecture=&apos;AMD64&apos; publicKeyToken=&apos;6595b64144ccf1df&apos; language=&apos;*&apos;"
 				IgnoreAllDefaultLibraries="false"
@@ -1028,7 +1028,7 @@
 				FavorSizeOrSpeed="2"
 				OmitFramePointers="false"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)luabind&quot;;&quot;$(SolutionDir)hunspell&quot;;&quot;$(SolutionDir)hunspell\src&quot;;&quot;$(SolutionDir)hunspell\src\win_api&quot;;&quot;$(SolutionDir)hunspell\src\hunspell&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)luabind&quot;"
 				StringPooling="true"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
@@ -1065,12 +1065,12 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/FIXED:NO /SAFESEH:NO"
-				AdditionalDependencies="libeay32.lib ssleay32.lib SHFolder.lib unicows.lib ws2_32.lib powrprof.lib  msimg32.lib"
+				AdditionalDependencies="libeay32.lib ssleay32.lib SHFolder.lib unicows.lib ws2_32.lib powrprof.lib msimg32.lib"
 				OutputFile="$(SolutionDir)compiled/$(ProjectName).exe"
 				Version=""
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;$(SolutionDir)openssl/lib&quot;;&quot;$(SolutionDir)stlport\lib32&quot;"
+				AdditionalLibraryDirectories="&quot;$(SolutionDir)openssl\lib&quot;;&quot;$(SolutionDir)stlport\lib&quot;"
 				GenerateManifest="true"
 				AdditionalManifestDependencies="type=&apos;win32&apos; name=&apos;Microsoft.Windows.Common-Controls&apos; version=&apos;6.0.0.0&apos; processorArchitecture=&apos;*&apos; publicKeyToken=&apos;6595b64144ccf1df&apos; language=&apos;*&apos;"
 				IgnoreAllDefaultLibraries="false"
@@ -1157,7 +1157,7 @@
 				FavorSizeOrSpeed="2"
 				OmitFramePointers="false"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)luabind&quot;;&quot;$(SolutionDir)hunspell&quot;;&quot;$(SolutionDir)hunspell\src&quot;;&quot;$(SolutionDir)hunspell\src\win_api&quot;;&quot;$(SolutionDir)hunspell\src\hunspell&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)luabind&quot;"
 				StringPooling="true"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
@@ -1200,7 +1200,7 @@
 				Version=""
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;$(SolutionDir)openssl/lib&quot;;&quot;$(SolutionDir)stlport\lib64&quot;"
+				AdditionalLibraryDirectories="&quot;$(SolutionDir)openssl\lib&quot;;&quot;$(SolutionDir)stlport\lib&quot;"
 				GenerateManifest="true"
 				AdditionalManifestDependencies="type=&apos;win32&apos; name=&apos;Microsoft.Windows.Common-Controls&apos; version=&apos;6.0.0.0&apos; processorArchitecture=&apos;AMD64&apos; publicKeyToken=&apos;6595b64144ccf1df&apos; language=&apos;*&apos;"
 				IgnoreAllDefaultLibraries="false"
@@ -1287,7 +1287,7 @@
 				FavorSizeOrSpeed="2"
 				OmitFramePointers="false"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)luabind&quot;;&quot;$(SolutionDir)hunspell&quot;;&quot;$(SolutionDir)hunspell\src&quot;;&quot;$(SolutionDir)hunspell\src\win_api&quot;;&quot;$(SolutionDir)hunspell\src\hunspell&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)luabind&quot;"
 				PreprocessorDefinitions="SVNBUILD"
 				StringPooling="true"
 				MinimalRebuild="true"
@@ -1325,12 +1325,12 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/FIXED:NO /SAFESEH:NO"
-				AdditionalDependencies="libeay32.lib ssleay32.lib SHFolder.lib unicows.lib ws2_32.lib powrprof.lib  msimg32.lib"
+				AdditionalDependencies="libeay32.lib ssleay32.lib SHFolder.lib unicows.lib ws2_32.lib powrprof.lib msimg32.lib"
 				OutputFile="$(SolutionDir)compiled/$(ProjectName).exe"
 				Version=""
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;$(SolutionDir)openssl/lib&quot;;&quot;$(SolutionDir)stlport\lib32&quot;"
+				AdditionalLibraryDirectories="&quot;$(SolutionDir)openssl\lib&quot;;&quot;$(SolutionDir)stlport\lib&quot;"
 				GenerateManifest="true"
 				AdditionalManifestDependencies="type=&apos;win32&apos; name=&apos;Microsoft.Windows.Common-Controls&apos; version=&apos;6.0.0.0&apos; processorArchitecture=&apos;*&apos; publicKeyToken=&apos;6595b64144ccf1df&apos; language=&apos;*&apos;"
 				IgnoreAllDefaultLibraries="false"
@@ -1418,7 +1418,7 @@
 				FavorSizeOrSpeed="2"
 				OmitFramePointers="false"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)luabind&quot;;&quot;$(SolutionDir)hunspell&quot;;&quot;$(SolutionDir)hunspell\src&quot;;&quot;$(SolutionDir)hunspell\src\win_api&quot;;&quot;$(SolutionDir)hunspell\src\hunspell&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)luabind&quot;"
 				PreprocessorDefinitions="SVNBUILD"
 				StringPooling="true"
 				MinimalRebuild="true"
@@ -1462,7 +1462,7 @@
 				Version=""
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;$(SolutionDir)openssl/lib&quot;;&quot;$(SolutionDir)stlport\lib64&quot;"
+				AdditionalLibraryDirectories="&quot;$(SolutionDir)openssl\lib&quot;;&quot;$(SolutionDir)stlport\lib&quot;"
 				GenerateManifest="true"
 				AdditionalManifestDependencies="type=&apos;win32&apos; name=&apos;Microsoft.Windows.Common-Controls&apos; version=&apos;6.0.0.0&apos; processorArchitecture=&apos;AMD64&apos; publicKeyToken=&apos;6595b64144ccf1df&apos; language=&apos;*&apos;"
 				IgnoreAllDefaultLibraries="false"
@@ -2037,6 +2037,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\windows\libhunspell.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\windows\LimitPage.cpp"
 				>
 			</File>
@@ -2559,6 +2563,10 @@
 			</File>
 			<File
 				RelativePath=".\windows\KickDlg.h"
+				>
+			</File>
+			<File
+				RelativePath=".\windows\libhunspell.hpp"
 				>
 			</File>
 			<File

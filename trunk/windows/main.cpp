@@ -116,7 +116,7 @@ LONG __stdcall DCUnhandledExceptionFilter( LPEXCEPTION_POINTERS e )
 #endif
 
 	// The release version loads the dll and pdb:s here...
-	EXTENDEDTRACEINITIALIZE( Util::getDataPath().c_str() );
+	EXTENDEDTRACEINITIALIZE( Util::getPath(Util::PATH_RESOURCES).c_str() );
 
 #endif
 
@@ -403,7 +403,7 @@ static int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 	SpellChecker::newInstance();
 	if(!RSXPP_SETTING(DICTIONARY).empty()) {
 		callBack(splash.m_hWnd, _T("Dictionary"));
-		SpellChecker::getInstance()->reload();
+		SpellChecker::getInstance()->load();
 	}
 	//END
 	splash.DestroyWindow();

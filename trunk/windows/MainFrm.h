@@ -56,7 +56,10 @@ class ShutdownManager; //RSX++
 class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFrame>,
 		public CMessageFilter, public CIdleHandler, public CSplitterImpl<MainFrame, false>, public Thread,
 		private TimerManagerListener, private QueueManagerListener,
-		private LogManagerListener, private WebServerListener, private UpdateManagerListener
+		private LogManagerListener, private WebServerListener,
+		//RSX++
+		private UpdateManagerListener, private ClientManagerListener
+		//END
 {
 public:
 	MainFrame();
@@ -512,9 +515,12 @@ private:
 	// QueueManagerListener
 	void on(QueueManagerListener::Finished, const QueueItem* qi, const string& dir, const Download*) throw();
 	void on(PartialList, const UserPtr&, const string& text) throw();
-
+	//RSX++
 	// UpdateManagerListener
 	void on(UpdateManagerListener::VersionUpdated, const VersionInfo::Client&, const VersionInfo::Profiles&) throw();
+	void on(ClientManagerListener::ClientOpen, const std::string&) throw();
+	void on(ClientManagerListener::ClientClose, const std::string&) throw();
+	//END
 
 	// UPnP connectors
 	std::auto_ptr<UPnP> UPnP_TCP;

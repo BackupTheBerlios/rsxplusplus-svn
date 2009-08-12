@@ -34,10 +34,7 @@
 #include "LuaBindings.h"
 #include "UserConnection.h"
 #include "SimpleXML.h"
-
-/* @todo
- - option to open/close hubtab and change focus on them; option to redirect to another url - by ff
-*/
+#include "UserCommand.h"
 
 namespace dcpp {
 
@@ -50,6 +47,7 @@ ScriptManager::ScriptManager() {
 
 ScriptManager::~ScriptManager() {
 	SettingsManager::getInstance()->removeListener(this);
+	TimerManager::getInstance()->removeListener(this);
 }
 
 void ScriptManager::BindScriptManager() {
@@ -109,6 +107,8 @@ void ScriptManager::load(void (*f)(void*, const tstring&), void* p) {
 	LuaBindings::BindAdcCommand(parser);
 	//LuaBindings::BindTTHValue(parser);
 	LuaBindings::BindSettingsManager(parser);
+	LuaBindings::BindClientManager(parser);
+	LuaBindings::BindFavoriteManager(parser);
 
 	PluginsManager::getInstance()->onLuaInit(parser);
 
@@ -152,6 +152,8 @@ void ScriptManager::exec() {
 			}
 		}
 	}
+	if(!listeners[TIMER_ON_SECOND].empty() || !listeners[TIMER_ON_MINUTE].empty())
+		TimerManager::getInstance()->addListener(this);
 }
 
 void ScriptManager::runGC() {
@@ -403,8 +405,93 @@ void ScriptManager::on(SettingsManagerListener::Save, SimpleXML& xml) throw() {
 	xml.stepOut();
 }
 
+void ScriptManager::on(TimerManagerListener::Second, uint64_t tick) throw() {
+	Objects& obj = listeners[TIMER_ON_SECOND];
+	if(obj.empty()) return;
+	Lock l(cs);
+	for(Objects::const_iterator i = obj.begin(); i != obj.end(); ++i) {
+		try {
+			luabind::call_function<void>(*i, tick);
+		} catch(const luabind::error& e) { 
+			luabind::object error_msg(luabind::from_stack(e.state(), -1));
+			LogManager::getInstance()->message("Lua Error: " + luabind::object_cast<std::string>(error_msg));
+		}
+	}
+}
+
+void ScriptManager::on(TimerManagerListener::Minute, uint64_t tick) throw() {
+	Objects& obj = listeners[TIMER_ON_MINUTE];
+	if(obj.empty()) return;
+	Lock l(cs);
+	for(Objects::const_iterator i = obj.begin(); i != obj.end(); ++i) {
+		try {
+			luabind::call_function<void>(*i, tick);
+		} catch(const luabind::error& e) { 
+			luabind::object error_msg(luabind::from_stack(e.state(), -1));
+			LogManager::getInstance()->message("Lua Error: " + luabind::object_cast<std::string>(error_msg));
+		}
+	}
+}
+
+bool ScriptManager::onUserCmd(Client* c, UserCommand& uc) {
+	Objects& obj = listeners[UC_ON_COMMAND];
+	if(obj.empty()) return false;
+	Lock l(cs);
+	bool ret = false;
+
+	for(Objects::const_iterator i = obj.begin(); i != obj.end(); ++i) {
+		try {
+			bool r = luabind::call_function<bool>(*i, c, boost::ref(uc));
+			if(r)
+				ret = true;
+		} catch(const luabind::error& e) { 
+			luabind::object error_msg(luabind::from_stack(e.state(), -1));
+			LogManager::getInstance()->message("Lua Error: " + luabind::object_cast<std::string>(error_msg));
+		}
+	}
+	return ret;
+}
+
+bool ScriptManager::onUserCmd(OnlineUser* ou, UserCommand& uc) {
+	Objects& obj = listeners[UC_ON_COMMAND];
+	if(obj.empty()) return false;
+	Lock l(cs);
+	bool ret = false;
+
+	for(Objects::const_iterator i = obj.begin(); i != obj.end(); ++i) {
+		try {
+			bool r = luabind::call_function<bool>(*i, ou, boost::ref(uc));
+			if(r)
+				ret = true;
+		} catch(const luabind::error& e) { 
+			luabind::object error_msg(luabind::from_stack(e.state(), -1));
+			LogManager::getInstance()->message("Lua Error: " + luabind::object_cast<std::string>(error_msg));
+		}
+	}
+	return ret;
+}
+
+bool ScriptManager::onUserCmd(User* u, UserCommand& uc) {
+	Objects& obj = listeners[UC_ON_COMMAND];
+	if(obj.empty()) return false;
+	Lock l(cs);
+	bool ret = false;
+
+	for(Objects::const_iterator i = obj.begin(); i != obj.end(); ++i) {
+		try {
+			bool r = luabind::call_function<bool>(*i, u, boost::ref(uc));
+			if(r)
+				ret = true;
+		} catch(const luabind::error& e) { 
+			luabind::object error_msg(luabind::from_stack(e.state(), -1));
+			LogManager::getInstance()->message("Lua Error: " + luabind::object_cast<std::string>(error_msg));
+		}
+	}
+	return ret;
+}
+
 } // namespace dcpp
 
 /**
- * $Id: $
+ * $Id$
  */

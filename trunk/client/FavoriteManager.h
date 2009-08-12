@@ -277,6 +277,8 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>, private HttpCon
 	private SettingsManagerListener, private ClientManagerListener
 {
 public:
+	~FavoriteManager() throw();
+
 // Public Hubs
 	enum HubTypes {
 		TYPE_NORMAL,
@@ -528,7 +530,7 @@ private:
 	friend class Singleton<FavoriteManager>;
 	
 	FavoriteManager();
-	~FavoriteManager() throw();
+//	~FavoriteManager() throw();
 	
 	FavoriteHubEntryList::const_iterator getFavoriteHub(const string& aServer);
 	void loadXmlList(const string& xml);

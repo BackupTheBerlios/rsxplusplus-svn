@@ -46,6 +46,8 @@ namespace dcpp {
 		void BindQueueManager(lua_State* L);
 		void BindTTHValue(lua_State* L);
 		void BindSettingsManager(lua_State* L);
+		void BindClientManager(lua_State* L);
+		void BindFavoriteManager(lua_State* L);
 	}
 }
 

@@ -66,6 +66,9 @@ private:
 	typedef HubUsersMap<true, ADCMap> SIDMap;
 	typedef SIDMap::const_iterator SIDIter;
 	//RSX++
+	void parseCommand(const string& command) {
+		dispatch(command, false);
+	}
 	tstring startChecking(const tstring& aParams) { return users.startChecking(this, aParams); }
 	void stopChecking()	{ users.stopCheck(); }
 	void stopMyINFOCheck() { users.stopMyINFOCheck(); }

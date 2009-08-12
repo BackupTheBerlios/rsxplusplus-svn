@@ -35,6 +35,8 @@ public:
 	typedef X<4> ClientConnected;
 	typedef X<5> ClientUpdated;
 	typedef X<6> ClientDisconnected;
+	typedef X<7> ClientOpen; //RSX++
+	typedef X<8> ClientClose; //RSX++
 
 	/** User online in at least one hub */
 	virtual void on(UserConnected, const UserPtr&) throw() { }
@@ -45,6 +47,8 @@ public:
 	virtual void on(ClientConnected, const Client*) throw() { }
 	virtual void on(ClientUpdated, const Client*) throw() { }
 	virtual void on(ClientDisconnected, const Client*) throw() { }
+	virtual void on(ClientOpen, const std::string&) throw() { } //RSX++
+	virtual void on(ClientClose, const std::string&) throw() { } //RSX++
 };
 
 } // namespace dcpp

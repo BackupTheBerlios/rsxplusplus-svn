@@ -63,6 +63,7 @@
 # pragma warning(disable: 4503) // decorated name length exceeded, name was truncated
 # pragma warning(disable: 4428) // universal-character-name encountered in source
 # pragma warning(disable: 4201) // nonstadard extension used : nameless struct/union
+# pragma warning(disable: 4512) // assignment operator could not be generated //RSX++ ohh it's pissing me off
 
 #ifdef _WIN64
 # pragma warning(disable: 4244) // conversion from 'xxx' to 'yyy', possible loss of data
@@ -154,8 +155,8 @@ typedef unsigned __int64 uint64_t;
 #include <limits>
 
 #include <boost/format.hpp>
-#include <boost/scoped_array.hpp>
-#include <boost/shared_ptr.hpp>
+#include <boost/smart_ptr/scoped_array.hpp>
+#include <boost/smart_ptr/shared_ptr.hpp>
 #include <boost/noncopyable.hpp>
 
 #define BOOST_REGEX_NO_LIB 1

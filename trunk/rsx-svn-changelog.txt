@@ -1,3 +1,14 @@
+** SVN 143
+ ** [lua] added timer event
+ ** [lua] bound client manager, now open/CloseClient methods are available
+ ** [lua] parseCommand added to Client class
+ ** [lua] bound favmanager + UserCommand class
+ ** [lua] added onUserCommand event, which occurs when user choose _lua_ item from user command menu
+ ** cleanup in ClientListener
+ ** boost 1.39.0
+
+** WARNING ** lua stuff isn't checked, please do it
+
 ** SVN 142
  ** changes to stlport (i finally updated it) - now there's only one bat file to compile both x64 and x86 libs, see stlport/rsxpp-readme.txt
  ** spellcheck now works as a dll - not as a static library (put dll where exe is)

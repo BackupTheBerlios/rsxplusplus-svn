@@ -24,6 +24,7 @@
 #include <luabind/out_value_policy.hpp>
 #include <luabind/raw_policy.hpp>
 #include <luabind/adopt_policy.hpp>
+#include <luabind/discard_result_policy.hpp>
 #include <boost/ref.hpp>
 
 #include "LogManager.h"
@@ -38,6 +39,7 @@
 #include "version.h"
 #include "ShareManager.h"
 #include "QueueManager.h"
+#include "FavoriteManager.h"
 
 // we need custom converter, since lua stores all values as double afaik...
 //@todo better way to keep precision?
@@ -161,7 +163,6 @@ namespace dcpp {
 				.def("getHubUrl", &Client::getHubUrl)
 				.def("escape", &Client::escape)
 				.def("sendAction", &wrappers::sendAction)
-				.def("closeHub", &Client::closeHub)
 				.def("redirect", &Client::redirect)
 				.property("password", &Client::getPassword, &Client::setPassword)
 				.property("currentNick", &Client::getCurrentNick, &Client::setCurrentNick)
@@ -172,6 +173,7 @@ namespace dcpp {
 				.def("findUserByCID", (OnlineUser* (Client::*)(const CID&) const)&Client::findUser)
 				.def("findUserBySID", (OnlineUser* (Client::*)(const uint32_t) const)&Client::findUser)
 				.def("getUserList", &wrappers::getUsers, luabind::raw(_1))
+				.def("parseCommand", &Client::parseCommand)
 				//.def("sendAdcCommand", (void (Client::*)(const AdcCommand&))&Client::send, luabind::adopt(luabind::result))
 				.enum_("MessageStyle") [
 					luabind::value("STYLE_GENERAL", 0),
@@ -405,6 +407,51 @@ namespace dcpp {
 
 				luabind::def("getSettingsManager", &SettingsManager::getInstance),
 				luabind::def("getRSXSettingsManager", &rsxppSettingsManager::getInstance)
+			];
+		}
+
+		void BindClientManager(lua_State* L) {
+			luabind::module(L, "dcpp") [
+				luabind::class_<ClientManager>("ClientManager")
+				.def("openClient", &ClientManager::openHub)
+				.def("closeClient", &ClientManager::closeHub),
+
+				luabind::def("getClientManager", &ClientManager::getInstance)
+			];
+		}
+
+		void BindFavoriteManager(lua_State* L) {
+			luabind::module(L, "dcpp") [
+				luabind::class_<FavoriteManager>("FavoriteManager")
+				.def("addUserCommand", &FavoriteManager::addUserCommand, luabind::discard_result)
+				.enum_("UCFlags") [
+					luabind::value("FLAG_NOSAVE", UserCommand::FLAG_NOSAVE),
+					luabind::value("FLAG_LUAMENU", UserCommand::FLAG_LUAMENU)
+				]
+				.enum_("UCType") [
+					luabind::value("TYPE_SEPARATOR", (int)UserCommand::TYPE_SEPARATOR),
+					luabind::value("TYPE_RAW", (int)UserCommand::TYPE_RAW),
+					luabind::value("TYPE_RAW_ONCE", (int)UserCommand::TYPE_RAW_ONCE),
+					luabind::value("TYPE_REMOVE", (int)UserCommand::TYPE_REMOVE),
+					luabind::value("TYPE_CLEAR", (int)UserCommand::TYPE_CLEAR)
+				]
+				.enum_("UCContext") [
+					luabind::value("CONTEXT_HUB", (int)UserCommand::CONTEXT_HUB),
+					luabind::value("CONTEXT_CHAT", (int)UserCommand::CONTEXT_CHAT),
+					luabind::value("CONTEXT_SEARCH", (int)UserCommand::CONTEXT_SEARCH),
+					luabind::value("CONTEXT_FILELIST", (int)UserCommand::CONTEXT_FILELIST),
+					luabind::value("CONTEXT_MASK", (int)UserCommand::CONTEXT_MASK)
+				],
+
+				luabind::class_<UserCommand>("UserCommand")
+				.def("getID", &UserCommand::getId)
+				.def("getType", &UserCommand::getType)
+				.def("getContext", &UserCommand::getCtx)
+				.def("getName", &UserCommand::getName)
+				.def("getCommand", &UserCommand::getCommand)
+				.def("getHub", &UserCommand::getHub),
+
+				luabind::def("getFavoriteManager", &FavoriteManager::getInstance)
 			];
 		}
 	}

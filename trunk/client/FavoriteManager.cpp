@@ -85,7 +85,7 @@ UserCommand FavoriteManager::addUserCommand(int type, int ctx, Flags::MaskType f
 	Lock l(cs);
 	userCommands.push_back(UserCommand(lastId++, type, ctx, flags, name, command, hub));
 	UserCommand& uc = userCommands.back();
-	if(!uc.isSet(UserCommand::FLAG_NOSAVE)) 
+	if(!uc.isSet(UserCommand::FLAG_NOSAVE) && !uc.isSet(UserCommand::FLAG_LUAMENU)) 
 		save();
 	return userCommands.back();
 }
@@ -119,7 +119,7 @@ void FavoriteManager::updateUserCommand(const UserCommand& uc) {
 	for(UserCommand::List::iterator i = userCommands.begin(); i != userCommands.end(); ++i) {
 		if(i->getId() == uc.getId()) {
 			*i = uc;
-			nosave = uc.isSet(UserCommand::FLAG_NOSAVE);
+			nosave = uc.isSet(UserCommand::FLAG_NOSAVE) || uc.isSet(UserCommand::FLAG_LUAMENU);
 			break;
 		}
 	}
@@ -142,7 +142,7 @@ void FavoriteManager::removeUserCommand(int cid) {
 	Lock l(cs);
 	for(UserCommand::List::iterator i = userCommands.begin(); i != userCommands.end(); ++i) {
 		if(i->getId() == cid) {
-			nosave = i->isSet(UserCommand::FLAG_NOSAVE);
+			nosave = i->isSet(UserCommand::FLAG_NOSAVE) || i->isSet(UserCommand::FLAG_LUAMENU);
 			userCommands.erase(i);
 			break;
 		}
@@ -153,7 +153,7 @@ void FavoriteManager::removeUserCommand(int cid) {
 void FavoriteManager::removeUserCommand(const string& srv) {
 	Lock l(cs);
 	for(UserCommand::List::iterator i = userCommands.begin(); i != userCommands.end(); ) {
-		if((i->getHub() == srv) && i->isSet(UserCommand::FLAG_NOSAVE)) {
+		if((i->getHub() == srv) && (i->isSet(UserCommand::FLAG_NOSAVE) || i->isSet(UserCommand::FLAG_LUAMENU))) {
 			i = userCommands.erase(i);
 		} else {
 			++i;
@@ -164,7 +164,7 @@ void FavoriteManager::removeUserCommand(const string& srv) {
 void FavoriteManager::removeHubUserCommands(int ctx, const string& hub) {
 	Lock l(cs);
 	for(UserCommand::List::iterator i = userCommands.begin(); i != userCommands.end(); ) {
-		if(i->getHub() == hub && i->isSet(UserCommand::FLAG_NOSAVE) && i->getCtx() & ctx) {
+		if(i->getHub() == hub && (i->isSet(UserCommand::FLAG_NOSAVE) || i->isSet(UserCommand::FLAG_LUAMENU)) && i->getCtx() & ctx) {
 			i = userCommands.erase(i);
 		} else {
 			++i;
@@ -495,7 +495,7 @@ void FavoriteManager::save() {
 		xml.addTag("UserCommands");
 		xml.stepIn();
 		for(UserCommand::List::const_iterator k = userCommands.begin(); k != userCommands.end(); ++k) {
-			if(!k->isSet(UserCommand::FLAG_NOSAVE)) {
+			if(!k->isSet(UserCommand::FLAG_NOSAVE) && !k->isSet(UserCommand::FLAG_LUAMENU)) {
 				xml.addTag("UserCommand");
 				xml.addChildAttrib("Type", k->getType());
 				xml.addChildAttrib("Context", k->getCtx());

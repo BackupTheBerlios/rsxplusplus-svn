@@ -107,12 +107,11 @@ public:
 
 	void updated(const OnlineUserPtr& aUser) { fire(ClientListener::UserUpdated(), this, aUser); }
 	//RSX++
+	virtual void parseCommand(const std::string& command) = 0;
 	virtual tstring startChecking(const tstring& aParams) = 0;
 	virtual void stopChecking() = 0;
 	virtual void stopMyINFOCheck() = 0;
 
-	void attention() { fire(ClientListener::Attention(), this); }
-	void closeHub() { fire(ClientListener::Close(), this); }
 	void redirect(const std::string& url) { disconnect(true); fire(ClientListener::Redirect(), this, url); }
 	void addHubLine(const string& aMsg, int mType = 0) { fire(ClientListener::AddClientLine(), this, aMsg, mType); }
 	void sendActionCommand(const OnlineUser& ou, int actionId);

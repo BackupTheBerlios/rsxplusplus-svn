@@ -42,6 +42,7 @@
 #include "../rsx/RsxUtil.h"
 #include "../client/ClientManager.h"
 #include "../client/PluginsManager.h"
+#include "../client/ScriptManager.h"
 //END
 HubFrame::FrameMap HubFrame::frames;
 HubFrame::IgnoreMap HubFrame::ignoreList;
@@ -1306,9 +1307,15 @@ void HubFrame::runUserCommand(::UserCommand& uc) {
 	client->getMyIdentity().getParams(ucParams, "my", true);
 	client->getHubIdentity().getParams(ucParams, "hub", false);
 
+	bool drop = false; //RSX++
 	if(tabMenuShown) {
 		client->escapeParams(ucParams);
-		client->sendUserCmd(Util::formatParams(uc.getCommand(), ucParams, false));
+		//RSX++
+		if(uc.isSet(UserCommand::FLAG_LUAMENU))
+			drop = ScriptManager::getInstance()->onUserCmd(client, uc);
+		if(!drop)
+		//END
+			client->sendUserCmd(Util::formatParams(uc.getCommand(), ucParams, false));
 	} else {
 		int sel = -1;
 		while((sel = ctrlUsers.GetNextItem(sel, LVNI_SELECTED)) != -1) {
@@ -1317,7 +1324,14 @@ void HubFrame::runUserCommand(::UserCommand& uc) {
 				StringMap tmp = ucParams;
 				u->getIdentity().getParams(tmp, "user", true);
 				client->escapeParams(tmp);
-				client->sendUserCmd(Util::formatParams(uc.getCommand(), tmp, false));
+				//RSX++
+				if(uc.isSet(UserCommand::FLAG_LUAMENU))
+					drop = ScriptManager::getInstance()->onUserCmd(u.get(), uc);
+				else
+					drop = false;
+				if(!drop)
+				//END
+					client->sendUserCmd(Util::formatParams(uc.getCommand(), tmp, false));
 			}
 		}
 	}
@@ -1682,11 +1696,6 @@ void HubFrame::reconnectDisconnected() {
 			i->second->client->reconnect();
 		}
 	}
-}
-
-void HubFrame::on(ClientListener::Close, Client* c) throw() {
-	if(c == client)
-		PostMessage(WM_CLOSE);
 }
 //END
 void HubFrame::on(FavoriteManagerListener::UserAdded, const FavoriteUser& /*aUser*/) throw() {

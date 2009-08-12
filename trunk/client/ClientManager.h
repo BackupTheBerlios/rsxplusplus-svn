@@ -42,6 +42,20 @@ class ClientManager : public Speaker<ClientManagerListener>,
 	private TimerManagerListener
 {
 public:
+	//RSX++
+	~ClientManager() throw() {
+		TimerManager::getInstance()->removeListener(this); 
+	}
+
+	void openHub(const string& url) {
+		fire(ClientManagerListener::ClientOpen(), url);
+	}
+
+	void closeHub(const string& url) {
+		fire(ClientManagerListener::ClientClose(), url);
+	}
+	//END
+
 	Client* getClient(const string& aHubURL);
 	void putClient(Client* aClient);
 
@@ -232,9 +246,9 @@ private:
 		TimerManager::getInstance()->addListener(this); 
 	}
 
-	~ClientManager() throw() {
-		TimerManager::getInstance()->removeListener(this); 
-	}
+//	~ClientManager() throw() {
+//		TimerManager::getInstance()->removeListener(this); 
+//	}
 
 	void updateNick(const OnlineUser& user) throw();
 		

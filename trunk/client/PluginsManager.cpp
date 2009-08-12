@@ -438,7 +438,7 @@ dcpp_ptr_t PluginsManager::callFunc(int type, dcpp_ptr_t p1, dcpp_ptr_t p2, dcpp
 			}
 			case DCPP_HUB_CLOSE: {
 				if(!p2)
-					c->closeHub();
+					ClientManager::getInstance()->closeHub(c->getHubUrl());
 				else
 					ClientManager::getInstance()->putClient(c);
 				break;

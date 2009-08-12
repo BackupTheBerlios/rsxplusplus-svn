@@ -42,7 +42,6 @@ public:
 	using Client::send;
 	using Client::connect;
 
-	void onLine(const string& aLine) throw(); //RSX++
 	void connect(const OnlineUser& aUser, const string&);
 
 	void hubMessage(const string& aMessage, bool /*thirdPerson*/ = false);
@@ -85,6 +84,9 @@ private:
 
 	NickMap users;
 	//RSX++
+	void parseCommand(const string& command) {
+		onLine(command);
+	}
 	tstring startChecking(const tstring& aParams) { return users.startChecking(this, aParams); }
 	void stopChecking()	{ users.stopCheck(); }
 	void stopMyINFOCheck() { users.stopMyINFOCheck(); }
@@ -108,7 +110,7 @@ private:
 	NmdcHub& operator=(const NmdcHub&);
 
 	void clearUsers();
-	//void onLine(const string& aLine) throw(); //RSX++
+	void onLine(const string& aLine) throw();
 
 	OnlineUser& getUser(const string& aNick);
 	OnlineUserPtr findUser(const string& aNick) const;

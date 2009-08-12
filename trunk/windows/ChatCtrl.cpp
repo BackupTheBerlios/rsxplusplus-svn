@@ -23,9 +23,10 @@
 #include "ChatCtrl.h"
 #include "AGEmotionSetup.h"
 #include "PrivateFrame.h"
-
-#include "MainFrm.h" //RSX++
-
+//RSX++
+#include "MainFrm.h"
+#include "../client/ScriptManager.h"
+//END
 CAGEmotionSetup* g_pEmotionsSetup = NULL;
 
 #define MAX_EMOTICONS 48
@@ -1057,7 +1058,9 @@ void ChatCtrl::runUserCommand(UserCommand& uc) {
 		StringMap tmp = ucParams;
 		ou->getIdentity().getParams(tmp, "user", true);
 		client->escapeParams(tmp);
-		client->sendUserCmd(Util::formatParams(uc.getCommand(), tmp, false));
+		bool drop = uc.isSet(UserCommand::FLAG_LUAMENU) ? ScriptManager::getInstance()->onUserCmd(ou.get(), uc) : false;
+		if(!drop) //RSX++
+			client->sendUserCmd(Util::formatParams(uc.getCommand(), tmp, false));
 	}
 }
 

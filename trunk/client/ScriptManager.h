@@ -20,6 +20,7 @@
 #define RSXPLUSPLUS_SCRIPT_MANAGER
 
 #include "Singleton.h"
+#include "TimerManager.h"
 
 #include <luabind/luabind.hpp>
 #include <luabind/object.hpp>
@@ -29,8 +30,9 @@ namespace dcpp {
 	class CriticalSection;
 	class UserConnection;
 	class LuaScript;
+	class UserCommand;
 
-class ScriptManager : public Singleton<ScriptManager>, private SettingsManagerListener {
+class ScriptManager : public Singleton<ScriptManager>, private SettingsManagerListener, private TimerManagerListener {
 public:
 	typedef vector<LuaScript*> Scripts;
 	ScriptManager();
@@ -50,6 +52,9 @@ public:
 	void onHubDisconnected(Client* c);
 	bool onConnectionIn(UserConnection* uc, const std::string& line);
 	bool onConnectionOut(UserConnection* uc, const std::string& line);
+	bool onUserCmd(Client* c, UserCommand& uc);
+	bool onUserCmd(OnlineUser* ou, UserCommand& uc);
+	bool onUserCmd(User* u, UserCommand& uc);
 
 	Scripts& getScripts() {
 		return scripts;
@@ -85,6 +90,7 @@ private:
 		SETTINGS_LOAD,
 		TIMER_ON_SECOND,
 		TIMER_ON_MINUTE,
+		UC_ON_COMMAND,
 		LISTENERS_LAST
 	};
 
@@ -112,6 +118,8 @@ private:
 	void on(SettingsManagerListener::Load, SimpleXML&) throw();
 	void on(SettingsManagerListener::Save, SimpleXML&) throw();
 
+	void on(TimerManagerListener::Second, uint64_t /*tick*/) throw();
+	void on(TimerManagerListener::Minute, uint64_t /*tick*/) throw();
 };
 } // namespace dcpp
 

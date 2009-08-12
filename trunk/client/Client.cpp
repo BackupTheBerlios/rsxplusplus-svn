@@ -282,13 +282,19 @@ void Client::on(Second, uint64_t aTick) throw() {
 }
 //RSX++
 string Client::getCurrentDescription() const {
+#ifdef _WIN64
+#define BUILD_MODE "x64"
+#else
+#define BUILD_MODE "x86"
+#endif
 #ifdef SVNBUILD
-	return currentDescription + "<SVN " BOOST_STRINGIZE(SVN_REVISION) ">";
+	return currentDescription + "<SVN:" BOOST_STRINGIZE(SVN_REVISION) " " BUILD_MODE ">";
 #elif _DEBUG
-	return currentDescription + "<DEBUG SVN " BOOST_STRINGIZE(SVN_REVISION) ">";
+	return currentDescription + "<DBG SVN:" BOOST_STRINGIZE(SVN_REVISION) " " BUILD_MODE ">";
 #else
 	return currentDescription;
 #endif
+#undef BUILD_MODE
 }
 
 void Client::sendActionCommand(const OnlineUser& ou, int actionId) {

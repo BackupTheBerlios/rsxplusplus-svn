@@ -156,7 +156,8 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	QueueManager::getInstance()->addListener(this);
 	LogManager::getInstance()->addListener(this);
 	WebServerManager::getInstance()->addListener(this);
-	
+	ClientManager::getInstance()->addListener(this);
+
 	if(BOOLSETTING(WEBSERVER)) {
 		try {
 			WebServerManager::getInstance()->Start();
@@ -1657,6 +1658,7 @@ LRESULT MainFrame::onDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 	LogManager::getInstance()->removeListener(this);
 	QueueManager::getInstance()->removeListener(this);
 	TimerManager::getInstance()->removeListener(this);
+	ClientManager::getInstance()->removeListener(this); //RSX++
 
 	if(bTrayIcon) {
 		updateTray(false);
@@ -1692,6 +1694,14 @@ void MainFrame::setDefPrioMenu() {
 		case REALTIME_PRIORITY_CLASS:		prioMenu.SetMenuDefaultItem(IDC_CHANGE_PRIO_REALTIME);	break;
 		default:							prioMenu.SetMenuDefaultItem(IDC_CHANGE_PRIO_NORMAL);	break;
 	}
+}
+
+void MainFrame::on(ClientManagerListener::ClientOpen, const std::string& hubUrl) throw() {
+	HubFrame::openWindow(Text::toT(hubUrl));
+}
+
+void MainFrame::on(ClientManagerListener::ClientClose, const std::string& hubUrl) throw() {
+	HubFrame::closeHub(Text::toT(hubUrl));
 }
 //END
 /**

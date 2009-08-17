@@ -280,6 +280,12 @@ void Client::on(Second, uint64_t aTick) throw() {
 		cmdQueue.onSecond(aTick); //RSX+
 	}
 }
+
+void Client::redirect(const std::string& url) {
+	PluginsManager::getInstance()->onHubRedirect(this, url.c_str());
+	disconnect(true); 
+	fire(ClientListener::Redirect(), this, url);
+}
 //RSX++
 string Client::getCurrentDescription() const {
 #ifdef _WIN64

@@ -43,11 +43,7 @@ PluginsManager::PluginsManager() : dcpp_func(0) {
 	dcpp_func->free = &free;
 
 	dcpp_func->call = &PluginsManager::callFunc;
-#ifdef _DEBUG
-	dcpp_func->debug = &dcdebug;
-#else
-	dcpp_func->debug = &PluginsManager::debugDummy;
-#endif
+
 	dcpp_func->addListener = &PluginsManager::addListener;
 	dcpp_func->removeListener = &PluginsManager::removeListener;
 }
@@ -60,88 +56,6 @@ PluginsManager::~PluginsManager() {
 	}
 	plugins.clear();
 	delete dcpp_func;
-}
-
-void* PluginsManager::addPlugListener(int type, DCPP_FUNC f, dcpp_ptr_t pd) {
-	PluginsManager::Listener* ll = 0;
-	switch(type) {
-		case DCPP_CORE: {
-			ll = &coreEvents;
-			break;
-		}
-		case DCPP_HUB: {
-			ll = &hubEvents;
-			break;
-		}
-		case DCPP_USER: {
-			ll = &userEvents;
-			break;
-		}
-		case DCPP_CONNECTION: {
-			ll = &connEvents;
-			break;
-		}
-		default: { return (void*)0; }
-	}
-
-	if(ll) {
-		Lock l(cs);
-		for(PluginsManager::Listener::iterator i = ll->begin(); i != ll->end(); ++i) {
-			if((*i)->f == f)
-				return (void*)0;
-		}
-
-		PlugListener* ls = new PlugListener(f, pd);
-		ll->push_back(ls);
-		return (void*)ls;
-	}
-	return (void*)0;
-}
-
-void PluginsManager::remPlugListener(PlugListener* ls) {
-	if(!ls) return;
-
-	Lock l(cs);
-	deleteListener(hubEvents, ls);
-	deleteListener(userEvents, ls);
-	deleteListener(connEvents, ls);
-	deleteListener(coreEvents, ls);
-}
-
-void PluginsManager::deleteListener(Listener& l, PlugListener* ls) {
-	PluginsManager::Listener::iterator i = std::find(l.begin(), l.end(), ls);
-	if(i != l.end()) {
-		l.erase(i);
-		delete ls;
-		ls = 0;
-	}
-}
-
-void* PluginsManager::addListener(int type, DCPP_FUNC f, dcpp_ptr_t pd) {
-	return PluginsManager::getInstance()->addPlugListener(type, f, pd);
-}
-
-void PluginsManager::removeListener(void* ptr) {
-	PluginsManager::getInstance()->remPlugListener(reinterpret_cast<PluginsManager::PlugListener*>((dcpp_ptr_t)ptr));
-}
-
-template<bool breakAtFirst, typename T1, typename T2>
-int PluginsManager::call(Listener& l, T1 p1, T2 p2) {
-	int ret = DCPP_PROCESS_EVENT;
-	if(!l.size()) return ret;
-
-	Lock lock(cs);
-	for(PluginsManager::Listener::iterator i = l.begin(); i != l.end(); ++i) {
-		int r = (*i)->call<T1, T2>(p1, p2);
-		if(r != DCPP_PROCESS_EVENT) {
-			if(breakAtFirst) {
-				return r;
-			} else {
-				ret = r;
-			}
-		}
-	}
-	return ret;
 }
 
 void PluginsManager::init(void (*f)(void*, const tstring&), void* pv) {
@@ -185,8 +99,77 @@ void PluginsManager::init(void (*f)(void*, const tstring&), void* pv) {
 	}
 }
 
+void PluginsManager::load() {
+	call<false>(coreEvents, DCPP_CORE_INIT_FINISHED, 0);
+}
+
 void PluginsManager::initClose() { 
 	call<false>(coreEvents, DCPP_CORE_INIT_CLOSE, 0);
+}
+
+void* PluginsManager::addPlugListener(int type, dcppListenerFunc f, dcpp_ptr_t pd) {
+	PluginsManager::Listener* ll = 0;
+	switch(type) {
+		case DCPP_CORE: {
+			ll = &coreEvents;
+			break;
+		}
+		case DCPP_HUB: {
+			ll = &hubEvents;
+			break;
+		}
+		case DCPP_USER: {
+			ll = &userEvents;
+			break;
+		}
+		case DCPP_CONNECTION: {
+			ll = &connEvents;
+			break;
+		}
+		default:
+			return (void*)0;
+	}
+
+	if(ll) {
+		Lock l(cs);
+		for(PluginsManager::Listener::iterator i = ll->begin(); i != ll->end(); ++i) {
+			if((*i)->f == f)
+				return (void*)0;
+		}
+
+		PlugListener* ls = new PlugListener(f, pd);
+		ll->push_back(ls);
+		return (void*)ls;
+	}
+	return (void*)0;
+}
+
+void PluginsManager::remPlugListener(PlugListener* ls) {
+	if(!ls)
+		return;
+
+	Lock l(cs);
+	deleteListener(hubEvents, ls);
+	deleteListener(userEvents, ls);
+	deleteListener(connEvents, ls);
+	deleteListener(coreEvents, ls);
+}
+
+void PluginsManager::deleteListener(Listener& l, PlugListener* ls) {
+	PluginsManager::Listener::iterator i = std::find(l.begin(), l.end(), ls);
+	if(i != l.end()) {
+		l.erase(i);
+		delete ls;
+		ls = 0;
+	}
+}
+
+void PluginsManager::removeListener(void* ptr) {
+	PluginsManager::getInstance()->remPlugListener(reinterpret_cast<PluginsManager::PlugListener*>(ptr));
+}
+
+void* PluginsManager::addListener(int type, dcppListenerFunc f, dcpp_ptr_t pd) {
+	return PluginsManager::getInstance()->addPlugListener(type, f, pd);
 }
 
 void PluginsManager::getPluginsInfo(std::list<dcppPluginInformation*>& p) {
@@ -195,8 +178,23 @@ void PluginsManager::getPluginsInfo(std::list<dcppPluginInformation*>& p) {
 		p.push_back((*i)->info);
 }
 
-void PluginsManager::load() {
-	call<false>(coreEvents, DCPP_CORE_INIT_FINISHED, 0);
+template<bool breakAtFirst, typename T1, typename T2>
+int PluginsManager::call(Listener& l, T1 p1, T2 p2) {
+	int ret = DCPP_PROCESS_EVENT;
+	if(!l.size()) return ret;
+
+	Lock lock(cs);
+	for(PluginsManager::Listener::iterator i = l.begin(); i != l.end(); ++i) {
+		int r = (*i)->call<T1, T2>(p1, p2);
+		if(r != DCPP_PROCESS_EVENT) {
+			if(breakAtFirst) {
+				return r;
+			} else {
+				ret = r;
+			}
+		}
+	}
+	return ret;
 }
 
 bool PluginsManager::onHubMsgIn(Client* hub, const char* msg) {
@@ -278,6 +276,14 @@ void PluginsManager::onHubDisconnected(Client* hub) {
 	call<false>(hubEvents, DCPP_HUB_DISCONNECTED, hub);
 }
 
+void PluginsManager::onHubRedirect(Client* hub, const char* newUrl) {
+	dcppHubRedirect m;
+	memzero(&m, sizeof(m));
+	m.hub = (dcpp_ptr_t)hub;
+	m.url = newUrl;
+	call<false>(hubEvents, DCPP_HUB_REDIRECTING, &m);
+}
+
 void PluginsManager::onUserConnected(OnlineUser* ou) {
 	call<false>(userEvents, DCPP_USER_CONNECTED, ou);
 }
@@ -303,18 +309,43 @@ dcpp_ptr_t PluginsManager::callFunc(int type, dcpp_ptr_t p1, dcpp_ptr_t p2, dcpp
 			}
 			case DCPP_UTILS_FORMAT_PARAMS: {
 				StringMap params;
-				DCPP_LINKED_MAP* first = reinterpret_cast<DCPP_LINKED_MAP*>(p1);
-				for(; first; first = first->next)
-					params[static_cast<char*>(first->first)] = static_cast<char*>(first->second);
-				return (dcpp_ptr_t)get_c_string(Util::formatParams(reinterpret_cast<char*>(p2), params, false));
+				dcppLinkedMap* ptr = reinterpret_cast<dcppLinkedMap*>(p1);
+				dcppBuffer* buf = reinterpret_cast<dcppBuffer*>(p3);
+
+				while(ptr) {
+					params[static_cast<char*>(ptr->first)] = static_cast<char*>(ptr->second);
+					ptr = ptr->next;
+				}
+				string format = Util::formatParams(reinterpret_cast<char*>(p2), params, false);
+				memcpy(buf->buf, &format[0], buf->size);
+				return format.length();
 			}
 			case DCPP_UTILS_CONV_UTF8_TO_WIDE: {
-				return (dcpp_ptr_t)get_c_string(Text::utf8ToWide(reinterpret_cast<char*>(p1)));
+				dcppBuffer* buf = reinterpret_cast<dcppBuffer*>(p2);
+				std::wstring str(Text::utf8ToWide(reinterpret_cast<char*>(p1)));
+				memcpy(buf->buf, &str[0], buf->size);
+				return str.length();
 			}
  			case DCPP_UTILS_CONV_WIDE_TO_UTF8: {
-				return (dcpp_ptr_t)get_c_string(Text::wideToUtf8(reinterpret_cast<wchar_t*>(p1)));
+				dcppBuffer* buf = reinterpret_cast<dcppBuffer*>(p2);
+				std::string str(Text::wideToUtf8(reinterpret_cast<wchar_t*>(p1)));
+				memcpy(buf->buf, &str[0], buf->size);
+				return str.length();
 			}
-			default: return 0;
+			case DCPP_UTILS_FREE_LINKED_MAP: {
+				dcppLinkedMap* ptr = reinterpret_cast<dcppLinkedMap*>(p1);
+				dcppLinkedMap* next;
+				while(ptr) {
+					next = ptr->next;
+					free(ptr->first);
+					free(ptr->second);
+					free(ptr);
+					ptr = next;
+				}
+				ptr = 0;
+			}
+			default:
+				return 0;
 		}
 	} else if(type > DCPP_CONFIG) {
 		switch(type) {
@@ -326,7 +357,8 @@ dcpp_ptr_t PluginsManager::callFunc(int type, dcpp_ptr_t p1, dcpp_ptr_t p2, dcpp
 				return (dcpp_ptr_t)rsxppSettingsManager::getInstance()->getExtSetting(reinterpret_cast<char*>(p1)).c_str();
 				break;
 			}
-			default: return 0;
+			default:
+				return 0;
 		}
 	} else if(type > DCPP_CONNECTION) {
 		UserConnection* uc = reinterpret_cast<UserConnection*>(p1);
@@ -360,7 +392,8 @@ dcpp_ptr_t PluginsManager::callFunc(int type, dcpp_ptr_t p1, dcpp_ptr_t p2, dcpp
 				}
 				break;
 			}
-			default: return 0;
+			default:
+				return 0;
 		}
 	} else if(type > DCPP_USER) {
 		OnlineUser* ou = reinterpret_cast<OnlineUser*>(p1);
@@ -378,18 +411,21 @@ dcpp_ptr_t PluginsManager::callFunc(int type, dcpp_ptr_t p1, dcpp_ptr_t p2, dcpp
 				ou->getIdentity().set(reinterpret_cast<char*>(p2), string(reinterpret_cast<char*>(p3)));
 				break;
 			}
-			default: return 0;
+			default:
+				return 0;
 		}
 	} else if(type > DCPP_HUB) {
 		if(type == DCPP_HUB_OPEN) {
-			Client* c = ClientManager::getInstance()->getClient(reinterpret_cast<char*>(p1));
-			if(p2) {
-				//@todo with frame
-			}
+			Client* c = 0;
+			if(!p2)
+				ClientManager::getInstance()->openHub(reinterpret_cast<char*>(p1));
+			else
+				c = ClientManager::getInstance()->getClient(reinterpret_cast<char*>(p1));
 			return (dcpp_ptr_t)c;
 		}
 		Client* c = reinterpret_cast<Client*>(p1);
-		if(!c) return 0;
+		if(!c)
+			return 0;
 
 		switch(type) {
 			case DCPP_HUB_FIELD_GET: {
@@ -447,23 +483,22 @@ dcpp_ptr_t PluginsManager::callFunc(int type, dcpp_ptr_t p1, dcpp_ptr_t p2, dcpp
 				c->redirect(reinterpret_cast<char*>(p2));
 				break;
 			}
-			default: return 0;
+			default:
+				return 0;
 		}
 	} else if(type > DCPP_CORE) {
 		switch(type) {
 			case DCPP_CORE_GET_SETTING: {
 				if(p3) {
-					switch(p2) {
-						case 0: return (dcpp_ptr_t)rsxppSettingsManager::getInstance()->getString(reinterpret_cast<char*>(p1)).c_str();
-						case 1: return (dcpp_ptr_t)rsxppSettingsManager::getInstance()->getInt(reinterpret_cast<char*>(p1));
-						default: return 0;
-					}
+					if(p2 == 0)
+						return (dcpp_ptr_t)rsxppSettingsManager::getInstance()->getString(reinterpret_cast<char*>(p1)).c_str();
+					else
+						return (dcpp_ptr_t)rsxppSettingsManager::getInstance()->getInt(reinterpret_cast<char*>(p1));
 				} else {
-					switch(p2) {
-						case 0: return (dcpp_ptr_t)SettingsManager::getInstance()->getString(reinterpret_cast<char*>(p1)).c_str();
-						case 1: return (dcpp_ptr_t)SettingsManager::getInstance()->getInt(reinterpret_cast<char*>(p1));
-						default: return 0;
-					}
+					if(p2 == 0)
+						return (dcpp_ptr_t)SettingsManager::getInstance()->getString(reinterpret_cast<char*>(p1)).c_str();
+					else
+						return (dcpp_ptr_t)SettingsManager::getInstance()->getInt(reinterpret_cast<char*>(p1));
 				}
 				break;
 			}
@@ -471,7 +506,8 @@ dcpp_ptr_t PluginsManager::callFunc(int type, dcpp_ptr_t p1, dcpp_ptr_t p2, dcpp
 				//@todo
 				break;
 			}
-			default: return 0;
+			default:
+				return 0;
 		}
 	}
 	return 0;

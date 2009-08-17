@@ -112,7 +112,7 @@ public:
 	virtual void stopChecking() = 0;
 	virtual void stopMyINFOCheck() = 0;
 
-	void redirect(const std::string& url) { disconnect(true); fire(ClientListener::Redirect(), this, url); }
+	void redirect(const std::string& url);// { disconnect(true); fire(ClientListener::Redirect(), this, url); }
 	void addHubLine(const string& aMsg, int mType = 0) { fire(ClientListener::AddClientLine(), this, aMsg, mType); }
 	void sendActionCommand(const OnlineUser& ou, int actionId);
 	void putDetectors() { stopMyINFOCheck(); stopChecking(); setCheckedAtConnect(false); }

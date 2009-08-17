@@ -174,6 +174,7 @@ namespace dcpp {
 				.def("findUserBySID", (OnlineUser* (Client::*)(const uint32_t) const)&Client::findUser)
 				.def("getUserList", &wrappers::getUsers, luabind::raw(_1))
 				.def("parseCommand", &Client::parseCommand)
+				.def("info", &Client::info)
 				//.def("sendAdcCommand", (void (Client::*)(const AdcCommand&))&Client::send, luabind::adopt(luabind::result))
 				.enum_("MessageStyle") [
 					luabind::value("STYLE_GENERAL", 0),

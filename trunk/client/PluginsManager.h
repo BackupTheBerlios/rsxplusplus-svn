@@ -52,6 +52,7 @@ public:
 	void onHubConnecting(Client* hub);
 	void onHubConnected(Client* hub);
 	void onHubDisconnected(Client* hub);
+	void onHubRedirect(Client* hub, const char* newUrl);
 	void onUserConnected(OnlineUser* ou);
 	void onUserDisconnected(OnlineUser* ou);
 	void onLuaInit(lua_State*);
@@ -60,41 +61,40 @@ public:
 	bool onUserConnectionLineOut(UserConnection* uc, const char* line);
 
 private:
+	typedef vector<Plugin*> Plugins;
 	struct PlugListener {
-		PlugListener() : f(0), pData(0) { };
-		PlugListener(DCPP_FUNC _f, dcpp_ptr_t d = 0) : f(_f), pData(d) { };
+		PlugListener(dcppListenerFunc _f, dcpp_ptr_t d = 0) : f(_f), pData(d) { };
 
-		DCPP_FUNC f;
+		dcppListenerFunc f;
 		dcpp_ptr_t pData;
 		template<typename T1, typename T2>
 		int call(T1 p1, T2 p2) {
-			return f((dcpp_ptr_t)p1, (dcpp_ptr_t)p2);
+			return f((dcpp_ptr_t)p1, (dcpp_ptr_t)p2, pData);
 		}
 	};
-
 	typedef std::list<PlugListener*> Listener;
-	Listener hubEvents;
-	Listener userEvents;
-	Listener coreEvents;
-	Listener connEvents;
 
-	static void* __stdcall addListener(int type, DCPP_FUNC f, dcpp_ptr_t pd);
-	static void  __stdcall removeListener(void* ptr);
 	static dcpp_ptr_t __stdcall callFunc(int type, dcpp_ptr_t p1, dcpp_ptr_t p2, dcpp_ptr_t p3);
-	static void debugDummy(const char*, ...) { }
-
-	void* addPlugListener(int type, DCPP_FUNC f, dcpp_ptr_t pd);
-	void remPlugListener(PlugListener* l);
-	void deleteListener(Listener& l, PlugListener* ls);
+	static void* __stdcall addListener(int type, dcppListenerFunc f, dcpp_ptr_t pd);
+	static void  __stdcall removeListener(void* ptr);
 
 	template<bool breakAtFirst, typename T1, typename T2>
 	int call(Listener& l, T1 p1, T2 p2);
 
-	CriticalSection cs;
+	void* addPlugListener(int type, dcppListenerFunc f, dcpp_ptr_t pd);
+	void remPlugListener(PlugListener* l);
+	void deleteListener(Listener& l, PlugListener* ls);
+
 	dcppFunctions* dcpp_func;
 
-	typedef vector<Plugin*> Plugins;
+	CriticalSection cs;
+
 	Plugins plugins;
+
+	Listener hubEvents;
+	Listener userEvents;
+	Listener coreEvents;
+	Listener connEvents;
 };
 } // namespace dcpp
 

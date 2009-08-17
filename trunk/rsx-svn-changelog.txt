@@ -1,3 +1,6 @@
+** SVN 147
+ ** [winamp_spam] fix various spell errors (memset curst....)
+
 ** SVN 146
  ** [sdk] fixed flags in userConnection
  ** cleanup in /plugins svn dir, removed old stuff, added winamp_spam (to get a snapshot, instead of getting /trunk, get /plugins :P)

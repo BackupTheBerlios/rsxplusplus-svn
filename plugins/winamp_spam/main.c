@@ -158,11 +158,12 @@ int __stdcall sendSpam(dcpp_ptr_t lParam, dcpp_ptr_t wParam, dcpp_ptr_t userData
                 GetWindowTextW(wnd, wtmp, sizeof(wtmp));
 
                 {
-                    size_t size = 0;
+                    size_t size;
 					dcppBuffer tmpBuf;
 
                     tmpBuf.buf = f->malloc(2048);
                     tmpBuf.size = 2048;
+					memset(tmpBuf.buf, 0, sizeof(tmpBuf.buf));
                     size = f->call(DCPP_UTILS_CONV_WIDE_TO_UTF8, (dcpp_ptr_t)wtmp, (dcpp_ptr_t)&tmpBuf, 0);
 					memset(tmp, 0, sizeof(tmp));
                     strncpy(tmp, tmpBuf.buf, size);
@@ -172,6 +173,7 @@ int __stdcall sendSpam(dcpp_ptr_t lParam, dcpp_ptr_t wParam, dcpp_ptr_t userData
 				{
 					char* pch;
 					char title[2048];
+					memset(title, 0, sizeof(title));
 					pch = strstr(tmp, ". ");
 					if(pch) {
 						pch += 2;

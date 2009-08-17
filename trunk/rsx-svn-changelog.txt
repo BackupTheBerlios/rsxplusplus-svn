@@ -1,3 +1,7 @@
+** SVN 146
+ ** [sdk] fixed flags in userConnection
+ ** cleanup in /plugins svn dir, removed old stuff, added winamp_spam (to get a snapshot, instead of getting /trunk, get /plugins :P)
+
 ** SVN 145
  ** [lua] added info method to Client class (to update MyINFO/INF fields)
  ** some twearks and addons to plugins manager/psdk

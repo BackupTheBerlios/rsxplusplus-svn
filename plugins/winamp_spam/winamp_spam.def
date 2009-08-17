@@ -1,0 +1,6 @@
+LIBRARY	"winamp_spam"
+
+EXPORTS
+    pluginInfo
+    pluginLoad
+    pluginUnload

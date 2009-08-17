@@ -386,9 +386,9 @@ dcpp_ptr_t PluginsManager::callFunc(int type, dcpp_ptr_t p1, dcpp_ptr_t p2, dcpp
 			}
 			case DCPP_CONNECTION_FLAG_ISSET: {
 				if(p3) {
-					uc->isAnySet(static_cast<Flags::MaskType>(p2));
+					return uc->isAnySet(static_cast<Flags::MaskType>(p2)) ? 1 : 0;
 				} else {
-					uc->isSet(static_cast<Flags::MaskType>(p2));
+					return uc->isSet(static_cast<Flags::MaskType>(p2)) ? 1 : 0;
 				}
 				break;
 			}

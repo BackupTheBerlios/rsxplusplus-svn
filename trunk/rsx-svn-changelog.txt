@@ -1,3 +1,7 @@
+** SVN 149
+ ** [lua] more Util bindings
+ ** fixed crash with DHT enabled (thx newborn)
+
 ** SVN 148
  ** [winamp_spam] added website & code cleanup
  ** fixed loading search interval value from favs (must be 10 or larger)

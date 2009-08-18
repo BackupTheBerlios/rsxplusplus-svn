@@ -41,7 +41,7 @@ namespace dcpp {
 FastCriticalSection Identity::cs;
 
 OnlineUser::OnlineUser(const UserPtr& ptr, ClientBase& client_, uint32_t sid_) : identity(ptr, sid_), client(client_), isInList(false) { 
-	if(!getUser()->isSet(User::DHT))
+	if(getUser().get() != 0 && !getUser()->isSet(User::DHT))
 		identity.isProtectedUser(getClient(), true); //RSX++ // run init check
 }
 

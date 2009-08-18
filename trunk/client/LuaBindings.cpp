@@ -351,7 +351,13 @@ namespace dcpp {
 					luabind::def("encodeURI", &Util::encodeURI),
 					luabind::def("formatParams", &wrappers::makeParams),
 					luabind::def("getVersion", &wrappers::getVersion),
-					luabind::def("getPath", &Util::getPath)
+					luabind::def("getPath", &Util::getPath),
+					luabind::def("getIpCountry", &Util::getIpCountry),
+					luabind::def("getLocalIp", &Util::getLocalIp),
+					luabind::def("isPrivateIp", &Util::isPrivateIp),
+					luabind::def("formatBytes", (std::string (*)(const string&))&Util::formatBytes),
+					luabind::def("formatMessage", &Util::formatMessage),
+					luabind::def("getUptime", &Util::getUptime)
 					//luabind::def("getAway", &Util::getAway),
 					//luabind::def("setAway", &Util::setAway),
 					//luabind::def("setAwayMessage", &Util::setAwayMessage)

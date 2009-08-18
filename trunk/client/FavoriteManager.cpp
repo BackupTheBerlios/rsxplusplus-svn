@@ -730,6 +730,7 @@ void FavoriteManager::load(SimpleXML& aXml) {
 	aXml.resetCurrentChild();
 	if(aXml.findChild("Hubs")) {
 		aXml.stepIn();
+		uint32_t tmp;
 		while(aXml.findChild("Hub")) {
 			FavoriteHubEntry* e = new FavoriteHubEntry();
 			e->setName(aXml.getChildAttrib("Name"));
@@ -753,7 +754,11 @@ void FavoriteManager::load(SimpleXML& aXml) {
 			//END
 			e->setMode(Util::toInt(aXml.getChildAttrib("Mode")));
 			e->setIP(aXml.getChildAttrib("IP"));
-			e->setSearchInterval(Util::toUInt32(aXml.getChildAttrib("SearchInterval")));
+			//RSX++ - fix search invertal (it can load any value, but in gui it starts from 10)
+			tmp = Util::toUInt32(aXml.getChildAttrib("SearchInterval"));
+			if(tmp < 10)
+				tmp = 10;
+			e->setSearchInterval(tmp);
 			//RSX++
 			aXml.stepIn();
 			while(aXml.findChild("Setting")) {

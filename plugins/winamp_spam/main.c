@@ -16,7 +16,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-
 #define _CRT_SECURE_NO_WARNINGS 1
 
 #include <windows.h>
@@ -37,8 +36,8 @@ dcppPluginInformation info = {
 	"{815FF396-586D-4c18-BAC1-D7AD9AB992A7}",
 	"adrian_007",
 	"simple winamp spam plugin",
-	NULL,
-	MAKE_VER(1, 1, 0, 3),
+	"http://rsxplusplus.sf.net",
+	MAKE_VER(1, 0, 0, 0),
 	SDK_VERSION
 };
 
@@ -151,7 +150,8 @@ int __stdcall sendSpam(dcpp_ptr_t lParam, dcpp_ptr_t wParam, dcpp_ptr_t userData
                 switch(waChannels) {
                     case 2: addParam(&params, "channels", "stereo\0"); break;
                     case 6: addParam(&params, "channels", "5.1 surround\0"); break;
-                    default: addParam(&params, "channels", "mono\0"); break;
+                    default:
+						addParam(&params, "channels", "mono\0"); break;
                 }
 
 				memset(wtmp, 0, sizeof(wtmp));

@@ -1,3 +1,8 @@
+** SVN 148
+ ** [winamp_spam] added website & code cleanup
+ ** fixed loading search interval value from favs (must be 10 or larger)
+ ** [lua] added option to get/set extension settings via rsxSettingsManager
+
 ** SVN 147
  ** [winamp_spam] fix various spell errors (memset curst....)
 

@@ -404,7 +404,9 @@ namespace dcpp {
 
 				luabind::class_<rsxppSettingsManager>("rsxppSettingsManager")
 				.def("addAction", &rsxppSettingsManager::addAction)
-				.def("getActionId", &rsxppSettingsManager::getActionId),
+				.def("getActionId", &rsxppSettingsManager::getActionId)
+				.def("getExtSetting", &rsxppSettingsManager::getExtSetting)
+				.def("setExtSetting", &rsxppSettingsManager::setExtSetting),
 
 				luabind::def("getSettingsManager", &SettingsManager::getInstance),
 				luabind::def("getRSXSettingsManager", &rsxppSettingsManager::getInstance)

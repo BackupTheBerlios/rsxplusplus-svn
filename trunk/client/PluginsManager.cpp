@@ -29,6 +29,7 @@
 #include "LogManager.h"
 #include "ClientManager.h"
 #include "rsxppSettingsManager.h"
+#include "version.h"
 
 namespace dcpp {
 
@@ -46,9 +47,13 @@ PluginsManager::PluginsManager() : dcpp_func(0) {
 
 	dcpp_func->addListener = &PluginsManager::addListener;
 	dcpp_func->removeListener = &PluginsManager::removeListener;
+
+	TimerManager::getInstance()->addListener(this);
 }
 
 PluginsManager::~PluginsManager() {
+	TimerManager::getInstance()->removeListener(this);
+
 	Lock l(cs);
 	for(Plugins::const_iterator i = plugins.begin(); i != plugins.end(); ++i) {
 		FreeLibrary((*i)->handle);
@@ -59,7 +64,7 @@ PluginsManager::~PluginsManager() {
 }
 
 void PluginsManager::init(void (*f)(void*, const tstring&), void* pv) {
-	typedef dcppPluginInformation* (__stdcall *plugInfo)(int, int);
+	typedef dcppPluginInformation* (__stdcall *plugInfo)(unsigned long long, int);
 
 	StringList libs = File::findFiles(Util::getPath(Util::PATH_GLOBAL_CONFIG) + "Plugins" PATH_SEPARATOR_STR, "*.dll");
 	{
@@ -73,8 +78,13 @@ void PluginsManager::init(void (*f)(void*, const tstring&), void* pv) {
 				plugInfo pInfo = reinterpret_cast<plugInfo>(GetProcAddress(dll, "pluginInfo"));
 
 				if(pLoad && pUnload && pInfo) {
-					dcppPluginInformation* info = pInfo(0, 0);
-					if(info->sdkVersion == SDK_VERSION) {
+					dcppPluginInformation* info = pInfo(SDK_VERSION, SVN_REVISION);
+					bool allow = 
+						VER_MAJOR(info->sdkVersion) == VER_MAJOR(SDK_VERSION) && 
+						VER_MINOR(info->sdkVersion) == VER_MINOR(SDK_VERSION) &&
+						VER_REVISION(info->sdkVersion) == VER_REVISION(SDK_VERSION);
+					// allow fallback, when no breaking changes were made in sdk
+					if(allow) {
 						if(f)
 							(*f)(pv, Util::getFileName(fname));
 						Plugin* plugin = new Plugin(dll);
@@ -298,6 +308,14 @@ void PluginsManager::onLuaInit(lua_State* parser) {
 
 void PluginsManager::onConfigChange() {
 	call<false>(coreEvents, DCPP_CONFIG_REFRESHED, 0);
+}
+// in timers use pointer, on 32bit system, you'll get only a half of actuall value
+void PluginsManager::on(TimerManagerListener::Second, uint64_t tick) throw() {
+	call<false>(coreEvents, DCPP_CORE_TIMER_SECOND, &tick);
+}
+
+void PluginsManager::on(TimerManagerListener::Minute, uint64_t tick) throw() {
+	call<false>(coreEvents, DCPP_CORE_TIMER_MINUTE, &tick);
 }
 
 dcpp_ptr_t PluginsManager::callFunc(int type, dcpp_ptr_t p1, dcpp_ptr_t p2, dcpp_ptr_t p3) {

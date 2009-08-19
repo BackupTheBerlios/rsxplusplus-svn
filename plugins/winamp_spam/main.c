@@ -205,7 +205,7 @@ int __stdcall sendSpam(dcpp_ptr_t lParam, dcpp_ptr_t wParam, dcpp_ptr_t userData
 					f->call(DCPP_UTILS_FREE_LINKED_MAP, (dcpp_ptr_t)params, 0, 0);
 				}
             } else {
-                f->call(DCPP_HUB_WRITE_LINE, msg->hub, (dcpp_ptr_t)(char*)"Supported version of Winamp is not running!", 0);
+                f->call(DCPP_HUB_WRITE_LINE, msg->hub, (dcpp_ptr_t)(char*)"Supported version of Winamp is not running!", 6);
             }
             return DCPP_DROP_EVENT;
         }
@@ -213,7 +213,7 @@ int __stdcall sendSpam(dcpp_ptr_t lParam, dcpp_ptr_t wParam, dcpp_ptr_t userData
     return DCPP_PROCESS_EVENT;
 }
 
-dcppPluginInformation* __stdcall pluginInfo(int x, int y) {
+dcppPluginInformation* __stdcall pluginInfo(unsigned long long coreSdkVersion, int svnRevision) {
     return &info;
 }
 

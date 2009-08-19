@@ -21,6 +21,7 @@
 
 #include "Singleton.h"
 #include "CriticalSection.h"
+#include "TimerManager.h"
 
 #include "sdk/dcpp.h"
 #include "sdk/events.h"
@@ -33,7 +34,7 @@ class Client;
 class OnlineUser;
 class UserConnection;
 
-class PluginsManager : public Singleton<PluginsManager> {
+class PluginsManager : public Singleton<PluginsManager>, public TimerManagerListener {
 public:
 	PluginsManager();
 	~PluginsManager();
@@ -95,6 +96,9 @@ private:
 	Listener userEvents;
 	Listener coreEvents;
 	Listener connEvents;
+
+	void on(TimerManagerListener::Second, uint64_t /*tick*/) throw();
+	void on(TimerManagerListener::Minute, uint64_t /*tick*/) throw();
 };
 } // namespace dcpp
 

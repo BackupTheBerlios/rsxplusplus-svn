@@ -1,3 +1,12 @@
+** SVN 150
+ ** [lua] fixed UC_ON_COMMAND enum (thx Thor)
+ ** [sdk] added timer
+ ** [sdk] rearranged events and calls values
+ ** [sdk] allow fallback (diff build version in SDK_VERSION)
+ ** [sdk] pass SDK_VERSION and SVN_REVISION as arguments to pluginInfo
+
+** WARNING ** you need to recompile plugins with new sdk
+
 ** SVN 149
  ** [lua] more Util bindings
  ** fixed crash with DHT enabled (thx newborn)

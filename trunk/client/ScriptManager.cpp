@@ -71,7 +71,8 @@ void ScriptManager::BindScriptManager() {
 			luabind::value("SETTINGS_SAVE", SETTINGS_SAVE),
 			luabind::value("SETTINGS_LOAD", SETTINGS_LOAD),
 			luabind::value("TIMER_ON_SECOND", TIMER_ON_SECOND),
-			luabind::value("TIMER_ON_MINUTE", TIMER_ON_MINUTE)
+			luabind::value("TIMER_ON_MINUTE", TIMER_ON_MINUTE),
+			luabind::value("UC_ON_COMMAND", UC_ON_COMMAND)
 		],
 
 		luabind::def("getScriptManager", &ScriptManager::getInstance)

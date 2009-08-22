@@ -42,7 +42,7 @@ PrivateFrame::FrameMap PrivateFrame::frames;
 tstring pSelectedLine = Util::emptyStringT;
 tstring pSelectedURL = Util::emptyStringT;
 
-extern CAGEmotionSetup* g_pEmotionsSetup;
+extern EmoticonSetup* g_pEmotionsSetup;
 
 LRESULT PrivateFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 {
@@ -109,7 +109,7 @@ void PrivateFrame::gotMessage(const Identity& from, const UserPtr& to, const Use
 		if(Util::getAway()) {
 			if(!(BOOLSETTING(NO_AWAYMSG_TO_BOTS) && (user->isSet(User::BOT) || from.isBot() || from.isHub()))) {
 				if(!myPM) {
-					p->sendMessage(Text::toT(p->getCustomAway()));
+					p->sendMessage(Text::toT(p->getCustomAway(from)));
 				}
 			}
 		}
@@ -805,18 +805,19 @@ LRESULT PrivateFrame::onPublicMessage(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /
 	return 0;
 }
 //RSX++
-string PrivateFrame::getCustomAway() const {
-	string retAway = Util::getAwayMessage();
-	if(ctrlClient.getClient() != NULL) {
-		if((retAway.compare(SETTING(DEFAULT_AWAY_MESSAGE)) != 0))
-			return retAway; //might be custom away but not from favs :P
-		return FavoriteManager::getInstance()->getAwayMessage(ctrlClient.getClient()->getHubUrl());
+string PrivateFrame::getCustomAway(const Identity& from) const {
+	StringMap params;
+	from.getParams(params, "user", false);
+	if(ctrlClient.getClient() != 0) {
+		ctrlClient.getClient()->getMyIdentity().getParams(params, "my", false);
+		ctrlClient.getClient()->getHubIdentity().getParams(params, "hub", false);
 	}
-	return retAway;
+
+	return Util::getAwayMessage(params, FavoriteManager::getInstance()->getAwayMessage(ctrlClient.getClient()->getHubUrl()));
 }
 //END
 
 /**
  * @file
- * $Id: PrivateFrame.cpp 453 2009-08-04 15:46:31Z BigMuscle $
+ * $Id: PrivateFrame.cpp 456 2009-08-19 20:49:38Z BigMuscle $
  */

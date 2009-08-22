@@ -121,7 +121,7 @@ ResourceManager::Strings HubFrame::columnNames[] = {
 	ResourceManager::COMMENT 
 };
 
-extern CAGEmotionSetup* g_pEmotionsSetup;
+extern EmoticonSetup* g_pEmotionsSetup;
 
 LRESULT HubFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 {
@@ -1207,7 +1207,7 @@ LRESULT HubFrame::onTabContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lPar
 	copyHubMenu.AppendMenu(MF_STRING, IDC_COPY_HUBADDRESS, CTSTRING(HUB_ADDRESS));
 
 	tabMenu.CreatePopupMenu();
-	tabMenu.InsertSeparatorFirst(Text::toT((client->getHubName() != "") ? (client->getHubName().size() > 50 ? client->getHubName().substr(0, 50) : client->getHubName()) : client->getHubUrl()));	
+	tabMenu.InsertSeparatorFirst(Text::toT(client->getHubName().empty() ? (client->getHubName().size() > 50 ? client->getHubName().substr(0, 50) : client->getHubName()) : client->getHubUrl()));	
 	if(BOOLSETTING(LOG_MAIN_CHAT)) {
 		tabMenu.AppendMenu(MF_STRING, IDC_OPEN_HUB_LOG, CTSTRING(OPEN_HUB_LOG));
 		tabMenu.AppendMenu(MF_SEPARATOR);

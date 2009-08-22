@@ -1225,9 +1225,9 @@ void FavoriteManager::mergeHubSettings() {
 string FavoriteManager::getAwayMessage(const string& aServer) {
 	FavoriteHubEntry* hub = getFavoriteHubEntry(aServer);
 	if(hub) {
-		return hub->getAwayMsg().empty() ? Util::getAwayMessage() : hub->getAwayMsg();
+		return hub->getAwayMsg();
 	}
-	return Util::getAwayMessage();
+	return Util::emptyString;
 }
 //END
 

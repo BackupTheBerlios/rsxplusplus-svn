@@ -52,6 +52,7 @@
 #include "DebugManager.h"
 #include "DetectionManager.h"
 #include "WebServerManager.h"
+#include "ThrottleManager.h"
 
 #include "../dht/dht.h"
 #include "../windows/PopupManager.h"
@@ -93,6 +94,7 @@ void startup(void (*f)(void*, const tstring&), void* p) {
 	ConnectionManager::newInstance();
 	DownloadManager::newInstance();
 	UploadManager::newInstance();
+	ThrottleManager::newInstance();
 	ShareManager::newInstance();
 	FavoriteManager::newInstance();
 	RawManager::newInstance(); //RSX++
@@ -184,6 +186,7 @@ void shutdown() {
 	FinishedManager::deleteInstance();
 	ShareManager::deleteInstance();
 	CryptoManager::deleteInstance();
+	ThrottleManager::deleteInstance();
 	DownloadManager::deleteInstance();
 	UploadManager::deleteInstance();
 	QueueManager::deleteInstance();
@@ -208,5 +211,5 @@ void shutdown() {
 
 /**
  * @file
- * $Id: DCPlusPlus.cpp 436 2009-06-15 21:14:05Z BigMuscle $
+ * $Id: DCPlusPlus.cpp 454 2009-08-13 20:28:19Z BigMuscle $
  */

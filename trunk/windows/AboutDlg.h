@@ -66,7 +66,7 @@ public:
 		}
 		//RSX++
 		SetDlgItemText(IDC_COMPILE_TIME, WinUtil::getCompileInfo().c_str());
-		snwprintf(buf, sizeof(buf), _T("Uptime: %s"), Text::toT(WinUtil::formatTime(Util::getUptime())).c_str());
+		snwprintf(buf, sizeof(buf), _T("Uptime: %s"), Text::toT(WinUtil::formatTime(time(NULL) - Util::getStartTime())).c_str());
 		SetDlgItemText(IDC_UPTIME, buf);
 
 		TimerManager::getInstance()->addListener(this);
@@ -93,7 +93,7 @@ private:
 
 	void on(TimerManagerListener::Second /*type*/, uint64_t /*aTick*/) throw() {
 		TCHAR buf[128];
-		snwprintf(buf, sizeof(buf), _T("Uptime: %s"), Text::toT(WinUtil::formatTime(Util::getUptime())).c_str());
+		snwprintf(buf, sizeof(buf), _T("Uptime: %s"), Text::toT(WinUtil::formatTime(time(NULL) - Util::getStartTime())).c_str());
 		SetDlgItemText(IDC_UPTIME, buf);
 	}
 };

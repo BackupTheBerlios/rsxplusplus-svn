@@ -1921,7 +1921,8 @@ void QueueManager::on(SearchManagerListener::SR, const SearchResultPtr& sr) thro
 
 	if(added && BOOLSETTING(AUTO_SEARCH_AUTO_MATCH) && (users < (size_t)SETTING(MAX_AUTO_MATCH_SOURCES))) {
 		try {
-			addList(sr->getUser(), sr->getHubURL(), QueueItem::FLAG_PARTIAL_LIST | QueueItem::FLAG_MATCH_QUEUE, Util::getFilePath(sr->getFile()));
+			string path = Util::getFilePath(sr->getFile());
+			addList(sr->getUser(), sr->getHubURL(), QueueItem::FLAG_MATCH_QUEUE | (path.empty() ? 0 : QueueItem::FLAG_PARTIAL_LIST) , path);
 		} catch(const Exception&) {
 			// ...
 		}
@@ -2235,5 +2236,5 @@ string QueueManager::addFileListCheck(UserPtr aUser, const string& hubHint) thro
 
 /**
  * @file
- * $Id: QueueManager.cpp 453 2009-08-04 15:46:31Z BigMuscle $
+ * $Id: QueueManager.cpp 455 2009-08-16 16:25:59Z BigMuscle $
  */

@@ -23,13 +23,14 @@
 #define DCVERSIONSTRING "0.75"
 #define DCVERSIONFLOAT 0.75
 
-#define SVNVERSION "svn453"
+#define SVNVERSION "svn456"
 
 #define SVN_REVISION $WCREV$
 
 #define RSXPP_SITE "http://rsxplusplus.sf.net/"
 #define RSXPP_TRAC "http://sourceforge.net/apps/trac/rsxplusplus/"
 #define RSXPP_FORUM "http://sourceforge.net/apps/phpbb/rsxplusplus/"
+#define RSXPP_DONATE "https://sourceforge.net/project/project_donations.php?group_id=198783" //hmm, find a better link?
 #define VERSION_URL "http://rsxplusplus.sf.net/version.xml"
 
 /* Update the .rc file as well... */

@@ -87,7 +87,7 @@ ShareManager::~ShareManager() {
 
 ShareManager::Directory::Directory(const string& aName, const ShareManager::Directory::Ptr& aParent) :
 	name(aName),
-	parent(aParent),
+	parent(aParent.get()),
 	fileTypes(1 << SearchManager::TYPE_DIRECTORY)
 {
 }
@@ -1737,5 +1737,5 @@ int64_t ShareManager::removeExcludeFolder(const string &path, bool returnSize /*
 
 /**
  * @file
- * $Id: ShareManager.cpp 453 2009-08-04 15:46:31Z BigMuscle $
+ * $Id: ShareManager.cpp 456 2009-08-19 20:49:38Z BigMuscle $
  */

@@ -754,7 +754,7 @@ void UploadManager::on(TimerManagerListener::Second, uint64_t aTick) throw() {
 		}
 
 		if(!isFileServer) {
-			if(	(Util::getUptime() > 7200) && // > 2 hours uptime
+			if(	((time(NULL) - Util::getStartTime()) > 7200) && // > 2 hours uptime
 				(Socket::getTotalUp() > 209715200) && // > 200 MB uploaded
 				(ShareManager::getInstance()->getSharedSize() > 2147483648)) { // > 2 GB shared
 					isFileServer = true;
@@ -853,5 +853,5 @@ void UploadManager::abortUpload(const string& aFile, bool waiting){
 
 /**
  * @file
- * $Id: UploadManager.cpp 453 2009-08-04 15:46:31Z BigMuscle $
+ * $Id: UploadManager.cpp 456 2009-08-19 20:49:38Z BigMuscle $
  */

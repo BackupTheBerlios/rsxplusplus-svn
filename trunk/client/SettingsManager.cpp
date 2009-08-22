@@ -79,7 +79,7 @@ const string SettingsManager::settingTags[] =
 	"SkipZeroByte", "AdlsBreakOnFirst",
 	"HubUserCommands", "AutoSearchAutoMatch", "DownloadBarColor", "UploadBarColor", "LogSystem",
 	"LogFilelistTransfers", "ShowStatusbar", "BandwidthSettingMode", "ShowToolbar", "ShowTransferview", 
-	"SearchPassiveAlways", "SetMinislotSize", "DontAnnounceNewVersions", 
+	"SearchPassiveAlways", "SetMinislotSize", /*"ShutdownInterval",*/ "DontAnnounceNewVersions", 
 	"CzertHiddenSettingA", "CzertHiddenSettingB", "ExtraSlots", "ExtraPartialSlots",
 	"TextGeneralBackColor", "TextGeneralForeColor", "TextGeneralBold", "TextGeneralItalic", 
 	"TextMyOwnBackColor", "TextMyOwnForeColor", "TextMyOwnBold", "TextMyOwnItalic", 
@@ -92,9 +92,9 @@ const string SettingsManager::settingTags[] =
 	"TextOPBackColor", "TextOPForeColor", "TextOPBold", "TextOPItalic", 
 	"TextProtectedBackColor", "TextProtectedForeColor", "TextProtectedBold", "TextProtectedItalic", //RSX++
 	"TextURLBackColor", "TextURLForeColor", "TextURLBold", "TextURLItalic", 
-	"BoldAuthorsMess", "UploadLimitNormal", "ThrottleEnable", "HubSlots", "DownloadLimitNormal", 
-	"UploadLimitTime", "DownloadLimitTime", "TimeThrottle", "TimeLimitStart", "TimeLimitEnd",
-	"RemoveForbidden", "ProgressTextDown", "ProgressTextUp", "ShowInfoTips", "ExtraDownloadSlots",
+	"BoldAuthorsMess", "ThrottleEnable", "UploadLimitTime", "DownloadLimitTime", "HubSlots",
+	"TimeThrottle", "TimeLimitStart", "TimeLimitEnd", "RemoveForbidden",
+	"ProgressTextDown", "ProgressTextUp", "ShowInfoTips", "ExtraDownloadSlots",
 	"MinimizeOnStratup", "ConfirmDelete", "DefaultSearchFreeSlots", "SendUnknownCommands",
 	"ErrorColor", "ExpandQueue", "TransferSplitSize",
 	"DisconnectSpeed", "DisconnectFileSpeed", "DisconnectTime", "RemoveSpeed",
@@ -103,7 +103,7 @@ const string SettingsManager::settingTags[] =
 	"DisconnectFileSize", "UploadQueueFrameShowTree",
 	"SegmentsManual", "NumberOfSegments", "PercentFakeShareTolerated",
 	"AutoUpdateIP", "MaxHashSpeed", "GetUserCountry", "DisableCZDiacritic",
-	"DebugCommands", "UseAutoPriorityByDefault", "UseOldSharingUI", "ShowDescriptionSpeed",
+	"DebugCommands", "UseAutoPriorityByDefault", "UseOldSharingUI",
 	"FavShowJoins", "LogStatusMessages", "PMLogLines", "SearchAlternateColour", "SoundsDisabled",
 	"ReportFoundAlternates", "CheckNewUsers",
 	"SearchTime", "DontBeginSegment", "DontBeginSegmentSpeed", "PopunderPm", "PopunderFilelist",
@@ -322,8 +322,8 @@ SettingsManager::SettingsManager()
 	setDefault(EXTRA_PARTIAL_SLOTS, 1);
 	//setDefault(SHUTDOWN_TIMEOUT, 150); //RSX++
 	setDefault(SEARCH_PASSIVE, false);
-	setDefault(MAX_UPLOAD_SPEED_LIMIT_NORMAL, 0);
-	setDefault(MAX_DOWNLOAD_SPEED_LIMIT_NORMAL, 0);
+	setDefault(MAX_UPLOAD_SPEED_LIMIT, 0);
+	setDefault(MAX_DOWNLOAD_SPEED_LIMIT, 0);
 	setDefault(MAX_UPLOAD_SPEED_LIMIT_TIME, 0);
 	setDefault(MAX_DOWNLOAD_SPEED_LIMIT_TIME, 0);
 	setDefault(TOOLBAR, "0,-1,1,2,-1,3,4,5,-1,6,7,8,9,-1,10,11,12,13,-1,14,15,16,17,-1,18,19,20,21");
@@ -574,7 +574,6 @@ SettingsManager::SettingsManager()
 	setDefault(LOG_RAW_CMD_FORMAT, "[%Y-%m-%d %H:%M] %[userNI] %[userI4] (%[userCS])");
 	setDefault(LOG_RAW_CMD_FILE, "RawCommands.log");
 	setDefault(LOG_RAW_CMD, true);
-	setDefault(SHOW_DESCRIPTION_SPEED, false);
 	//END
 
 #ifdef _WIN32

@@ -18,8 +18,16 @@
 
 #include "stdinc.h"
 
-#if defined(_STLPORT_VERSION) && (_STLPORT_VERSION < 0x520)
-#error I use STLport SVN. Remove this if you know what you're doing.
+#if defined(_STLPORT_VERSION)
+# if (_STLPORT_VERSION >= 0x600)
+#  pragma message("STLport GIT detected")
+# elif (_STLPORT_VERSION >= 0x520)
+#  pragma message("STLport 5.2.x detected")
+# else
+#  error You are using old version of STLport, please update it
+# endif
+#else
+# pragma message("STLport not detected, using compiler default STL implementation along with boost::tr1")
 #endif
 
 #ifdef _STLP_NO_IOSTREAMS
@@ -32,5 +40,5 @@
 
 /**
  * @file
- * $Id: stdinc.cpp 434 2009-03-29 11:09:33Z BigMuscle $
+ * $Id: stdinc.cpp 455 2009-08-16 16:25:59Z BigMuscle $
  */

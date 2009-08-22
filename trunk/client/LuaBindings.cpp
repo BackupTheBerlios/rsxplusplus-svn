@@ -157,7 +157,6 @@ namespace dcpp {
 				.def("getLocalIp", &Client::getLocalIp)
 				.def("addHubLine", &Client::addHubLine)
 				.def("cheatMessage", &Client::cheatMessage)
-				.def("getMyNick", &Client::getMyNick)
 				.def("getHubName", &Client::getHubName)
 				.def("getHubDescription", &Client::getHubDescription)
 				.def("getHubUrl", &Client::getHubUrl)
@@ -357,7 +356,7 @@ namespace dcpp {
 					luabind::def("isPrivateIp", &Util::isPrivateIp),
 					luabind::def("formatBytes", (std::string (*)(const string&))&Util::formatBytes),
 					luabind::def("formatMessage", &Util::formatMessage),
-					luabind::def("getUptime", &Util::getUptime)
+					luabind::def("getStartTime", &Util::getStartTime)
 					//luabind::def("getAway", &Util::getAway),
 					//luabind::def("setAway", &Util::setAway),
 					//luabind::def("setAwayMessage", &Util::setAwayMessage)

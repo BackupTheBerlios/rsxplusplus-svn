@@ -127,8 +127,8 @@ private:
 		int run();
 		bool fastHash(const string& fname, uint8_t* buf, TigerTree& tth, int64_t size);
 		void getStats(string& curFile, int64_t& bytesLeft, size_t& filesLeft);
-		void shutdown() { stop = true; s.signal(); }
-		void scheduleRebuild() { rebuild = true; s.signal(); }
+		void shutdown() { stop = true; resumeHashing(); s.signal(); }
+		void scheduleRebuild() { rebuild = true; resumeHashing(); s.signal(); }
 
 	private:
 		// Case-sensitive (faster), it is rather unlikely that case changes, and if it does it's harmless.
@@ -249,5 +249,5 @@ private:
 
 /**
  * @file
- * $Id: HashManager.h 453 2009-08-04 15:46:31Z BigMuscle $
+ * $Id: HashManager.h 456 2009-08-19 20:49:38Z BigMuscle $
  */

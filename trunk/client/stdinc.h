@@ -50,6 +50,16 @@
 
 #ifdef _MSC_VER
 
+typedef signed __int8 int8_t;
+typedef signed __int16 int16_t;
+typedef signed __int32 int32_t;
+typedef signed __int64 int64_t;
+
+typedef unsigned __int8 uint8_t;
+typedef unsigned __int16 uint16_t;
+typedef unsigned __int32 uint32_t;
+typedef unsigned __int64 uint64_t;
+
 //disable the deprecated warnings for the CRT functions.
 #define _CRT_SECURE_NO_DEPRECATE 1
 #define _ATL_SECURE_NO_DEPRECATE 1
@@ -69,16 +79,6 @@
 # pragma warning(disable: 4244) // conversion from 'xxx' to 'yyy', possible loss of data
 # pragma warning(disable: 4267) // conversion from 'xxx' to 'yyy', possible loss of data
 #endif
-
-typedef signed __int8 int8_t;
-typedef signed __int16 int16_t;
-typedef signed __int32 int32_t;
-typedef signed __int64 int64_t;
-
-typedef unsigned __int8 uint8_t;
-typedef unsigned __int16 uint16_t;
-typedef unsigned __int32 uint32_t;
-typedef unsigned __int64 uint64_t;
 
 # ifndef CDECL
 #  define CDECL _cdecl
@@ -190,13 +190,13 @@ typedef unsigned __int64 uint64_t;
 #endif
 
 namespace dcpp {
-using namespace std;
-using namespace std::tr1;
+	using namespace std;
+	using namespace std::tr1;
 }
 
 #endif // !defined(STDINC_H)
 
 /**
  * @file
- * $Id: stdinc.h 434 2009-03-29 11:09:33Z BigMuscle $
+ * $Id: stdinc.h 455 2009-08-16 16:25:59Z BigMuscle $
  */

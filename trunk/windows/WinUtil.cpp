@@ -1045,7 +1045,9 @@ bool WinUtil::checkCommand(tstring& cmd, tstring& param, tstring& message, tstri
 			Util::setAway(true);
 			MainFrame::setAwayButton(true);
 			Util::setAwayMessage(Text::fromT(param));
-			status = TSTRING(AWAY_MODE_ON) + Text::toT(Util::getAwayMessage());
+			
+			StringMap sm;
+			status = TSTRING(AWAY_MODE_ON) + Text::toT(Util::getAwayMessage(sm));
 		}
 		ClientManager::getInstance()->infoUpdated();
 	} else if(stricmp(cmd.c_str(), _T("rebuild")) == 0) {
@@ -1724,7 +1726,7 @@ string WinUtil::generateStats() {
 #else
 			% "x86-32"
 #endif
-			% formatTime(Util::getUptime())
+			% formatTime(time(NULL) - Util::getStartTime())
 			% Text::fromT(Util::formatSeconds((kernelTime + userTime) / (10I64 * 1000I64 * 1000I64)))
 			% Util::formatBytes(pmc.WorkingSetSize)
 			% Util::formatBytes(pmc.PeakWorkingSetSize)

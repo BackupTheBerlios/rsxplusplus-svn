@@ -546,11 +546,12 @@ void MainFrame::startSocket() {
 		} catch(const Exception&) {
 			MessageBox(CTSTRING(TCP_PORT_BUSY), _T(APPNAME) _T(" ") _T(VERSIONSTRING), MB_ICONSTOP | MB_OK);
 		}
+		
 		try {
 			DHT::getInstance()->listen();
 		} catch(const Exception&) {
 			MessageBox(CTSTRING(TCP_PORT_BUSY), _T(APPNAME) _T(" ") _T(VERSIONSTRING), MB_ICONSTOP | MB_OK);
-		}		
+		}
 //	}
 
 	startUPnP();
@@ -577,15 +578,14 @@ void MainFrame::startUPnP() {
 			UPnP_UDP.reset(new UPnP( Util::getLocalIp(), "UDP", APPNAME " Search Port (" + Util::toString(port) + " UDP)", port));
 			ok &= UPnP_UDP->open();
 		}
-		if(BOOLSETTING(USE_DHT)) {
-			port = DHT::getInstance()->getPort();
-			if(port != 0) {
-				UPnP_DHT.reset(new UPnP( Util::getLocalIp(), "UDP", APPNAME " DHT Port (" + Util::toString(port) + " UDP)", port));
-				if (!UPnP_DHT->open())
-				{
-					LogManager::getInstance()->message(STRING(UPNP_FAILED_TO_CREATE_MAPPINGS));
-					UPnP_DHT.reset();
-				}
+		
+		port = DHT::getInstance()->getPort();
+		if(port != 0) {
+			UPnP_DHT.reset(new UPnP( Util::getLocalIp(), "UDP", APPNAME " DHT Port (" + Util::toString(port) + " UDP)", port));
+			if (!UPnP_DHT->open())
+			{
+				LogManager::getInstance()->message(STRING(UPNP_FAILED_TO_CREATE_MAPPINGS));
+				UPnP_DHT.reset();
 			}
 		}
 	
@@ -1163,6 +1163,7 @@ LRESULT MainFrame::onLink(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL
 		case IDC_HELP_TRANSLATIONS: site = _T(RSXPP_SITE); break;
 		case IDC_HELP_FAQ: site = _T(RSXPP_TRAC); break;
 		case IDC_HELP_DISCUSS: site = _T(RSXPP_FORUM); break;
+		case IDC_HELP_DONATE: site = _T(RSXPP_DONATE); break;
 		default: dcassert(0);
 	}
 
@@ -1304,7 +1305,7 @@ LRESULT MainFrame::onTrayIcon(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, B
 			Util::toStringW(DownloadManager::getInstance()->getDownloadCount()) + _T(")\r\nU: ") +
 			Util::formatBytesW(UploadManager::getInstance()->getRunningAverage()) + _T("/s (") + 
 			Util::toStringW(UploadManager::getInstance()->getUploadCount()) + _T(")") +
-			_T("\r\nUptime: ") + Util::formatSeconds(Util::getUptime());
+			_T("\r\nUptime: ") + Util::formatSeconds(time(NULL) - Util::getStartTime());
 		_tcsncpy(nid.szTip, s_tip.c_str(), 80);
 		
 		::Shell_NotifyIcon(NIM_MODIFY, &nid);
@@ -1431,72 +1432,30 @@ LRESULT MainFrame::onQuickConnect(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 }
 
 void MainFrame::on(TimerManagerListener::Second, uint64_t aTick) throw() {
-		Util::increaseUptime();
-		int64_t diff = (int64_t)((lastUpdate == 0) ? aTick - 1000 : aTick - lastUpdate);
-		int64_t updiff = Socket::getTotalUp() - lastUp;
-		int64_t downdiff = Socket::getTotalDown() - lastDown;
+	int64_t diff = (int64_t)((lastUpdate == 0) ? aTick - 1000 : aTick - lastUpdate);
+	int64_t updiff = Socket::getTotalUp() - lastUp;
+	int64_t downdiff = Socket::getTotalDown() - lastDown;
 
-		TStringList* str = new TStringList();
-		str->push_back(Util::getAway() ? TSTRING(AWAY) : _T(""));
-		str->push_back(TSTRING(SHARED) + _T(": ") + Util::formatBytesW(ShareManager::getInstance()->getSharedSize()));
-		str->push_back(_T("H: ") + Text::toT(Client::getCounts()));
-		str->push_back(TSTRING(SLOTS) + _T(": ") + Util::toStringW(UploadManager::getInstance()->getFreeSlots()) + _T('/') + Util::toStringW(UploadManager::getInstance()->getSlots()) + _T(" (") + Util::toStringW(UploadManager::getInstance()->getFreeExtraSlots()) + _T('/') + Util::toStringW(SETTING(EXTRA_SLOTS)) + _T(")"));
-		str->push_back(_T("D: ") + Util::formatBytesW(Socket::getTotalDown()));
-		str->push_back(_T("U: ") + Util::formatBytesW(Socket::getTotalUp()));
-		str->push_back(_T("D: [") + Util::toStringW(DownloadManager::getInstance()->getDownloadCount()) + _T("][") + (SETTING(MAX_DOWNLOAD_SPEED_LIMIT) == 0 ? (tstring)_T("N") : Util::toStringW((int)SETTING(MAX_DOWNLOAD_SPEED_LIMIT)) + _T("k")) + _T("] ") + Util::formatBytesW(downdiff*1000I64/diff) + _T("/s"));
-		str->push_back(_T("U: [") + Util::toStringW(UploadManager::getInstance()->getUploadCount()) + _T("][") + (SETTING(MAX_UPLOAD_SPEED_LIMIT) == 0 ? (tstring)_T("N") : Util::toStringW((int)SETTING(MAX_UPLOAD_SPEED_LIMIT)) + _T("k")) + _T("] ") + Util::formatBytesW(updiff*1000I64/diff) + _T("/s"));
-		PostMessage(WM_SPEAKER, STATS, (LPARAM)str);
+	TStringList* str = new TStringList();
+	str->push_back(Util::getAway() ? TSTRING(AWAY) : _T(""));
+	str->push_back(TSTRING(SHARED) + _T(": ") + Util::formatBytesW(ShareManager::getInstance()->getSharedSize()));
+	str->push_back(_T("H: ") + Text::toT(Client::getCounts()));
+	str->push_back(TSTRING(SLOTS) + _T(": ") + Util::toStringW(UploadManager::getInstance()->getFreeSlots()) + _T('/') + Util::toStringW(UploadManager::getInstance()->getSlots()) + _T(" (") + Util::toStringW(UploadManager::getInstance()->getFreeExtraSlots()) + _T('/') + Util::toStringW(SETTING(EXTRA_SLOTS)) + _T(")"));
+	str->push_back(_T("D: ") + Util::formatBytesW(Socket::getTotalDown()));
+	str->push_back(_T("U: ") + Util::formatBytesW(Socket::getTotalUp()));
+	str->push_back(_T("D: [") + Util::toStringW(DownloadManager::getInstance()->getDownloadCount()) + _T("][") + (SETTING(MAX_DOWNLOAD_SPEED_LIMIT) == 0 ? (tstring)_T("N") : Util::toStringW((int)SETTING(MAX_DOWNLOAD_SPEED_LIMIT)) + _T("k")) + _T("] ") + Util::formatBytesW(downdiff*1000I64/diff) + _T("/s"));
+	str->push_back(_T("U: [") + Util::toStringW(UploadManager::getInstance()->getUploadCount()) + _T("][") + (SETTING(MAX_UPLOAD_SPEED_LIMIT) == 0 ? (tstring)_T("N") : Util::toStringW((int)SETTING(MAX_UPLOAD_SPEED_LIMIT)) + _T("k")) + _T("] ") + Util::formatBytesW(updiff*1000I64/diff) + _T("/s"));
+	PostMessage(WM_SPEAKER, STATS, (LPARAM)str);
 
-		SettingsManager::getInstance()->set(SettingsManager::TOTAL_UPLOAD, SETTING(TOTAL_UPLOAD) + updiff);
-		SettingsManager::getInstance()->set(SettingsManager::TOTAL_DOWNLOAD, SETTING(TOTAL_DOWNLOAD) + downdiff);
-		lastUpdate = aTick;
-		lastUp = Socket::getTotalUp();
-		lastDown = Socket::getTotalDown();
+	SettingsManager::getInstance()->set(SettingsManager::TOTAL_UPLOAD, SETTING(TOTAL_UPLOAD) + updiff);
+	SettingsManager::getInstance()->set(SettingsManager::TOTAL_DOWNLOAD, SETTING(TOTAL_DOWNLOAD) + downdiff);
+	lastUpdate = aTick;
+	lastUp = Socket::getTotalUp();
+	lastDown = Socket::getTotalDown();
 
-		if(SETTING(DISCONNECT_SPEED) < 1) {
-			SettingsManager::getInstance()->set(SettingsManager::DISCONNECT_SPEED, 1);
-		}
-
-		if(BOOLSETTING(THROTTLE_ENABLE)) {
-			// Limitery sem a tam, vsude kam se podivam :o)
-			if( SETTING(MAX_UPLOAD_SPEED_LIMIT_NORMAL) > 0) {
-				if( SETTING(MAX_UPLOAD_SPEED_LIMIT_NORMAL) < ((5 * UploadManager::getInstance()->getSlots()) + 4) ) {
-					SettingsManager::getInstance()->set(SettingsManager::MAX_UPLOAD_SPEED_LIMIT_NORMAL, ((5 * UploadManager::getInstance()->getSlots()) + 4) );
-				}
-				if ( (SETTING(MAX_DOWNLOAD_SPEED_LIMIT_NORMAL) > ( SETTING(MAX_UPLOAD_SPEED_LIMIT_NORMAL) * 7)) || ( SETTING(MAX_DOWNLOAD_SPEED_LIMIT_NORMAL) == 0) ) {
-					SettingsManager::getInstance()->set(SettingsManager::MAX_DOWNLOAD_SPEED_LIMIT_NORMAL, (SETTING(MAX_UPLOAD_SPEED_LIMIT_NORMAL)*7) );
-				}
-			}
-
-			if( SETTING(MAX_UPLOAD_SPEED_LIMIT_TIME) > 0) {
-				if( SETTING(MAX_UPLOAD_SPEED_LIMIT_TIME) < ((5 * UploadManager::getInstance()->getSlots()) + 4) ) {
-					SettingsManager::getInstance()->set(SettingsManager::MAX_UPLOAD_SPEED_LIMIT_TIME, ((5 * UploadManager::getInstance()->getSlots()) + 4) );
-				}
-				if ( (SETTING(MAX_DOWNLOAD_SPEED_LIMIT_TIME) > ( SETTING(MAX_UPLOAD_SPEED_LIMIT_TIME) * 7)) || ( SETTING(MAX_DOWNLOAD_SPEED_LIMIT_TIME) == 0) ) {
-					SettingsManager::getInstance()->set(SettingsManager::MAX_DOWNLOAD_SPEED_LIMIT_TIME, (SETTING(MAX_UPLOAD_SPEED_LIMIT_TIME)*7) );
-				}
-			}
-
-			time_t currentTime;
-			time(&currentTime);
-			int currentHour = localtime(&currentTime)->tm_hour;
-			if (SETTING(TIME_DEPENDENT_THROTTLE) &&
-				((SETTING(BANDWIDTH_LIMIT_START) < SETTING(BANDWIDTH_LIMIT_END) &&
-					currentHour >= SETTING(BANDWIDTH_LIMIT_START) && currentHour < SETTING(BANDWIDTH_LIMIT_END)) ||
-				(SETTING(BANDWIDTH_LIMIT_START) > SETTING(BANDWIDTH_LIMIT_END) &&
-					(currentHour >= SETTING(BANDWIDTH_LIMIT_START) || currentHour < SETTING(BANDWIDTH_LIMIT_END)))))
-			{
-				//want to keep this out of the upload limiting code proper, where it might otherwise work more naturally
-				SettingsManager::getInstance()->set(SettingsManager::MAX_UPLOAD_SPEED_LIMIT, SETTING(MAX_UPLOAD_SPEED_LIMIT_TIME));
-				SettingsManager::getInstance()->set(SettingsManager::MAX_DOWNLOAD_SPEED_LIMIT, SETTING(MAX_DOWNLOAD_SPEED_LIMIT_TIME));
-			} else {
-				SettingsManager::getInstance()->set(SettingsManager::MAX_UPLOAD_SPEED_LIMIT, SETTING(MAX_UPLOAD_SPEED_LIMIT_NORMAL));
-				SettingsManager::getInstance()->set(SettingsManager::MAX_DOWNLOAD_SPEED_LIMIT, SETTING(MAX_DOWNLOAD_SPEED_LIMIT_NORMAL));
-			}
-		} else {
-			SettingsManager::getInstance()->set(SettingsManager::MAX_UPLOAD_SPEED_LIMIT, 0);
-			SettingsManager::getInstance()->set(SettingsManager::MAX_DOWNLOAD_SPEED_LIMIT, 0);
-		}		
+	if(SETTING(DISCONNECT_SPEED) < 1) {
+		SettingsManager::getInstance()->set(SettingsManager::DISCONNECT_SPEED, 1);
+	}
 }
 
 void MainFrame::on(PartialList, const UserPtr& aUser, const string& text) throw() {

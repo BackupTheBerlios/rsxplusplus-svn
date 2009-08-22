@@ -2681,6 +2681,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\client\ThrottleManager.h"
+				>
+			</File>
+			<File
 				RelativePath=".\client\TigerHash.h"
 				>
 			</File>

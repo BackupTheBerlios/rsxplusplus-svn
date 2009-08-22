@@ -114,23 +114,6 @@ LRESULT RSXPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 		FindClose(hFind);
 	}
 
-/*	StringList files = File::findFiles(Util::getPath(Util::PATH_USER_CONFIG), "*.dic");
-#error fixme
-	{
-		for(StringIter i = files.begin(); i != files.end(); ++i) {
-			string tmp(*i);
-			if(tmp.length() < 3) continue;
-			string file = tmp.substr(0, tmp.length() - 3);
-			file += "aff";
-			if(!Util::fileExists(file))
-				files.erase(i);
-		}
-	}
-	for(StringIter i = files.begin(); i != files.end(); ++i) {
-		tstring file = Util::getFileName(Text::toT(*i));
-		ctrlDictionary.AddString(file.substr(0, file.length()-4).c_str());
-	}*/
-
 	int pos = ctrlDictionary.FindString(0, Text::toT(RSXPP_SETTING(DICTIONARY)).c_str());
 	if(pos < 0) pos = 0;
 	ctrlDictionary.SetCurSel(pos);

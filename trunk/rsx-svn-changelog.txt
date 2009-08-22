@@ -1,3 +1,6 @@
+** SVN 151
+ ** sdc svn merge
+
 ** SVN 150
  ** [lua] fixed UC_ON_COMMAND enum (thx Thor)
  ** [sdk] added timer

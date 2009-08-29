@@ -1,3 +1,9 @@
+** SVN 152
+ ** fixed emoticons dialog crash on 64bit platforms
+ ** donate menu (:P)
+ ** sdc svn merge
+ ** settings icons updated (thx infra)
+
 ** SVN 151
  ** sdc svn merge
 

@@ -1,3 +1,15 @@
+** SVN 153
+ ** [lua] fixed uint64_t conversion
+ ** [lua] rand added to utils
+ ** [lua] formatBytes for numbers
+ ** [lua] getHubs for ClientManager
+ ** [lua] getUsers for ClientManager
+ ** [lua] getParams for Identity
+ ** [lua] findUserBy{X} changed to overloads
+ ** [lua] changed getUsers in Client (now takes table as param, doesnt return one)
+ ** [lua] some error handling during load
+ ** [lua] enum for paths in utils class
+
 ** SVN 152
  ** fixed emoticons dialog crash on 64bit platforms
  ** donate menu (:P)

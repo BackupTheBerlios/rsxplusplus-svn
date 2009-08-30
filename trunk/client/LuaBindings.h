@@ -28,6 +28,41 @@ extern "C" {
 #include <luabind/luabind.hpp>
 #include <luabind/object.hpp>
 
+// we need custom converter, since lua stores all values as double afaik...
+//@todo better way to keep precision?
+
+namespace luabind {
+	template <>
+	struct default_converter<int64_t> : native_converter_base<int64_t> {
+      static int compute_score(lua_State* L, int index) {
+          return default_converter<int>::compute_score(L, index);
+      }
+
+      int64_t from(lua_State* L, int index) {
+          return (int64_t)lua_tonumber(L, index);
+      }
+
+      void to(lua_State* L, int64_t value) {
+          lua_pushnumber(L, value);
+      }
+	};
+
+	template <>
+	struct default_converter<uint64_t> : native_converter_base<uint64_t> {
+      static int compute_score(lua_State* L, int index) {
+          return default_converter<int>::compute_score(L, index);
+      }
+
+      uint64_t from(lua_State* L, int index) {
+          return (uint64_t)lua_tonumber(L, index);
+      }
+
+      void to(lua_State* L, uint64_t value) {
+          lua_pushnumber(L, value);
+      }
+	};
+}
+
 namespace dcpp {
 
 	namespace LuaBindings {

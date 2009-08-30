@@ -473,8 +473,8 @@ void ClientManager::userCommand(const UserPtr& p, const UserCommand& uc, StringM
 	ou.getClient().getHubIdentity().getParams(params, "hub", false);
 	ou.getClient().getMyIdentity().getParams(params, "my", compatibility);
 	ou.getClient().escapeParams(params);
-	if(!ucExecuteLua(uc.getCommand(), params)) 	//RSX++ // Lua
-		ou.getClient().sendUserCmd(Util::formatParams(uc.getCommand(), params, false));
+	//if(!ucExecuteLua(uc.getCommand(), params)) 	//RSX++ // Lua
+	ou.getClient().sendUserCmd(Util::formatParams(uc.getCommand(), params, false));
 }
 
 void ClientManager::sendRawCommand(const UserPtr& user, const string& aRaw, bool checkProtection/* = false*/) {
@@ -1113,8 +1113,8 @@ void ClientManager::setUnknownCommand(const UserPtr& p, const string& aUnknownCo
 	i->second->getIdentity().set("UC", aUnknownCommand);
 }
 //RSX++ //Lua
-bool ClientManager::ucExecuteLua(const string& /*ucCommand*/, StringMap& /*params*/) throw() {
-	bool executedlua = false;
+//bool ClientManager::ucExecuteLua(const string& /*ucCommand*/, StringMap& /*params*/) throw() {
+//	bool executedlua = false;
 	/*string::size_type i, j, k;
 	i = j = k = 0;
 	string tmp = ucCommand;
@@ -1147,8 +1147,8 @@ bool ClientManager::ucExecuteLua(const string& /*ucCommand*/, StringMap& /*param
 		executedlua = true;
 		i = j + 1;
 	}*/
-	return executedlua;
-}
+//	return executedlua;
+//}
 //RSX++ //MultiHubKick
 void ClientManager::multiHubKick(const UserPtr& p, const string& aRaw) {
 	{

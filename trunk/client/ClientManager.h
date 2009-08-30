@@ -43,6 +43,10 @@ class ClientManager : public Speaker<ClientManagerListener>,
 {
 public:
 	//RSX++
+	typedef unordered_multimap<CID*, OnlineUser*> OnlineMap;
+	typedef OnlineMap::iterator OnlineIter;
+	typedef OnlineMap::const_iterator OnlineIterC;
+
 	~ClientManager() throw() {
 		TimerManager::getInstance()->removeListener(this); 
 	}
@@ -203,7 +207,7 @@ public:
 		bool _badClient, bool _badFileList, bool _clientCheckComplete, bool _fileListCheckComplete);
 	//RSX++
 	void addCheckToQueue(const UserPtr& p, bool filelist);
-	static bool ucExecuteLua(const string& cmd, StringMap& params);
+	const OnlineMap& getOnlineUsers() const { Lock l(cs); return onlineUsers; }
 	//END
 
 	// NMDC functions only!!!
@@ -212,7 +216,6 @@ public:
 	
 	void setGenerator(const UserPtr& p, const string& aGenerator, const string& aCID, const string& aBase);
 	void setUnknownCommand(const UserPtr& p, const string& aUnknownCommand);
-
 
 private:
 	//RSX++
@@ -223,9 +226,9 @@ private:
 
 	typedef unordered_map<CID*, std::string> NickMap;
 
-	typedef unordered_multimap<CID*, OnlineUser*> OnlineMap;
-	typedef OnlineMap::iterator OnlineIter;
-	typedef OnlineMap::const_iterator OnlineIterC;
+	//typedef unordered_multimap<CID*, OnlineUser*> OnlineMap;
+	//typedef OnlineMap::iterator OnlineIter;
+	//typedef OnlineMap::const_iterator OnlineIterC;
 	typedef pair<OnlineIter, OnlineIter> OnlinePair;
 	typedef pair<OnlineIterC, OnlineIterC> OnlinePairC;
 	

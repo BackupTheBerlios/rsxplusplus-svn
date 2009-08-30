@@ -41,26 +41,6 @@
 #include "QueueManager.h"
 #include "FavoriteManager.h"
 
-// we need custom converter, since lua stores all values as double afaik...
-//@todo better way to keep precision?
-
-namespace luabind {
-	template <>
-	struct default_converter<int64_t> : native_converter_base<int64_t> {
-      static int compute_score(lua_State* L, int index) {
-          return default_converter<int>::compute_score(L, index);
-      }
-
-      int64_t from(lua_State* L, int index) {
-          return (int64_t)lua_tonumber(L, index);
-      }
-
-      void to(lua_State* L, int64_t value) {
-          lua_pushnumber(L, value);
-      }
-	};
-}
-
 namespace dcpp {
 
 	namespace wrappers {
@@ -82,16 +62,45 @@ namespace dcpp {
 			}
 			return Util::emptyString;
 		}
-		luabind::object getUsers(lua_State* L, Client* c) {
-			luabind::object o(luabind::newtable(L));
-			OnlineUserList list;
-			c->getUserList(list);
-			for(OnlineUserList::iterator i = list.begin(); i != list.end(); ++i) {
-				OnlineUser* u = (*i).get();
-				o[u->getIdentity().getNick()] = u;
+
+		void getUsers(Client* c, const luabind::object& table) {
+			if(luabind::type(table) == LUA_TTABLE) {
+				OnlineUserList list;
+				c->getUserList(list);
+				for(OnlineUserList::iterator i = list.begin(); i != list.end(); ++i) {
+					table[(*i)->getIdentity().getNick()] = (*i).get();
+				}
 			}
-			return o;
 		}
+
+		void getHubs(ClientManager* cm, const luabind::object& table) {
+			if(luabind::type(table) == LUA_TTABLE) {
+				const Client::List& l = cm->getClients();
+				for(Client::List::const_iterator i = l.begin(); i != l.end(); ++i) {
+					table[*(i->first)] = i->second;
+				}
+			}
+		}
+
+		void getOnlineUsers(ClientManager* cm, const luabind::object& table) {
+			if(luabind::type(table) == LUA_TTABLE) {
+				const ClientManager::OnlineMap& users = cm->getOnlineUsers();
+				for(ClientManager::OnlineIterC i = users.begin(); i != users.end(); ++i) {
+					table[i->first] = i->second;
+				}
+			}
+		}
+
+		void getIdentityParams(Identity& usr, const luabind::object& table, const std::string& prefix) {
+			if(luabind::type(table) == LUA_TTABLE) {
+				StringMap p;
+				usr.getParams(p, prefix, false);
+				for(StringMap::const_iterator i = p.begin(); i != p.end(); ++i) {
+					table[i->first] = i->second;
+				}
+			}
+		}
+
 		inline double getVersion(int type) {
 			switch(type) {
 				case 1: return VERSIONFLOAT;
@@ -168,10 +177,10 @@ namespace dcpp {
 				.property("stealth", &Client::getStealth, &Client::setStealth)
 				.def("getMyIdentity", (Identity& (Client::*)())&Client::getMyIdentity, luabind::dependency(luabind::result, _1))
 				.def("getHubIdentity", (Identity& (Client::*)())&Client::getHubIdentity, luabind::dependency(luabind::result, _1))
-				.def("findUserByNick", (OnlineUser* (Client::*)(const string&) const)&Client::findOnlineUser)
-				.def("findUserByCID", (OnlineUser* (Client::*)(const CID&) const)&Client::findUser)
-				.def("findUserBySID", (OnlineUser* (Client::*)(const uint32_t) const)&Client::findUser)
-				.def("getUserList", &wrappers::getUsers, luabind::raw(_1))
+				.def("findUser", (OnlineUser* (Client::*)(const string&) const)&Client::findOnlineUser)
+				.def("findUser", (OnlineUser* (Client::*)(const CID&) const)&Client::findUser)
+				.def("findUser", (OnlineUser* (Client::*)(const uint32_t) const)&Client::findUser)
+				.def("getUserList", &wrappers::getUsers)
 				.def("parseCommand", &Client::parseCommand)
 				.def("info", &Client::info)
 				//.def("sendAdcCommand", (void (Client::*)(const AdcCommand&))&Client::send, luabind::adopt(luabind::result))
@@ -237,6 +246,7 @@ namespace dcpp {
 				.def("getSIDString", &Identity::getSIDString)
 				.def("getStatus", &Identity::getStatus)
 				.def("getTag", &Identity::getTag)
+				.def("getParams", &wrappers::getIdentityParams)
 				.enum_("ClientType") [
 					luabind::value("CT_BOT", Identity::CT_BOT),
 					luabind::value("CT_REGGED", Identity::CT_REGGED),
@@ -320,7 +330,7 @@ namespace dcpp {
 		void BindSimpleXML(lua_State* L) {
 			luabind::module(L, "dcpp") [
 				luabind::class_<SimpleXML>("SimpleXML")
-				.def(luabind::constructor<>())
+				//.def(luabind::constructor<>())
 				.def("addTag", (void (SimpleXML::*)(const string&, const string&))&SimpleXML::addTag)
 				.def("addAttrib", (void (SimpleXML::*)(const string&, const string&))&SimpleXML::addAttrib)
 				.def("addChildAttrib", (void (SimpleXML::*)(const string&, const string&))&SimpleXML::addChildAttrib)
@@ -338,6 +348,33 @@ namespace dcpp {
 
 		void BindDcppCore(lua_State* L) {
 			luabind::module(L, "dcpp") [
+				luabind::class_<Util>("Utils")
+				.enum_("Paths") [
+					luabind::value("PATH_GLOBAL_CONFIG", (int)Util::PATH_GLOBAL_CONFIG),
+					luabind::value("PATH_USER_CONFIG", (int)Util::PATH_USER_CONFIG),
+					luabind::value("PATH_USER_LOCAL", (int)Util::PATH_USER_LOCAL),
+					luabind::value("PATH_RESOURCES", (int)Util::PATH_RESOURCES),
+					luabind::value("PATH_DOWNLOADS", (int)Util::PATH_DOWNLOADS),
+					luabind::value("PATH_FILE_LISTS", (int)Util::PATH_FILE_LISTS),
+					luabind::value("PATH_HUB_LISTS", (int)Util::PATH_HUB_LISTS),
+					luabind::value("PATH_NOTEPAD", (int)Util::PATH_NOTEPAD),
+					luabind::value("PATH_EMOPACKS", (int)Util::PATH_EMOPACKS)
+				]
+				.scope [
+					luabind::def("encodeURI", &Util::encodeURI),
+					luabind::def("formatParams", &wrappers::makeParams),
+					luabind::def("getVersion", &wrappers::getVersion),
+					luabind::def("getIpCountry", &Util::getIpCountry),
+					luabind::def("getLocalIp", &Util::getLocalIp),
+					luabind::def("isPrivateIp", &Util::isPrivateIp),
+					luabind::def("formatBytes", (std::string (*)(const string&))&Util::formatBytes),
+					luabind::def("formatBytes", (std::string (*)(int64_t))&Util::formatBytes),
+					luabind::def("formatMessage", &Util::formatMessage),
+					luabind::def("getStartTime", &Util::getStartTime),
+					luabind::def("rand", (uint32_t (*)(uint32_t, uint32_t))&Util::rand),
+					luabind::def("getPath", &Util::getPath)
+				],
+
 				luabind::def("LogMessage", &wrappers::LogMessage),
 				luabind::namespace_("Text") [
 					luabind::def("acpToUtf8", (string (*)(const string&))&Text::acpToUtf8),
@@ -345,21 +382,6 @@ namespace dcpp {
 					luabind::def("isAscii", (bool (*)(const char*))&Text::isAscii),
 					luabind::def("getSystemCharset", &wrappers::getSystemCharset),
 					luabind::def("convert", (string (*)(const string&, const string&, const string&))&Text::convert)
-				],
-				luabind::namespace_("Utils") [
-					luabind::def("encodeURI", &Util::encodeURI),
-					luabind::def("formatParams", &wrappers::makeParams),
-					luabind::def("getVersion", &wrappers::getVersion),
-					luabind::def("getPath", &Util::getPath),
-					luabind::def("getIpCountry", &Util::getIpCountry),
-					luabind::def("getLocalIp", &Util::getLocalIp),
-					luabind::def("isPrivateIp", &Util::isPrivateIp),
-					luabind::def("formatBytes", (std::string (*)(const string&))&Util::formatBytes),
-					luabind::def("formatMessage", &Util::formatMessage),
-					luabind::def("getStartTime", &Util::getStartTime)
-					//luabind::def("getAway", &Util::getAway),
-					//luabind::def("setAway", &Util::setAway),
-					//luabind::def("setAwayMessage", &Util::setAwayMessage)
 				]
 			];
 		}
@@ -422,7 +444,9 @@ namespace dcpp {
 			luabind::module(L, "dcpp") [
 				luabind::class_<ClientManager>("ClientManager")
 				.def("openClient", &ClientManager::openHub)
-				.def("closeClient", &ClientManager::closeHub),
+				.def("closeClient", &ClientManager::closeHub)
+				.def("getHubs", &wrappers::getHubs)
+				.def("getUsers", &wrappers::getOnlineUsers),
 
 				luabind::def("getClientManager", &ClientManager::getInstance)
 			];

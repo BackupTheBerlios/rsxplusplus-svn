@@ -151,6 +151,12 @@ void ScriptManager::exec() {
 				luabind::object error_msg(luabind::from_stack(e.state(), -1));
 				LogManager::getInstance()->message("Lua Error: " + luabind::object_cast<std::string>(error_msg));
 			}
+		} else {
+			std::string msg(lua_tostring(parser, -1));
+			if(msg.empty())
+				msg = "(Unknown)";
+			LogManager::getInstance()->message("Lua Error (syntax): " + msg);
+			lua_pop(parser, 1);
 		}
 	}
 	if(!listeners[TIMER_ON_SECOND].empty() || !listeners[TIMER_ON_MINUTE].empty())

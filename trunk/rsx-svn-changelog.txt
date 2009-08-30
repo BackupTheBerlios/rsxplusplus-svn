@@ -1,3 +1,7 @@
+** SVN 155
+ ** fixed link to donate site
+ ** 1.1 changelog
+
 ** SVN 154
  ** typo in stats
  ** [lua] pm frame event...

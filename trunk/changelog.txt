@@ -1,6 +1,18 @@
-** RSX++ 1.1 ** xx/xx/2009
-
-
+** RSX++ 1.1 ** 30/08/2009
+ ** updated to StrongDC++ 2.30
+ ** PluginAPI => PluginSDK (rewritten, ANSI C compatible)
+ ** new lua interface (LuaAPI), more cool, better etc. no need for startup.lua, all old scripts are incompatible
+ ** fixed numerous bugs (see bugtrack on launchpad)
+ ** added spell checker
+ ** Lua updated to 5.1.4
+ ** small icons improvements
+ ** removed RSXSettings.xml, now everything is stored in DCPlusPlus.xml
+ ** memory optimizations
+ ** boost & stlport also updated
+ ** new shutdown sheduler
+ ** experimental support for NAT-PMP (supported mostly by Apple devices - or my linksys router :)
+ ** moved to sourceforge fully, now for bugreports use Trac, forum is also moved to new place
+ ** removed user's ignore feature (ignore.lua will do it)
 
 ** RSX++ 1.00 ** 10/08/2008
  ** updated to StrongDC++ 2.21

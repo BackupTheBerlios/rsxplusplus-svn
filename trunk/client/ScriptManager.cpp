@@ -72,7 +72,8 @@ void ScriptManager::BindScriptManager() {
 			luabind::value("SETTINGS_LOAD", SETTINGS_LOAD),
 			luabind::value("TIMER_ON_SECOND", TIMER_ON_SECOND),
 			luabind::value("TIMER_ON_MINUTE", TIMER_ON_MINUTE),
-			luabind::value("UC_ON_COMMAND", UC_ON_COMMAND)
+			luabind::value("UC_ON_COMMAND", UC_ON_COMMAND),
+			luabind::value("PM_FRAME", PM_FRAME)
 		],
 
 		luabind::def("getScriptManager", &ScriptManager::getInstance)
@@ -311,6 +312,20 @@ void ScriptManager::onHubDisconnected(Client* c) {
 	for(Objects::const_iterator i = obj.begin(); i != obj.end(); ++i) {
 		try {
 			luabind::call_function<void>(*i, c);
+		} catch(const luabind::error& e) { 
+			luabind::object error_msg(luabind::from_stack(e.state(), -1));
+			LogManager::getInstance()->message("Lua Error: " + luabind::object_cast<std::string>(error_msg));
+		}
+	}
+}
+
+void ScriptManager::onPmFrame(Client* c, User* user, bool close) {
+	Objects& obj = listeners[PM_FRAME];
+	if(obj.empty()) return;
+	Lock l(cs);
+	for(Objects::const_iterator i = obj.begin(); i != obj.end(); ++i) {
+		try {
+			luabind::call_function<void>(*i, c, user, close);
 		} catch(const luabind::error& e) { 
 			luabind::object error_msg(luabind::from_stack(e.state(), -1));
 			LogManager::getInstance()->message("Lua Error: " + luabind::object_cast<std::string>(error_msg));

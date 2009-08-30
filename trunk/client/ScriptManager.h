@@ -50,6 +50,7 @@ public:
 	void onUserDisconnected(OnlineUser* user);
 	void onHubConnected(Client* c);
 	void onHubDisconnected(Client* c);
+	void onPmFrame(Client* c, User* user, bool close);
 	bool onConnectionIn(UserConnection* uc, const std::string& line);
 	bool onConnectionOut(UserConnection* uc, const std::string& line);
 	bool onUserCmd(Client* c, UserCommand& uc);
@@ -91,6 +92,7 @@ private:
 		TIMER_ON_SECOND,
 		TIMER_ON_MINUTE,
 		UC_ON_COMMAND,
+		PM_FRAME,
 		LISTENERS_LAST
 	};
 

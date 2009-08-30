@@ -45,7 +45,6 @@
 #include "ScriptManager.h"
 #include "NetworkConfiguration.hpp"
 ////////////////////////////////////////////////////////////
-#include "IgnoreManager.h"
 
 #include "StringTokenizer.h"
 
@@ -107,7 +106,6 @@ void startup(void (*f)(void*, const tstring&), void* p) {
 	//RSX++ //instances
 	NetworkConfiguration::newInstance();
 	HTTPDownloadManager::newInstance();
-	IgnoreManager::newInstance();
 	ScriptManager::newInstance();
 	UpdateManager::newInstance();
 	AutoSearchManager::newInstance();
@@ -173,7 +171,6 @@ void shutdown() {
 	ScriptManager::deleteInstance();
 	UpdateManager::deleteInstance();
 	IpManager::deleteInstance();
-	IgnoreManager::deleteInstance();
 	AutoSearchManager::deleteInstance();
 	HTTPDownloadManager::deleteInstance();
 	//END

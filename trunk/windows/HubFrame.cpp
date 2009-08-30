@@ -45,7 +45,6 @@
 #include "../client/ScriptManager.h"
 //END
 HubFrame::FrameMap HubFrame::frames;
-HubFrame::IgnoreMap HubFrame::ignoreList;
 
 int HubFrame::columnSizes[] = { 
 	100, //nick
@@ -389,11 +388,6 @@ void HubFrame::onEnter() {
 				addStatus(_T("Queue saved."), WinUtil::m_ChatTextSystem );
 			} else if(stricmp(cmd.c_str(), _T("whois")) == 0) {
 				WinUtil::openLink(_T("http://www.ripe.net/perl/whois?form_type=simple&full_query_string=&searchtext=") + Text::toT(Util::encodeURI(Text::fromT(param))));
-			} else if(stricmp(cmd.c_str(), _T("ignorelist"))==0) {
-				tstring ignorelist = _T("Ignored users:");
-				for(IgnoreMap::const_iterator i = ignoreList.begin(); i != ignoreList.end(); ++i)
-					ignorelist += _T(" ") + Text::toT(ClientManager::getInstance()->getNicks((*i)->getCID())[0]);
-				addLine(ignorelist, WinUtil::m_ChatTextSystem);
 			} else if(stricmp(cmd.c_str(), _T("log")) == 0) {
 				StringMap params;
 				params["hubNI"] = client->getHubName();
@@ -405,7 +399,7 @@ void HubFrame::onEnter() {
 					WinUtil::openFile(Text::toT(Util::validateFileName(SETTING(LOG_DIRECTORY) + Util::formatParams(SETTING(LOG_FILE_STATUS), params, false))));
 				}
 			} else if(stricmp(cmd.c_str(), _T("help")) == 0) {
-				addLine(_T("*** ") + WinUtil::commands + _T(", /smallfilesize #, /extraslots #, /savequeue, /join <hub-ip>, /clear, /ts, /showjoins, /favshowjoins, /close, /userlist, /connection, /favorite, /pm <user> [message], /getlist <user>, /winamp, /whois [IP], /ignorelist, /removefavorite"), WinUtil::m_ChatTextSystem);
+				addLine(_T("*** ") + WinUtil::commands + _T(", /smallfilesize #, /extraslots #, /savequeue, /join <hub-ip>, /clear, /ts, /showjoins, /favshowjoins, /close, /userlist, /connection, /favorite, /pm <user> [message], /getlist <user>, /winamp, /whois [IP], /removefavorite"), WinUtil::m_ChatTextSystem);
 			} else if(stricmp(cmd.c_str(), _T("pm")) == 0) {
 				string::size_type j = param.find(_T(' '));
 				if(j != string::npos) {
@@ -426,58 +420,13 @@ void HubFrame::onEnter() {
 				}
 			} else if(stricmp(cmd.c_str(), _T("stats")) == 0) {
 				addLine(Text::toT(WinUtil::generateStats()));
-			//RSX++ //Public Stats
+			//RSX++
 			} else if(stricmp(cmd.c_str(), _T("pstats")) == 0) {
 				client->hubMessage(WinUtil::generateStats());
-			//RSX++ // detector commands
 			} else if(stricmp(cmd.c_str(), _T("sc")) == 0) {
 				tstring detectorMsg = client->startChecking(param);
 				if(!detectorMsg.empty())
 					addStatus(detectorMsg, WinUtil::m_ChatTextSystem);
-			} else if((stricmp(cmd.c_str(), _T("hubrefresh")) == 0) || (stricmp(cmd.c_str(), _T("hr")) == 0)) {
-					/*const FavoriteHubEntry::List& fh = FavoriteManager::getInstance()->getFavoriteHubs();
-					for(FavoriteHubEntry::List::const_iterator i = fh.begin(); i != fh.end(); ++i) {
-						if((*i)->getServer().compare(Text::fromT(server)) == 0) {
-							client->setCurrentNick((*i)->getNick());
-							client->setPassword((*i)->getPassword());
-							client->setCurrentDescription((*i)->getUserDescription());
-							client->setCurrentEmail((*i)->getFavEmail());
-							client->setUserProtected((*i)->getUserProtected());
-							client->setCheckOnConnect((*i)->getCheckOnConnect());
-							client->setCheckClients((*i)->getCheckClients());
-							client->setCheckFilelists((*i)->getCheckFilelists());
-							client->setCheckMyInfo((*i)->getCheckMyInfo());
-							client->setHideShare((*i)->getHideShare());
-							client->setUseFilter((*i)->getUseFilter());
-							client->setFavIp((*i)->getIP());
-							client->setStealth((*i)->getStealth());
-							addClientLine(_T("The properties of the hub were updated"), WinUtil::m_ChatTextSystem);
-							ClientManager::getInstance()->infoUpdated();
-						}
-					}*/
-			} else if((stricmp(cmd.c_str(), _T("hubsetting")) == 0) || (stricmp(cmd.c_str(), _T("hs")) == 0)) {
-				string tmp = "Hub Settings:"; 
-				tmp += "\n-]> My Nick: \t\t\t" +						client->getCurrentNick();
-				tmp += "\n-]> My Email: \t\t\t" +						client->getCurrentEmail();
-				tmp += "\n-]> My Description: \t\t\t" +					client->getCurrentDescription();
-				tmp += "\n-]> Emulation: \t\t\t" +						(client->getStealth() ? static_cast<const string>("Enabled") : static_cast<const string>("Disabled"));
-				tmp += "\n-]> Filter: \t\t\t\t" +						(client->getUseFilter() ? static_cast<const string>("Enabled") : static_cast<const string>("Disabled"));
-				tmp += "\n-]> Highlights:\t\t\t" +						(client->getUseHL() ? static_cast<const string>("Enabled") : static_cast<const string>("Disabled"));
-				if(client->isOp()) {
-					tmp += "\n\n-]> Detector settings:";
-					tmp += "\n-]> Check on connect: \t\t" +				Text::fromT(WinUtil::toYesNo(client->getCheckOnConnect()));
-					tmp += "\n-]> Check clients: \t\t\t" +				Text::fromT(WinUtil::toYesNo(client->getCheckClients()));
-					tmp += "\n-]> Check filelists: \t\t\t" +			Text::fromT(WinUtil::toYesNo(client->getCheckFilelists()));
-					tmp += "\n-]> Check $MyInfo: \t\t\t" +				Text::fromT(WinUtil::toYesNo(client->getCheckMyInfo()));
-					tmp += "\n-]> Protected Users(RegEx): \t\t" +		client->getUserProtected();
-				}
-				tmp += "\n\n Hub Setting Fields:";
-				const HubSettings::SettingsMap& s = client->getSettings();
-				for(HubSettings::SettingsMap::const_iterator i = s.begin(); i != s.end(); ++i) {
-					tmp += "\n-]> Field: " + string((const char*)&i->first, 4) + "\t\t\tValue: " + i->second;
-				}
-				tmp += "\n";
-				addLine(Text::toT(tmp));
 			} else if((stricmp(cmd.c_str(), _T("hubsstats")) == 0)) {
 				addLine(ClientManager::getInstance()->getHubsLoadInfo());
 			//END
@@ -707,13 +656,6 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 
 				if (showJoins || (favShowJoins && isFavorite)) {
 				 	addLine(_T("*** ") + TSTRING(JOINS) + Text::toT(u.onlineUser->getIdentity().getNick()), WinUtil::m_ChatTextSystem);
-				}	
-				 // Check Ignored status
-				bool ignored = IgnoreManager::getInstance()->isIgnored(Text::toT(u.onlineUser->getIdentity().getNick()));
-				if(ignored && (ignoreList.find(u.onlineUser->getUser()) == ignoreList.end())) {
-					ignoreList.insert(u.onlineUser->getUser());
-				} else if(!ignored && (ignoreList.find(u.onlineUser->getUser()) != ignoreList.end())) {
-					ignoreList.erase(u.onlineUser->getUser());
 				}
 			}
 		} else if(i->first == REMOVE_USER) {
@@ -746,11 +688,8 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 			}
 		} else if(i->first == ADD_CHAT_LINE) {
     		const MessageTask& msg = *static_cast<MessageTask*>(i->second);
-        	if(!msg.from.getUser() || (ignoreList.find(msg.from.getUser()) == ignoreList.end()) ||
-	          (msg.from.isOp() && !client->isOp())) {
-				if(getFilters(msg.from, Text::toT(msg.str))) { //RSX++ //Filters; anyone knows better place? i dont...
-					addLine(msg.from, Text::toT(msg.str), WinUtil::m_ChatTextGeneral);
-				}
+			if(msg.from.getUser().get() && getFilters(msg.from, Text::toT(msg.str))) { //RSX++ //Filters; anyone knows better place? i dont...
+				addLine(msg.from, Text::toT(msg.str), WinUtil::m_ChatTextGeneral);
         	}
 		} else if(i->first == ADD_STATUS_LINE) {
 			const StatusTask& status = *static_cast<StatusTask*>(i->second);
@@ -799,20 +738,13 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 		} else if(i->first == PRIVATE_MESSAGE) {
 			const MessageTask& pm = *static_cast<MessageTask*>(i->second);
 			tstring nick = Text::toT(pm.from.getNick());
-			if(!pm.from.getUser() || (ignoreList.find(pm.from.getUser()) == ignoreList.end()) ||
-			  (pm.from.isOp() && !client->isOp())) {
+			if(pm.from.getUser().get()) { //@todo think about it....
 				bool myPM = pm.replyTo == ClientManager::getInstance()->getMe();
 				const UserPtr& user = myPM ? pm.to : pm.replyTo;
 				//RSX++ //PM spam detection
 				if(!myPM) {
 					if(pm.from.isPmSpamming()) {
-						if(RSXPP_BOOLSETTING(IGNORE_PM_SPAMMERS)) {
-							displayCheat(_T("*** Private Message Spam Detected! From user: ") + nick + _T(" (user ignored)"));
-							if(!IgnoreManager::getInstance()->isIgnored(nick)) {
-								IgnoreManager::getInstance()->storeIgnore(pm.from.getUser());
-								ignoreList.insert(pm.from.getUser());
-							}
-						} else if(RSXPP_SETTING(PM_SPAM_KICK)) {
+						if(RSXPP_SETTING(PM_SPAM_KICK)) {
 							ClientManager::getInstance()->setCheating(pm.from.getUser(), "", "Private Message Flood", RSXPP_SETTING(PM_SPAM_KICK), RSXPP_BOOLSETTING(SHOW_PM_SPAM_KICK), false, false, false, false);
 						}
 					}
@@ -1423,10 +1355,6 @@ void HubFrame::onTab() {
 }
 
 LRESULT HubFrame::onFileReconnect(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
-	//RSX++
-	// We want to have it fresh
-	ignoreList.clear();
-
 	client->reconnect();
 	return 0;
 }
@@ -2069,18 +1997,6 @@ bool HubFrame::PreparePopupMenu(CWindow *pCtrl, OMenu& menu ) {
 		menu.AppendMenu(MF_STRING, IDC_PUBLIC_MESSAGE, CTSTRING(SEND_PUBLIC_MESSAGE));
 		appendUserItems(menu, client->getHubUrl());
 		menu.AppendMenu(MF_SEPARATOR);
-
-		if(count == 1) {
-			const OnlineUserPtr ou = ctrlUsers.getItemData(ctrlUsers.GetNextItem(-1, LVNI_SELECTED));
-			if (client->isOp() || !ou->getIdentity().isOp()) {
-				if(ignoreList.find(ou->getUser()) == ignoreList.end()) {
-					menu.AppendMenu(MF_STRING, IDC_IGNORE, CTSTRING(IGNORE_USER));
-				} else {    
-					menu.AppendMenu(MF_STRING, IDC_UNIGNORE, CTSTRING(UNIGNORE_USER));
-				}
-				menu.AppendMenu(MF_SEPARATOR);
-			}
-		}
 	}
 	
 	menu.AppendMenu(MF_POPUP, (UINT)(HMENU)copyMenu, CTSTRING(COPY));
@@ -2269,8 +2185,6 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
 				cd->clrText = SETTING(FAVORITE_COLOR);
 			} else if (UploadManager::getInstance()->hasReservedSlot(ui->getUser())) {
 				cd->clrText = SETTING(RESERVED_SLOT_COLOR);
-			} else if (ignoreList.find(ui->getUser()) != ignoreList.end()) {
-				cd->clrText = SETTING(IGNORED_COLOR);
 			} else if(ui->getIdentity().getStatus() & Identity::FIREBALL) {
 				cd->clrText = SETTING(FIREBALL_COLOR);
 			} else if(ui->getIdentity().getStatus() & Identity::SERVER) {

@@ -135,7 +135,7 @@ private:
 				x = cmdList.front();
 				cmdList.pop_front();
 			}
-			addLine(x);
+			addLine("[" + Util::getTimeString() + "]" + x);
 		}
 		
 		stop = false;

@@ -1,3 +1,9 @@
+** SVN 154
+ ** typo in stats
+ ** [lua] pm frame event...
+ ** removed user ignore feature
+ ** timestamp in cdm debug frame is back
+
 ** SVN 153
  ** [lua] fixed uint64_t conversion
  ** [lua] rand added to utils

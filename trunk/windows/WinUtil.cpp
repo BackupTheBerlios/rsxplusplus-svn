@@ -965,7 +965,6 @@ _T("/savequeue\t\t\t\tsave Download Queue\n\n")
 _T("/away <msg>\t\t\t\tenable away mode, with optional custom respond <msg>\n")
 
 _T("/hubsstats\t\t\t\tshow connected hubs statistics\n")
-_T("/ignorelist\t\t\t\t\tshow ignorelist\n")
 _T("/clear /c\t\t\t\t\tclear chat\n\n")
 
 _T("/stats\t\t\t\t\tspam some client & system info (show on chat)\n")
@@ -1711,7 +1710,7 @@ string WinUtil::generateStats() {
 \t- Memory usage (peak): %s (%s)\r\n\
 \t- Virtual Memory usage (peak): %s (%s)\r\n\
 \t- Downloaded (session/total): %s / %s\r\n\
-\t- Uploadded (session/total): %s / %s\r\n\
+\t- Uploaded (session/total): %s / %s\r\n\
 \t- System: %s (Uptime: %s)\r\n\
 \t- CPU: %s\r\n\
 \t- Total clients detected (Successful/Failed): %s/%s\r\n\

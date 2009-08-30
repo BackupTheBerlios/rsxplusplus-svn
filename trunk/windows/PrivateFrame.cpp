@@ -35,8 +35,10 @@
 #include "../client/FavoriteManager.h"
 #include "../client/QueueManager.h"
 #include "../client/StringTokenizer.h"
-#include "../client/IgnoreManager.h" //RSX++
+//RSX++
 #include "../client/PluginsManager.h"
+#include "../client/ScriptManager.h"
+//END
 
 PrivateFrame::FrameMap PrivateFrame::frames;
 tstring pSelectedLine = Util::emptyStringT;
@@ -87,7 +89,9 @@ LRESULT PrivateFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 	SettingsManager::getInstance()->addListener(this);
 
 	readLog();
-
+	//RSX++
+	ScriptManager::getInstance()->onPmFrame(ctrlClient.getClient(), replyTo.get(), false);
+	//END
 	bHandled = FALSE;
 	return 1;
 }
@@ -386,6 +390,9 @@ LRESULT PrivateFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 		//DeleteObject(hEmoticonBmp);
 		ClientManager::getInstance()->removeListener(this);
 		SettingsManager::getInstance()->removeListener(this);
+		//RSX++
+		ScriptManager::getInstance()->onPmFrame(ctrlClient.getClient(), replyTo.get(), true);
+		//END
 		closed = true;
 		PostMessage(WM_CLOSE);
 		return 0;

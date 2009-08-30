@@ -1500,10 +1500,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\client\IgnoreManager.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\rsx\IpManager.cpp"
 				>
 				<FileConfiguration
@@ -2362,10 +2358,6 @@
 			</File>
 			<File
 				RelativePath=".\rsx\HubUsersMap.h"
-				>
-			</File>
-			<File
-				RelativePath=".\client\IgnoreManager.h"
 				>
 			</File>
 			<File

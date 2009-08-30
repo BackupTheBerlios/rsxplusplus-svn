@@ -18,7 +18,6 @@
 
 #include "stdafx.h"
 #include "../client/DCPlusPlus.h"
-#include "../client/IgnoreManager.h"
 #include "../client/FavoriteManager.h"
 #include "../client/version.h"
 #include "../client/rsxppSettingsManager.h"
@@ -28,20 +27,14 @@
 #include "SpellChecker.hpp"
 
 PropPage::TextItem RSXPage::texts[] = {
-	{ IDC_IGNORE_ADD,			ResourceManager::ADD },
-	{ IDC_IGNORE_REMOVE,		ResourceManager::REMOVE },
 	{ IDC_RSX_FAV_ADD,			ResourceManager::ADD },
 	{ IDC_RSX_FAV_EDIT,			ResourceManager::EDIT_ACCEL },
 	{ IDC_RSX_FAV_REMOVE,		ResourceManager::REMOVE },
-	{ IDC_IGNORE_CLEAR,			ResourceManager::IGNORE_CLEAR },
-	{ IDC_MISC_IGNORE,			ResourceManager::IGNORED_USERS },
-	{ IDC_USE_REGEXP_OR_WILD,	ResourceManager::USE_REGEXP_OR_WC },
 	{ IDC_STARTUP_PRIO_TEXT,	ResourceManager::SETTINGS_STARTUP_PRIORITY },
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
 
 PropPage::Item RSXPage::items[] = {
-	{ IDC_USE_REGEXP_OR_WILD,	rsxppSettingsManager::IGNORE_USE_REGEXP_OR_WC,	PropPage::T_BOOL_RSX },
 	{ IDC_CHAT_BUF_SIZE,		rsxppSettingsManager::MAX_CHAT_BUFSIZE,			PropPage::T_INT_RSX },
 	{ 0, 0, PropPage::T_END }
 };
@@ -64,19 +57,10 @@ LRESULT RSXPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 
 	CRect rc;
 
-	ignoreListCtrl.Attach(GetDlgItem(IDC_IGNORELIST));
-	ignoreListCtrl.GetClientRect(rc);
-	ignoreListCtrl.InsertColumn(0, _T("Dummy"), LVCFMT_LEFT, (rc.Width() - 17), 0);
-	ignoreListCtrl.SetExtendedListViewStyle(LVS_EX_FULLROWSELECT | LVS_EX_INFOTIP);
-
-	ignoreList = IgnoreManager::getInstance()->getIgnoredUsers();
-	for(TStringHash::iterator i = ignoreList.begin(); i != ignoreList.end(); ++i) {
-		ignoreListCtrl.insert(ignoreListCtrl.GetItemCount(), *i);
-	}
-
 	ctrlFavGroups.Attach(GetDlgItem(IDC_RSX_FAV_GROUPS));
+	ctrlFavGroups.GetClientRect(rc);
 	ctrlFavGroups.InsertColumn(0, _T("Dummy"), LVCFMT_LEFT, (rc.Width() - 17), 0);
-	ctrlFavGroups.SetExtendedListViewStyle(LVS_EX_FULLROWSELECT | LVS_EX_INFOTIP);
+	ctrlFavGroups.SetExtendedListViewStyle(LVS_EX_FULLROWSELECT/* | LVS_EX_INFOTIP*/);
 
 	const StringList& lst = FavoriteManager::getInstance()->getFavGroups();
 	for(StringList::const_iterator j = lst.begin(); j != lst.end(); ++j)
@@ -123,7 +107,6 @@ LRESULT RSXPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 
 void RSXPage::write() {
 	PropPage::write((HWND)*this, items, listItems, GetDlgItem(IDC_RSX_BOOLEANS), true);
-	IgnoreManager::getInstance()->putIgnoredUsers(ignoreList);
 	rsxppSettingsManager::getInstance()->set(rsxppSettingsManager::DEFAULT_PRIO, ctrlPrio.GetCurSel());
 
 	StringList& lst = FavoriteManager::getInstance()->getFavGroups();
@@ -149,55 +132,6 @@ void RSXPage::write() {
 	} else {
 		RSXPP_SET(DICTIONARY, Util::emptyString);
 	}
-}
-
-LRESULT RSXPage::onEditChange(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
-	if(wID == IDC_IGNORELIST_EDIT)
-		::EnableWindow(GetDlgItem(IDC_IGNORE_ADD), (::GetWindowTextLength(GetDlgItem(IDC_IGNORELIST_EDIT)) > 0));
-	return 0;
-}
-
-LRESULT RSXPage::onItemchanged(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/) {
-	NM_LISTVIEW* lv = (NM_LISTVIEW*) pnmh;
-	::EnableWindow(GetDlgItem(IDC_IGNORE_REMOVE), (lv->uNewState & LVIS_FOCUSED));
-	return 0;
-}
-
-LRESULT RSXPage::onIgnoreAdd(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndCtl */, BOOL& /* bHandled */) {
-	TCHAR buf[256];
-	if(GetDlgItemText(IDC_IGNORELIST_EDIT, buf, 256)) {
-		pair<TStringHashIter, bool> p = ignoreList.insert(buf);
-	
-		if(p.second) {
-			ignoreListCtrl.insert(ignoreListCtrl.GetItemCount(), buf);
-		} else {
-			MessageBox(CTSTRING(ALREADY_IGNORED), _T(APPNAME) _T(" ") _T(VERSIONSTRING), MB_OK);
-		}
-	}
-
-	SetDlgItemText(IDC_IGNORELIST_EDIT, _T(""));
-	return 0;
-}
-
-LRESULT RSXPage::onIgnoreRemove(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndCtl */, BOOL& /* bHandled */) {
-	int i = -1;
-	
-	TCHAR buf[256];
-
-	while((i = ignoreListCtrl.GetNextItem(-1, LVNI_SELECTED)) != -1) {
-		ignoreListCtrl.GetItemText(i, 0, buf, 256);
-
-		ignoreList.erase(buf);
-		ignoreListCtrl.DeleteItem(i);
-	}
-
-	return 0;
-}
-
-LRESULT RSXPage::onIgnoreClear(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndCtl */, BOOL& /* bHandled */) {
-	ignoreListCtrl.DeleteAllItems();
-	ignoreList.clear();
-	return 0;
 }
 
 LRESULT RSXPage::onFavGroupBtn(WORD /* wNotifyCode */, WORD wID, HWND /* hWndCtl */, BOOL&  bHandled) {

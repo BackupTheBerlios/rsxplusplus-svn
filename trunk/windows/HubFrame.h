@@ -36,7 +36,6 @@
 #include "../client/FastAlloc.h"
 #include "../client/DirectoryListing.h"
 #include "../client/TaskQueue.h"
-#include "../client/IgnoreManager.h" //RSX++
 
 #include "WinUtil.h"
 #include "UCHandler.h"
@@ -121,8 +120,6 @@ public:
 		//END
 		COMMAND_ID_HANDLER(IDC_COPY_HUBNAME, onCopyHubInfo)
 		COMMAND_ID_HANDLER(IDC_COPY_HUBADDRESS, onCopyHubInfo)
-		COMMAND_ID_HANDLER(IDC_IGNORE, onIgnore)
-		COMMAND_ID_HANDLER(IDC_UNIGNORE, onUnignore)
 		CHAIN_COMMANDS(ucBase)
 		CHAIN_COMMANDS(uibBase)
 		CHAIN_MSG_MAP(baseClass)
@@ -262,34 +259,7 @@ public:
 		return 0;
 	}
 
-	LRESULT onIgnore(UINT /*uMsg*/, WPARAM /*wParam*/, HWND /*lParam*/, BOOL& /*bHandled*/) {
-		int i=-1;
-		if(client->isConnected()) {
-			while( (i = ctrlUsers.GetNextItem(i, LVNI_SELECTED)) != -1) {
-				UserPtr& user = ((OnlineUser*)ctrlUsers.getItemData(i))->getUser();
-				ignoreList.insert(user);
-				IgnoreManager::getInstance()->storeIgnore(user);
-			}
-		}
-		return 0;
-	}
-
-	LRESULT onUnignore(UINT /*uMsg*/, WPARAM /*wParam*/, HWND /*lParam*/, BOOL& /*bHandled*/) {
-		int i=-1;
-		if(client->isConnected()) {
-			while( (i = ctrlUsers.GetNextItem(i, LVNI_SELECTED)) != -1) {
-				UserPtr& user = ((OnlineUser*)ctrlUsers.getItemData(i))->getUser();
-				ignoreList.erase(user);
-				IgnoreManager::getInstance()->removeIgnore(user);
-			}
-		}
-		return 0;
-	}
-
 	TypedListViewCtrl<OnlineUser, IDC_USERS>& getUserList() { return ctrlUsers; }
-
-	typedef unordered_set<UserPtr, User::Hash> IgnoreMap;
-	static IgnoreMap ignoreList;
 
 	static ResourceManager::Strings columnNames[OnlineUser::COLUMN_LAST];
 

@@ -1187,7 +1187,7 @@ bool ClientManager::compareUsers(const OnlineUser& ou1, const OnlineUser& ou2) c
 }
 
 void ClientManager::sendAction(const UserPtr& p, const int aAction) {
-	if(aAction < 1)
+	if(p->isSet(User::DHT) || aAction < 1)
 		return;
 	{
 		Lock l(cs);
@@ -1202,7 +1202,7 @@ void ClientManager::sendAction(const UserPtr& p, const int aAction) {
 }
 
 void ClientManager::sendAction(OnlineUser& ou, const int aAction) {
-	if(aAction < 1)
+	if(ou.getIdentity().getUser()->isSet(User::DHT) || aAction < 1)
 		return;
 
 	if(ou.getClient().isOp() && !ou.isProtectedUser()) {

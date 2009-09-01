@@ -335,23 +335,29 @@ dcpp_ptr_t PluginsManager::callFunc(int type, dcpp_ptr_t p1, dcpp_ptr_t p2, dcpp
 					ptr = ptr->next;
 				}
 				string format = Util::formatParams(reinterpret_cast<char*>(p2), params, false);
-				uint32_t copySize = buf->size >= format.size() ? format.size() : buf->size;
-				memcpy(buf->buf, &format[0], copySize);
-				return copySize;
+
+				if(format.size() < buf->size)
+					buf->size = format.size();
+				memcpy(buf->buf, &format[0], buf->size);
+				return buf->size;
 			}
 			case DCPP_UTILS_CONV_UTF8_TO_WIDE: {
 				dcppBuffer* buf = reinterpret_cast<dcppBuffer*>(p2);
 				std::wstring str(Text::utf8ToWide(reinterpret_cast<char*>(p1)));
-				uint32_t copySize = buf->size >= str.size() ? str.size() : buf->size;
-				memcpy(buf->buf, &str[0], copySize);
-				return copySize;
+
+				if(str.size() < buf->size)
+					buf->size = str.size();
+				memcpy(buf->buf, &str[0], buf->size);
+				return buf->size;
 			}
  			case DCPP_UTILS_CONV_WIDE_TO_UTF8: {
 				dcppBuffer* buf = reinterpret_cast<dcppBuffer*>(p2);
 				std::string str(Text::wideToUtf8(reinterpret_cast<wchar_t*>(p1)));
-				uint32_t copySize = buf->size >= str.size() ? str.size() : buf->size;
-				memcpy(buf->buf, &str[0], copySize);
-				return copySize;
+
+				if(str.size() < buf->size)
+					buf->size = str.size();
+				memcpy(buf->buf, &str[0], buf->size);
+				return buf->size;
 			}
 			case DCPP_UTILS_FREE_LINKED_MAP: {
 				dcppLinkedMap* ptr = reinterpret_cast<dcppLinkedMap*>(p1);
@@ -480,9 +486,9 @@ dcpp_ptr_t PluginsManager::callFunc(int type, dcpp_ptr_t p1, dcpp_ptr_t p2, dcpp
 			case DCPP_HUB_SEND_MESSAGE: {
 				char* msg = reinterpret_cast<char*>(p2);
 				if(strncmp(msg, "/me ", 4) == 0)
-					c->hubMessage(msg+4, true);
+					c->hubMessage(string(msg+4), true);
 				else
-					c->hubMessage(msg, false);
+					c->hubMessage(string(msg), false);
 				break;
 			}
 			case DCPP_HUB_SEND_USER_COMMAND: {

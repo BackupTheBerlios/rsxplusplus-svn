@@ -1,5 +1,9 @@
+** SVN 161
+ ** better fix for buffer bounds checks
+ ** winamp_spam updated - some buffer fixes ^^
+
 ** SVN 160
- ** probably fixed crash with bad buffor size in plugmng
+ ** probably fixed crash with bad buffer size in plugmng
 
 ** SVN 159
  ** a bit more fixes....

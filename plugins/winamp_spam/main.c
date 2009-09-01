@@ -37,7 +37,7 @@ dcppPluginInformation info = {
 	"adrian_007",
 	"simple winamp spam plugin",
 	"http://rsxplusplus.sf.net",
-	MAKE_VER(1, 0, 0, 0),
+	MAKE_VER(1, 1, 0, 0),
 	SDK_VERSION
 };
 
@@ -161,9 +161,9 @@ int __stdcall sendSpam(dcpp_ptr_t lParam, dcpp_ptr_t wParam, dcpp_ptr_t userData
                     size_t size;
 					dcppBuffer tmpBuf;
 
-                    tmpBuf.buf = f->malloc(2048);
-                    tmpBuf.size = 2048;
-					memset(tmpBuf.buf, 0, sizeof(tmpBuf.buf));
+					tmpBuf.size = 2048;
+                    tmpBuf.buf = f->malloc(tmpBuf.size + 1);
+					memset(tmpBuf.buf, 0, tmpBuf.size + 1);
                     size = f->call(DCPP_UTILS_CONV_WIDE_TO_UTF8, (dcpp_ptr_t)wtmp, (dcpp_ptr_t)&tmpBuf, 0);
 					memset(tmp, 0, sizeof(tmp));
                     strncpy(tmp, tmpBuf.buf, size);
@@ -195,8 +195,9 @@ int __stdcall sendSpam(dcpp_ptr_t lParam, dcpp_ptr_t wParam, dcpp_ptr_t userData
 					dcppBuffer buf;
 
 					format = (char*)f->call(DCPP_CONFIG_GET, (dcpp_ptr_t)(char*)"winamp.fmt", 0, 0);
-					buf.buf = (char*)f->malloc(4096);
 					buf.size = 4096;
+					buf.buf = (char*)f->malloc(buf.size + 1);
+					memset(buf.buf, 0, buf.size + 1);
 
 					f->call(DCPP_UTILS_FORMAT_PARAMS, (dcpp_ptr_t)params, (dcpp_ptr_t)format, (dcpp_ptr_t)&buf);
 					f->call(DCPP_HUB_SEND_MESSAGE, msg->hub, (dcpp_ptr_t)buf.buf, 0);

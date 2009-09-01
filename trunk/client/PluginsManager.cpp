@@ -335,20 +335,23 @@ dcpp_ptr_t PluginsManager::callFunc(int type, dcpp_ptr_t p1, dcpp_ptr_t p2, dcpp
 					ptr = ptr->next;
 				}
 				string format = Util::formatParams(reinterpret_cast<char*>(p2), params, false);
-				memcpy(buf->buf, &format[0], buf->size);
-				return format.length();
+				uint32_t copySize = buf->size >= format.size() ? format.size() : buf->size;
+				memcpy(buf->buf, &format[0], copySize);
+				return copySize;
 			}
 			case DCPP_UTILS_CONV_UTF8_TO_WIDE: {
 				dcppBuffer* buf = reinterpret_cast<dcppBuffer*>(p2);
 				std::wstring str(Text::utf8ToWide(reinterpret_cast<char*>(p1)));
-				memcpy(buf->buf, &str[0], buf->size);
-				return str.length();
+				uint32_t copySize = buf->size >= str.size() ? str.size() : buf->size;
+				memcpy(buf->buf, &str[0], copySize);
+				return copySize;
 			}
  			case DCPP_UTILS_CONV_WIDE_TO_UTF8: {
 				dcppBuffer* buf = reinterpret_cast<dcppBuffer*>(p2);
 				std::string str(Text::wideToUtf8(reinterpret_cast<wchar_t*>(p1)));
-				memcpy(buf->buf, &str[0], buf->size);
-				return str.length();
+				uint32_t copySize = buf->size >= str.size() ? str.size() : buf->size;
+				memcpy(buf->buf, &str[0], copySize);
+				return copySize;
 			}
 			case DCPP_UTILS_FREE_LINKED_MAP: {
 				dcppLinkedMap* ptr = reinterpret_cast<dcppLinkedMap*>(p1);

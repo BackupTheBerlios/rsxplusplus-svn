@@ -1,3 +1,6 @@
+** SVN 160
+ ** probably fixed crash with bad buffor size in plugmng
+
 ** SVN 159
  ** a bit more fixes....
 

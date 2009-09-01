@@ -348,7 +348,19 @@ OnlineUser* ClientManager::findOnlineUser(const CID& cid, const string& hintUrl)
 			}
 		}
 	}
-
+	//RSX++
+	if(p.first->second->getUser()->isSet(User::DHT)) {
+		OnlineUser* ou = 0;
+		for(OnlineIter i = p.first; i != p.second; ++i) {
+			// get first user from non-dht network
+			if(!i->second->getUser()->isSet(User::DHT)) {
+				ou = i->second;
+				break;
+			}
+		}
+		return ou;
+	}
+	//END
 	// TODO maybe disallow non-hint urls, or maybe for some hints (secure?)
 	return p.first->second;
 }
@@ -661,44 +673,35 @@ void ClientManager::on(HubUserCommand, const Client* client, int aType, int ctx,
 }
 
 void ClientManager::setListLength(const UserPtr& p, const string& listLen) {
-	OnlineUser* ou = findOnlineUser(p->getCID(), Util::emptyString);
-	if(ou) {
+	OnlineUserPtr ou(findOnlineUser(p->getCID(), Util::emptyString));
+	if(ou.get())
 		ou->getIdentity().set("LL", listLen);
-	}
-	//Lock l(cs);
-	//OnlineIterC i = onlineUsers.find(const_cast<CID*>(&p->getCID()));
-	//if(i != onlineUsers.end()) {
-	//	i->second->getIdentity().set("LL", listLen);
-	//}
 }
 
 void ClientManager::fileListDisconnected(const UserPtr& p) {
+	OnlineUserPtr ou(findOnlineUser(p->getCID(), Util::emptyString));
+	if(!ou.get())
+		return;
+
 	bool remove = false;
 	string report = Util::emptyString;
 	Client* c = NULL;
-	{
-		Lock l(cs);
-		OnlineIterC i = onlineUsers.find(const_cast<CID*>(&p->getCID()));
-		if(i != onlineUsers.end()) {
-			OnlineUser& ou = *i->second;
-	
-			int fileListDisconnects = Util::toInt(ou.getIdentity().get("FD")) + 1;
-			ou.getIdentity().set("FD", Util::toString(fileListDisconnects));
 
-			if(RSXPP_SETTING(MAX_DISCONNECTS) == 0)
-				return;
+	int fileListDisconnects = Util::toInt(ou->getIdentity().get("FD")) + 1;
+	ou->getIdentity().set("FD", Util::toString(fileListDisconnects));
 
-			if(fileListDisconnects == RSXPP_SETTING(MAX_DISCONNECTS)) {
-				c = &ou.getClient();
-				report = ou.setCheat("Disconnected file list %[userFD] times", false, true, RSXPP_BOOLSETTING(SHOW_DISCONNECT_RAW));
-				if(ou.getIdentity().isFileListQueued()) {
-					ou.setFileListComplete();
-					ou.getIdentity().setFileListQueued(Util::emptyString);
-					remove = true;
-				}
-				sendAction(ou, RSXPP_SETTING(DISCONNECT_RAW));
-			}
+	if(RSXPP_SETTING(MAX_DISCONNECTS) == 0)
+		return;
+
+	if(fileListDisconnects >= RSXPP_SETTING(MAX_DISCONNECTS)) {
+		c = &ou->getClient();
+		report = ou->setCheat("Disconnected file list %[userFD] times", false, true, RSXPP_BOOLSETTING(SHOW_DISCONNECT_RAW));
+		if(ou->getIdentity().isFileListQueued()) {
+			ou->setFileListComplete();
+			ou->getIdentity().setFileListQueued(Util::emptyString);
+			remove = true;
 		}
+		sendAction(*ou.get(), RSXPP_SETTING(DISCONNECT_RAW));
 	}
 
 	if(remove) {
@@ -714,39 +717,37 @@ void ClientManager::fileListDisconnected(const UserPtr& p) {
 }
 
 void ClientManager::connectionTimeout(const UserPtr& p) {
+	OnlineUserPtr ou(findOnlineUser(p->getCID(), Util::emptyString));
+	if(!ou.get())
+		return;
+
 	uint8_t remove = 0;
 	string report = Util::emptyString;
 	Client* c = NULL;
-	{
-		Lock l(cs);
-		OnlineIterC i = onlineUsers.find(const_cast<CID*>(&p->getCID()));
-		if(i != onlineUsers.end()) {
-			OnlineUser& ou = *i->second;
+
+	int connectionTimeouts = Util::toInt(ou->getIdentity().get("TO")) + 1;
+	ou->getIdentity().set("TO", Util::toString(connectionTimeouts));
 	
-			int connectionTimeouts = Util::toInt(ou.getIdentity().get("TO")) + 1;
-			ou.getIdentity().set("TO", Util::toString(connectionTimeouts));
+	if(RSXPP_SETTING(MAX_TIMEOUTS) == 0)
+		return;
 	
-			if(RSXPP_SETTING(MAX_TIMEOUTS) == 0)
-				return;
-	
-			if(connectionTimeouts == RSXPP_SETTING(MAX_TIMEOUTS)) {
-				c = &ou.getClient();
-				report = ou.setCheat("Connection timeout %[userTO] times", false, false, RSXPP_BOOLSETTING(SHOW_TIMEOUT_RAW));
+	if(connectionTimeouts >= RSXPP_SETTING(MAX_TIMEOUTS)) {
+		c = &ou->getClient();
+		report = ou->setCheat("Connection timeout %[userTO] times", false, false, RSXPP_BOOLSETTING(SHOW_TIMEOUT_RAW));
 				
-				if(ou.getIdentity().isClientQueued()) {
-					ou.setTestSURComplete();
-					ou.getIdentity().setTestSURQueued(Util::emptyString);
-					remove += 1;
-				}
-				if(ou.getIdentity().isFileListQueued()) {
-					ou.setFileListComplete();
-					ou.getIdentity().setFileListQueued(Util::emptyString);
-					remove += 2;
-				}
-				sendAction(ou, RSXPP_SETTING(TIMEOUT_RAW));
-			}
+		if(ou->getIdentity().isClientQueued()) {
+			ou->setTestSURComplete();
+			ou->getIdentity().setTestSURQueued(Util::emptyString);
+			remove += 1;
 		}
+		if(ou->getIdentity().isFileListQueued()) {
+			ou->setFileListComplete();
+			ou->getIdentity().setFileListQueued(Util::emptyString);
+			remove += 2;
+		}
+		sendAction(*ou.get(), RSXPP_SETTING(TIMEOUT_RAW));
 	}
+
 	if(remove > 0) {
 		try {
 			if(remove == 1 || remove == 3) {
@@ -765,17 +766,13 @@ void ClientManager::connectionTimeout(const UserPtr& p) {
 }
 
 void ClientManager::checkCheating(const UserPtr& p, DirectoryListing* dl) {
+	OnlineUserPtr ou(findOnlineUser(p->getCID(), Util::emptyString));
+	if(!ou.get())
+		return;
+
 	string report = Util::emptyString;
-	OnlineUser* ou = NULL;
+
 	{
-		Lock l(cs);
-
-		OnlineIterC i = onlineUsers.find(const_cast<CID*>(&p->getCID()));
-		if(i == onlineUsers.end())
-			return;
-
-		ou = i->second;
-
 		int64_t statedSize = ou->getIdentity().getBytesShared();
 		int64_t realSize = dl->getTotalSize();
 
@@ -800,7 +797,7 @@ void ClientManager::checkCheating(const UserPtr& p, DirectoryListing* dl) {
 					% qwe);
 			}
 			report = ou->setCheat(cheatStr, false, true, RSXPP_BOOLSETTING(SHOW_FAKESHARE_RAW));
-			sendAction(*ou, RSXPP_SETTING(FAKESHARE_RAW));
+			sendAction(*ou.get(), RSXPP_SETTING(FAKESHARE_RAW));
 		} else {
 			//RSX++ //ADLS Forbidden files
 			const DirectoryListing::File::List forbiddenList = dl->getForbiddenFiles();
@@ -872,7 +869,7 @@ void ClientManager::checkCheating(const UserPtr& p, DirectoryListing* dl) {
 				if(forOverRide) {
 					report = ou->setCheat(s, false, true, true);
 					if(forFromFavs) {
-						sendAction(*ou, actionCommand);
+						sendAction(*ou.get(), actionCommand);
 					} else {
 						sendRawCommand(ou->getUser(), stringForKick);
 					}
@@ -881,7 +878,7 @@ void ClientManager::checkCheating(const UserPtr& p, DirectoryListing* dl) {
 					int rawToSend = 0;
 					RawManager::getInstance()->calcADLAction(totalPoints, rawToSend, show);
 					report = ou->setCheat(s, false, true, show);
-					sendAction(*ou, rawToSend);
+					sendAction(*ou.get(), rawToSend);
 				} else {
 					const string& isRMDC = ou->getIdentity().checkrmDC(*ou);
 					if(!isRMDC.empty()) {
@@ -893,25 +890,22 @@ void ClientManager::checkCheating(const UserPtr& p, DirectoryListing* dl) {
 		//END
 	}
 
-	if(ou) {
-		ou->setFileListComplete();
-		ou->getIdentity().setFileListQueued(Util::emptyString);
-		ou->getClient().updated(ou);
-		if(!report.empty()) {
-			ou->getClient().cheatMessage(report);
-		}
+
+	ou->setFileListComplete();
+	ou->getIdentity().setFileListQueued(Util::emptyString);
+	ou->getClient().updated(ou);
+	if(!report.empty()) {
+		ou->getClient().cheatMessage(report);
 	}
 }
 //RSX++ //autosearch stuff
 void ClientManager::kickFromAutosearch(const UserPtr& p, int action, const string& cheat, const string& file, const string& size, const string& tth, bool display/* = false*/) {
-	OnlineUser* ou = NULL;
+	OnlineUserPtr ou(findOnlineUser(p->getCID(), Util::emptyString));
+	if(!ou.get())
+		return;
+
 	string report = Util::emptyString;
 	{
-		Lock l(cs);
-		OnlineIterC i = onlineUsers.find(const_cast<CID*>(&p->getCID()));
-		if(i == onlineUsers.end()) 
-			return;
-		ou = i->second;
 		int noOfFiles = Util::toInt(ou->getIdentity().get("A7")) + 1;
 
 		ou->getIdentity().set("A1", file);
@@ -922,27 +916,23 @@ void ClientManager::kickFromAutosearch(const UserPtr& p, int action, const strin
 		report = ou->setCheat(cheat, false, true, display && !cheat.empty());
 		sendAction(*ou, action);
 	}
-	if(ou) {
-		ou->getClient().updated(ou);
-		if(!report.empty())
-			ou->getClient().cheatMessage(report);
-	}
+
+	ou->getClient().updated(ou);
+	if(!report.empty())
+		ou->getClient().cheatMessage(report);
 }
 
 void ClientManager::addCheckToQueue(const UserPtr& p, bool filelist) {
-	OnlineUser* ou = NULL;
+	OnlineUserPtr ou(findOnlineUser(p->getCID(), Util::emptyString));
+	if(!ou.get())
+		return;
+
 	bool addCheck = false;
 	{
-		Lock l(cs);
-		OnlineIterC i = onlineUsers.find(const_cast<CID*>(&p->getCID()));
-		if(i == onlineUsers.end()) return;
-		ou = i->second;
-
 		if(ou->isCheckable() && ou->getClient().isOp()) {
 			if(!ou->getChecked(filelist)) {
 				if((filelist && ou->shouldCheckFileList()) || (!filelist && ou->shouldCheckClient())) {
 					addCheck = true;
-					ou->inc();
 				}
 			}
 		}
@@ -960,7 +950,6 @@ void ClientManager::addCheckToQueue(const UserPtr& p, bool filelist) {
 		} catch(...) {
 			//...
 		}
-		ou->dec();
 	}
 }
 //hub stats
@@ -985,15 +974,12 @@ tstring ClientManager::getHubsLoadInfo() const {
 //END
 void ClientManager::setCheating(const UserPtr& p, const string& _ccResponse, const string& _cheatString, int _actionId, bool _displayCheat,
 		bool _badClient, bool _badFileList, bool _clientCheckComplete, bool _fileListCheckComplete) {
-	OnlineUser* ou = NULL;
+	OnlineUserPtr ou(findOnlineUser(p->getCID(), Util::emptyString));
+	if(!ou.get())
+		return;
+
 	string report = Util::emptyString;
 	{
-		Lock l(cs);
-		OnlineIterC i = onlineUsers.find(const_cast<CID*>(&p->getCID()));
-		if(i == onlineUsers.end()) return;
-
-		ou = i->second;
-
 		if(!_ccResponse.empty()) {
 			ou->setTestSURComplete();
 			ou->getIdentity().set("TS", _ccResponse);
@@ -1005,24 +991,21 @@ void ClientManager::setCheating(const UserPtr& p, const string& _ccResponse, con
 			ou->setFileListComplete();
 		if(!_cheatString.empty())
 			report = ou->setCheat(_cheatString, _badClient, _badFileList, _displayCheat);
-		sendAction(*ou, _actionId);
+		sendAction(*ou.get(), _actionId);
 	}
-	if(ou) {
-		ou->getClient().updated(ou);
-		if(!report.empty())
-			ou->getClient().cheatMessage(report);
-	}
+
+	ou->getClient().updated(ou);
+	if(!report.empty())
+		ou->getClient().cheatMessage(report);
 }
 //RSX++
 void ClientManager::setListSize(const UserPtr& p, int64_t aFileLength, bool adc) {
-	OnlineUser* ou = NULL;
+	OnlineUserPtr ou(findOnlineUser(p->getCID(), Util::emptyString));
+	if(!ou.get())
+		return;
+
 	string report = Util::emptyString;
 	{
-		Lock l(cs);
-		OnlineIterC i = onlineUsers.find(const_cast<CID*>(&p->getCID()));
-		if(i == onlineUsers.end()) return;
-		
-		ou = i->second;
 		ou->getIdentity().set("LS", Util::toString(aFileLength));
 
 		if(ou->getIdentity().getBytesShared() > 0) {
@@ -1041,11 +1024,10 @@ void ClientManager::setListSize(const UserPtr& p, int64_t aFileLength, bool adc)
 			}
 		}
 	}
-	if(ou) {
-		ou->getClient().updated(ou);
-		if(!report.empty())
-			ou->getClient().cheatMessage(report);
-	}
+
+	ou->getClient().updated(ou);
+	if(!report.empty())
+		ou->getClient().cheatMessage(report);
 }
 //END
 int ClientManager::getMode(const string& aHubUrl) const {
@@ -1073,91 +1055,58 @@ void ClientManager::cancelSearch(void* aOwner) {
 }
 
 void ClientManager::setPkLock(const UserPtr& p, const string& aPk, const string& aLock) {
-	Lock l(cs);
-	OnlineIterC i = onlineUsers.find(const_cast<CID*>(&p->getCID()));
-	if(i == onlineUsers.end()) return;
-	
-	i->second->getIdentity().set("PK", aPk);
-	i->second->getIdentity().set("LO", aLock);
+	OnlineUserPtr ou(findOnlineUser(p->getCID(), Util::emptyString));
+	if(!ou.get())
+		return;
+
+	ou->getIdentity().set("PK", aPk);
+	ou->getIdentity().set("LO", aLock);
 }
 
 void ClientManager::setSupports(const UserPtr& p, const string& aSupports) {
-	Lock l(cs);
-	OnlineIterC i = onlineUsers.find(const_cast<CID*>(&p->getCID()));
-	if(i == onlineUsers.end()) return;
-	
-	i->second->getIdentity().set("SU", aSupports);
+	OnlineUserPtr ou(findOnlineUser(p->getCID(), Util::emptyString));
+	if(!ou.get())
+		return;
+	ou->getIdentity().set("SU", aSupports);
 }
 
 void ClientManager::setGenerator(const UserPtr& p, const string& aGenerator, const string& aCID, const string& aBase) {
+	OnlineUserPtr ou(findOnlineUser(p->getCID(), Util::emptyString));
+	if(!ou.get())
+		return;
+
 	Client* c = NULL;
 	string report = Util::emptyString;
 	{
-		Lock l(cs);
-		OnlineIterC i = onlineUsers.find(const_cast<CID*>(&p->getCID()));
-		if(i == onlineUsers.end()) return;
-		i->second->getIdentity().set("GE", aGenerator);
-		i->second->getIdentity().set("FI", aCID);
-		i->second->getIdentity().set("FB", aBase);
-		report = i->second->getIdentity().checkFilelistGenerator((*i->second));
+		c = &ou->getClient();
+
+		ou->getIdentity().set("GE", aGenerator);
+		ou->getIdentity().set("FI", aCID);
+		ou->getIdentity().set("FB", aBase);
+		report = ou->getIdentity().checkFilelistGenerator((*ou.get()));
 	}
-	if(c != NULL && !report.empty()) {
+	if(c && !report.empty()) {
 		c->cheatMessage(report);
 	}
 }
 
 void ClientManager::setUnknownCommand(const UserPtr& p, const string& aUnknownCommand) {
-	Lock l(cs);
-	OnlineIterC i = onlineUsers.find(const_cast<CID*>(&p->getCID()));
-	if(i == onlineUsers.end()) return;
-	i->second->getIdentity().set("UC", aUnknownCommand);
+	OnlineUserPtr ou(findOnlineUser(p->getCID(), Util::emptyString));
+	if(!ou.get())
+		return;
+	ou->getIdentity().set("UC", aUnknownCommand);
 }
-//RSX++ //Lua
-//bool ClientManager::ucExecuteLua(const string& /*ucCommand*/, StringMap& /*params*/) throw() {
-//	bool executedlua = false;
-	/*string::size_type i, j, k;
-	i = j = k = 0;
-	string tmp = ucCommand;
-	while( (i = tmp.find("%[lua:", i)) != string::npos) {
-		i += 6;
-		j = tmp.find(']', i);
-		if(j == string::npos)
-			break;
-		string chunk = tmp.substr(i, j-i);
-		// for making possible using %[nick] and similar parameters too
-		// !%!{nick!}
-		k = 0;
-		while( (k = chunk.find("!%")) != string::npos) {
-			chunk.erase(k, 2);
-			chunk.insert(k, "%");
-		}
-		k = 0;
-		while( (k = chunk.find("!{")) != string::npos) {
-			chunk.erase(k, 2);
-			chunk.insert(k, "[");
-		}
-		k = 0;
-		while( (k = chunk.find("!}")) != string::npos) {
-			chunk.erase(k, 2);
-			chunk.insert(k, "]");
-		}
-		//@todo: use filter? I opted for no here, but this means Lua has to be careful about
-		//filtering if it cares.
-		//ScriptManager::getInstance()->EvaluateChunk(Util::formatParams(chunk, params, false));
-		executedlua = true;
-		i = j + 1;
-	}*/
-//	return executedlua;
-//}
+
 //RSX++ //MultiHubKick
 void ClientManager::multiHubKick(const UserPtr& p, const string& aRaw) {
 	{
-		Lock l(cs);
-		OnlineIterC i = onlineUsers.find(const_cast<CID*>(&p->getCID()));
-		if(i == onlineUsers.end()) 
+		OnlineUserPtr ou(findOnlineUser(p->getCID(), Util::emptyString));
+		if(!ou.get())
 			return;
+
 		for(OnlineMap::const_iterator j = onlineUsers.begin(); j != onlineUsers.end(); j++) {
-			if(compareUsers((*i->second), (*j->second))) {
+			if(j->second->getUser()->isSet(User::DHT)) continue;
+			if(compareUsers((*ou.get()), (*j->second))) {
 				sendRawCommand(j->second->getUser(), aRaw);
 			}
 		}

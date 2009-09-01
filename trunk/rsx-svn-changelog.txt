@@ -1,3 +1,6 @@
+** SVN 158
+ ** more odd possible crash fixes
+
 ** SVN 157
  ** try to fix crash when trying to kick DHT user
 

@@ -1,3 +1,6 @@
+** SVN 159
+ ** a bit more fixes....
+
 ** SVN 158
  ** more odd possible crash fixes
 

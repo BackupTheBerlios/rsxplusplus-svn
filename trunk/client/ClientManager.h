@@ -98,6 +98,7 @@ public:
 		Lock l(cs);
 		OnlinePairC p = onlineUsers.equal_range(const_cast<CID*>(&user->getCID()));
 		for (OnlineIterC i = p.first; i != p.second; i++) {
+			if(i->second->getUser()->isSet(User::DHT)) continue;
 			i->second->getIdentity().setIp(IP);
 			if(udpPort > 0)
 				i->second->getIdentity().setUdpPort(Util::toString(udpPort));
@@ -112,49 +113,48 @@ public:
 	
 	void reportUser(const UserPtr& p, const string& hubHint) {
 		string nick; string report;
-		Client* c;
+		Client* c = 0;
 		{
-			Lock l(cs);
-			OnlineUser* u = findOnlineUser(p->getCID(), hubHint);
-			if(!u) return;
+			OnlineUserPtr u(findOnlineUser(p->getCID(), hubHint));
+			if(!u.get())
+				return;
 
 			nick = u->getIdentity().getNick();
 			report = u->getIdentity().getReport();
 			c = &u->getClient();
 		}
-		c->cheatMessage("*** Info on " + nick + " ***" + "\r\n" + report + "\r\n");
+		if(c)
+			c->cheatMessage("*** Info on " + nick + " ***" + "\r\n" + report + "\r\n");
 	}
 	//RSX++ // Clean User
 	void cleanUser(const UserPtr& p) {
-		Lock l(cs);
-		OnlineIterC i = onlineUsers.find(const_cast<CID*>(&p->getCID()));
-		if(i == onlineUsers.end()) return;
+		OnlineUserPtr ou(findOnlineUser(p->getCID(), Util::emptyString));
+		if(!ou.get())
+			return;
 
-		i->second->getIdentity().cleanUser();
-		i->second->getClient().updated(i->second);
+		ou->getIdentity().cleanUser();
+		ou->getClient().updated(ou.get());
 	}
 	//RSX++ //Hide Share
 	bool getSharingHub(const UserPtr& p) {
-		Lock l(cs);
-		OnlineIterC i = onlineUsers.find(const_cast<CID*>(&p->getCID()));
-		if(i != onlineUsers.end()) {
-			return i->second->getClient().getHideShare();
-		}
-		return false;
+		OnlineUserPtr ou(findOnlineUser(p->getCID(), Util::emptyString));
+		if(!ou.get())
+			false;
+		return ou->getClient().getHideShare();
 	}
 	//RSX++ //check slot count
 	void checkSlots(const UserPtr& p, int slots) {
-		Client* c = NULL;
+		Client* c = 0;
 		string report = Util::emptyString;
 		{
-			Lock l(cs);
-			OnlineIterC i = onlineUsers.find(const_cast<CID*>(&p->getCID()));
-			if(i == onlineUsers.end()) return;
-			c = &i->second->getClient();
-			if(i->second->getIdentity().get("SC").empty())
-				report = i->second->getIdentity().checkSlotsCount((*i->second), slots);
+			OnlineUserPtr ou(findOnlineUser(p->getCID(), Util::emptyString));
+			if(!ou.get())
+				return;
+			c = &ou->getClient();
+			if(ou->getIdentity().get("SC").empty())
+				report = ou->getIdentity().checkSlotsCount((*ou.get()), slots);
 		}
-		if(c != NULL && !report.empty()) {
+		if(c && !report.empty()) {
 			c->cheatMessage(report);
 		}
 	}

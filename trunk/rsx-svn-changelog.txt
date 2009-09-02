@@ -1,3 +1,8 @@
+** SVN 162
+ ** changed link to donate
+ ** [lua] user command enum fixed
+ ** [lua] added bool isADC in Client class
+
 ** SVN 161
  ** better fix for buffer bounds checks
  ** winamp_spam updated - some buffer fixes ^^

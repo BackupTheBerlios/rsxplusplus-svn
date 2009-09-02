@@ -146,6 +146,9 @@ namespace dcpp {
 		inline string getSystemCharset() {
 			return Text::systemCharset;
 		}
+		inline bool isAdcHub(Client* c) {
+			return strnicmp("adc://", c->getHubUrl().c_str(), 6) == 0 || strnicmp("adcs://", c->getHubUrl().c_str(), 7) == 0;
+		}
 	}
 
 	namespace LuaBindings {
@@ -183,6 +186,7 @@ namespace dcpp {
 				.def("getUserList", &wrappers::getUsers)
 				.def("parseCommand", &Client::parseCommand)
 				.def("info", &Client::info)
+				.def("isADC", &wrappers::isAdcHub)
 				//.def("sendAdcCommand", (void (Client::*)(const AdcCommand&))&Client::send, luabind::adopt(luabind::result))
 				.enum_("MessageStyle") [
 					luabind::value("STYLE_GENERAL", 0),
@@ -455,7 +459,15 @@ namespace dcpp {
 		void BindFavoriteManager(lua_State* L) {
 			luabind::module(L, "dcpp") [
 				luabind::class_<FavoriteManager>("FavoriteManager")
-				.def("addUserCommand", &FavoriteManager::addUserCommand, luabind::discard_result)
+				.def("addUserCommand", &FavoriteManager::addUserCommand, luabind::discard_result),
+
+				luabind::class_<UserCommand>("UserCommand")
+				.def("getID", &UserCommand::getId)
+				.def("getType", &UserCommand::getType)
+				.def("getContext", &UserCommand::getCtx)
+				.def("getName", &UserCommand::getName)
+				.def("getCommand", &UserCommand::getCommand)
+				.def("getHub", &UserCommand::getHub)
 				.enum_("UCFlags") [
 					luabind::value("FLAG_NOSAVE", UserCommand::FLAG_NOSAVE),
 					luabind::value("FLAG_LUAMENU", UserCommand::FLAG_LUAMENU)
@@ -474,14 +486,6 @@ namespace dcpp {
 					luabind::value("CONTEXT_FILELIST", (int)UserCommand::CONTEXT_FILELIST),
 					luabind::value("CONTEXT_MASK", (int)UserCommand::CONTEXT_MASK)
 				],
-
-				luabind::class_<UserCommand>("UserCommand")
-				.def("getID", &UserCommand::getId)
-				.def("getType", &UserCommand::getType)
-				.def("getContext", &UserCommand::getCtx)
-				.def("getName", &UserCommand::getName)
-				.def("getCommand", &UserCommand::getCommand)
-				.def("getHub", &UserCommand::getHub),
 
 				luabind::def("getFavoriteManager", &FavoriteManager::getInstance)
 			];

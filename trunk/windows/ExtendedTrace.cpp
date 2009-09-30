@@ -28,7 +28,7 @@
 #include "ExtendedTrace.h"
 
 #define BUFFERSIZE		0x200
-#define LIBCOUNT		45
+#define LIBCOUNT		46
 
 TCHAR* crashLibs[LIBCOUNT][2] = {
 	{ L"Vlsp", L"V-One Smartpass" },
@@ -75,7 +75,8 @@ TCHAR* crashLibs[LIBCOUNT][2] = {
 	{ L"msftp", L"Troj/Agent-GNA" },
 	{ L"ftp34", L"Troj/Agent-GZF" },
 	{ L"imonlsp", L"Internet Monitor Layered Service provider" },
-	{ L"McVSSkt", L"McAfee VirusScan Winsock Helper" }
+	{ L"McVSSkt", L"McAfee VirusScan Winsock Helper" },
+	{ L"adguard", L"Sir AdGuard" }
 };
 
 static void checkBuggyLibrary(PCSTR library) {
@@ -415,5 +416,5 @@ void StackTrace( HANDLE hThread, LPCTSTR lpszMessage, File& f, DWORD64 eip, DWOR
 
 /**
 * @file
-* $Id: ExtendedTrace.cpp 414 2008-08-01 19:16:45Z BigMuscle $
+* $Id: ExtendedTrace.cpp 461 2009-09-09 09:07:21Z BigMuscle $
 */

@@ -31,7 +31,7 @@ namespace dht
 {
 
 	IndexManager::IndexManager(void) :
-		publishing(0), publish(false)
+		nextRepublishTime(GET_TICK()), publishing(0), publish(false)
 	{
 	}
 
@@ -119,35 +119,7 @@ namespace dht
 			f = publishQueue.front(); // get the first file in queue
 			publishQueue.pop_front(); // and remove it from queue
 		}
-		SearchManager::getInstance()->findStore(f.tth.toBase32(), f.size, false);
-	}
-
-	/*
-	 * Create publish queue from local file list 
-	 */
-	void IndexManager::createPublishQueue(ShareManager::HashFileMap& tthIndex)
-	{
-		// copy to map to sort by size
-		std::map<int64_t, const TTHValue*> sizeMap;
-		for(ShareManager::HashFileIter i = tthIndex.begin(); i != tthIndex.end(); i++)
-		{
-			if(i->second->getSize() > MIN_PUBLISH_FILESIZE)
-				sizeMap[i->second->getSize()] = &i->first;
-		}
-		
-		Lock l(cs);
-		
-		// select the first MAX_PUBLISHED_FILES largest files
-		size_t count = 0;
-		for(std::map<int64_t, const TTHValue*>::reverse_iterator i = sizeMap.rbegin(); i != sizeMap.rend() && count < MAX_PUBLISHED_FILES; i++, count++)
-		{	
-			publishQueue.push_back(File(*i->second, i->first, false));
-		}
-		
-		// shuffle
-		random_shuffle(publishQueue.begin(), publishQueue.end());
-		
-		LogManager::getInstance()->message("DHT: Publishing " + Util::toString(publishQueue.size()) + " files...");
+		SearchManager::getInstance()->findStore(f.tth.toBase32(), f.size, f.partial);
 	}
 
 	/*
@@ -170,9 +142,9 @@ namespace dht
 					Source source;
 					source.setCID(CID(xml.getChildAttrib("CID")));
 					source.setIp(xml.getChildAttrib("I4"));
-					source.setUdpPort(static_cast<uint16_t>(Util::toInt(xml.getChildAttrib("U4"))));
-					source.setSize(Util::toInt64(xml.getChildAttrib("SI")));
-					source.setExpires(Util::toInt64(xml.getChildAttrib("EX")));
+					source.setUdpPort(static_cast<uint16_t>(xml.getIntChildAttrib("U4")));
+					source.setSize(xml.getLongLongChildAttrib("SI"));
+					source.setExpires(xml.getLongLongChildAttrib("EX"));
 					source.setPartial(false);
 					
 					sources.push_back(source);
@@ -242,7 +214,7 @@ namespace dht
 		AdcCommand res(AdcCommand::SEV_SUCCESS, AdcCommand::SUCCESS, "File published", AdcCommand::TYPE_UDP);
 		res.addParam("FC", "PUB");
 		res.addParam("TR", tth);
-		DHT::getInstance()->send(res, node->getIdentity().getIp(), static_cast<uint16_t>(Util::toInt(node->getIdentity().getUdpPort())));	
+		DHT::getInstance()->send(res, node->getIdentity().getIp(), static_cast<uint16_t>(Util::toInt(node->getIdentity().getUdpPort())), node->getUser()->getCID(), node->getUdpKey());	
 	}
 
 	/*
@@ -281,16 +253,23 @@ namespace dht
 			DHT::getInstance()->setDirty();	
 	}
 	
+	/** Publishes shared file */
+	void IndexManager::publishFile(const TTHValue& tth, int64_t size)
+	{
+		if(size > MIN_PUBLISH_FILESIZE)
+		{
+			Lock l(cs);
+			publishQueue.push_back(File(tth, size, false));
+		}
+	}
+	
 	/*
 	 * Publishes partially downloaded file 
 	 */
 	void IndexManager::publishPartialFile(const TTHValue& tth)
 	{
-		if(DHT::getInstance()->isConnected())
-		{
-			Lock l(cs);
-			publishQueue.push_front(File(tth, 0, true));
-		}
+		Lock l(cs);
+		publishQueue.push_front(File(tth, 0, true));
 	}
 	
 

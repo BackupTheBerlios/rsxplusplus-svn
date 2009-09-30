@@ -27,7 +27,6 @@
 #include "Flags.h"
 #include "forward.h"
 
-#include "StringPool.h"
 //RSX++
 #include "TimerManager.h"
 //END
@@ -125,6 +124,7 @@ public:
 	GS(ClientType, "CL")
 	GS(ClientComment, "CM")
 	//END
+#undef GS
 
 	void setBytesShared(const string& bs) { set("SS", bs); }
 	int64_t getBytesShared() const { return Util::toInt64(get("SS")); }
@@ -187,7 +187,7 @@ public:
 	GETSET(UserPtr, user, User);
 	GETSET(uint64_t, loggedIn, LoggedIn); //RSX++
 private:
-	typedef std::tr1::unordered_map<short, pooled_string> InfMap;
+	typedef std::tr1::unordered_map<short, std::string> InfMap;
 	typedef InfMap::const_iterator InfIter;
 	InfMap info;
 
@@ -255,7 +255,7 @@ public:
 	};
 
 	OnlineUser(const UserPtr& ptr, ClientBase& client_, uint32_t sid_);
-	virtual ~OnlineUser() throw() { dcdebug("User %s removed\n", getIdentity().get("NI").c_str()); }
+	virtual ~OnlineUser() throw() { }
 
 	operator UserPtr&() { return getUser(); }
 	operator const UserPtr&() const { return getUser(); }
@@ -338,5 +338,5 @@ private:
 
 /**
  * @file
- * $Id: User.h 452 2009-07-26 16:11:52Z BigMuscle $
+ * $Id: User.h 461 2009-09-09 09:07:21Z BigMuscle $
  */

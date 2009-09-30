@@ -204,9 +204,8 @@ public:
 	static string formatStatus(int iStatus);
 	
 	static string formatBytes(const string& aString) { return formatBytes(toInt64(aString)); }
-	static string formatMessage(const string& nick, const string& message, bool thirdPerson);
 
-	static string getShortTimeString();
+	static string getShortTimeString(time_t t = time(NULL) );
 
 	static string getTimeString();
 	static string toAdcFile(const string& file);
@@ -508,5 +507,5 @@ struct noCaseStringEq {
 
 /**
  * @file
- * $Id: Util.h 456 2009-08-19 20:49:38Z BigMuscle $
+ * $Id: Util.h 460 2009-09-08 10:57:07Z BigMuscle $
  */

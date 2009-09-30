@@ -372,7 +372,7 @@ static int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 	splash.ReleaseDC(dc);
 	splash.HideCaret();
 	splash.SetWindowPos(NULL, &rc, SWP_SHOWWINDOW);
-	splash.SetWindowLongPtr(GWLP_WNDPROC, (LONG_PTR)&splashCallback);
+	splash.SetWindowLongPtr(GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(&splashCallback));
 	splash.CenterWindow();
 
 	sTitle = _T(VERSIONSTRING);
@@ -543,5 +543,5 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 
 /**
  * @file
- * $Id: main.cpp 454 2009-08-13 20:28:19Z BigMuscle $
+ * $Id: main.cpp 460 2009-09-08 10:57:07Z BigMuscle $
  */

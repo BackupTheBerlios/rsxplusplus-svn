@@ -26,6 +26,7 @@
 #include "PrivateFrame.h"
 #include "AGEmotionSetup.h"
 
+#include "../client/ChatMessage.h"
 #include "../client/QueueManager.h"
 #include "../client/ShareManager.h"
 #include "../client/Util.h"
@@ -1706,14 +1707,15 @@ void HubFrame::on(HubUpdated, const Client*) throw() {
 #endif
 	speak(SET_WINDOW_TITLE, hubName);
 }
-void HubFrame::on(Message, const Client*, const OnlineUser& from, const string& msg, bool thirdPerson) throw() {
-	speak(ADD_CHAT_LINE, from.getIdentity(), Util::formatMessage(from.getIdentity().getNick(), msg, thirdPerson));
+void HubFrame::on(Message, const Client*, const ChatMessage& message) throw() {
+	if(message.to && message.replyTo) {
+		speak(PRIVATE_MESSAGE, message.from, message.to, message.replyTo, message.format());
+	} else {
+		speak(ADD_CHAT_LINE, message.from->getIdentity(), message.format());
+	}
 }	
 void HubFrame::on(StatusMessage, const Client*, const string& line, int statusFlags) {
 	speak(ADD_STATUS_LINE, Text::toDOS(line), !BOOLSETTING(FILTER_MESSAGES) || !(statusFlags & ClientListener::FLAG_IS_SPAM));
-}
-void HubFrame::on(PrivateMessage, const Client*, const OnlineUser& from, const OnlineUserPtr& to, const OnlineUserPtr& replyTo, const string& line, bool thirdPerson) throw() { 
-	speak(PRIVATE_MESSAGE, from, to, replyTo, Util::formatMessage(from.getIdentity().getNick(), line, thirdPerson));
 }
 void HubFrame::on(NickTaken, const Client*) throw() {
 	speak(ADD_STATUS_LINE, STRING(NICK_TAKEN));
@@ -2314,5 +2316,5 @@ void HubFrame::displayCheat(const tstring& aMessage) {
 
 /**
  * @file
- * $Id: HubFrame.cpp 453 2009-08-04 15:46:31Z BigMuscle $
+ * $Id: HubFrame.cpp 460 2009-09-08 10:57:07Z BigMuscle $
  */

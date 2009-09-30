@@ -373,7 +373,7 @@ namespace dcpp {
 					luabind::def("isPrivateIp", &Util::isPrivateIp),
 					luabind::def("formatBytes", (std::string (*)(const string&))&Util::formatBytes),
 					luabind::def("formatBytes", (std::string (*)(int64_t))&Util::formatBytes),
-					luabind::def("formatMessage", &Util::formatMessage),
+//					luabind::def("formatMessage", &Util::formatMessage),
 					luabind::def("getStartTime", &Util::getStartTime),
 					luabind::def("rand", (uint32_t (*)(uint32_t, uint32_t))&Util::rand),
 					luabind::def("getPath", &Util::getPath)

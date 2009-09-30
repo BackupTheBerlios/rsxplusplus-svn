@@ -132,7 +132,7 @@ const string SettingsManager::settingTags[] =
  	"AllowUntrustedHubs", "AllowUntrustedClients", "TLSPort", "FastHash", "DownConnPerSec",
 	"HighestPrioSize", "HighPrioSize", "NormalPrioSize", "LowPrioSize", "LowestPrio",
 	"FilterEnter", "SortFavUsersFirst", "ShowShellMenu", "SendBloom", "OverlapChunks", "ShowQuickSearch",
-	"UcSubMenu", "AutoSlots", "Coral", "UseDHT", "DHTPort", "UpdateIP",
+	"UcSubMenu", "AutoSlots", "Coral", "UseDHT", "DHTPort", "UpdateIP", "DHTKey",
 	//RSX++
 	"FirewallRandPorts", "OdcStyleBumped", "StealthyIndicateSpeeds", "ProgressBarMode", "RawCmdLog",
 	"TopSpeed", "TopUpSpeed",
@@ -560,6 +560,7 @@ SettingsManager::SettingsManager()
 	
 	setDefault(USE_DHT, true);
 	setDefault(UPDATE_IP, false);
+	setDefault(DHT_KEY, Util::rand());
 	//RSX++
 	setDefault(TOP_SPEED, 100);
 	setDefault(TOP_UP_SPEED, 50);
@@ -782,5 +783,5 @@ const string& SettingsManager::getString(const string& sname) const {
 
 /**
  * @file
- * $Id: SettingsManager.cpp 453 2009-08-04 15:46:31Z BigMuscle $
+ * $Id: SettingsManager.cpp 460 2009-09-08 10:57:07Z BigMuscle $
  */

@@ -478,7 +478,7 @@ void HashManager::Hasher::hashFile(const string& fileName, int64_t size) {
 
 bool HashManager::Hasher::pause() {
 	Lock l(cs);
-	return paused++;
+	return paused++ > 0;
 }
 
 void HashManager::Hasher::resume() {
@@ -853,5 +853,5 @@ bool HashManager::isHashingPaused() const {
 
 /**
  * @file
- * $Id: HashManager.cpp 457 2009-08-24 20:37:33Z BigMuscle $
+ * $Id: HashManager.cpp 460 2009-09-08 10:57:07Z BigMuscle $
  */

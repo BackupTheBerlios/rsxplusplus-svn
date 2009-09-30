@@ -129,8 +129,6 @@ public:
 	}
 	//END
 
-	void publish();
-	
 	GETSET(size_t, hits, Hits);
 	GETSET(string, bzXmlFile, BZXmlFile);
 	GETSET(int64_t, sharedSize, SharedSize);
@@ -359,5 +357,5 @@ private:
 
 /**
  * @file
- * $Id: ShareManager.h 456 2009-08-19 20:49:38Z BigMuscle $
+ * $Id: ShareManager.h 462 2009-09-10 15:46:23Z BigMuscle $
  */

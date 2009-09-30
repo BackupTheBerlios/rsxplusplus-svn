@@ -169,6 +169,7 @@ const string RsxUtil::getOsVersion() {
 		} else if(ver.dwMajorVersion == 6) {
 			switch(ver.dwMinorVersion) {
 				case 0: os = "Windows Vista"; break;
+				case 1: os = "Windows 7"; break;
 				default: os = "Unknown Windows 6-family";
 			}
 		}

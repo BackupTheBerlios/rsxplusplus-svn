@@ -55,12 +55,6 @@
 
 namespace dcpp {
 
-
-void ShareManager::publish() {
-	Lock l(cs);
-	dht::IndexManager::getInstance()->createPublishQueue(tthIndex);
-}
-
 ShareManager::ShareManager() : hits(0), xmlListLen(0), bzXmlListLen(0),
 	xmlDirty(true), forceXmlRefresh(false), refreshDirs(false), update(false), initial(true), listN(0), refreshing(0),
 	lastXmlUpdate(0), lastFullUpdate(GET_TICK()), bloom(1<<20), sharedSize(0)
@@ -895,6 +889,10 @@ void ShareManager::updateIndices(Directory& dir, const Directory::File::Set::ite
 
 	tthIndex.insert(make_pair(f.getTTH(), i));
 	bloom.add(Text::toLower(f.getName()));
+	
+	dht::IndexManager* im = dht::IndexManager::getInstance();
+	if(im && im->isTimeForPublishing())
+		im->publishFile(f.getTTH(), f.getSize());
 }
 
 void ShareManager::refresh(bool dirs /* = false */, bool aUpdate /* = true */, bool block /* = false */) throw() {
@@ -971,6 +969,11 @@ int ShareManager::run() {
 	if(update) {
 		ClientManager::getInstance()->infoUpdated();
 	}
+	
+	dht::IndexManager* im = dht::IndexManager::getInstance();
+	if(im && im->isTimeForPublishing())
+		im->setNextPublishing();
+	
 	refreshing = 0;
 	return 0;
 }
@@ -1737,5 +1740,5 @@ int64_t ShareManager::removeExcludeFolder(const string &path, bool returnSize /*
 
 /**
  * @file
- * $Id: ShareManager.cpp 456 2009-08-19 20:49:38Z BigMuscle $
+ * $Id: ShareManager.cpp 462 2009-09-10 15:46:23Z BigMuscle $
  */

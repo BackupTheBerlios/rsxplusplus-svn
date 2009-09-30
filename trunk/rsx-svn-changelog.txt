@@ -1,3 +1,9 @@
+** SVN 163
+ ** windows 7 in stats :P
+ ** sdc svn merge
+
+ ** WARNING - kinda much unstable and untested... but up-to-date :P **
+
 ** SVN 162
  ** changed link to donate
  ** [lua] user command enum fixed

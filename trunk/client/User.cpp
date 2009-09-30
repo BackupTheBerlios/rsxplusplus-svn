@@ -201,6 +201,8 @@ string Identity::setCheat(const Client& c, const string& aCheatDescription, bool
 }
 //END
 string Identity::getReport() const {
+	if(!user.get() || user->isSet(User::DHT)) return Util::emptyString;
+
 	string report = "\n *** User Info:";
 	report += "\n-]> Description:		" +			getDescription();
 	report += "\n-]> Email:			" +				getEmail();

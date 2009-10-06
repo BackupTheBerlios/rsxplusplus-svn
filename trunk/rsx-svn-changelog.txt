@@ -1,3 +1,6 @@
+** SVN 164
+ ** fix dht support info on adc hubs and removed from nmdc hubs
+
 ** SVN 163
  ** windows 7 in stats :P
  ** sdc svn merge

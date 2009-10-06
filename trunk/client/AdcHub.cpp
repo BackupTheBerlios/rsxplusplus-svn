@@ -44,6 +44,7 @@ const string AdcHub::SECURE_CLIENT_PROTOCOL_TEST("ADCS/0.10");
 const string AdcHub::ADCS_FEATURE("ADC0");
 const string AdcHub::TCP4_FEATURE("TCP4");
 const string AdcHub::UDP4_FEATURE("UDP4");
+const string AdcHub::DHT_FEATURE("DHT0");
 const string AdcHub::BASE_SUPPORT("ADBASE");
 const string AdcHub::BAS0_SUPPORT("ADBAS0");
 const string AdcHub::TIGR_SUPPORT("ADTIGR");
@@ -794,7 +795,9 @@ void AdcHub::info(bool /*alwaysSend*/) {
 		addParam(lastInfoMap, c, "I4", "");
 		addParam(lastInfoMap, c, "U4", "");
 	}
-	
+	if(BOOLSETTING(USE_DHT))
+		su += DHT_FEATURE + ",";
+
 	ScriptManager::getInstance()->getAdcFeats(su); //RSX++
 
 	if(!su.empty()) {
@@ -850,8 +853,6 @@ void AdcHub::on(Connected c) throw() {
 	if(BOOLSETTING(SEND_BLOOM)) {
 		cmd.addParam(BLO0_SUPPORT);
 	}
-	if(BOOLSETTING(USE_DHT))
-		cmd.addParam("DHT0");
 	send(cmd);
 }
 

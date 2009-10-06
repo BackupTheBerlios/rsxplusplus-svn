@@ -656,9 +656,6 @@ void NmdcHub::onLine(const string& aLine) throw() {
 				if(CryptoManager::getInstance()->TLSOk() && !getStealth())
 					feat.push_back("TLS");
 					
-				if(BOOLSETTING(USE_DHT))
-					feat.push_back("DHT0");
-					
 				ScriptManager::getInstance()->getNmdcFeats(feat); //RSX++
 
 				supports(feat);

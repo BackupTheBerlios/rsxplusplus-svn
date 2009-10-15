@@ -112,11 +112,12 @@ public:
 	}
 	
 	void reportUser(const UserPtr& p, const string& hubHint) {
-		string nick; string report;
+		string nick, report;
 		Client* c = 0;
 		{
-			OnlineUserPtr u(findOnlineUser(p->getCID(), hubHint));
-			if(!u.get())
+			Lock l(cs);
+			OnlineUser* u = findOnlineUser(p->getCID(), hubHint);
+			if(!u)
 				return;
 
 			nick = u->getIdentity().getNick();
@@ -128,31 +129,38 @@ public:
 	}
 	//RSX++ // Clean User
 	void cleanUser(const UserPtr& p) {
-		OnlineUserPtr ou(findOnlineUser(p->getCID(), Util::emptyString));
-		if(!ou.get())
+		Lock l(cs);
+		OnlineUser* ou = findOnlineUser(p->getCID(), Util::emptyString);
+		if(!ou)
 			return;
 
 		ou->getIdentity().cleanUser();
-		ou->getClient().updated(ou.get());
+		ou->getClient().updated(ou);
 	}
 	//RSX++ //Hide Share
-	bool getSharingHub(const UserPtr& p) {
-		OnlineUserPtr ou(findOnlineUser(p->getCID(), Util::emptyString));
-		if(!ou.get())
-			false;
-		return ou->getClient().getHideShare();
+	bool getSharingHub(const UserPtr& p, const string& hubHint = Util::emptyString) {
+		Client* c = 0;
+		{
+			Lock l(cs);
+			OnlineUser* ou = findOnlineUser(p->getCID(), hubHint);
+			if(!ou)
+				return false;
+			c = &ou->getClient();
+		}
+		return c ? c->getHideShare() : false;
 	}
 	//RSX++ //check slot count
 	void checkSlots(const UserPtr& p, int slots) {
 		Client* c = 0;
 		string report = Util::emptyString;
 		{
-			OnlineUserPtr ou(findOnlineUser(p->getCID(), Util::emptyString));
-			if(!ou.get())
+			Lock l(cs);
+			OnlineUser* ou = findOnlineUser(p->getCID(), Util::emptyString);
+			if(!ou)
 				return;
 			c = &ou->getClient();
 			if(ou->getIdentity().get("SC").empty())
-				report = ou->getIdentity().checkSlotsCount((*ou.get()), slots);
+				report = ou->getIdentity().checkSlotsCount(*ou, slots);
 		}
 		if(c && !report.empty()) {
 			c->cheatMessage(report);
@@ -255,7 +263,7 @@ private:
 
 	void updateNick(const OnlineUser& user) throw();
 		
-	OnlineUser* findOnlineUser(const CID& cid, const string& hintUrl) throw();
+	OnlineUser* findOnlineUser(const CID& cid, const string& hintUrl = Util::emptyString) throw();
 
 	// ClientListener
 	void on(Connected, const Client* c) throw();

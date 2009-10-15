@@ -1,3 +1,6 @@
+** SVN 165
+ ** probably fixed some crashes...
+
 ** SVN 164
  ** fix dht support info on adc hubs and removed from nmdc hubs
 

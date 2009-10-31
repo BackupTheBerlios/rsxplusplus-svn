@@ -117,18 +117,16 @@ typedef struct {
 	const char*			url;
 } dcppHubRedirect;
 
-struct _dcppLinkedMap {
+typedef struct _dcppLinkedMap {
 	void*				first;
 	void*				second;
 	struct _dcppLinkedMap* next;
-};
-typedef struct _dcppLinkedMap dcppLinkedMap;
+} dcppLinkedMap;
 
-struct _dcppLinkedList {
+typedef struct _dcppLinkedList {
 	void*				element;
 	struct _dcppLinkedList* next;
-};
-typedef struct _dcppLinkedList dcppLinkedList;
+} dcppLinkedList;
 
 #ifdef __cplusplus
 } // extern "C"

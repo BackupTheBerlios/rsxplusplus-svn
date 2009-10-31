@@ -43,6 +43,14 @@ LRESULT MagnetDlg::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 
 	// file details
 	SetDlgItemText(IDC_MAGNET_DISP_HASH, mHash.c_str());
+
+	// handling UTF8 input text
+	{
+	string strFileName = Text::wideToAcp(mFileName);
+	if (Text::validateUtf8(strFileName))
+		mFileName = Text::toT(strFileName);
+	}
+
 	SetDlgItemText(IDC_MAGNET_DISP_NAME, mFileName.length() > 0 ? mFileName.c_str() : _T("N/A"));
 	char buf[32];
 	SetDlgItemText(IDC_MAGNET_DISP_SIZE, mSize > 0 ? Text::toT(_i64toa(mSize, buf, 10)).c_str() : _T("N/A"));
@@ -105,5 +113,5 @@ LRESULT MagnetDlg::onRadioButton(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*
 
 /**
 * @file
-* $Id: MagnetDlg.cpp 427 2009-01-10 19:29:09Z BigMuscle $
+* $Id: MagnetDlg.cpp 463 2009-10-01 16:30:22Z BigMuscle $
 */

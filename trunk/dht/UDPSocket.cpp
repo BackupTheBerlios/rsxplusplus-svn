@@ -36,11 +36,10 @@
 namespace dht
 {
 
-	const uint32_t POLL_TIMEOUT =	10;
 	#define BUFSIZE					16384
 	#define	MAGICVALUE_UDP			91	
 
-	UDPSocket::UDPSocket(void) : stop(false), port(0)
+	UDPSocket::UDPSocket(void) : stop(false), port(0), delay(100)
 #ifdef _DEBUG
 		, sentBytes(0), receivedBytes(0)
 #endif	
@@ -101,7 +100,7 @@ namespace dht
 
 	void UDPSocket::checkIncoming() throw(SocketException)
 	{
-		if(socket->wait(POLL_TIMEOUT, Socket::WAIT_READ) == Socket::WAIT_READ)
+		if(socket->wait(delay, Socket::WAIT_READ) == Socket::WAIT_READ)
 		{
 			sockaddr_in remoteAddr = { 0 };
 			boost::scoped_array<uint8_t> buf(new uint8_t[BUFSIZE]);	
@@ -114,6 +113,7 @@ namespace dht
 				boost::scoped_array<uint8_t> destBuf;
 				bool isUdpKeyValid = false;
 				
+#ifdef HEADER_RC4_H				
 				if(buf[0] != ADC_PACKED_PACKET_HEADER && buf[0] != ADC_PACKET_HEADER)
 				{
 					// it seems to be encrypted packet
@@ -153,6 +153,9 @@ namespace dht
 					// it happens only when we sent our UDP key to this node some time ago
 					if(tries == 1) isUdpKeyValid = true;
 				}
+				//else
+				//	return; // non-encrypted packets are forbidden
+#endif
 				
 				if(buf[0] == ADC_PACKED_PACKET_HEADER) // is this compressed packet?
 				{
@@ -181,6 +184,8 @@ namespace dht
 					COMMAND_DEBUG(s.substr(0, s.length() - 1), DebugManager::HUB_IN,  ip + ":" + Util::toString(port));
 					DHT::getInstance()->dispatch(s.substr(0, s.length() - 1), ip, port, isUdpKeyValid);
 				}
+				
+				Thread::sleep(20);
 			}				
 		}	
 	}
@@ -188,19 +193,22 @@ namespace dht
 	void UDPSocket::checkOutgoing(uint64_t& timer) throw(SocketException)
 	{
 		std::auto_ptr<Packet> packet;
+		uint64_t now = GET_TICK();
 		
 		{
 			Lock l(cs);
-			uint64_t now = GET_TICK();
-
-			if(!sendQueue.empty() && (now - timer > POLL_TIMEOUT))
+			
+			size_t queueSize = sendQueue.size();
+			if(queueSize && (now - timer > delay))
 			{
 				// take the first packet in queue
 				packet.reset(sendQueue.front());
 				sendQueue.pop_front();
 
-				//dcdebug("Sending DHT packet: %d bytes, %d ms\n", packet->length, (uint32_t)(now - timer));
+				//dcdebug("Sending DHT %s packet: %d bytes, %d ms, queue size: %d\n", packet->cmdChar, packet->length, (uint32_t)(now - timer), queueSize);
 					
+				if(queueSize > 9)
+					delay = 1000 / queueSize;
 				timer = now;
 			}
 		}
@@ -230,9 +238,9 @@ namespace dht
 		DWORD value = FALSE;
 		ioctlsocket(socket->sock, SIO_UDP_CONNRESET, &value);
 		
-		// antiflood variable
+		// antiflood variables
 		uint64_t timer = GET_TICK();
-				
+
 		while(!stop)
 		{
 			try
@@ -320,13 +328,14 @@ namespace dht
 			dcassert(destBuf[0] == ADC_PACKET_HEADER);
 		}
 		
+#ifdef HEADER_RC4_H		
 		// generate encryption key
 		TigerHash th;
 		if(!udpKey.isZero())
 		{
 			th.update(udpKey.data(), sizeof(udpKey));
 			th.update(targetCID.data(), sizeof(targetCID));
-			
+				
 			RC4_KEY sentKey;
 			RC4_set_key(&sentKey, TigerTree::BYTES, th.finalize());
 					
@@ -341,14 +350,15 @@ namespace dht
 			RC4(&sentKey, destSize + 1, destBuf + 1, destBuf + 1);
 			destSize += 2;
 		}
-		else
-		{
-			// TODO: encrypt with CID at least
-			// it will be implemented later, because it would break communication with older clients
-		}
+#endif
+		
+		Packet* p = new Packet(ip, port, destBuf, destSize);
+#ifdef _DEBUG
+		p->cmdInt = cmd.getCommand();
+#endif
 
 		Lock l(cs);
-		sendQueue.push_back(new Packet(ip, port, destBuf, destSize));
+		sendQueue.push_back(p);
 	}
 
 }

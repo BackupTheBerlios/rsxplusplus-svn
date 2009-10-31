@@ -1,3 +1,7 @@
+** SVN 166
+ ** cosmetic in sdk
+ ** sdc svn merge
+
 ** SVN 165
  ** probably fixed some crashes...
 

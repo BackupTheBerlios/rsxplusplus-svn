@@ -114,7 +114,7 @@ public:
 	void reserveSlot(const UserPtr& aUser, uint64_t aTime, const string& hubHint);
 	void unreserveSlot(const UserPtr& aUser);
 	void clearUserFiles(const UserPtr&);
-	const UploadQueueItem::SlotQueue getWaitingUsers();
+	const UploadQueueItem::SlotQueue getUploadQueue();
 	bool hasReservedSlot(const UserPtr& aUser) { Lock l(cs); return reservedSlots.find(aUser) != reservedSlots.end(); }
 	bool isConnecting(const UserPtr& aUser) const { return connectingUsers.find(aUser) != connectingUsers.end(); }
 
@@ -130,15 +130,11 @@ public:
 	GETSET(uint8_t, extra, Extra);
 	GETSET(uint64_t, lastGrant, LastGrant);
 
-	// Upload throttling
-	size_t throttle(size_t writeSize);
-	
 private:
 	bool isFireball;
 	bool isFileServer;
 	uint8_t running;
 	
-	int64_t bandwidthAvailable;
 	uint64_t m_iHighSpeedStartTick;
 
 	UploadList uploads;
@@ -149,7 +145,7 @@ private:
 	typedef SlotMap::iterator SlotIter;
 	SlotMap reservedSlots;
 	SlotMap connectingUsers;
-	UploadQueueItem::SlotQueue waitingUsers;
+	UploadQueueItem::SlotQueue uploadQueue;
 
 	size_t addFailedUpload(const UserPtr& aUser, const string& token, const string& file, int64_t pos, int64_t size);
 	void notifyQueuedUsers();
@@ -190,5 +186,5 @@ private:
 
 /**
  * @file
- * $Id: UploadManager.h 452 2009-07-26 16:11:52Z BigMuscle $
+ * $Id: UploadManager.h 464 2009-10-09 20:40:43Z BigMuscle $
  */

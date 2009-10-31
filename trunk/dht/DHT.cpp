@@ -48,18 +48,7 @@ namespace dht
 		if(!BOOLSETTING(USE_DHT))
 			return;
 	
-		//if(BOOLSETTING(UPDATE_IP))
-		//	SettingsManager::getInstance()->set(SettingsManager::EXTERNAL_IP, Util::emptyString);
-						
-		BootstrapManager::newInstance();
-		SearchManager::newInstance();
-		IndexManager::newInstance();
-		TaskManager::newInstance();
-		ConnectionManager::newInstance();
-		
-		bucket = new KBucket();
-		
-		loadData();
+		create();
 	}
 
 	DHT::~DHT(void)
@@ -82,6 +71,22 @@ namespace dht
 		BootstrapManager::deleteInstance();
 	}
 	
+	void DHT::create()
+	{
+		//if(BOOLSETTING(UPDATE_IP))
+		//	SettingsManager::getInstance()->set(SettingsManager::EXTERNAL_IP, Util::emptyString);
+				
+		bucket = new KBucket();	
+			
+		BootstrapManager::newInstance();
+		SearchManager::newInstance();
+		IndexManager::newInstance();
+		TaskManager::newInstance();
+		ConnectionManager::newInstance();
+				
+		loadData();	
+	}
+	
 	void DHT::listen() 
 	{ 
 		if(!BOOLSETTING(USE_DHT))
@@ -89,7 +94,7 @@ namespace dht
 			
 		if(!bucket) 
 		{
-			DHT();
+			create();
 		}
 			
 		socket.listen(); 
@@ -211,7 +216,6 @@ namespace dht
 	{
 		// create user as offline (only TCP connected users will be online)
 		UserPtr u = ClientManager::getInstance()->getUser(cid);
-		u->setFlag(User::DHT);
 		
 		Lock l(cs);
 		return bucket->insert(u, ip, port, update, isUdpKeyValid);
@@ -414,8 +418,9 @@ namespace dht
 		if(!node->isInList)
 		{
 			// put him online so we can make a connection with him
-			ClientManager::getInstance()->putOnline(node.get());
+			node->inc();
 			node->isInList = true;
+			ClientManager::getInstance()->putOnline(node.get());
 		}
 		
 		// do we wait for any search results from this user?

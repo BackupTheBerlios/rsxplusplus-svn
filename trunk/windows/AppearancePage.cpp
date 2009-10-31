@@ -73,7 +73,7 @@ PropPage::ListItem AppearancePage::boldItems[] = {
 	{ SettingsManager::BOLD_HUB, ResourceManager::HUB },
 	{ SettingsManager::BOLD_PM, ResourceManager::PRIVATE_MESSAGE },
 	{ SettingsManager::BOLD_SEARCH, ResourceManager::SEARCH },
-	{ SettingsManager::BOLD_WAITING_USERS, ResourceManager::WAITING_USERS },
+	{ SettingsManager::BOLD_UPLOAD_QUEUE, ResourceManager::UPLOAD_QUEUE },
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
 
@@ -116,5 +116,5 @@ LRESULT AppearancePage::onClickedHelp(WORD /* wNotifyCode */, WORD /*wID*/, HWND
 
 /**
  * @file
- * $Id: AppearancePage.cpp 453 2009-08-04 15:46:31Z BigMuscle $
+ * $Id: AppearancePage.cpp 463 2009-10-01 16:30:22Z BigMuscle $
  */

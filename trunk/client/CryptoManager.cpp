@@ -27,7 +27,7 @@
 #include "LogManager.h"
 #include "ClientManager.h"
 
-#ifndef YASSL_VERSION
+#ifdef HEADER_OPENSSLV_H
 # include <openssl/bn.h>
 # ifdef _DEBUG
 #  pragma comment(lib, "libeay32d.lib")
@@ -36,9 +36,14 @@
 #  pragma comment(lib, "libeay32.lib")
 #  pragma comment(lib, "ssleay32.lib")
 # endif
-#else
+#elif defined YASSL_VERSION
 # pragma comment(lib, "taocrypt.lib")
 # pragma comment(lib, "yassl.lib")
+#else
+# define pid_t int
+# include <gcrypt.h>
+# pragma comment(lib, "libgnutls-26.lib")
+# pragma comment(lib, "libgnutls-openssl-26.lib")
 #endif
 
 #ifdef _WIN32
@@ -49,8 +54,15 @@
 
 namespace dcpp {
 
-#ifndef YASSL_VERSION
+#ifdef HEADER_OPENSSLV_H
 CriticalSection* CryptoManager::cs = NULL;
+#else
+static int mutex_init(void **priv) { *priv = new CriticalSection(); return 0; }
+static int mutex_destroy(void **priv) { delete *priv; *priv = NULL; return 0; }
+static int mutex_lock(void **priv) { ((CriticalSection*)(*priv))->enter(); return 0; }
+static int mutex_unlock(void **priv) { ((CriticalSection*)(*priv))->leave(); return 0; }
+  
+static struct gcry_thread_cbs gcry_threads_other = { 0, NULL, mutex_init, mutex_destroy, mutex_lock, mutex_unlock, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
 #endif
 
 CryptoManager::CryptoManager() 
@@ -59,9 +71,13 @@ CryptoManager::CryptoManager()
 	lock("EXTENDEDPROTOCOLABCABCABCABCABCABC"), 
 	pk("DCPLUSPLUS" DCVERSIONSTRING)
 {
-#ifndef YASSL_VERSION
+#ifdef HEADER_OPENSSLV_H
 	cs = new CriticalSection[CRYPTO_num_locks()];
 	CRYPTO_set_locking_callback(locking_function);
+#else
+	typedef gcry_error_t (CALLBACK* LPFUNC)(enum gcry_ctl_cmds CMD, ...);
+	LPFUNC _d_gcry_control = (LPFUNC)GetProcAddress(LoadLibrary(_T("libgcrypt-11")), "gcry_control");
+	_d_gcry_control (GCRYCTL_SET_THREAD_CBS, &gcry_threads_other);
 #endif
 	
 	SSL_library_init();
@@ -72,6 +88,7 @@ CryptoManager::CryptoManager()
 	serverVerContext.reset(SSL_CTX_new(TLSv1_server_method()));
 	
 	if(clientContext && clientVerContext && serverContext && serverVerContext) {
+#ifdef HEADER_OPENSSLV_H	
 		dh.reset(DH_new());
 		
         static unsigned char dh4096_p[]={
@@ -137,10 +154,16 @@ CryptoManager::CryptoManager()
 				SSL_CTX_set_tmp_dh(serverVerContext, (DH*)dh);
 			}
 		}
-
+#endif
 		/// @todo remove when hubs accept this
+#ifdef HEADER_OPENSSLV_H
 		SSL_CTX_set_options(clientContext, SSL_OP_NO_TICKET);
 		SSL_CTX_set_options(clientVerContext, SSL_OP_NO_TICKET);
+#else
+	#define SSL_VERIFY_PEER			0x01
+	#define SSL_VERIFY_FAIL_IF_NO_PEER_CERT	0x02
+	#define SSL_VERIFY_CLIENT_ONCE		0x04
+#endif
 
 		SSL_CTX_set_verify(serverContext, SSL_VERIFY_NONE, 0);
 		SSL_CTX_set_verify(clientContext, SSL_VERIFY_NONE, 0);
@@ -150,7 +173,7 @@ CryptoManager::CryptoManager()
 }
 
 CryptoManager::~CryptoManager() {
-#ifndef YASSL_VERSION
+#ifdef HEADER_OPENSSLV_H
 	CRYPTO_set_locking_callback(NULL);
 	delete[] cs;
 #endif
@@ -169,7 +192,7 @@ void CryptoManager::generateCertificate() throw(CryptoException) {
 		throw CryptoException("No certificate file chosen");
 	}
 
-#ifndef YASSL_VERSION
+#ifdef HEADER_OPENSSLV_H
 	ssl::BIGNUM bn(BN_new());
 	ssl::RSA rsa(RSA_new());
 	ssl::EVP_PKEY pkey(EVP_PKEY_new());
@@ -288,6 +311,7 @@ void CryptoManager::loadCertificates() throw() {
 		return;
 	}
 
+#ifdef HEADER_OPENSSLV_H
 	StringList certs = File::findFiles(SETTING(TLS_TRUSTED_CERTIFICATES_PATH), "*.pem");
 	StringList certs2 = File::findFiles(SETTING(TLS_TRUSTED_CERTIFICATES_PATH), "*.crt");
 	certs.insert(certs.end(), certs2.begin(), certs2.end());
@@ -302,7 +326,7 @@ void CryptoManager::loadCertificates() throw() {
 			LogManager::getInstance()->message("Failed to load trusted certificate from " + *i);
 		}
 	}
-
+#endif
 	certsLoaded = true;
 }
 
@@ -312,7 +336,7 @@ bool CryptoManager::checkCertificate() throw() {
 		return false;
 	}
 
-#ifndef YASSL_VERSION
+#ifdef HEADER_OPENSSLV_H
 	X509* tmpx509 = NULL;
 	PEM_read_X509(f, &tmpx509, NULL, NULL);
 	fclose(f);
@@ -463,7 +487,7 @@ string CryptoManager::makeKey(const string& aLock) {
 	return keySubst(&temp[0], aLock.length(), extra);
 }
 
-#ifndef YASSL_VERSION
+#ifdef HEADER_OPENSSLV_H
 void CryptoManager::locking_function(int mode, int n, const char *file, int line)
 {
     if (mode & CRYPTO_LOCK) {
@@ -478,5 +502,5 @@ void CryptoManager::locking_function(int mode, int n, const char *file, int line
 
 /**
  * @file
- * $Id: CryptoManager.cpp 435 2009-06-02 19:21:43Z BigMuscle $
+ * $Id: CryptoManager.cpp 464 2009-10-09 20:40:43Z BigMuscle $
  */

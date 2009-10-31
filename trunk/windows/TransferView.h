@@ -192,7 +192,7 @@ private:
 		bool transferFailed;
 		bool collapsed;
 		
-		uint8_t flagImage;
+		uint8_t flagIndex;
 		int16_t running;
 		int16_t hits;
 
@@ -256,11 +256,11 @@ private:
 		bool operator==(const ItemInfo& ii) const { return download == ii.download && user == ii.user; }
 
 		UpdateInfo(const UserPtr& aUser, bool isDownload, bool isTransferFailed = false) : 
-			updateMask(0), user(aUser), queueItem(NULL), download(isDownload), transferFailed(isTransferFailed), flagImage(0), type(Transfer::TYPE_LAST)
+			updateMask(0), user(aUser), queueItem(NULL), download(isDownload), transferFailed(isTransferFailed), flagIndex(0), type(Transfer::TYPE_LAST)
 		{ }
 		
 		UpdateInfo(QueueItem* qi, bool isDownload, bool isTransferFailed = false) : 
-			updateMask(0), queueItem(qi), user(NULL), download(isDownload), transferFailed(isTransferFailed), flagImage(0), type(Transfer::TYPE_LAST) 
+			updateMask(0), queueItem(qi), user(NULL), download(isDownload), transferFailed(isTransferFailed), flagIndex(0), type(Transfer::TYPE_LAST) 
 		{ qi->inc(); }
 
 		~UpdateInfo() { if(queueItem) queueItem->dec(); }
@@ -271,7 +271,7 @@ private:
 
 		bool download;
 		bool transferFailed;
-		uint8_t flagImage;		
+		uint8_t flagIndex;		
 		void setRunning(int16_t aRunning) { running = aRunning; updateMask |= MASK_SEGMENT; }
 		int16_t running;
 		void setStatus(ItemInfo::Status aStatus) { status = aStatus; updateMask |= MASK_STATUS; }
@@ -290,7 +290,7 @@ private:
 		tstring statusString;
 		void setTarget(const tstring& aTarget) { target = aTarget; updateMask |= MASK_FILE; }
 		tstring target;
-		void setIP(const tstring& aIP, uint8_t aFlagImage) { IP = aIP; flagImage = aFlagImage, updateMask |= MASK_IP; }
+		void setIP(const tstring& aIP, uint8_t aFlagIndex) { IP = aIP; flagIndex = aFlagIndex, updateMask |= MASK_IP; }
 		tstring IP;
 		void setCipher(const tstring& aCipher) { cipher = aCipher; updateMask |= MASK_CIPHER; }
 		tstring cipher;
@@ -352,5 +352,5 @@ private:
 
 /**
  * @file
- * $Id: TransferView.h 453 2009-08-04 15:46:31Z BigMuscle $
+ * $Id: TransferView.h 463 2009-10-01 16:30:22Z BigMuscle $
  */

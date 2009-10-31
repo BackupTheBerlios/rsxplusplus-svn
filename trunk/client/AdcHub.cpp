@@ -44,12 +44,12 @@ const string AdcHub::SECURE_CLIENT_PROTOCOL_TEST("ADCS/0.10");
 const string AdcHub::ADCS_FEATURE("ADC0");
 const string AdcHub::TCP4_FEATURE("TCP4");
 const string AdcHub::UDP4_FEATURE("UDP4");
-const string AdcHub::DHT_FEATURE("DHT0");
 const string AdcHub::BASE_SUPPORT("ADBASE");
 const string AdcHub::BAS0_SUPPORT("ADBAS0");
 const string AdcHub::TIGR_SUPPORT("ADTIGR");
 const string AdcHub::UCM0_SUPPORT("ADUCM0");
 const string AdcHub::BLO0_SUPPORT("ADBLO0");
+const string AdcHub::DHT0_SUPPORT("ADDHT0");
 
 AdcHub::AdcHub(const string& aHubURL, bool secure) : Client(aHubURL, '\n', secure), oldPassword(false), sid(0) {
 	TimerManager::getInstance()->addListener(this);
@@ -783,8 +783,10 @@ void AdcHub::info(bool /*alwaysSend*/) {
 	}
 
 	if(isActive()) {
-		if(!getLocalIp().empty()/*BOOLSETTING(NO_IP_OVERRIDE) && !SETTING(EXTERNAL_IP).empty()*/) {
-			addParam(lastInfoMap, c, "I4", getLocalIp());
+		if(!getFavIp().empty()) {
+			addParam(lastInfoMap, c, "I4", getFavIp());
+		} else if(BOOLSETTING(NO_IP_OVERRIDE) && !SETTING(EXTERNAL_IP).empty()) {
+			addParam(lastInfoMap, c, "I4", Socket::resolve(SETTING(EXTERNAL_IP)));
 		} else {
 			addParam(lastInfoMap, c, "I4", "0.0.0.0");
 		}
@@ -795,8 +797,6 @@ void AdcHub::info(bool /*alwaysSend*/) {
 		addParam(lastInfoMap, c, "I4", "");
 		addParam(lastInfoMap, c, "U4", "");
 	}
-	if(BOOLSETTING(USE_DHT))
-		su += DHT_FEATURE + ",";
 
 	ScriptManager::getInstance()->getAdcFeats(su); //RSX++
 
@@ -853,6 +853,8 @@ void AdcHub::on(Connected c) throw() {
 	if(BOOLSETTING(SEND_BLOOM)) {
 		cmd.addParam(BLO0_SUPPORT);
 	}
+	if(BOOLSETTING(USE_DHT))
+		cmd.addParam(DHT0_SUPPORT);
 	send(cmd);
 }
 
@@ -890,5 +892,5 @@ void AdcHub::on(Second s, uint64_t aTick) throw() {
 
 /**
  * @file
- * $Id: AdcHub.cpp 460 2009-09-08 10:57:07Z BigMuscle $
+ * $Id: AdcHub.cpp 465 2009-10-31 15:28:56Z BigMuscle $
  */

@@ -60,12 +60,8 @@ public:
 
 	bool startDownload(QueueItem::Priority prio);
 
-	// Download throttling
-	size_t throttle(size_t readSize);
-	
 private:
 	
-	int64_t bandwidthAvailable;
 	CriticalSection cs;
 	DownloadList downloads;
 	UserConnectionList idlers;
@@ -109,5 +105,5 @@ private:
 
 /**
  * @file
- * $Id: DownloadManager.h 453 2009-08-04 15:46:31Z BigMuscle $
+ * $Id: DownloadManager.h 464 2009-10-09 20:40:43Z BigMuscle $
  */

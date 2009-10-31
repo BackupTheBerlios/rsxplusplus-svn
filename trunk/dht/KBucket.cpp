@@ -108,55 +108,66 @@ namespace dht
 	 */
 	Node::Ptr KBucket::insert(const UserPtr& u, const string& ip, uint64_t port, bool update, bool isUdpKeyValid)
 	{
-		bool dirty = false;
-		bool isIPsame = false;
-		
-		for(NodeList::iterator it = nodes.begin(); it != nodes.end(); it++)
+		if(u->isSet(User::DHT)) // is this user already known in DHT?
 		{
-			Node::Ptr node = *it;
-			
-			isIPsame = ip == node->getIdentity().getIp() && port == Util::toInt(node->getIdentity().getUdpPort());
-			if(u->getCID() == node->getUser()->getCID())
+			for(NodeList::iterator it = nodes.begin(); it != nodes.end(); ++it)
 			{
-				// node is already here, move it to the end
-				if(update)
-				{	
-					if(!isIPsame)
-						node->setIpVerified(false);
-						
-					if(!node->isIpVerified())
-						node->setIpVerified(isUdpKeyValid);
+				Node::Ptr node = *it;
+				if(u->getCID() == node->getUser()->getCID())
+				{
+					// node is already here, move it to the end
+					if(update)
+					{	
+						string oldIp = node->getIdentity().getIp();
+						if(ip != oldIp)
+						{
+							node->setIpVerified(false);
+							
+							// erase old IP and remember new one
+							ipMap.erase(oldIp);
+							ipMap.insert(ip);
+						}
+							
+						if(!node->isIpVerified())
+							node->setIpVerified(isUdpKeyValid);
 
-					node->setAlive();
-					node->getIdentity().setIp(ip);
-					node->getIdentity().setUdpPort(Util::toString(port));
+						node->setAlive();
+						node->getIdentity().setIp(ip);
+						node->getIdentity().setUdpPort(Util::toString(port));
+					}
+
+					nodes.erase(it);
+					nodes.push_back(node);
+					
+					DHT::getInstance()->setDirty();
+					return node;
 				}
-
-				nodes.erase(it);
-				nodes.push_back(node);
-				
-				DHT::getInstance()->setDirty();
-				return node;
 			}
+			
+			dcassert(0);			
 		}
+
+		// it's new DHT node
+		u->setFlag(User::DHT);
 		
 		Node::Ptr node(new Node(u));
 		node->getIdentity().setIp(ip);
 		node->getIdentity().setUdpPort(Util::toString(port));	
+
+		// is there already such contact with this IP?
+		bool ipExists = ipMap.find(ip) != ipMap.end();
 		
-#ifndef _DEBUG		
-		if(!isIPsame && nodes.size() < (K * ID_BITS))
-#endif
+		if(!ipExists && nodes.size() < (K * ID_BITS))
 		{
 			// bucket still has room to store new node
 			nodes.push_back(node);
-			dirty = true;
+			ipMap.insert(ip);
+				
+			if(DHT::getInstance())
+				DHT::getInstance()->setDirty();
 		}
-			
-		if(dirty && DHT::getInstance())
-			DHT::getInstance()->setDirty();
-			
-		return node;	
+		
+		return node;
 	}
 	
 	/*
@@ -195,7 +206,9 @@ namespace dht
 	bool KBucket::checkExpiration(uint64_t currentTime)
 	{
 		bool dirty = false;
-
+		
+		Node::Ptr oldest = NULL;
+		
 		// first, remove dead nodes		
 		NodeList::iterator i = nodes.begin();
 		while(i != nodes.end())
@@ -210,6 +223,8 @@ namespace dht
 					if(node->isInList)
 						ClientManager::getInstance()->putOffline((*i).get());
 					
+					string ip = node->getIdentity().getIp();
+					ipMap.erase(ip);
 					i = nodes.erase(i);
 					dirty = true;
 				}
@@ -220,8 +235,10 @@ namespace dht
 					
 				continue;
 			}
-			if(node->expires == 0)
-				node->expires = currentTime;
+				
+			// select the oldest expired node
+			if(oldest == NULL && node->getType() < 4 && node->expires <= currentTime)
+				oldest = node;
 					
 			++i;
 		}
@@ -240,19 +257,9 @@ namespace dht
 		dcdebug("DHT Nodes: %d (%d verified)\nTypes: %d/%d/%d/%d/%d\n", nodes.size(), verified, types[0], types[1], types[2], types[3], types[4]);
 #endif
 		
-		if(!nodes.empty())
+		if(oldest != NULL)
 		{
-			// ping the oldest (expiring) node
-			Node::Ptr oldest = nodes.front();
-			if(oldest->expires > currentTime || oldest->getType() == 4)
-			{
-				// cycle nodes
-				nodes.pop_front();
-				nodes.push_back(oldest);
-				
-				return dirty;
-			}
-			
+			// ping the oldest (expired) node
 			oldest->setTimeout(currentTime);
 			DHT::getInstance()->info(oldest->getIdentity().getIp(), static_cast<uint16_t>(Util::toInt(oldest->getIdentity().getUdpPort())), DHT::PING, oldest->getUser()->getCID(), oldest->getUdpKey());
 		}

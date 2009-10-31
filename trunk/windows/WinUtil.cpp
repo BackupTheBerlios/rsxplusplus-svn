@@ -126,7 +126,7 @@ static const char* CountryNames[] = { "ANDORRA", "UNITED ARAB EMIRATES", "AFGHAN
 "TANZANIA", "UKRAINE", "UGANDA", "UNITED STATES MINOR OUTLYING ISLANDS", "UNITED STATES", "URUGUAY", "UZBEKISTAN", 
 "VATICAN", "SAINT VINCENT AND THE GRENADINES", "VENEZUELA", "BRITISH VIRGIN ISLANDS", "U.S. VIRGIN ISLANDS", 
 "VIET NAM", "VANUATU", "WALLIS AND FUTUNA", "SAMOA", "YEMEN", "MAYOTTE", "YUGOSLAVIA", "SOUTH AFRICA", "ZAMBIA", 
-"ZIMBABWE", "EUROPEAN UNION" };
+"ZIMBABWE", "EUROPEAN UNION", "SERBIA", "MONTENEGRO", "GUERNSEY", "ISLE OF MAN", "JERSEY" };
 
 static const char* CountryCodes[] = { "AD", "AE", "AF", "AG", "AI", "AL", "AM", "AN", "AO", "AQ", "AR", "AS", 
 "AT", "AU", "AW", "AX", "AZ", "BA", "BB", "BD", "BE", "BF", "BG", "BH", "BI", "BJ", "BM", "BN", "BO", "BR", 
@@ -141,7 +141,8 @@ static const char* CountryCodes[] = { "AD", "AE", "AF", "AG", "AI", "AL", "AM", 
 "PN", "PR", "PS", "PT", "PW", "PY", "QA", "RE", "RO", "RU", "RW", "SA", "SB", "SC", "SD", "SE", "SG", "SH", 
 "SI", "SJ", "SK", "SL", "SM", "SN", "SO", "SR", "ST", "SV", "SY", "SZ", "TC", "TD", "TF", "TG", "TH", "TJ", 
 "TK", "TL", "TM", "TN", "TO", "TR", "TT", "TV", "TW", "TZ", "UA", "UG", "UM", "US", "UY", "UZ", "VA", "VC", 
-"VE", "VG", "VI", "VN", "VU", "WF", "WS", "YE", "YT", "YU", "ZA", "ZM", "ZW", "EU" };
+"VE", "VG", "VI", "VN", "VU", "WF", "WS", "YE", "YT", "YU", "ZA", "ZM", "ZW", "EU", "RS", "ME", "GG", "IM", 
+"JE" };
 	
 HLSCOLOR RGB2HLS (COLORREF rgb) {
 	unsigned char minval = min(GetRValue(rgb), min(GetGValue(rgb), GetBValue(rgb)));
@@ -451,7 +452,7 @@ void WinUtil::init(HWND hWnd) {
 	transfers.AppendMenu(MF_STRING, IDC_QUEUE, CTSTRING(MENU_DOWNLOAD_QUEUE));
 	transfers.AppendMenu(MF_STRING, IDC_FINISHED, CTSTRING(FINISHED_DOWNLOADS));
 	transfers.AppendMenu(MF_SEPARATOR);
-	transfers.AppendMenu(MF_STRING, IDC_UPLOAD_QUEUE, CTSTRING(WAITING_USERS));
+	transfers.AppendMenu(MF_STRING, IDC_UPLOAD_QUEUE, CTSTRING(UPLOAD_QUEUE));
 	transfers.AppendMenu(MF_STRING, IDC_FINISHED_UL, CTSTRING(FINISHED_UPLOADS));
 	transfers.AppendMenu(MF_SEPARATOR);
 	transfers.AppendMenu(MF_STRING, IDC_NET_STATS, CTSTRING(MENU_NETWORK_STATISTICS));
@@ -1630,19 +1631,15 @@ string WinUtil::formatTime(uint64_t rest) {
 	return formatedTime;
 }
 
-uint8_t WinUtil::getFlagImage(const char* country, bool fullname) {
-	if(fullname) {
-		for(uint8_t i = 1; i <= (sizeof(CountryNames) / sizeof(CountryNames[0])); i++) {
-			if(_stricmp(country, CountryNames[i-1]) == 0) {
-				return i;
-			}
-		}
+uint8_t WinUtil::getFlagIndex(const char* countryIdentifier, bool useCode) {
+	if(useCode) {
+		for(uint8_t i = 0; i < (sizeof(CountryCodes) / sizeof(CountryCodes[0])); i++)
+			if(*(const uint16_t*)countryIdentifier == *(const uint16_t*)CountryCodes[i])
+				return i + 1;
 	} else {
-		for(uint8_t i = 1; i <= (sizeof(CountryCodes) / sizeof(CountryCodes[0])); i++) {
-			if(_stricmp(country,CountryCodes[i-1]) == 0) {
-				return i;
-			}
-		}
+		for(uint8_t i = 0; i < (sizeof(CountryNames) / sizeof(CountryNames[0])); i++)
+			if(_stricmp(countryIdentifier, CountryNames[i]) == 0)
+				return i + 1;
 	}
 	return 0;
 }

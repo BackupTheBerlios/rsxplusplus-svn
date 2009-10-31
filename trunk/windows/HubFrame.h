@@ -327,6 +327,8 @@ private:
 		} else {
 			showUsers = BOOLSETTING(GET_USER_INFO);
 		}
+		
+		memset(statusSizes, 0, sizeof(statusSizes));
 	}
 
 	~HubFrame() {
@@ -389,6 +391,8 @@ private:
 	typedef TypedListViewCtrl<OnlineUser, IDC_USERS> CtrlUsers;
 	CtrlUsers ctrlUsers;
 	CStatusBarCtrl ctrlStatus;
+	
+	int statusSizes[4];
 	
 	tstring filter;
 
@@ -478,5 +482,5 @@ private:
 
 /**
  * @file
- * $Id: HubFrame.h 460 2009-09-08 10:57:07Z BigMuscle $
+ * $Id: HubFrame.h 463 2009-10-01 16:30:22Z BigMuscle $
  */

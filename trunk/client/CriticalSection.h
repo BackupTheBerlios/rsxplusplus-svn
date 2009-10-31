@@ -87,7 +87,7 @@ public:
 		}
 	}
 	void leave() {
-		Thread::safeDec(state);
+		Thread::safeExchange(state, 0);
 	}
 private:
 	volatile long state;
@@ -124,5 +124,5 @@ typedef LockBase<FastCriticalSection> FastLock;
 
 /**
  * @file
- * $Id: CriticalSection.h 434 2009-03-29 11:09:33Z BigMuscle $
+ * $Id: CriticalSection.h 464 2009-10-09 20:40:43Z BigMuscle $
  */

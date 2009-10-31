@@ -311,12 +311,12 @@ private:
 
 		SearchInfo::List subItems;
 
-		SearchInfo(const SearchResultPtr& aSR) : sr(aSR), collapsed(true), parent(NULL), flagImage(0), hits(0) { 
+		SearchInfo(const SearchResultPtr& aSR) : sr(aSR), collapsed(true), parent(NULL), flagIndex(0), hits(0) { 
 			if (!sr->getIP().empty()) {
 				// Only attempt to grab a country mapping if we actually have an IP address
 				string tmpCountry = Util::getIpCountry(sr->getIP());
 				if(!tmpCountry.empty()) {
-					flagImage = WinUtil::getFlagImage(tmpCountry.c_str());
+					flagIndex = WinUtil::getFlagIndex(tmpCountry.c_str());
 				}
 			}
 		}
@@ -468,7 +468,7 @@ private:
 		inline const TTHValue& getGroupCond() const { return sr->getTTH(); }
 
 		SearchResultPtr sr;
-		GETSET(uint8_t, flagImage, FlagImage);
+		GETSET(uint8_t, flagIndex, FlagIndex);
 	};
 	
 	struct HubInfo : public FastAlloc<HubInfo> {
@@ -624,6 +624,6 @@ private:
 
 /**
  * @file
- * $Id: SearchFrm.h 414 2008-08-01 19:16:45Z BigMuscle $
+ * $Id: SearchFrm.h 463 2009-10-01 16:30:22Z BigMuscle $
  */
 

@@ -127,7 +127,7 @@ LONG __stdcall DCUnhandledExceptionFilter( LPEXCEPTION_POINTERS e )
 
 	if(File::getSize(Util::getPath(Util::PATH_RESOURCES) + "RSXPlusPlus.pdb") == -1) {
 		// No debug symbols, we're not interested...
-		::MessageBox(WinUtil::mainWnd, _T("RSX++ has crashed and you don't have RSXPlusPlus32.pdb/RSXPlusPlus64.pdb file installed. Hence, I can't find out why it crashed, so don't report this as a bug unless you find a solution..."), _T("RSX++ has crashed"), MB_OK);
+		::MessageBox(WinUtil::mainWnd, _T("RSX++ has crashed and you don't have RSXPlusPlus.pdb file installed. Hence, I can't find out why it crashed, so don't report this as a bug unless you find a solution..."), _T("RSX++ has crashed"), MB_OK);
 #ifndef _DEBUG
 		exit(1);
 #else

@@ -98,12 +98,12 @@ private:
 	static const string ADCS_FEATURE;
 	static const string TCP4_FEATURE;
 	static const string UDP4_FEATURE;
-	static const string DHT_FEATURE;
 	static const string BASE_SUPPORT;
 	static const string BAS0_SUPPORT;
 	static const string TIGR_SUPPORT;
 	static const string UCM0_SUPPORT;
 	static const string BLO0_SUPPORT;
+	static const string DHT0_SUPPORT;
 
 	string checkNick(const string& nick);
 
@@ -160,5 +160,5 @@ private:
 
 /**
  * @file
- * $Id: AdcHub.h 434 2009-03-29 11:09:33Z BigMuscle $
+ * $Id: AdcHub.h 465 2009-10-31 15:28:56Z BigMuscle $
  */

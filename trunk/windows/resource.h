@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
-// Used by W:\Visual Studio Projects\rsxplusplus\trunk\RSXPlusPlus.rc
+// Used by w:\Visual Studio Projects\rsxplusplus\trunk\RSXPlusPlus.rc
 //
 #define IDD_ABOUTBOX                    100
 #define IDC_FILETYPES                   101
@@ -353,6 +353,7 @@
 #define IDC_SETTINGS_USER_MENU          1171
 #define IDC_SETTINGS_KB                 1172
 #define IDC_SETTINGS_B                  1173
+#define IDC_SETTINGS_KB2                1173
 #define IDC_SETTINGS_KBPS               1174
 #define IDC_ADD_AS_FAVORITE             1175
 #define IDC_SETTINGS_SEARCH_HISTORY     1178
@@ -1197,6 +1198,7 @@
 #define IDC_SETCZDC_PM_LINES            10121
 #define IDC_STRONGDC_PM_LINES           10121
 #define IDC_SETSTRONGDC_PM_LINES        10121
+#define IDC_SETTINGS_MAX_FILELIST_SIZE  10122
 #define IDC_CZDC_PREVIEW                10123
 #define IDC_STRONGDC_PREVIEW            10123
 #define IDC_CZDC_DW_SPEEED1             10124
@@ -1223,7 +1225,9 @@
 #define IDC_PM_LINES                    10147
 #define IDC_COPY_ALL                    10148
 #define IDC_PM_LINESSPIN                10148
+#define IDC_MAX_FILELIST_SIZE           10149
 #define IDC_CHECKLIST                   10150
+#define IDC_PM_LINESSPIN2               10150
 #define ID_GET_TTH                      10151
 #define IDC_COPY_LINK                   10152
 #define IDC_REBUILD_TOOLBAR             10162

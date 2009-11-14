@@ -1,3 +1,7 @@
+** SVN 170
+ ** added option to set max filelist size - potential zip-bomb exploit fix
+ ** reworked a bit experts page
+
 ** SVN 169
  ** missing flags... (edited in paint :P)
 

@@ -757,6 +757,7 @@ enum Strings { // @DontAdd
 	SETTINGS_WRITE_BUFFER, // "Write buffer size"
 	SETTINGS_ZDC_PROGRESS_OVERRIDE, // "Bars"
 	SETTINGS_ZDC_PROGRESS_OVERRIDE2, // "Texts"
+	SETTINGS_MAX_FILELIST_SIZE, // "Max. Filelist size"
 	SHARED, // "Shared"
 	SHARED_FILES, // "Shared Files"
 	SHOW_POPUP_AWAY, // "Display popup in away mode only"

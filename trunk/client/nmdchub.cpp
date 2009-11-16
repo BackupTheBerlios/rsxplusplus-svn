@@ -36,7 +36,6 @@
 #include "DebugManager.h"
 #include "QueueManager.h"
 #include "ZUtils.h"
-#include "ScriptManager.h" //RSX++
 
 namespace dcpp {
 
@@ -655,8 +654,6 @@ void NmdcHub::onLine(const string& aLine) throw() {
 					
 				if(CryptoManager::getInstance()->TLSOk() && !getStealth())
 					feat.push_back("TLS");
-					
-				ScriptManager::getInstance()->getNmdcFeats(feat); //RSX++
 
 				supports(feat);
 			}

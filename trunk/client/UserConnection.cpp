@@ -28,7 +28,6 @@
 #include "Transfer.h"
 #include "DebugManager.h"
 //RSX++
-#include "ScriptManager.h"
 #include "PluginsManager.h"
 #include "Download.h"
 //END
@@ -59,9 +58,8 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) throw
 	COMMAND_DEBUG(aLine, DebugManager::CLIENT_IN, getRemoteIp());
 	//RSX++
 	bool plugins = PluginsManager::getInstance()->onUserConnectionLineIn(this, aLine.c_str());
-	bool scripts = ScriptManager::getInstance()->onConnectionIn(this, aLine);
 
-	if(plugins || scripts)
+	if(plugins)
 		return;
 	//END
 	if(aLine[0] == 'C' && !isSet(FLAG_NMDC)) {
@@ -277,9 +275,7 @@ void UserConnection::updateChunkSize(int64_t leafSize, int64_t lastChunk, uint64
 //RSX++
 bool UserConnection::extOnLineOut(const string& line) {
 	bool plugins = PluginsManager::getInstance()->onUserConnectionLineOut(this, line.c_str());
-	bool scripts = ScriptManager::getInstance()->onConnectionOut(this, line);
-
-	return plugins || scripts;
+	return plugins;
 }
 //END
 } // namespace dcpp

@@ -42,7 +42,6 @@
 #include "../rsx/HTTPDownloadManager.h"
 #include "PluginsManager.h"
 #include "RawManager.h"
-#include "ScriptManager.h"
 #include "NetworkConfiguration.hpp"
 ////////////////////////////////////////////////////////////
 
@@ -106,7 +105,6 @@ void startup(void (*f)(void*, const tstring&), void* p) {
 	//RSX++ //instances
 	NetworkConfiguration::newInstance();
 	HTTPDownloadManager::newInstance();
-	ScriptManager::newInstance();
 	UpdateManager::newInstance();
 	AutoSearchManager::newInstance();
 	IpManager::newInstance();
@@ -115,7 +113,6 @@ void startup(void (*f)(void*, const tstring&), void* p) {
 	NetworkConfiguration::getInstance()->setupPorts();
 
 	PluginsManager::getInstance()->init(f, p);
-	ScriptManager::getInstance()->load(f, p);
 	//---
 	SettingsManager::getInstance()->load();
 	//+++
@@ -168,7 +165,6 @@ void shutdown() {
 
 	RsxUtil::uinit();
 	PluginsManager::deleteInstance();
-	ScriptManager::deleteInstance();
 	UpdateManager::deleteInstance();
 	IpManager::deleteInstance();
 	AutoSearchManager::deleteInstance();

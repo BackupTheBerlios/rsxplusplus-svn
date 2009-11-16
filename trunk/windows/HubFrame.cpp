@@ -43,7 +43,6 @@
 #include "../rsx/RsxUtil.h"
 #include "../client/ClientManager.h"
 #include "../client/PluginsManager.h"
-#include "../client/ScriptManager.h"
 //END
 HubFrame::FrameMap HubFrame::frames;
 
@@ -1263,12 +1262,7 @@ void HubFrame::runUserCommand(::UserCommand& uc) {
 	bool drop = false; //RSX++
 	if(tabMenuShown) {
 		client->escapeParams(ucParams);
-		//RSX++
-		if(uc.isSet(UserCommand::FLAG_LUAMENU))
-			drop = ScriptManager::getInstance()->onUserCmd(client, uc);
-		if(!drop)
-		//END
-			client->sendUserCmd(Util::formatParams(uc.getCommand(), ucParams, false));
+		client->sendUserCmd(Util::formatParams(uc.getCommand(), ucParams, false));
 	} else {
 		int sel = -1;
 		while((sel = ctrlUsers.GetNextItem(sel, LVNI_SELECTED)) != -1) {
@@ -1277,14 +1271,7 @@ void HubFrame::runUserCommand(::UserCommand& uc) {
 				StringMap tmp = ucParams;
 				u->getIdentity().getParams(tmp, "user", true);
 				client->escapeParams(tmp);
-				//RSX++
-				if(uc.isSet(UserCommand::FLAG_LUAMENU))
-					drop = ScriptManager::getInstance()->onUserCmd(u.get(), uc);
-				else
-					drop = false;
-				if(!drop)
-				//END
-					client->sendUserCmd(Util::formatParams(uc.getCommand(), tmp, false));
+				client->sendUserCmd(Util::formatParams(uc.getCommand(), tmp, false));
 			}
 		}
 	}

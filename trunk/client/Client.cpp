@@ -29,7 +29,6 @@
 #include "ClientManager.h"
 //RSX++
 #include "PluginsManager.h"
-#include "ScriptManager.h"
 #include "RawManager.h"
 #include "version.h"
 #include "Thread.h"
@@ -328,22 +327,19 @@ bool Client::isActionActive(const int aAction) const {
 
 bool Client::extOnMsgIn(const std::string& msg) {
 	bool plugin = PluginsManager::getInstance()->onHubMsgIn(this, msg.c_str());
-	bool script = ScriptManager::getInstance()->onHubMsgIn(this, msg);
-	return plugin || script;
+	return plugin;
 }
 
 bool Client::extOnMsgOut(const std::string& msg) {
 	bool plugin = PluginsManager::getInstance()->onHubMsgOut(this, msg.c_str());
-	bool script = ScriptManager::getInstance()->onHubMsgOut(this, msg);
-	return plugin || script;
+	return plugin;
 }
 
 bool Client::extOnPmIn(OnlineUser* from, OnlineUser* to, OnlineUser* replyTo, const std::string& msg, bool thirdPerson) {
 	if(ClientManager::getInstance()->getMe() == from->getUser()) return false;
 
 	bool plugin = PluginsManager::getInstance()->onPMIn(this, from, to, replyTo, msg.c_str(), thirdPerson);
-	bool script = ScriptManager::getInstance()->onPmMsgIn(this, from, to, replyTo, msg, thirdPerson);
-	return plugin || script;
+	return plugin;
 }
 
 bool Client::extOnPmOut(const UserPtr& user, const std::string& msg) {
@@ -351,8 +347,7 @@ bool Client::extOnPmOut(const UserPtr& user, const std::string& msg) {
 	if(!ou) return false;
 
 	bool plugin = PluginsManager::getInstance()->onPMOut(this, ou, msg.c_str());
-	bool script = ScriptManager::getInstance()->onPmMsgOut(this, ou, msg);
-	return plugin || script;
+	return plugin;
 }
 //END
 

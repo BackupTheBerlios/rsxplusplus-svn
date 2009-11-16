@@ -1,3 +1,7 @@
+** SVN 172
+ ** cosmetic...
+ ** removed LuaAPI
+
 ** SVN 171
  ** changelog
  ** trick to fool dht check on strongdc server for a while ;p

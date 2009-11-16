@@ -45,8 +45,7 @@ public:
 	};
 
 	enum {
-		FLAG_NOSAVE = 0x01,
-		FLAG_LUAMENU = 0x02
+		FLAG_NOSAVE = 0x01
 	};
 
 	UserCommand() : cid(0), type(0), ctx(0) { }

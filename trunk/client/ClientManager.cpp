@@ -41,11 +41,8 @@
 #include "PluginsManager.h"
 #include "rsxppSettingsManager.h"
 #include "RawManager.h"
-#include "ScriptManager.h"
 #include "ADLSearch.h"
 //END
-// strange thing: include it before script manager and it will give you bunch of odd errors
-// hope it won't make any troubles....
 #include "../dht/dht.h"
 
 namespace dcpp {
@@ -69,7 +66,6 @@ Client* ClientManager::getClient(const string& aHubURL) {
 
 	c->addListener(this);
 	//RSX++
-	ScriptManager::getInstance()->onHubConnected(c);
 	PluginsManager::getInstance()->onHubConnected(c);
 	//END
 	return c;
@@ -77,7 +73,6 @@ Client* ClientManager::getClient(const string& aHubURL) {
 
 void ClientManager::putClient(Client* aClient) {
 	//RSX++
-	ScriptManager::getInstance()->onHubDisconnected(aClient);
 	PluginsManager::getInstance()->onHubDisconnected(aClient);
 	//END
 	fire(ClientManagerListener::ClientDisconnected(), aClient);
@@ -285,7 +280,6 @@ void ClientManager::putOnline(OnlineUser* ou) throw() {
 		onlineUsers.insert(make_pair(const_cast<CID*>(&ou->getUser()->getCID()), ou));
 	}
 	//RSX++
-	ScriptManager::getInstance()->onUserConnected(ou);
 	PluginsManager::getInstance()->onUserConnected(ou);
 	//END
 	if(!ou->getUser()->isOnline()) {
@@ -298,7 +292,6 @@ void ClientManager::putOnline(OnlineUser* ou) throw() {
 void ClientManager::putOffline(OnlineUser* ou, bool disconnect) throw() {
 	bool lastUser = false;
 	//RSX++
-	ScriptManager::getInstance()->onUserDisconnected(ou);
 	PluginsManager::getInstance()->onUserDisconnected(ou);
 	//END
 	{

@@ -50,7 +50,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost\boost\tr1\tr1&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)luabind&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost\boost\tr1\tr1&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;"
 				StringPooling="true"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
@@ -162,7 +162,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost\boost\tr1\tr1&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)luabind&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost\boost\tr1\tr1&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;"
 				StringPooling="true"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
@@ -283,7 +283,7 @@
 				FavorSizeOrSpeed="2"
 				OmitFramePointers="false"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost\boost\tr1\tr1&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)luabind&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost\boost\tr1\tr1&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;"
 				StringPooling="true"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
@@ -412,7 +412,7 @@
 				FavorSizeOrSpeed="2"
 				OmitFramePointers="false"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost\boost\tr1\tr1&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)luabind&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost\boost\tr1\tr1&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;"
 				StringPooling="true"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
@@ -542,7 +542,7 @@
 				FavorSizeOrSpeed="2"
 				OmitFramePointers="false"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost\boost\tr1\tr1&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)luabind&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost\boost\tr1\tr1&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;"
 				PreprocessorDefinitions="SVNBUILD"
 				StringPooling="true"
 				MinimalRebuild="true"
@@ -673,7 +673,7 @@
 				FavorSizeOrSpeed="2"
 				OmitFramePointers="false"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost\boost\tr1\tr1&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)luabind&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost\boost\tr1\tr1&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;"
 				PreprocessorDefinitions="SVNBUILD"
 				StringPooling="true"
 				MinimalRebuild="true"
@@ -795,7 +795,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)luabind&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;"
 				StringPooling="true"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
@@ -907,7 +907,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)luabind&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;"
 				StringPooling="true"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
@@ -1028,7 +1028,7 @@
 				FavorSizeOrSpeed="2"
 				OmitFramePointers="false"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)luabind&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;"
 				StringPooling="true"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
@@ -1157,7 +1157,7 @@
 				FavorSizeOrSpeed="2"
 				OmitFramePointers="false"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)luabind&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;"
 				StringPooling="true"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
@@ -1287,7 +1287,7 @@
 				FavorSizeOrSpeed="2"
 				OmitFramePointers="false"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)luabind&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;"
 				PreprocessorDefinitions="SVNBUILD"
 				StringPooling="true"
 				MinimalRebuild="true"
@@ -1418,7 +1418,7 @@
 				FavorSizeOrSpeed="2"
 				OmitFramePointers="false"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;;&quot;$(SolutionDir)lua\src&quot;;&quot;$(SolutionDir)luabind&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;"
 				PreprocessorDefinitions="SVNBUILD"
 				StringPooling="true"
 				MinimalRebuild="true"
@@ -2149,10 +2149,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\windows\ScriptsList.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\windows\SDCPage.cpp"
 				>
 			</File>
@@ -2695,10 +2691,6 @@
 			</File>
 			<File
 				RelativePath=".\windows\RSX-Page.h"
-				>
-			</File>
-			<File
-				RelativePath=".\windows\ScriptsList.h"
 				>
 			</File>
 			<File

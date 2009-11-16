@@ -34,7 +34,6 @@
 #include "ResourceManager.h"
 #include "LogManager.h"
 #include "UploadManager.h"
-#include "ScriptManager.h" //RSX++
 
 namespace dcpp {
 
@@ -797,8 +796,6 @@ void AdcHub::info(bool /*alwaysSend*/) {
 		addParam(lastInfoMap, c, "I4", "");
 		addParam(lastInfoMap, c, "U4", "");
 	}
-
-	ScriptManager::getInstance()->getAdcFeats(su); //RSX++
 
 	if(!su.empty()) {
 		su.erase(su.size() - 1);

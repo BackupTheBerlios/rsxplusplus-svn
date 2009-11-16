@@ -1134,7 +1134,6 @@
 #define IDC_COPY_DESCRIPTION            10053
 #define IDD_FAV_TAB_CUSTOM              10053
 #define IDC_COPY_EMAIL_ADDRESS          10054
-#define IDD_SCRIPTS_LIST                10054
 #define IDC_AUTOSCROLL_CHAT             10055
 #define IDD_FAV_TAB_PLUGINS             10055
 #define IDD_FAV_TAB_RAWSETTINGS         10055

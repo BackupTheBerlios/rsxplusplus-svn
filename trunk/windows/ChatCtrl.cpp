@@ -25,7 +25,6 @@
 #include "PrivateFrame.h"
 //RSX++
 #include "MainFrm.h"
-#include "../client/ScriptManager.h"
 //END
 
 EmoticonSetup* g_pEmotionsSetup = NULL;
@@ -1033,9 +1032,7 @@ void ChatCtrl::runUserCommand(UserCommand& uc) {
 		StringMap tmp = ucParams;
 		ou->getIdentity().getParams(tmp, "user", true);
 		client->escapeParams(tmp);
-		bool drop = uc.isSet(UserCommand::FLAG_LUAMENU) ? ScriptManager::getInstance()->onUserCmd(ou.get(), uc) : false;
-		if(!drop) //RSX++
-			client->sendUserCmd(Util::formatParams(uc.getCommand(), tmp, false));
+		client->sendUserCmd(Util::formatParams(uc.getCommand(), tmp, false));
 	}
 }
 

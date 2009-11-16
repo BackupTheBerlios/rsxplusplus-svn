@@ -59,7 +59,6 @@
 #include "FileListDetectorPage.h"
 #include "AutosearchPage.h"
 #include "ClientsPage.h"
-#include "ScriptsList.h"
 #include "ExtensionsCfgPage.h"
 //END
 
@@ -100,7 +99,6 @@ PropertiesDlg::PropertiesDlg(HWND parent, SettingsManager *s) : TreePropertyShee
 	pages[n++] = new AutosearchPage(s);
 	pages[n++] = new RawPage(s);
 	pages[n++] = new RSXAdvanced(s);
-	pages[n++] = new ScriptsListPage(s);
 	pages[n++] = new ExtensionsCfgPage(s);
 	//END
 

@@ -62,7 +62,6 @@
 #include "../rsx/RsxUtil.h"
 #include "../rsx/UpdateManager.h"
 #include "../rsx/HTTPDownloadManager.h"
-#include "../client/ScriptManager.h"
 #include "../client/PluginsManager.h"
 #include "../client/NetworkConfiguration.hpp"
 #include "UpdateDialog.h"
@@ -232,7 +231,6 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	//RSX++
 	m_CmdBar.m_arrCommand.Add(IDC_HASH_PROGRESS);
 	m_CmdBar.m_arrCommand.Add(IDC_VIEW_PLUGINS_LIST);
-	m_CmdBar.m_arrCommand.Add(IDC_VIEW_SCRIPTS_LIST);
 	m_CmdBar.m_arrCommand.Add(IDC_OPEN_MY_LIST);
 	m_CmdBar.m_arrCommand.Add(IDC_MATCH_ALL);
 	m_CmdBar.m_arrCommand.Add(IDC_REFRESH_FILE_LIST);
@@ -358,12 +356,10 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 		File::ensureDirectory(SETTING(LOG_DIRECTORY));
 		//RSX++
 		File::ensureDirectory(Util::getPath(Util::PATH_GLOBAL_CONFIG) + "Plugins" PATH_SEPARATOR_STR);
-		File::ensureDirectory(Util::getPath(Util::PATH_GLOBAL_CONFIG) + "LuaScripts" PATH_SEPARATOR_STR);
 		File::ensureDirectory(Util::getPath(Util::PATH_EMOPACKS));
 		//END
 	} catch (const FileException) {	}
 
-	//ScriptManager::getInstance()->load();
 	PluginsManager::getInstance()->load();
 
 	startSocket();

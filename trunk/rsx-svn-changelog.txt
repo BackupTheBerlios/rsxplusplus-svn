@@ -1,3 +1,7 @@
+** SVN 171
+ ** changelog
+ ** trick to fool dht check on strongdc server for a while ;p
+
 ** SVN 170
  ** added option to set max filelist size - potential zip-bomb exploit fix
  ** reworked a bit experts page

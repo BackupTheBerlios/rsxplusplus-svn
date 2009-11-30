@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8,00"
+	Version="9,00"
 	Name="client"
 	ProjectGUID="{F8D0E5FE-BABD-4FC8-B3FE-B48978D23FEB}"
 	RootNamespace="client"
+	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
 		<Platform
@@ -46,7 +47,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost\boost\tr1\tr1&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)openssl\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost\boost\tr1\tr1&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)openssl\include32&quot;"
 				PreprocessorDefinitions="BUILDING_DCPP"
 				StringPooling="true"
 				MinimalRebuild="true"
@@ -132,7 +133,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost\boost\tr1\tr1&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)openssl\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost\boost\tr1\tr1&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)openssl\include64&quot;"
 				StringPooling="true"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
@@ -223,7 +224,7 @@
 				FavorSizeOrSpeed="2"
 				OmitFramePointers="false"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost\boost\tr1\tr1&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)openssl\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost\boost\tr1\tr1&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)openssl\include32&quot;"
 				PreprocessorDefinitions="BUILDING_DCPP"
 				StringPooling="true"
 				MinimalRebuild="true"
@@ -316,7 +317,7 @@
 				FavorSizeOrSpeed="2"
 				OmitFramePointers="false"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost\boost\tr1\tr1&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)openssl\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost\boost\tr1\tr1&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)openssl\include64&quot;"
 				StringPooling="true"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
@@ -407,7 +408,7 @@
 				FavorSizeOrSpeed="2"
 				OmitFramePointers="false"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost\boost\tr1\tr1&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)openssl\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost\boost\tr1\tr1&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)openssl\include32&quot;"
 				PreprocessorDefinitions="SVNBUILD"
 				StringPooling="true"
 				MinimalRebuild="true"
@@ -500,7 +501,7 @@
 				FavorSizeOrSpeed="2"
 				OmitFramePointers="false"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost\boost\tr1\tr1&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)openssl\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost\boost\tr1\tr1&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)openssl\include64&quot;"
 				PreprocessorDefinitions="SVNBUILD"
 				StringPooling="true"
 				MinimalRebuild="true"
@@ -585,7 +586,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)openssl\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)openssl\include32&quot;"
 				PreprocessorDefinitions="BUILDING_DCPP"
 				StringPooling="true"
 				MinimalRebuild="true"
@@ -671,7 +672,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)openssl\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)openssl\include64&quot;"
 				StringPooling="true"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
@@ -762,7 +763,7 @@
 				FavorSizeOrSpeed="2"
 				OmitFramePointers="false"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)openssl\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)openssl\include32&quot;"
 				PreprocessorDefinitions="BUILDING_DCPP"
 				StringPooling="true"
 				MinimalRebuild="true"
@@ -855,7 +856,7 @@
 				FavorSizeOrSpeed="2"
 				OmitFramePointers="false"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)openssl\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)openssl\include64&quot;"
 				StringPooling="true"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
@@ -946,7 +947,7 @@
 				FavorSizeOrSpeed="2"
 				OmitFramePointers="false"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)openssl\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)openssl\include32&quot;"
 				PreprocessorDefinitions="SVNBUILD"
 				StringPooling="true"
 				MinimalRebuild="true"
@@ -1039,7 +1040,7 @@
 				FavorSizeOrSpeed="2"
 				OmitFramePointers="false"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)openssl\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)openssl\include64&quot;"
 				PreprocessorDefinitions="SVNBUILD"
 				StringPooling="true"
 				MinimalRebuild="true"
@@ -2030,6 +2031,106 @@
 			<File
 				RelativePath=".\client\Util.cpp"
 				>
+			</File>
+			<File
+				RelativePath=".\client\version.cpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="SvnRelease|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="SvnRelease|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_STLPort|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_STLPort|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_STLPort|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_STLPort|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="SvnRelease_STLPort|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="SvnRelease_STLPort|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\client\WebServerManager.cpp"

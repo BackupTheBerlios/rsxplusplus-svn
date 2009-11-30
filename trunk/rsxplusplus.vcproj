@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8,00"
+	Version="9,00"
 	Name="RSXPlusPlus"
 	ProjectGUID="{E82610AA-B6FD-4813-B5B9-E717CBD0F23B}"
 	RootNamespace="RSXPlusPlus"
+	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
 		<Platform
@@ -50,7 +51,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost\boost\tr1\tr1&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost\boost\tr1\tr1&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include32&quot;"
 				StringPooling="true"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
@@ -100,6 +101,8 @@
 				ProgramDatabaseFile="$(SolutionDir)compiled/$(ProjectName).pdb"
 				SubSystem="2"
 				StackReserveSize="131072"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				ImportLibrary=""
 				TargetMachine="1"
 			/>
@@ -120,9 +123,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -162,7 +162,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost\boost\tr1\tr1&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost\boost\tr1\tr1&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include64&quot;"
 				StringPooling="true"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
@@ -212,6 +212,8 @@
 				ProgramDatabaseFile="$(SolutionDir)compiled/$(ProjectName).pdb"
 				SubSystem="2"
 				StackReserveSize="131072"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				ImportLibrary=""
 				TargetMachine="17"
 			/>
@@ -232,9 +234,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -283,7 +282,7 @@
 				FavorSizeOrSpeed="2"
 				OmitFramePointers="false"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost\boost\tr1\tr1&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost\boost\tr1\tr1&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include32&quot;"
 				StringPooling="true"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
@@ -340,9 +339,11 @@
 				EnableCOMDATFolding="2"
 				OptimizeForWindows98="1"
 				SetChecksum="true"
+				RandomizedBaseAddress="1"
+				FixedBaseAddress="0"
+				DataExecutionPrevention="0"
 				ImportLibrary=""
 				TargetMachine="1"
-				FixedBaseAddress="0"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -361,9 +362,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -412,7 +410,7 @@
 				FavorSizeOrSpeed="2"
 				OmitFramePointers="false"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost\boost\tr1\tr1&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost\boost\tr1\tr1&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include64&quot;"
 				StringPooling="true"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
@@ -470,9 +468,11 @@
 				EnableCOMDATFolding="2"
 				OptimizeForWindows98="1"
 				SetChecksum="true"
+				RandomizedBaseAddress="1"
+				FixedBaseAddress="0"
+				DataExecutionPrevention="0"
 				ImportLibrary=""
 				TargetMachine="17"
-				FixedBaseAddress="0"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -491,9 +491,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -542,7 +539,7 @@
 				FavorSizeOrSpeed="2"
 				OmitFramePointers="false"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost\boost\tr1\tr1&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost\boost\tr1\tr1&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include32&quot;"
 				PreprocessorDefinitions="SVNBUILD"
 				StringPooling="true"
 				MinimalRebuild="true"
@@ -600,9 +597,11 @@
 				EnableCOMDATFolding="2"
 				OptimizeForWindows98="1"
 				SetChecksum="true"
+				RandomizedBaseAddress="1"
+				FixedBaseAddress="0"
+				DataExecutionPrevention="0"
 				ImportLibrary=""
 				TargetMachine="1"
-				FixedBaseAddress="0"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -621,9 +620,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -673,7 +669,7 @@
 				FavorSizeOrSpeed="2"
 				OmitFramePointers="false"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost\boost\tr1\tr1&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost\boost\tr1\tr1&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include64&quot;"
 				PreprocessorDefinitions="SVNBUILD"
 				StringPooling="true"
 				MinimalRebuild="true"
@@ -732,9 +728,11 @@
 				EnableCOMDATFolding="2"
 				OptimizeForWindows98="1"
 				SetChecksum="true"
+				RandomizedBaseAddress="1"
+				FixedBaseAddress="0"
+				DataExecutionPrevention="0"
 				ImportLibrary=""
 				TargetMachine="17"
-				FixedBaseAddress="0"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -753,9 +751,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -795,7 +790,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include32&quot;"
 				StringPooling="true"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
@@ -845,6 +840,8 @@
 				ProgramDatabaseFile="$(SolutionDir)compiled/$(ProjectName).pdb"
 				SubSystem="2"
 				StackReserveSize="131072"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				ImportLibrary=""
 				TargetMachine="1"
 			/>
@@ -865,9 +862,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -907,7 +901,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include64&quot;"
 				StringPooling="true"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
@@ -957,6 +951,8 @@
 				ProgramDatabaseFile="$(SolutionDir)compiled/$(ProjectName).pdb"
 				SubSystem="2"
 				StackReserveSize="131072"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				ImportLibrary=""
 				TargetMachine="17"
 			/>
@@ -977,9 +973,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -1028,7 +1021,7 @@
 				FavorSizeOrSpeed="2"
 				OmitFramePointers="false"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include32&quot;"
 				StringPooling="true"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
@@ -1085,9 +1078,11 @@
 				EnableCOMDATFolding="2"
 				OptimizeForWindows98="1"
 				SetChecksum="true"
+				RandomizedBaseAddress="1"
+				FixedBaseAddress="0"
+				DataExecutionPrevention="0"
 				ImportLibrary=""
 				TargetMachine="1"
-				FixedBaseAddress="0"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -1106,9 +1101,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -1157,7 +1149,7 @@
 				FavorSizeOrSpeed="2"
 				OmitFramePointers="false"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include64&quot;"
 				StringPooling="true"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
@@ -1215,9 +1207,11 @@
 				EnableCOMDATFolding="2"
 				OptimizeForWindows98="1"
 				SetChecksum="true"
+				RandomizedBaseAddress="1"
+				FixedBaseAddress="0"
+				DataExecutionPrevention="0"
 				ImportLibrary=""
 				TargetMachine="17"
-				FixedBaseAddress="0"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -1236,9 +1230,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -1287,7 +1278,7 @@
 				FavorSizeOrSpeed="2"
 				OmitFramePointers="false"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include32&quot;"
 				PreprocessorDefinitions="SVNBUILD"
 				StringPooling="true"
 				MinimalRebuild="true"
@@ -1345,9 +1336,11 @@
 				EnableCOMDATFolding="2"
 				OptimizeForWindows98="1"
 				SetChecksum="true"
+				RandomizedBaseAddress="1"
+				FixedBaseAddress="0"
+				DataExecutionPrevention="0"
 				ImportLibrary=""
 				TargetMachine="1"
-				FixedBaseAddress="0"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -1366,9 +1359,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -1418,7 +1408,7 @@
 				FavorSizeOrSpeed="2"
 				OmitFramePointers="false"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)stlport\stlport&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)wtl&quot;;&quot;$(SolutionDir)openssl\include64&quot;"
 				PreprocessorDefinitions="SVNBUILD"
 				StringPooling="true"
 				MinimalRebuild="true"
@@ -1477,9 +1467,11 @@
 				EnableCOMDATFolding="2"
 				OptimizeForWindows98="1"
 				SetChecksum="true"
+				RandomizedBaseAddress="1"
+				FixedBaseAddress="0"
+				DataExecutionPrevention="0"
 				ImportLibrary=""
 				TargetMachine="17"
-				FixedBaseAddress="0"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -1498,9 +1490,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"

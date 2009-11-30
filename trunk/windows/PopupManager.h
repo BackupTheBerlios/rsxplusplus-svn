@@ -58,7 +58,7 @@ public:
 	void Mute(bool mute) { activated = !mute; }
 
 private:
-	typedef list< PopupWnd* > PopupList;
+	typedef std::list< PopupWnd* > PopupList;
 	typedef PopupList::iterator PopupIter;
 	PopupList popups;
 	

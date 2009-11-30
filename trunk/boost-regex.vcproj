@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="windows-1250"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8,00"
+	Version="9,00"
 	Name="boost-regex"
 	ProjectGUID="{D1095E8A-63A5-4592-AE93-2D638F20F66A}"
 	RootNamespace="boostregex"
+	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
 		<Platform

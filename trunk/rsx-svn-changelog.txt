@@ -1,7 +1,14 @@
-** SVN 173
+** SVN 175
+ ** updated icons (thx i.nfrar.ed)
+ ** cleanup etc
+
+** SVN 174
  ** visual studio 2008
  ** openssl 1.0.0 beta 4
  ** converted flags.png
+
+** SVN 173
+ ** ...
 
 ** SVN 172
  ** cosmetic...

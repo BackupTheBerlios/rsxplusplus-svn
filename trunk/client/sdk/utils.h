@@ -16,26 +16,17 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef RSXPLUSPLUS_PLUGIN
-#define RSXPLUSPLUS_PLUGIN
+#ifndef DCPP_SDK_UTILS
+#define DCPP_SDK_UTILS
 
-#include "sdk/dcpp.h"
+#define DCPP_CALL_UTILS_LOG_MESSAGE		"Utils/LogMessage"
+#define DCPP_CALL_UTILS_FORMAT_PARAMS	"Utils/FormatParams"
+#define DCPP_CALL_UTILS_ACP_TO_UTF8		"Utils/AcpToUtf8"
+#define DCPP_CALL_UTILS_WIDE_TO_UTF8	"Utils/WideToUtf8"
 
-namespace dcpp {
+#endif
 
-class Plugin {
-public:
-	typedef int (DCPP_CALL_CONV *PluginLoad)(dcppFunctions*);
-	typedef int (DCPP_CALL_CONV *PluginUnload)();
-
-	Plugin(HMODULE h) : handle(h) { }
-	HMODULE handle;
-
-	PluginLoad pluginLoad;
-	PluginUnload pluginUnload;
-
-	dcppPluginInformation* info;
-};
-
-} // namespace dcpp
-#endif // RSXPLUSPLUS_PLUGIN
+/**
+ * @file
+ * $Id$
+ */

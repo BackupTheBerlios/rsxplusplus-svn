@@ -16,26 +16,16 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef RSXPLUSPLUS_PLUGIN
-#define RSXPLUSPLUS_PLUGIN
+#ifndef DCPP_SDK_TIMER
+#define DCPP_SDK_TIMER
 
-#include "sdk/dcpp.h"
+#define DCPP_EVENT_TIMER "Timer/"
+#define DCPP_EVENT_TYPE_TIMER_TICK_SECOND 0
+#define DCPP_EVENT_TYPE_TIMER_TICK_MINUTE 1
 
-namespace dcpp {
+#endif
 
-class Plugin {
-public:
-	typedef int (DCPP_CALL_CONV *PluginLoad)(dcppFunctions*);
-	typedef int (DCPP_CALL_CONV *PluginUnload)();
-
-	Plugin(HMODULE h) : handle(h) { }
-	HMODULE handle;
-
-	PluginLoad pluginLoad;
-	PluginUnload pluginUnload;
-
-	dcppPluginInformation* info;
-};
-
-} // namespace dcpp
-#endif // RSXPLUSPLUS_PLUGIN
+/**
+ * @file
+ * $Id$
+ */

@@ -1621,6 +1621,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\client\PluginSpeaker.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\client\QueueItem.cpp"
 				>
 			</File>
@@ -2234,6 +2238,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\client\sdk\connection.h"
+				>
+			</File>
+			<File
 				RelativePath=".\client\ConnectionManager.h"
 				>
 			</File>
@@ -2354,6 +2362,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\client\sdk\hub.h"
+				>
+			</File>
+			<File
 				RelativePath=".\client\HubSettings.h"
 				>
 			</File>
@@ -2410,6 +2422,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\client\PluginSpeaker.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\client\Pointer.h"
 				>
 			</File>
@@ -2447,6 +2463,10 @@
 			</File>
 			<File
 				RelativePath=".\rsx\RsxUtil.h"
+				>
+			</File>
+			<File
+				RelativePath=".\client\sdk\sdk.h"
 				>
 			</File>
 			<File
@@ -2666,6 +2686,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\client\sdk\timer.h"
+				>
+			</File>
+			<File
 				RelativePath=".\client\TimerManager.h"
 				>
 			</File>
@@ -2695,6 +2719,10 @@
 			</File>
 			<File
 				RelativePath=".\client\UploadManagerListener.h"
+				>
+			</File>
+			<File
+				RelativePath=".\client\sdk\user.h"
 				>
 			</File>
 			<File
@@ -2731,6 +2759,10 @@
 			</File>
 			<File
 				RelativePath=".\client\Util.h"
+				>
+			</File>
+			<File
+				RelativePath=".\client\sdk\utils.h"
 				>
 			</File>
 			<File

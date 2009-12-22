@@ -16,26 +16,29 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef RSXPLUSPLUS_PLUGIN
-#define RSXPLUSPLUS_PLUGIN
+#ifndef DCPP_SDK_USER
+#define DCPP_SDK_USER
 
-#include "sdk/dcpp.h"
+#define DCPP_EVENT_USER "User/"
+#define DCPP_CALL_USER "User/"
 
-namespace dcpp {
+#define DCPP_USER_FIELD_NICK			"NI"
+#define DCPP_USER_FIELD_DESCRIPTION		"DE"
+#define DCPP_USER_FIELD_EMAIL			"EM"
+#define DCPP_USER_FIELD_CONNECTION		"US"
+#define DCPP_USER_FIELD_IP4				"I4"
 
-class Plugin {
-public:
-	typedef int (DCPP_CALL_CONV *PluginLoad)(dcppFunctions*);
-	typedef int (DCPP_CALL_CONV *PluginUnload)();
+#define DCPP_CALL_USER_GET_FIELD(x)		"User/Identity/Get/" x
+#define DCPP_CALL_USER_SET_FIELD(x)		"User/Identity/Set/" x
+#define DCPP_CALL_USER_GET_HUB_OBJECT	"User/GetHubObject"
+#define DCPP_CALL_USER_GET_PARAMS		"User/GetParams"
 
-	Plugin(HMODULE h) : handle(h) { }
-	HMODULE handle;
+#define DCPP_EVENT_USER_CONNECTED		"User/Connected"
+#define DCPP_EVNET_USER_DISCONNECTED	"User/Disconnected"
 
-	PluginLoad pluginLoad;
-	PluginUnload pluginUnload;
+#endif
 
-	dcppPluginInformation* info;
-};
-
-} // namespace dcpp
-#endif // RSXPLUSPLUS_PLUGIN
+/**
+ * @file
+ * $Id$
+ */

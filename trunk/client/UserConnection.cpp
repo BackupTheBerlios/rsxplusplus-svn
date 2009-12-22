@@ -57,10 +57,10 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) throw
 
 	COMMAND_DEBUG(aLine, DebugManager::CLIENT_IN, getRemoteIp());
 	//RSX++
-	bool plugins = PluginsManager::getInstance()->onUserConnectionLineIn(this, aLine.c_str());
+//	bool plugins = PluginsManager::getInstance()->onUserConnectionLineIn(this, aLine.c_str());
 
-	if(plugins)
-		return;
+//	if(plugins)
+//		return;
 	//END
 	if(aLine[0] == 'C' && !isSet(FLAG_NMDC)) {
 		dispatch(aLine);
@@ -274,8 +274,9 @@ void UserConnection::updateChunkSize(int64_t leafSize, int64_t lastChunk, uint64
 }
 //RSX++
 bool UserConnection::extOnLineOut(const string& line) {
-	bool plugins = PluginsManager::getInstance()->onUserConnectionLineOut(this, line.c_str());
-	return plugins;
+//	bool plugins = PluginsManager::getInstance()->onUserConnectionLineOut(this, line.c_str());
+//	return plugins;
+	return false;
 }
 //END
 } // namespace dcpp

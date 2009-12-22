@@ -108,6 +108,10 @@ class UserConnection;
 typedef UserConnection* UserConnectionPtr;
 typedef std::vector<UserConnectionPtr> UserConnectionList;
 
+//RSX++
+class PluginsManager;
+//END
+
 } // namespace dcpp
 
 #endif /*DCPLUSPLUS_CLIENT_FORWARD_H_*/

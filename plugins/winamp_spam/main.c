@@ -22,8 +22,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "sdk/dcpp.h"
-#include "sdk/events.h"
+#include "sdk/sdk.h"
 #include "winamp.h"
 
 #ifdef __cplusplus
@@ -43,19 +42,30 @@ dcppPluginInformation info = {
 
 void addParam(dcppLinkedMap** map, const char* p1, const char* p2) {
     size_t len;
-    dcppLinkedMap* n = (dcppLinkedMap*)f->malloc(sizeof(dcppLinkedMap));
+    dcppLinkedMap* n = (dcppLinkedMap*)malloc(sizeof(dcppLinkedMap));
     len = strlen(p1);
-    n->first = (char*)f->malloc(len+1);
+    n->first = (char*)malloc(len+1);
     memset(n->first, 0, len+1);
     strncpy(n->first, p1, len);
     len = strlen(p2);
-    n->second = (char*)f->malloc(len+1);
+    n->second = (char*)malloc(len+1);
     memset(n->second, 0, len+1);
     strncpy(n->second, p2, len);
 
     if(!*map) n->next = NULL;
     else   n->next = *map;
     *map = n;
+}
+
+void freeMap(dcppLinkedMap** map) {
+	dcppLinkedMap* next = NULL;
+	while(*map) {
+		next = (*map)->next;
+		free((*map)->first);
+		free((*map)->second);
+		free(*map);
+		*map = next;
+	}
 }
 
 void formatSeconds(int aSec, char* buf) {
@@ -74,10 +84,10 @@ void formatSeconds(int aSec, char* buf) {
 //%[length]
 //%[userParam]
 
-int __stdcall sendSpam(dcpp_ptr_t lParam, dcpp_ptr_t wParam, dcpp_ptr_t userData) {
-    if(lParam == DCPP_HUB_MESSAGE_OUT) {
-        dcppHubMessage* msg = (dcppHubMessage*)wParam;
-        if(strncmp(msg->message, "/winamp", 7) == 0 || strncmp(msg->message, "/w", 2) == 0) {
+int DCPP_CALL_CONV sendSpam(int callReason, dcpp_ptr_t lParam, dcpp_ptr_t wParam) {
+    if(callReason == DCPP_EVENT_HUB_CHAT_MESSAGE_OUT) {
+        const char* msg = (const char*)wParam;
+        if(strncmp(msg, "/winamp", 7) == 0 || strncmp(msg, "/w", 2) == 0) {
             HWND wnd = FindWindowW(L"Winamp v1.x", NULL);
             if(wnd) {
                 dcppLinkedMap* params = NULL;
@@ -162,12 +172,12 @@ int __stdcall sendSpam(dcpp_ptr_t lParam, dcpp_ptr_t wParam, dcpp_ptr_t userData
 					dcppBuffer tmpBuf;
 
 					tmpBuf.size = 2048;
-                    tmpBuf.buf = f->malloc(tmpBuf.size + 1);
+                    tmpBuf.buf = malloc(tmpBuf.size + 1);
 					memset(tmpBuf.buf, 0, tmpBuf.size + 1);
-                    size = f->call(DCPP_UTILS_CONV_WIDE_TO_UTF8, (dcpp_ptr_t)wtmp, (dcpp_ptr_t)&tmpBuf, 0);
+                    size = f->call(DCPP_CALL_UTILS_WIDE_TO_UTF8, (dcpp_ptr_t)wtmp, (dcpp_ptr_t)&tmpBuf, 0);
 					memset(tmp, 0, sizeof(tmp));
                     strncpy(tmp, tmpBuf.buf, size);
-					f->free(tmpBuf.buf);
+					free(tmpBuf.buf);
 					addParam(&params, "rawtitle", tmp);
                 }
 				{
@@ -183,7 +193,7 @@ int __stdcall sendSpam(dcpp_ptr_t lParam, dcpp_ptr_t wParam, dcpp_ptr_t userData
 				}
 				{
 					char* pch;
-					pch = strstr(msg->message, " ");
+					pch = strstr(msg, " ");
 					memset(tmp, 0, sizeof(tmp));
 					if(pch) {
 						strcat(tmp, pch);
@@ -191,42 +201,41 @@ int __stdcall sendSpam(dcpp_ptr_t lParam, dcpp_ptr_t wParam, dcpp_ptr_t userData
 					addParam(&params, "userParam", tmp);
 				}
 				{
-					char* format;
+					char* format = "/me is listening to  %[title] (%[elapsed]/%[length])";
 					dcppBuffer buf;
 
-					format = (char*)f->call(DCPP_CONFIG_GET, (dcpp_ptr_t)(char*)"winamp.fmt", 0, 0);
+					//format = (char*)f->call(DCPP_CONFIG_GET, (dcpp_ptr_t)(char*)"winamp.fmt", 0, 0);
 					buf.size = 4096;
-					buf.buf = (char*)f->malloc(buf.size + 1);
+					buf.buf = (char*)malloc(buf.size + 1);
 					memset(buf.buf, 0, buf.size + 1);
 
-					f->call(DCPP_UTILS_FORMAT_PARAMS, (dcpp_ptr_t)params, (dcpp_ptr_t)format, (dcpp_ptr_t)&buf);
-					f->call(DCPP_HUB_SEND_MESSAGE, msg->hub, (dcpp_ptr_t)buf.buf, 0);
+					f->call(DCPP_CALL_UTILS_FORMAT_PARAMS, (dcpp_ptr_t)params, (dcpp_ptr_t)format, (dcpp_ptr_t)&buf);
+					f->call(DCPP_CALL_HUB_SEND_MESSAGE, lParam, (dcpp_ptr_t)buf.buf, 0);
 
-					f->free(buf.buf);
-					f->call(DCPP_UTILS_FREE_LINKED_MAP, (dcpp_ptr_t)params, 0, 0);
+					free(buf.buf);
+					freeMap(&params);
 				}
             } else {
-                f->call(DCPP_HUB_WRITE_LINE, msg->hub, (dcpp_ptr_t)(char*)"Supported version of Winamp is not running!", 6);
+                f->call(DCPP_CALL_HUB_CHAT_WINDOW_WRITE, lParam, (dcpp_ptr_t)(char*)"Supported version of Winamp is not running!", 6);
             }
-            return DCPP_DROP_EVENT;
+            return DCPP_TRUE;
         }
     }
-    return DCPP_PROCESS_EVENT;
+    return DCPP_FALSE;
 }
 
-dcppPluginInformation* __stdcall pluginInfo(unsigned long long coreSdkVersion, int svnRevision) {
+dcppPluginInformation* DCPP_CALL_CONV pluginInfo(unsigned long long coreSdkVersion, int svnRevision) {
     return &info;
 }
 
-int __stdcall pluginLoad(dcppFunctions* pF) {
+int DCPP_CALL_CONV pluginLoad(dcppFunctions* pF) {
 	f = pF;
-	f->call(DCPP_CONFIG_SET, (dcpp_ptr_t)(char*)"winamp.fmt", (dcpp_ptr_t)(char*)"/me is listening to %[title]", 0);
-	f->addListener(DCPP_HUB, sendSpam, 0);
+	f->addListener(DCPP_EVENT_HUB, sendSpam);
 	return 0;
 }
 
-int __stdcall pluginUnload() {
-    f->removeListener(sendSpam);
+int DCPP_CALL_CONV pluginUnload() {
+	f->removeListener(DCPP_EVENT_HUB, sendSpam);
 	f = NULL;
 	return 0;
 }

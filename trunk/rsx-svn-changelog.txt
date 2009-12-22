@@ -1,3 +1,6 @@
+** SVN 176
+ ** partial implementation of refactored PluginSDK
+
 ** SVN 175
  ** updated icons (thx i.nfrar.ed)
  ** cleanup etc

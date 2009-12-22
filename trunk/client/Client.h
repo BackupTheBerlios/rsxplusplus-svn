@@ -32,6 +32,7 @@
 #include "rsxppSettingsManager.h"
 #include "CommandQueue.h"
 #include "HubSettings.h"
+#include "sdk/dcpp.h"
 //END
 namespace dcpp {
 
@@ -213,6 +214,8 @@ protected:
 	Client(const string& hubURL, char separator, bool secure_);
 
 	friend class ClientManager;
+	friend class PluginsManager; //RSX++
+
 	struct Counts {
 		Counts(long n = 0, long r = 0, long o = 0) : normal(n), registered(r), op(o) { }
 		volatile long normal;
@@ -260,6 +263,7 @@ protected:
 	//END
 private:
 	//RSX++
+	static dcpp_ptr_t DCPP_CALL_CONV clientCallFunc(const char* type, dcpp_ptr_t p1, dcpp_ptr_t p2, dcpp_ptr_t p3, int* handled);
 	CommandQueue cmdQueue;
 	string currentDescription;
 	//END

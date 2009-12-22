@@ -66,14 +66,14 @@ Client* ClientManager::getClient(const string& aHubURL) {
 
 	c->addListener(this);
 	//RSX++
-	PluginsManager::getInstance()->onHubConnected(c);
+//	PluginsManager::getInstance()->onHubConnected(c);
 	//END
 	return c;
 }
 
 void ClientManager::putClient(Client* aClient) {
 	//RSX++
-	PluginsManager::getInstance()->onHubDisconnected(aClient);
+//	PluginsManager::getInstance()->onHubDisconnected(aClient);
 	//END
 	fire(ClientManagerListener::ClientDisconnected(), aClient);
 	aClient->removeListeners();
@@ -280,7 +280,7 @@ void ClientManager::putOnline(OnlineUser* ou) throw() {
 		onlineUsers.insert(make_pair(const_cast<CID*>(&ou->getUser()->getCID()), ou));
 	}
 	//RSX++
-	PluginsManager::getInstance()->onUserConnected(ou);
+//	PluginsManager::getInstance()->onUserConnected(ou);
 	//END
 	if(!ou->getUser()->isOnline()) {
 		ou->getUser()->setFlag(User::ONLINE);
@@ -292,7 +292,7 @@ void ClientManager::putOnline(OnlineUser* ou) throw() {
 void ClientManager::putOffline(OnlineUser* ou, bool disconnect) throw() {
 	bool lastUser = false;
 	//RSX++
-	PluginsManager::getInstance()->onUserDisconnected(ou);
+//	PluginsManager::getInstance()->onUserDisconnected(ou);
 	//END
 	{
 		Lock l(cs);
@@ -627,7 +627,7 @@ string ClientManager::getMyNick(const string& hubUrl) const {
 }
 	
 void ClientManager::on(Connected, const Client* c) throw() {
-	PluginsManager::getInstance()->onHubConnected((Client*)c); //RSX++
+//	PluginsManager::getInstance()->onHubConnected((Client*)c); //RSX++
 	fire(ClientManagerListener::ClientConnected(), c);
 }
 
@@ -647,7 +647,7 @@ void ClientManager::on(HubUpdated, const Client* c) throw() {
 }
 
 void ClientManager::on(Failed, const Client* client, const string&) throw() {
-	PluginsManager::getInstance()->onHubDisconnected((Client*)client); //RSX++
+//	PluginsManager::getInstance()->onHubDisconnected((Client*)client); //RSX++
 	fire(ClientManagerListener::ClientDisconnected(), client);
 }
 

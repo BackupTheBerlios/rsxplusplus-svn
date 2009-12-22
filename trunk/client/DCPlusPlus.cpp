@@ -111,8 +111,6 @@ void startup(void (*f)(void*, const tstring&), void* p) {
 	PluginsManager::newInstance();
 
 	NetworkConfiguration::getInstance()->setupPorts();
-
-	PluginsManager::getInstance()->init(f, p);
 	//---
 	SettingsManager::getInstance()->load();
 	//+++
@@ -145,6 +143,7 @@ void startup(void (*f)(void*, const tstring&), void* p) {
 	RsxUtil::init();
 	if(RSXPP_BOOLSETTING(IPUPDATE))
 		IpManager::getInstance()->UpdateExternalIp();
+	PluginsManager::getInstance()->init(f, p);
 	//END
 }
 
@@ -161,7 +160,7 @@ void shutdown() {
 	dht::DHT::deleteInstance();
 	//RSX++
 	NetworkConfiguration::getInstance()->closePorts();
-	PluginsManager::getInstance()->initClose();
+	PluginsManager::getInstance()->close();
 
 	RsxUtil::uinit();
 	PluginsManager::deleteInstance();

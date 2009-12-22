@@ -16,26 +16,31 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef RSXPLUSPLUS_PLUGIN
-#define RSXPLUSPLUS_PLUGIN
+#ifndef DCPP_SDK_CONNECTION
+#define DCPP_SDK_CONNECTION
 
-#include "sdk/dcpp.h"
+#define DCPP_EVENT_CONNECTION "UserConnection/"
+#define DCPP_CALL_CONNECTION "UserConnection/"
 
-namespace dcpp {
+#define DCPP_EVENT_CONNECTION_MESSAGE_IN	"UserConnection/MessageIn"
+#define DCPP_EVENT_CONNECTION_MESSAGE_OUT	"UserConnection/MessageOut"
 
-class Plugin {
-public:
-	typedef int (DCPP_CALL_CONV *PluginLoad)(dcppFunctions*);
-	typedef int (DCPP_CALL_CONV *PluginUnload)();
+#define DCPP_CALL_CONNECTION_WRITE_LINE		"UserConnection/WriteLine"
+#define DCPP_CALL_CONNECTION_DISCONNECT		"UserConnection/Disconnect"
+#define DCPP_CALL_CONNECTION_SET_FLAGS		"UserConnection/SetFlags"
+#define DCPP_CALL_CONNECTION_GET_FLAGS		"UserConnection/GetFlags"
 
-	Plugin(HMODULE h) : handle(h) { }
-	HMODULE handle;
+typedef struct {
+	uint32_t		mask;
+	uint32_t		flags;
+	const char*		ip;
+	uint16_t		port;
+	uint8_t			secured;
+} dcppConnectionInfo;
 
-	PluginLoad pluginLoad;
-	PluginUnload pluginUnload;
+#endif
 
-	dcppPluginInformation* info;
-};
-
-} // namespace dcpp
-#endif // RSXPLUSPLUS_PLUGIN
+/**
+ * @file
+ * $Id$
+ */

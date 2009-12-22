@@ -20,19 +20,15 @@
 #define RSXPLUSPLUS_PLUGINS_MANAGER
 
 #include "Singleton.h"
-#include "CriticalSection.h"
 #include "TimerManager.h"
+#include "PluginSpeaker.hpp"
 
 #include "sdk/dcpp.h"
-#include "sdk/events.h"
-
-struct lua_State;
 
 namespace dcpp {
 class Plugin;
-class Client;
-class OnlineUser;
-class UserConnection;
+class CriticalSection;
+class Exception;
 
 class PluginsManager : public Singleton<PluginsManager>, public TimerManagerListener {
 public:
@@ -40,62 +36,66 @@ public:
 	~PluginsManager();
 
 	void init(void (*f)(void*, const tstring&), void* p);
-	void load();
+	inline void init() {
+		init(0, 0);
+	}
 
-	void initClose();
+	void load();
+	void close();
 
 	void getPluginsInfo(std::list<dcppPluginInformation*>& p);
 
-	bool onHubMsgIn(Client* hub, const char* msg);
-	bool onHubMsgOut(Client* hub, const char* msg);
-	bool onPMIn(Client* hub, OnlineUser* from, OnlineUser* to, OnlineUser* replyTo, const char* msg, bool thirdPerson);
-	bool onPMOut(Client* hub, OnlineUser* to, const char* msg);
-	void onHubConnecting(Client* hub);
-	void onHubConnected(Client* hub);
-	void onHubDisconnected(Client* hub);
-	void onHubRedirect(Client* hub, const char* newUrl);
-	void onUserConnected(OnlineUser* ou);
-	void onUserDisconnected(OnlineUser* ou);
-	void onLuaInit(lua_State*);
-	void onConfigChange();
-	bool onUserConnectionLineIn(UserConnection* uc, const char* line);
-	bool onUserConnectionLineOut(UserConnection* uc, const char* line);
-
+	PluginSpeaker& getSpeaker() { return speaker; }
 private:
-	typedef vector<Plugin*> Plugins;
-	struct PlugListener {
-		PlugListener(dcppListenerFunc _f, dcpp_ptr_t d = 0) : f(_f), pData(d) { };
+	typedef std::list<Plugin*> Plugins;
 
-		dcppListenerFunc f;
-		dcpp_ptr_t pData;
-		template<typename T1, typename T2>
-		int call(T1 p1, T2 p2) {
-			return f((dcpp_ptr_t)p1, (dcpp_ptr_t)p2, pData);
-		}
-	};
-	typedef std::list<PlugListener*> Listener;
-
-	static dcpp_ptr_t __stdcall callFunc(int type, dcpp_ptr_t p1, dcpp_ptr_t p2, dcpp_ptr_t p3);
-	static void* __stdcall addListener(int type, dcppListenerFunc f, dcpp_ptr_t pd);
-	static void  __stdcall removeListener(void* ptr);
-
-	template<bool breakAtFirst, typename T1, typename T2>
-	int call(Listener& l, T1 p1, T2 p2);
-
-	void* addPlugListener(int type, dcppListenerFunc f, dcpp_ptr_t pd);
-	void remPlugListener(PlugListener* l);
-	void deleteListener(Listener& l, PlugListener* ls);
+	void loadPlugin(Plugin*& p, HMODULE dll) throw(Exception);
 
 	dcppFunctions* dcpp_func;
-
 	CriticalSection cs;
-
+	PluginSpeaker speaker;
 	Plugins plugins;
 
-	Listener hubEvents;
-	Listener userEvents;
-	Listener coreEvents;
-	Listener connEvents;
+	static dcpp_ptr_t DCPP_CALL_CONV coreCallFunc(const char* type, dcpp_ptr_t p1, dcpp_ptr_t p2, dcpp_ptr_t p3, int* handled);
+
+	// functions to manage caller/speaker/listener system
+	static dcpp_ptr_t DCPP_CALL_CONV callFunc(const char* type, dcpp_ptr_t p1, dcpp_ptr_t p2, dcpp_ptr_t p3) {
+		return PluginsManager::getInstance()->getSpeaker().call(type, p1, p2, p3);
+	}
+
+	static int addCaller(dcppCallFunc fn) {
+		return PluginsManager::getInstance()->getSpeaker().addCaller(fn) ? DCPP_TRUE : DCPP_FALSE;
+	}
+	static int removeCaller(dcppCallFunc fn) {
+		return PluginsManager::getInstance()->getSpeaker().removeCaller(fn) ? DCPP_TRUE : DCPP_FALSE;
+	}
+	static dcpp_ptr_t call(const char* type, dcpp_ptr_t p1, dcpp_ptr_t p2, dcpp_ptr_t p3) {
+		return PluginsManager::getInstance()->getSpeaker().call(type, p1, p2, p3);
+	}
+
+	static int addSpeaker(const char* type) {
+		return PluginsManager::getInstance()->getSpeaker().addSpeaker(string(type), false) ? DCPP_TRUE : DCPP_FALSE;
+	}
+
+	static int removeSpeaker(const char* type) {
+		return PluginsManager::getInstance()->getSpeaker().removeSpeaker(string(type)) ? DCPP_TRUE : DCPP_FALSE;
+	}
+
+	static int isSpeaker(const char* type) {
+		return PluginsManager::getInstance()->getSpeaker().isSpeaker(string(type)) ? DCPP_TRUE : DCPP_FALSE;
+	}
+
+	static int addListener(const char* type, dcppListenerFunc fn) {
+		return PluginsManager::getInstance()->getSpeaker().addListener(string(type), fn) ? DCPP_TRUE : DCPP_FALSE;
+	}
+
+	static int removeListener(const char* type, dcppListenerFunc fn) {
+		return PluginsManager::getInstance()->getSpeaker().removeListener(string(type), fn) ? DCPP_TRUE : DCPP_FALSE;
+	}
+
+	static int speak(const char* type, int callReason, dcpp_ptr_t param1, dcpp_ptr_t param2) {
+		return PluginsManager::getInstance()->getSpeaker().speak(string(type), callReason, param1, param2);
+	}
 
 	void on(TimerManagerListener::Second, uint64_t /*tick*/) throw();
 	void on(TimerManagerListener::Minute, uint64_t /*tick*/) throw();

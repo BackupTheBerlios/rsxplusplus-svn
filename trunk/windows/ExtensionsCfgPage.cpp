@@ -76,7 +76,7 @@ void ExtensionsCfgPage::write() {
 		rsxppSettingsManager::getInstance()->setExtSetting(name, value);
 	}
 	rsxppSettingsManager::getInstance()->unlock();
-	PluginsManager::getInstance()->onConfigChange();
+//	PluginsManager::getInstance()->onConfigChange();
 }
 
 /**

@@ -19,167 +19,118 @@
 #include "stdinc.h"
 #include "DCPlusPlus.h"
 
+#include "PluginsManager.h"
+#include "Plugin.h"
+
 #include "Client.h"
 #include "User.h"
 #include "UserConnection.h"
 
-#include "PluginsManager.h"
-#include "Plugin.h"
+#include "sdk/sdk.h"
 
 #include "LogManager.h"
-#include "ClientManager.h"
-#include "rsxppSettingsManager.h"
 #include "version.h"
 
 namespace dcpp {
 
-PluginsManager::PluginsManager() : dcpp_func(0) {
-	dcpp_func = new dcppFunctions;
+PluginsManager::PluginsManager() : dcpp_func(new dcppFunctions) {
 	memzero(dcpp_func, sizeof(dcppFunctions));
 
-	// memory managment functions
-	dcpp_func->malloc = &malloc;
-	dcpp_func->calloc = &calloc;
-	dcpp_func->realloc = &realloc;
-	dcpp_func->free = &free;
-
 	dcpp_func->call = &PluginsManager::callFunc;
+
+	dcpp_func->addCaller = &PluginsManager::addCaller;
+	dcpp_func->removeCaller = &PluginsManager::removeCaller;
+
+	dcpp_func->addSpeaker = &PluginsManager::addSpeaker;
+	dcpp_func->removeSpeaker = &PluginsManager::removeSpeaker;
+	dcpp_func->isSpeaker = &PluginsManager::isSpeaker;
+	dcpp_func->fireSpeaker = &PluginsManager::speak;
 
 	dcpp_func->addListener = &PluginsManager::addListener;
 	dcpp_func->removeListener = &PluginsManager::removeListener;
 
 	TimerManager::getInstance()->addListener(this);
+
+	// prepare speakers (protected as default)
+	getSpeaker().addSpeaker("Core/");
+	getSpeaker().addSpeaker("User/");
+	getSpeaker().addSpeaker("Hub/");
+	getSpeaker().addSpeaker("UserConnection/");
+	getSpeaker().addSpeaker("Timer/");
+
+	getSpeaker().addCaller(&PluginsManager::coreCallFunc);
+	getSpeaker().addCaller(&Client::clientCallFunc);
 }
 
 PluginsManager::~PluginsManager() {
 	TimerManager::getInstance()->removeListener(this);
-
-	Lock l(cs);
-	for(Plugins::const_iterator i = plugins.begin(); i != plugins.end(); ++i) {
-		FreeLibrary((*i)->handle);
-		delete *i;
-	}
-	plugins.clear();
+	close();
 	delete dcpp_func;
 }
 
-void PluginsManager::init(void (*f)(void*, const tstring&), void* pv) {
+void PluginsManager::loadPlugin(Plugin*& p, HMODULE dll) throw(Exception) {
 	typedef dcppPluginInformation* (__stdcall *plugInfo)(unsigned long long, int);
+	p = new Plugin(dll);
 
+	Plugin::PluginLoad pLoad = reinterpret_cast<Plugin::PluginLoad>(GetProcAddress(dll, "pluginLoad"));
+	Plugin::PluginUnload pUnload = reinterpret_cast<Plugin::PluginUnload>(GetProcAddress(dll, "pluginUnload"));
+	plugInfo pInfo = reinterpret_cast<plugInfo>(GetProcAddress(dll, "pluginInfo"));
+
+	if(!pLoad)
+		throw Exception("Missing pluginLoad function");
+	if(!pUnload)
+		throw Exception("Missing pluginUnload function");
+	if(!pInfo)
+		throw Exception("Missing pluginInfo function");
+
+	p->pluginLoad = pLoad;
+	p->pluginUnload = pUnload;
+
+	dcppPluginInformation* nfo = pInfo(SDK_VERSION, SVN_REVISION);
+	if(!nfo)
+		throw Exception("Missing plugin information");
+
+	p->info = nfo;
+
+	if(nfo->guid != 0) {
+		for(Plugins::const_iterator i = plugins.begin(); i != plugins.end(); ++i) {
+			if((*i)->info->guid != 0 && strcmp(nfo->guid, (*i)->info->guid) == 0)
+				throw Exception("Only one instance of plugin is allowed");
+		}
+	}
+
+	if(VER_MAJOR(nfo->sdkVersion) != VER_MAJOR(SDK_VERSION) || 
+		VER_MINOR(nfo->sdkVersion) != VER_MINOR(SDK_VERSION) ||
+		VER_REVISION(nfo->sdkVersion) != VER_REVISION(SDK_VERSION))
+		throw Exception("Plugin is compiled with old version of PluginSDK");
+
+	if(pLoad(dcpp_func) != DCPP_FALSE) {
+		throw Exception("Unknown exception while calling pluginLoad function");
+	}
+}
+
+void PluginsManager::init(void (*f)(void*, const tstring&), void* pv) {
+	Lock l(cs);
 	StringList libs = File::findFiles(Util::getPath(Util::PATH_GLOBAL_CONFIG) + "Plugins" PATH_SEPARATOR_STR, "*.dll");
-	{
-		Lock l(cs);
-		for(StringIter i = libs.begin(); i != libs.end(); ++i) {
-			tstring fname = Text::toT(*i);
-			HMODULE dll = LoadLibrary(fname.c_str());
-			if(dll) {
-				Plugin::PluginLoad pLoad = reinterpret_cast<Plugin::PluginLoad>(GetProcAddress(dll, "pluginLoad"));
-				Plugin::PluginUnload pUnload = reinterpret_cast<Plugin::PluginUnload>(GetProcAddress(dll, "pluginUnload"));
-				plugInfo pInfo = reinterpret_cast<plugInfo>(GetProcAddress(dll, "pluginInfo"));
-
-				if(pLoad && pUnload && pInfo) {
-					dcppPluginInformation* info = pInfo(SDK_VERSION, SVN_REVISION);
-					bool allow = 
-						VER_MAJOR(info->sdkVersion) == VER_MAJOR(SDK_VERSION) && 
-						VER_MINOR(info->sdkVersion) == VER_MINOR(SDK_VERSION) &&
-						VER_REVISION(info->sdkVersion) == VER_REVISION(SDK_VERSION);
-					// allow fallback, when no breaking changes were made in sdk
-					if(allow) {
-						if(f)
-							(*f)(pv, Util::getFileName(fname));
-						Plugin* plugin = new Plugin(dll);
-						plugin->pluginLoad = pLoad;
-						plugin->pluginUnload = pUnload;
-						plugin->info = info;
-						if(!pLoad(dcpp_func)) {
-							plugins.push_back(plugin);
-							continue;
-						} else {
-							delete plugin;
-						}
-					} else {
-						LogManager::getInstance()->message(Util::getFileName(*i) + " is using old version of SDK!");
-					}
-				} else {
-					LogManager::getInstance()->message(Util::getFileName(*i) + " is not a valid RSX++ plugin!");
-				}
+	for(StringIter i = libs.begin(); i != libs.end(); ++i) {
+		const tstring& fname = Text::toT(*i);
+		HMODULE dll = LoadLibrary(fname.c_str());
+		if(dll) {
+			Plugin* p = 0;
+			try {
+				loadPlugin(p, dll);
+				plugins.push_back(p);
+				if(f && pv)
+					(*f)(pv, fname);
+			} catch(const Exception& e) {
+				// do a cleanup
+				delete p;
+				p = 0;
 				FreeLibrary(dll);
+				LogManager::getInstance()->message(Util::getFileName(*i) + ": " + e.getError());
 			}
 		}
 	}
-}
-
-void PluginsManager::load() {
-	call<false>(coreEvents, DCPP_CORE_INIT_FINISHED, 0);
-}
-
-void PluginsManager::initClose() { 
-	call<false>(coreEvents, DCPP_CORE_INIT_CLOSE, 0);
-}
-
-void* PluginsManager::addPlugListener(int type, dcppListenerFunc f, dcpp_ptr_t pd) {
-	PluginsManager::Listener* ll = 0;
-	switch(type) {
-		case DCPP_CORE: {
-			ll = &coreEvents;
-			break;
-		}
-		case DCPP_HUB: {
-			ll = &hubEvents;
-			break;
-		}
-		case DCPP_USER: {
-			ll = &userEvents;
-			break;
-		}
-		case DCPP_CONNECTION: {
-			ll = &connEvents;
-			break;
-		}
-		default:
-			return (void*)0;
-	}
-
-	if(ll) {
-		Lock l(cs);
-		for(PluginsManager::Listener::iterator i = ll->begin(); i != ll->end(); ++i) {
-			if((*i)->f == f)
-				return (void*)0;
-		}
-
-		PlugListener* ls = new PlugListener(f, pd);
-		ll->push_back(ls);
-		return (void*)ls;
-	}
-	return (void*)0;
-}
-
-void PluginsManager::remPlugListener(PlugListener* ls) {
-	if(!ls)
-		return;
-
-	Lock l(cs);
-	deleteListener(hubEvents, ls);
-	deleteListener(userEvents, ls);
-	deleteListener(connEvents, ls);
-	deleteListener(coreEvents, ls);
-}
-
-void PluginsManager::deleteListener(Listener& l, PlugListener* ls) {
-	PluginsManager::Listener::iterator i = std::find(l.begin(), l.end(), ls);
-	if(i != l.end()) {
-		l.erase(i);
-		delete ls;
-		ls = 0;
-	}
-}
-
-void PluginsManager::removeListener(void* ptr) {
-	PluginsManager::getInstance()->remPlugListener(reinterpret_cast<PluginsManager::PlugListener*>(ptr));
-}
-
-void* PluginsManager::addListener(int type, dcppListenerFunc f, dcpp_ptr_t pd) {
-	return PluginsManager::getInstance()->addPlugListener(type, f, pd);
 }
 
 void PluginsManager::getPluginsInfo(std::list<dcppPluginInformation*>& p) {
@@ -188,159 +139,71 @@ void PluginsManager::getPluginsInfo(std::list<dcppPluginInformation*>& p) {
 		p.push_back((*i)->info);
 }
 
-template<bool breakAtFirst, typename T1, typename T2>
-int PluginsManager::call(Listener& l, T1 p1, T2 p2) {
-	int ret = DCPP_PROCESS_EVENT;
-	if(!l.size()) return ret;
+void PluginsManager::load() {
+	getSpeaker().speak(DCPP_EVENT_CORE, DCPP_EVENT_TYPE_CORE_LOAD, 0, 0);
+}
 
-	Lock lock(cs);
-	for(PluginsManager::Listener::iterator i = l.begin(); i != l.end(); ++i) {
-		int r = (*i)->call<T1, T2>(p1, p2);
-		if(r != DCPP_PROCESS_EVENT) {
-			if(breakAtFirst) {
-				return r;
-			} else {
-				ret = r;
+void PluginsManager::close() {
+	getSpeaker().speak(DCPP_EVENT_CORE, DCPP_EVENT_TYPE_CORE_UNLOAD, 0, 0);
+
+	Lock l(cs);
+	for(Plugins::const_iterator i = plugins.begin(); i != plugins.end(); ++i) {
+		FreeLibrary((*i)->handle);
+		delete *i;
+	}
+	plugins.clear();
+}
+
+dcpp_ptr_t PluginsManager::coreCallFunc(const char* type, dcpp_ptr_t p1, dcpp_ptr_t p2, dcpp_ptr_t p3, int* handled) {
+	*handled = DCPP_TRUE;
+	if(strncmp(type, "Core/", 5) == 0) {
+
+	} else if(strncmp(type, "Utils/", 6) == 0) {
+		if(strncmp(type+6, "LogMessage", 10) == 0) {
+			LogManager::getInstance()->message(string(reinterpret_cast<const char*>(p1)));
+			return DCPP_TRUE;
+		} else if(strncmp(type+6, "FormatParams", 12) == 0) {
+			StringMap params;
+			dcppLinkedMap* ptr = reinterpret_cast<dcppLinkedMap*>(p1);
+			dcppBuffer* buf = reinterpret_cast<dcppBuffer*>(p3);
+
+			while(ptr) {
+				params[static_cast<char*>(ptr->first)] = static_cast<char*>(ptr->second);
+				ptr = ptr->next;
 			}
+
+			string format = Util::formatParams(reinterpret_cast<char*>(p2), params, false);
+			if(format.size() < buf->size)
+				buf->size = format.size();
+			memcpy(buf->buf, &format[0], buf->size);
+			return buf->size;
+		} else if(strncmp(type+6, "WideToUtf8", 10) == 0) {
+			const uint16_t* str = reinterpret_cast<const uint16_t*>(p1); // unsigned short - 2 bytes
+			dcppBuffer* buf = reinterpret_cast<dcppBuffer*>(p2);
+			if(!str || !buf || buf->size == 0) return DCPP_FALSE;
+			string s = Text::wideToUtf8(wstring((wchar_t*)str));
+			if(s.size() < buf->size)
+				buf->size = s.size();
+			memcpy(buf->buf, &s[0], buf->size);
+			return buf->size;
 		}
 	}
-	return ret;
+	*handled = DCPP_FALSE;
+	return DCPP_FALSE;
 }
 
-bool PluginsManager::onHubMsgIn(Client* hub, const char* msg) {
-	dcppHubMessage m;
-	memzero(&m, sizeof(m));
-	m.message = msg;
-	m.hub = (dcpp_ptr_t)hub;
-
-	int ret = call<false>(hubEvents, DCPP_HUB_MESSAGE_IN, &m);
-	return ret != DCPP_PROCESS_EVENT;
-}
-
-bool PluginsManager::onHubMsgOut(Client* hub, const char* msg) {
-	dcppHubMessage m;
-	memzero(&m, sizeof(m));
-	m.message = msg;
-	m.hub = (dcpp_ptr_t)hub;
-
-	int ret = call<false>(hubEvents, DCPP_HUB_MESSAGE_OUT, &m);
-	return ret != DCPP_PROCESS_EVENT;
-}
-
-bool PluginsManager::onPMIn(Client* hub, OnlineUser* from, OnlineUser* to, OnlineUser* replyTo, const char* msg, bool thirdPerson) {
-	dcppPrivateMessageIn m;
-	memzero(&m, sizeof(m));
-	m.message = msg;
-	m.hub = (dcpp_ptr_t)hub;
-	m.from = (dcpp_ptr_t)from;
-	m.to = (dcpp_ptr_t)to;
-	m.replyTo = (dcpp_ptr_t)replyTo;
-	m.thirdPerson = (char)thirdPerson;
-
-	int ret = call<false>(hubEvents, DCPP_HUB_PRIV_MESSAGE_IN, &m);
-	return ret != DCPP_PROCESS_EVENT;
-}
-
-bool PluginsManager::onPMOut(Client* hub, OnlineUser* to, const char* msg) {
-	dcppPrivateMessageOut m;
-	memzero(&m, sizeof(m));
-	m.message = msg;
-	m.hub = (dcpp_ptr_t)hub;
-	m.to = (dcpp_ptr_t)to;
-
-	int ret = call<false>(hubEvents, DCPP_HUB_PRIV_MESSAGE_OUT, &m);
-	return ret != DCPP_PROCESS_EVENT;
-}
-
-bool PluginsManager::onUserConnectionLineIn(UserConnection* uc, const char* line) {
-	dcppConnectionMessage m;
-	memzero(&m, sizeof(m));
-	m.line = line;
-	m.connection = (dcpp_ptr_t)uc;
-	m.flags = uc->getFlags();
-
-	int ret = call<false>(connEvents, DCPP_CONNECTION_MESSAGE_IN, &m);
-	return ret != DCPP_PROCESS_EVENT;
-}
-
-bool PluginsManager::onUserConnectionLineOut(UserConnection* uc, const char* line) {
-	dcppConnectionMessage m;
-	memzero(&m, sizeof(m));
-	m.line = line;
-	m.connection = (dcpp_ptr_t)uc;
-	m.flags = uc->getFlags();
-
-	int ret = call<false>(connEvents, DCPP_CONNECTION_MESSAGE_OUT, &m);
-	return ret != DCPP_PROCESS_EVENT;
-}
-
-void PluginsManager::onHubConnecting(Client* hub) {
-	call<false>(hubEvents, DCPP_HUB_CREATED, hub);
-}
-
-void PluginsManager::onHubConnected(Client* hub) {
-	call<false>(hubEvents, DCPP_HUB_CONNECTED, hub);
-}
-
-void PluginsManager::onHubDisconnected(Client* hub) {
-	call<false>(hubEvents, DCPP_HUB_DISCONNECTED, hub);
-}
-
-void PluginsManager::onHubRedirect(Client* hub, const char* newUrl) {
-	dcppHubRedirect m;
-	memzero(&m, sizeof(m));
-	m.hub = (dcpp_ptr_t)hub;
-	m.url = newUrl;
-	call<false>(hubEvents, DCPP_HUB_REDIRECTING, &m);
-}
-
-void PluginsManager::onUserConnected(OnlineUser* ou) {
-	call<false>(userEvents, DCPP_USER_CONNECTED, ou);
-}
-
-void PluginsManager::onUserDisconnected(OnlineUser* ou) {
-	call<false>(userEvents, DCPP_USER_DISCONNECTED, ou);
-}
-
-void PluginsManager::onLuaInit(lua_State* parser) {
-	call<false>(coreEvents, DCPP_CORE_LUA_INIT, parser);
-}
-
-void PluginsManager::onConfigChange() {
-	call<false>(coreEvents, DCPP_CONFIG_REFRESHED, 0);
-}
-// in timers use pointer, on 32bit system, you'll get only a half of actuall value
 void PluginsManager::on(TimerManagerListener::Second, uint64_t tick) throw() {
-	call<false>(coreEvents, DCPP_CORE_TIMER_SECOND, &tick);
+	getSpeaker().speak(DCPP_EVENT_TIMER, DCPP_EVENT_TYPE_TIMER_TICK_SECOND, (dcpp_ptr_t)&tick, 0);
 }
 
 void PluginsManager::on(TimerManagerListener::Minute, uint64_t tick) throw() {
-	call<false>(coreEvents, DCPP_CORE_TIMER_MINUTE, &tick);
+	getSpeaker().speak(DCPP_EVENT_TIMER, DCPP_EVENT_TYPE_TIMER_TICK_MINUTE, (dcpp_ptr_t)&tick, 0);
 }
 
+/*
 dcpp_ptr_t PluginsManager::callFunc(int type, dcpp_ptr_t p1, dcpp_ptr_t p2, dcpp_ptr_t p3) {
 	if(type > DCPP_UTILS) {
 		switch(type) {
-			case DCPP_UTILS_LOG_MESSAGE: {
-				LogManager::getInstance()->message(string(reinterpret_cast<char*>(p1)));
-				return 0;
-			}
-			case DCPP_UTILS_FORMAT_PARAMS: {
-				StringMap params;
-				dcppLinkedMap* ptr = reinterpret_cast<dcppLinkedMap*>(p1);
-				dcppBuffer* buf = reinterpret_cast<dcppBuffer*>(p3);
-
-				while(ptr) {
-					params[static_cast<char*>(ptr->first)] = static_cast<char*>(ptr->second);
-					ptr = ptr->next;
-				}
-				string format = Util::formatParams(reinterpret_cast<char*>(p2), params, false);
-
-				if(format.size() < buf->size)
-					buf->size = format.size();
-				memcpy(buf->buf, &format[0], buf->size);
-				return buf->size;
-			}
 			case DCPP_UTILS_CONV_UTF8_TO_WIDE: {
 				dcppBuffer* buf = reinterpret_cast<dcppBuffer*>(p2);
 				std::wstring str(Text::utf8ToWide(reinterpret_cast<char*>(p1)));
@@ -373,20 +236,6 @@ dcpp_ptr_t PluginsManager::callFunc(int type, dcpp_ptr_t p1, dcpp_ptr_t p2, dcpp
 			}
 			default:
 				return 0;
-		}
-	} else if(type > DCPP_CONFIG) {
-		switch(type) {
-			case DCPP_CONFIG_SET: {
-				rsxppSettingsManager::getInstance()->setExtSetting(reinterpret_cast<char*>(p1), reinterpret_cast<char*>(p2));
-				break;
-			}
-			case DCPP_CONFIG_GET: {
-				return (dcpp_ptr_t)rsxppSettingsManager::getInstance()->getExtSetting(reinterpret_cast<char*>(p1)).c_str();
-				break;
-			}
-			default:
-				return 0;
-		}
 	} else if(type > DCPP_CONNECTION) {
 		UserConnection* uc = reinterpret_cast<UserConnection*>(p1);
 		if(!uc) return 0;
@@ -539,7 +388,7 @@ dcpp_ptr_t PluginsManager::callFunc(int type, dcpp_ptr_t p1, dcpp_ptr_t p2, dcpp
 	}
 	return 0;
 }
-
+*/
 } // namespace dcpp
 
 /**

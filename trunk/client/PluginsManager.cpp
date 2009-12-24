@@ -95,7 +95,7 @@ void PluginsManager::loadPlugin(Plugin*& p, HMODULE dll) throw(Exception) {
 	if(nfo->guid != 0) {
 		for(Plugins::const_iterator i = plugins.begin(); i != plugins.end(); ++i) {
 			if((*i)->info->guid != 0 && strcmp(nfo->guid, (*i)->info->guid) == 0)
-				throw Exception("Only one instance of plugin is allowed");
+				throw Exception("Only one copy of this plugin is allowed");
 		}
 	}
 
@@ -105,6 +105,7 @@ void PluginsManager::loadPlugin(Plugin*& p, HMODULE dll) throw(Exception) {
 		throw Exception("Plugin is compiled with old version of PluginSDK");
 
 	if(pLoad(dcpp_func) != DCPP_FALSE) {
+		pUnload();
 		throw Exception("Unknown exception while calling pluginLoad function");
 	}
 }
@@ -173,19 +174,21 @@ dcpp_ptr_t PluginsManager::coreCallFunc(const char* type, dcpp_ptr_t p1, dcpp_pt
 			}
 
 			string format = Util::formatParams(reinterpret_cast<char*>(p2), params, false);
-			if(format.size() < buf->size)
-				buf->size = format.size();
-			memcpy(buf->buf, &format[0], buf->size);
-			return buf->size;
+			size_t len = buf->size;
+			if(format.size() < len)
+				len = format.size();
+			memcpy(buf->buf, &format[0], len);
+			return len;
 		} else if(strncmp(type+6, "WideToUtf8", 10) == 0) {
 			const uint16_t* str = reinterpret_cast<const uint16_t*>(p1); // unsigned short - 2 bytes
 			dcppBuffer* buf = reinterpret_cast<dcppBuffer*>(p2);
 			if(!str || !buf || buf->size == 0) return DCPP_FALSE;
 			string s = Text::wideToUtf8(wstring((wchar_t*)str));
-			if(s.size() < buf->size)
-				buf->size = s.size();
-			memcpy(buf->buf, &s[0], buf->size);
-			return buf->size;
+			size_t len = buf->size;
+			if(s.size() < len)
+				len = s.size();
+			memcpy(buf->buf, &s[0], len);
+			return len;
 		}
 	}
 	*handled = DCPP_FALSE;

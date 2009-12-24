@@ -292,16 +292,13 @@ void AdcHub::handle(AdcCommand::MSG, AdcCommand& c) throw() {
 		message.replyTo = findUser(AdcCommand::toSID(temp));
 		if(!message.replyTo)
 			return;
-		if(extOnPmIn(message.from.get(), message.to.get(), message.replyTo.get(), message.text, message.thirdPerson))
-			return;
 	}
-
-//	message.thirdPerson = c.hasFlag("ME", 1);
 
 	if(c.getParam("TS", 1, temp))
 		message.timestamp = Util::toInt64(temp);
 
-	fire(ClientListener::Message(), this, message);
+	if(!plugChatMessage(message)) //RSX++
+		fire(ClientListener::Message(), this, message);
 }
 
 void AdcHub::handle(AdcCommand::GPA, AdcCommand& c) throw() {
@@ -866,11 +863,9 @@ void AdcHub::on(Line l, const string& aLine) throw() {
 	if(BOOLSETTING(ADC_DEBUG)) {
 		fire(ClientListener::StatusMessage(), this, "<ADC>" + aLine + "</ADC>");
 	}
-	//RSX++
-	if(extOnMsgIn(aLine))
-		return;
-	//END
-	dispatch(aLine);
+
+	if(!plugHubLine(aLine.c_str(), aLine.length(), true)) //RSX++
+		dispatch(aLine);
 }
 
 void AdcHub::on(Failed f, const string& aLine) throw() {

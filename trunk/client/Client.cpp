@@ -28,6 +28,7 @@
 #include "ResourceManager.h"
 #include "ClientManager.h"
 //RSX++
+#include "ChatMessage.h"
 #include "PluginsManager.h"
 #include "RawManager.h"
 #include "version.h"
@@ -160,10 +161,14 @@ void Client::connect() {
 	updateActivity();
 }
 
-void Client::send(const char* aMessage, size_t aLen) {
+void Client::send(const char* aMessage, size_t aLen, bool bypassPlug /*= false*/) {
 	dcassert(sock);
 	if(!sock)
 		return;
+	//RSX++
+	if(!bypassPlug && plugHubLine(aMessage, aLen, false))
+		return;
+	//END
 	updateActivity();
 	sock->write(aMessage, aLen);
 	COMMAND_DEBUG(aMessage, DebugManager::HUB_OUT, getIpPort());
@@ -331,14 +336,32 @@ dcpp_ptr_t Client::clientCallFunc(const char* type, dcpp_ptr_t p1, dcpp_ptr_t p2
 	if(strncmp(type, "Hub/", 4) == 0) {
 		const char* cmd = type+4;
 		if(strncmp(cmd, "Open", 4) == 0) {
+			ClientManager::getInstance()->openHub(reinterpret_cast<const char*>(p1));
+			return DCPP_TRUE;
+		} else if(strncmp(cmd, "Close", 5) == 0) {
+			ClientManager::getInstance()->closeHub(reinterpret_cast<const char*>(p1));
+			return DCPP_TRUE;
+		} else if(strncmp(cmd, "FormatChatMessage", 17) == 0) {
+			ChatMessage cm;
+			dcppChatMessage* m = reinterpret_cast<dcppChatMessage*>(p1);
+			dcppBuffer* buf = reinterpret_cast<dcppBuffer*>(p2);
+			if(!m || !buf) return DCPP_FALSE;
+			cm.from = reinterpret_cast<OnlineUser*>(m->from);
+			cm.text = m->message;
+			cm.thirdPerson = m->thirdPerson != 0 ? true : false;
+			cm.timestamp = static_cast<time_t>(m->timestamp);
 
+			string msg = cm.format();
+			size_t len = buf->size;
+			if(msg.size() < len)
+				len = msg.size();
+			memcpy(buf->buf, &msg[0], len);
+			return len;
 		} else {
 			Client* c = reinterpret_cast<Client*>(p1);
 			if(!c) return DCPP_FALSE;
 
-			if(strncmp(cmd, "Close", 5) == 0) {
-
-			} else if(strncmp(cmd, "Redirect", 8) == 0) {
+			if(strncmp(cmd, "Redirect", 8) == 0) {
 
 			} else if(strncmp(cmd, "Identity/", 9) == 0) {
 				Identity* id = 0;
@@ -356,19 +379,20 @@ dcpp_ptr_t Client::clientCallFunc(const char* type, dcpp_ptr_t p1, dcpp_ptr_t p2
 					id->set(reinterpret_cast<const char*>(p2), reinterpret_cast<const char*>(p3));
 					return DCPP_TRUE;
 				}
-			} else if(strncmp(cmd, "SendMessage", 11) == 0) {
-				const char* message = reinterpret_cast<const char*>(p2);
-				bool tp = strncmp(message, "/me ", 4) == 0;
-				c->hubMessage(tp ? (message + 4) : message, tp);
+			} else if(strncmp(cmd, "SendChatMessage", 15) == 0) {
+				c->hubMessage(reinterpret_cast<const char*>(p2), p3 != 0 ? true : false);
 				return DCPP_TRUE;
 			} else if(strncmp(cmd, "SendUserCommand", 15) == 0) {
 				c->sendUserCmd(reinterpret_cast<const char*>(p2));
 				return DCPP_TRUE;
-			} else if(strncmp(cmd, "SocketWrite", 11) == 0) {
-				c->send(reinterpret_cast<const char*>(p2), static_cast<int>(p3));
+			} else if(strncmp(cmd, "LineWrite", 9) == 0) {
+				c->send(reinterpret_cast<const char*>(p2), static_cast<size_t>(p3), true);
 				return DCPP_TRUE;
 			} else if(strncmp(cmd, "ChatWindowWrite", 15) == 0) {
 				c->addHubLine(reinterpret_cast<const char*>(p2), static_cast<int>(p3));
+				return DCPP_TRUE;
+			} else if(strncmp(cmd, "DispatchLine", 12) == 0) {
+				c->parseCommand(reinterpret_cast<const char*>(p2));
 				return DCPP_TRUE;
 			}
 		}
@@ -377,33 +401,36 @@ dcpp_ptr_t Client::clientCallFunc(const char* type, dcpp_ptr_t p1, dcpp_ptr_t p2
 	return DCPP_FALSE;
 }
 
-bool Client::extOnMsgIn(const std::string& msg) {
-//	bool plugin = PluginsManager::getInstance()->onHubMsgIn(this, msg.c_str());
-//	return plugin;
-	return false;
-}
-
-bool Client::extOnMsgOut(const std::string& msg) {
-	int p = PluginsManager::getInstance()->getSpeaker().speak(DCPP_EVENT_HUB, DCPP_EVENT_HUB_CHAT_MESSAGE_OUT, (dcpp_ptr_t)this, (dcpp_ptr_t)msg.c_str());
+bool Client::plugChatMessage(const ChatMessage& cm) {
+	dcppChatMessage m;
+	memzero(&m, sizeof(m));
+	m.from = reinterpret_cast<dcpp_ptr_t>(cm.from.get());
+	m.to = reinterpret_cast<dcpp_ptr_t>(cm.to.get());
+	m.hubPtr = reinterpret_cast<dcpp_ptr_t>(this);
+	m.replyTo = reinterpret_cast<dcpp_ptr_t>(cm.replyTo.get());
+	m.message = cm.text.c_str();
+	m.thirdPerson = cm.thirdPerson ? 1 : 0;
+	m.timestamp = cm.timestamp;
+	int p = PluginsManager::getInstance()->getSpeaker().speak(DCPP_EVENT_HUB, DCPP_EVENT_HUB_CHAT_MESSAGE, reinterpret_cast<dcpp_ptr_t>(&m), 0);
 	return p == DCPP_TRUE;
 }
 
-bool Client::extOnPmIn(OnlineUser* from, OnlineUser* to, OnlineUser* replyTo, const std::string& msg, bool thirdPerson) {
-//	if(ClientManager::getInstance()->getMe() == from->getUser()) return false;
+bool Client::plugHubLine(const char* line, size_t len, bool incoming) {
+	dcppHubLine m;
+	memzero(&m, sizeof(m));
+	m.hubPtr = reinterpret_cast<dcpp_ptr_t>(this);
+	m.line = line;
+	m.length = len;
 
-//	bool plugin = PluginsManager::getInstance()->onPMIn(this, from, to, replyTo, msg.c_str(), thirdPerson);
-//	return plugin;
-	return false;
+	int p = PluginsManager::getInstance()->getSpeaker().speak(DCPP_EVENT_HUB, DCPP_EVENT_HUB_LINE, reinterpret_cast<dcpp_ptr_t>(&m), incoming ? 1 : 0);
+	return p == DCPP_TRUE;
 }
 
-bool Client::extOnPmOut(const UserPtr& user, const std::string& msg) {
-//	OnlineUser* ou = findUser(user->getCID());
-//	if(!ou) return false;
-
-//	bool plugin = PluginsManager::getInstance()->onPMOut(this, ou, msg.c_str());
-//	return plugin;
-	return false;
+bool Client::plugChatSendLine(const std::string& line) {
+	int p = PluginsManager::getInstance()->getSpeaker().speak(DCPP_EVENT_HUB, DCPP_EVNET_HUB_CHAT_SEND_LINE, reinterpret_cast<dcpp_ptr_t>(this), reinterpret_cast<dcpp_ptr_t>(line.c_str()));
+	return p == DCPP_TRUE;
 }
+
 //END
 
 } // namespace dcpp

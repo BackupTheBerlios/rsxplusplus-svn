@@ -276,7 +276,7 @@ void HubFrame::onEnter() {
 		}
 		currentCommand = Util::emptyStringT;
 
-		bool dropMessage = client->extOnMsgOut(Text::fromT(s)); //RSX++
+		bool dropMessage = client->plugChatSendLine(Text::fromT(s)); //RSX++
 
 		// Special command
 		if(s[0] == _T('/')) {
@@ -1259,7 +1259,6 @@ void HubFrame::runUserCommand(::UserCommand& uc) {
 	client->getMyIdentity().getParams(ucParams, "my", true);
 	client->getHubIdentity().getParams(ucParams, "hub", false);
 
-	bool drop = false; //RSX++
 	if(tabMenuShown) {
 		client->escapeParams(ucParams);
 		client->sendUserCmd(Util::formatParams(uc.getCommand(), ucParams, false));

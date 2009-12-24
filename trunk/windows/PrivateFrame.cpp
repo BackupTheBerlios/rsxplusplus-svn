@@ -303,7 +303,9 @@ void PrivateFrame::onEnter()
 		}
 		currentCommand = Util::emptyStringT;
 
-		bool dropMessage = ctrlClient.getClient() && ctrlClient.getClient()->extOnPmOut(replyTo, Text::fromT(s)); //RSX++
+#pragma message("\t\t\t@TODO: implement call for outgoing pm message")
+
+		bool dropMessage = false;//ctrlClient.getClient() && ctrlClient.getClient()->extOnPmOut(replyTo, Text::fromT(s)); //RSX++
 
 		// Process special commands
 		if(s[0] == '/') {

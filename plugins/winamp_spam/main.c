@@ -85,7 +85,7 @@ void formatSeconds(int aSec, char* buf) {
 //%[userParam]
 
 int DCPP_CALL_CONV sendSpam(int callReason, dcpp_ptr_t lParam, dcpp_ptr_t wParam) {
-    if(callReason == DCPP_EVENT_HUB_CHAT_MESSAGE_OUT) {
+    if(callReason == DCPP_EVNET_HUB_CHAT_SEND_LINE) {
         const char* msg = (const char*)wParam;
         if(strncmp(msg, "/winamp", 7) == 0 || strncmp(msg, "/w", 2) == 0) {
             HWND wnd = FindWindowW(L"Winamp v1.x", NULL);
@@ -201,7 +201,7 @@ int DCPP_CALL_CONV sendSpam(int callReason, dcpp_ptr_t lParam, dcpp_ptr_t wParam
 					addParam(&params, "userParam", tmp);
 				}
 				{
-					char* format = "/me is listening to  %[title] (%[elapsed]/%[length])";
+					char* format = "is listening to  %[title] (%[elapsed]/%[length])";
 					dcppBuffer buf;
 
 					//format = (char*)f->call(DCPP_CONFIG_GET, (dcpp_ptr_t)(char*)"winamp.fmt", 0, 0);
@@ -210,7 +210,7 @@ int DCPP_CALL_CONV sendSpam(int callReason, dcpp_ptr_t lParam, dcpp_ptr_t wParam
 					memset(buf.buf, 0, buf.size + 1);
 
 					f->call(DCPP_CALL_UTILS_FORMAT_PARAMS, (dcpp_ptr_t)params, (dcpp_ptr_t)format, (dcpp_ptr_t)&buf);
-					f->call(DCPP_CALL_HUB_SEND_MESSAGE, lParam, (dcpp_ptr_t)buf.buf, 0);
+					f->call(DCPP_CALL_HUB_SEND_CHAT_MESSAGE, lParam, (dcpp_ptr_t)buf.buf, 1);
 
 					free(buf.buf);
 					freeMap(&params);

@@ -94,13 +94,6 @@ public:
 	//RSX++
 	virtual OnlineUser* findUser(const CID& aCid) const = 0;
 	virtual OnlineUser* findUser(const uint32_t sid) const = 0;
-	//RSX++ for lua bindings
-	inline OnlineUser* findOnlineUser(const string& aNick) const {
-		OnlineUserPtr ou = findUser(aNick);
-		if(ou)
-			return ou.get();
-		return NULL;
-	}
 	//END
 
 	uint16_t getPort() const { return port; }
@@ -123,10 +116,9 @@ public:
 	void putDetectors() { stopMyINFOCheck(); stopChecking(); setCheckedAtConnect(false); }
 	bool isActionActive(const int aAction) const;
 
-	bool extOnMsgIn(const std::string& msg);
-	bool extOnMsgOut(const std::string& msg);
-	bool extOnPmIn(OnlineUser* from, OnlineUser* to, OnlineUser* replyTo, const std::string& msg, bool thirdPerson);
-	bool extOnPmOut(const UserPtr& user, const std::string& msg);
+	bool plugChatMessage(const ChatMessage& cm);
+	bool plugHubLine(const char* line, size_t len, bool incoming);
+	bool plugChatSendLine(const std::string& line);
 	//END
 	static int getTotalCounts() {
 		return counts.normal + counts.registered + counts.op;
@@ -162,7 +154,7 @@ public:
 	bool isActive() const;
 
 	void send(const string& aMessage) { send(aMessage.c_str(), aMessage.length()); }
-	void send(const char* aMessage, size_t aLen);
+	void send(const char* aMessage, size_t aLen, bool bypassPlug = false);
 
 	string getMyNick() const { return getMyIdentity().getNick(); }
 	string getHubName() const { return getHubIdentity().getNick().empty() ? getHubUrl() : getHubIdentity().getNick(); }

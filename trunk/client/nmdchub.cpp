@@ -834,10 +834,8 @@ void NmdcHub::onLine(const string& aLine) throw() {
 			message.thirdPerson = true;
 			message.text = message.text.substr(4);
 		}
-
-		if(extOnPmIn(message.from.get(), message.to.get(), message.replyTo.get(), toUtf8(unescape(message.text)), message.thirdPerson))
-			return;
-		fire(ClientListener::Message(), this, message);
+		if(!plugChatMessage(message)) //RSX++
+			fire(ClientListener::Message(), this, message);
 	} else if(cmd == "GetPass") {
 		OnlineUser& ou = getUser(getMyNick());
 		ou.getIdentity().set("RG", "1");
@@ -1053,11 +1051,10 @@ void NmdcHub::on(Connected) throw() {
 
 void NmdcHub::on(Line, const string& aLine) throw() {
 	Client::on(Line(), aLine);
-	//RSX++
-	if(extOnMsgIn(toUtf8(aLine)))
-		return;
-	//END
-	onLine(aLine);
+
+	std::string line = toUtf8(aLine); //RSX++
+	if(!plugHubLine(line.c_str(), line.length(), true)) //RSX++
+		onLine(aLine);
 }
 
 void NmdcHub::on(Failed, const string& aLine) throw() {

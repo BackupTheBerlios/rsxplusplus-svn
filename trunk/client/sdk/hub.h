@@ -22,14 +22,18 @@
 #define DCPP_EVENT_HUB "Hub/"
 #define DCPP_CALL_HUB "Hub/"
 
-#define DCPP_EVENT_HUB_CREATED				1 //"Hub/Created"
-#define DCPP_EVENT_HUB_DESTROYED			2 //"Hub/Destroyed"
-#define DCPP_EVENT_HUB_CONNECTING			3 //"Hub/Connecting"
-#define DCPP_EVENT_HUB_CONNECTED			4 //"Hub/Connected"
-#define DCPP_EVENT_HUB_DISCONNECTED			5 //"Hub/Disconnected"
-#define DCPP_EVENT_HUB_REDIRECTED			6 //"Hub/Redirected"
-#define DCPP_EVENT_HUB_CHAT_MESSAGE_IN		7 //"Hub/ChatMessageIn"
-#define DCPP_EVENT_HUB_CHAT_MESSAGE_OUT		8 //"Hub/ChatMessageOut"
+#define DCPP_EVENT_HUB_CREATED				1
+#define DCPP_EVENT_HUB_DESTROYED			2
+#define DCPP_EVENT_HUB_CONNECTING			3
+#define DCPP_EVENT_HUB_CONNECTED			4
+#define DCPP_EVENT_HUB_DISCONNECTED			5
+#define DCPP_EVENT_HUB_REDIRECTED			6
+//this might be a main chat or private chat message
+#define DCPP_EVENT_HUB_CHAT_MESSAGE			7
+//this is outgoing chat message
+#define DCPP_EVNET_HUB_CHAT_SEND_LINE		8
+//raw protocol lines read/write from/to socket
+#define DCPP_EVENT_HUB_LINE					9
 
 #define DCPP_CALL_HUB_OPEN					"Hub/Open"
 #define DCPP_CALL_HUB_CLOSE					"Hub/Close"
@@ -45,27 +49,44 @@
 #define DCPP_CALL_HUB_SET_HUB_FIELD(x)		"Hub/Identity/Hub/Set/" x
 #define DCPP_CALL_HUB_SET_MY_FIELD(x)		"Hub/Identity/My/Set/" x
 
-#define DCPP_CALL_HUB_SEND_MESSAGE			"Hub/SendMessage"
+//params: dcpp_ptr_t hubPtr, const char* msg, bool thirdPerson
+#define DCPP_CALL_HUB_SEND_CHAT_MESSAGE		"Hub/SendChatMessage"
+//params: dcpp_ptr_t hubPtr, const char* cmd
 #define DCPP_CALL_HUB_SEND_USER_COMMAND		"Hub/SendUserCommand"
-#define DCPP_CALL_HUB_SOCKET_WRITE			"Hub/SocketWrite"
+//params: dcpp_ptr_t hubPtr, const char* line, size_t len
+#define DCPP_CALL_HUB_LINE_WRITE			"Hub/LineWrite"
+//params: dcpp_ptr_t hubPtr, const char* msg, int format
 #define DCPP_CALL_HUB_CHAT_WINDOW_WRITE		"Hub/ChatWindowWrite"
-
+//params: dcppChatMessage*, dcppBuffer*
+#define DCPP_CALL_HUB_FORMAT_CHAT_MESSAGE	"Hub/FormatChatMessage"
+//params: dcpp_ptr_t hubPtr, const char* line
+#define DCPP_CALL_HUB_DISPATCH_LINE			"Hub/DispatchLine"
+/*
 typedef struct {
-	const char* address;
-	const char* ip;
 	uint16_t port;
 	uint8_t isAdc;
 	uint8_t isSecured;
+	const char* address;
+	const char* ip;
 } dcppHubInformation;
-
+*/
 typedef struct {
-	const char* message;
-	uint8_t thirdPerson;
+	dcpp_ptr_t hubPtr;
 
 	dcpp_ptr_t from;
 	dcpp_ptr_t to;
 	dcpp_ptr_t replyTo;
+	uint64_t timestamp;
+	const char* message;
+	uint8_t thirdPerson;
 } dcppChatMessage;
+
+typedef struct {
+	dcpp_ptr_t hubPtr;
+
+	dcpp_ptr_t length;
+	const char* line;
+} dcppHubLine;
 
 #endif
 

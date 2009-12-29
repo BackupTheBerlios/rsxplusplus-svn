@@ -1,10 +1,15 @@
+** SVN 178
+ ** [sdk] fix for wideToUtf8 conversion
+ ** version bump
+ ** [sdk] call conv fix
+
 ** SVN 177
  ** fix plugin unload when pluginLoad failed (bad return value)
- ** more Hub implementation in PluginSDK
+ ** [sdk] more Hub implementation
  ** some code cleanup
 
 ** SVN 176
- ** partial implementation of refactored PluginSDK
+ ** [sdk] partial implementation of refactored PluginSDK
 
 ** SVN 175
  ** updated icons (thx i.nfrar.ed)

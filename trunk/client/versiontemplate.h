@@ -17,8 +17,8 @@
  */
 
 #define APPNAME "RSX++"
-#define VERSIONSTRING "1.11"
-#define VERSIONFLOAT 1.11
+#define VERSIONSTRING "1.2"
+#define VERSIONFLOAT 1.20
 
 #define DCVERSIONSTRING "0.75"
 #define DCVERSIONFLOAT 0.75

@@ -63,37 +63,37 @@ private:
 		return PluginsManager::getInstance()->getSpeaker().call(type, p1, p2, p3);
 	}
 
-	static int addCaller(dcppCallFunc fn) {
+	static int DCPP_CALL_CONV addCaller(dcppCallFunc fn) {
 		return PluginsManager::getInstance()->getSpeaker().addCaller(fn) ? DCPP_TRUE : DCPP_FALSE;
 	}
-	static int removeCaller(dcppCallFunc fn) {
+	static int DCPP_CALL_CONV removeCaller(dcppCallFunc fn) {
 		return PluginsManager::getInstance()->getSpeaker().removeCaller(fn) ? DCPP_TRUE : DCPP_FALSE;
 	}
-	static dcpp_ptr_t call(const char* type, dcpp_ptr_t p1, dcpp_ptr_t p2, dcpp_ptr_t p3) {
+	static dcpp_ptr_t DCPP_CALL_CONV call(const char* type, dcpp_ptr_t p1, dcpp_ptr_t p2, dcpp_ptr_t p3) {
 		return PluginsManager::getInstance()->getSpeaker().call(type, p1, p2, p3);
 	}
 
-	static int addSpeaker(const char* type) {
+	static int DCPP_CALL_CONV addSpeaker(const char* type) {
 		return PluginsManager::getInstance()->getSpeaker().addSpeaker(string(type), false) ? DCPP_TRUE : DCPP_FALSE;
 	}
 
-	static int removeSpeaker(const char* type) {
+	static int DCPP_CALL_CONV removeSpeaker(const char* type) {
 		return PluginsManager::getInstance()->getSpeaker().removeSpeaker(string(type)) ? DCPP_TRUE : DCPP_FALSE;
 	}
 
-	static int isSpeaker(const char* type) {
+	static int DCPP_CALL_CONV isSpeaker(const char* type) {
 		return PluginsManager::getInstance()->getSpeaker().isSpeaker(string(type)) ? DCPP_TRUE : DCPP_FALSE;
 	}
 
-	static int addListener(const char* type, dcppListenerFunc fn) {
+	static int DCPP_CALL_CONV addListener(const char* type, dcppListenerFunc fn) {
 		return PluginsManager::getInstance()->getSpeaker().addListener(string(type), fn) ? DCPP_TRUE : DCPP_FALSE;
 	}
 
-	static int removeListener(const char* type, dcppListenerFunc fn) {
+	static int DCPP_CALL_CONV removeListener(const char* type, dcppListenerFunc fn) {
 		return PluginsManager::getInstance()->getSpeaker().removeListener(string(type), fn) ? DCPP_TRUE : DCPP_FALSE;
 	}
 
-	static int speak(const char* type, int callReason, dcpp_ptr_t param1, dcpp_ptr_t param2) {
+	static int DCPP_CALL_CONV speak(const char* type, int callReason, dcpp_ptr_t param1, dcpp_ptr_t param2) {
 		return PluginsManager::getInstance()->getSpeaker().speak(string(type), callReason, param1, param2);
 	}
 

@@ -185,8 +185,8 @@ dcpp_ptr_t PluginsManager::coreCallFunc(const char* type, dcpp_ptr_t p1, dcpp_pt
 			if(!str || !buf || buf->size == 0) return DCPP_FALSE;
 			string s = Text::wideToUtf8(wstring((wchar_t*)str));
 			size_t len = buf->size;
-			if(s.size() < len)
-				len = s.size();
+			if(s.size()*sizeof(wchar_t) < len)
+				len = s.size()*sizeof(wchar_t);
 			memcpy(buf->buf, &s[0], len);
 			return len;
 		}

@@ -1,3 +1,9 @@
+** SVN 179
+ ** fix for WTL SVN
+ ** updated docs
+ ** boost 1.41.0 & removed unused libs
+ ** [winamp_spam] updated to latest sdk
+
 ** SVN 178
  ** [sdk] fix for wideToUtf8 conversion
  ** version bump

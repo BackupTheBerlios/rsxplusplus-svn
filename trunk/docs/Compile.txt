@@ -1,27 +1,25 @@
 The most important thing about compiling: If it didn't work, *you* screwed up.
 
-What you need to compile RSX++:
-1. Source code ;)
-2. Windows Template Library
-3. STLPort (>= 5.2 - svn)
-4. Visual Studio 2005 Professional
+Required stuff to compile RSX++:
+	1. Windows Template Library - WTL (svn: https://wtl.svn.sourceforge.net/svnroot/wtl/trunk/wtl/include)
+	2. [Recommended] STLport (>= 5.2)
+	3. Visual Studio 2008 Professional with Service Pack
 
 How to set-up framework:
-1. Compile STLPort (readme and install included in STLPort will help you).
-2. Copy Windows Template Library to /wtl directory
-3. If you will get error about missing natupnp.h file, update PlatfromSDK from Microsoft MSDN.
+	1. Copu STLport to /stlport dir and compile it (also rsxpp-readme.txt).
+	2. Copy WTL to /wtl directory
+	3. If you will get error about missing natupnp.h file, update PlatfromSDK from Microsoft MSDN.
 
 How to compile RSX++:
-1. Open solution (RSXPlusPlus.sln).
-2. Choose build mode (Release/Debug/SvnRelease) and press Ctrl+Shift+B :)
-
+	1. Open solution (RSXPlusPlus.sln).
+	2. Choose build mode (Release/Debug/SvnRelease) and press Ctrl+Shift+B :)
 
 
 Submitting patches:
 If you want to submit a patch for RSX++, post diff on RSX++ project site (or forum) - http://sourceforge.net/projects/rsxplusplus/
 
 By submitting a patch, you agree to that I get copyright of it. This to avoid stupid situations later on where
-the copyright is split out over a million people, each of which could stop further distribution of DC++, and also
+the copyright is split out over a million people, each of which could stop further distribution of RSX++, and also
 to make it easier for us to defend the gpl against violators. If you don't like this policy, start your own 
 distribution, if you're lucky it might become more popular than the original =). Please
 state explicitly in the email that you give me copyright over the code if the submission is larger than trivial.

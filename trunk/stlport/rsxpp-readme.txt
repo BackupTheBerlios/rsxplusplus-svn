@@ -12,4 +12,6 @@ in stlport/stl/config/user_config.h add following code BEFORE compiling (doesn't
 
 #endif
 
+then run the script!
+
 have fun ;)

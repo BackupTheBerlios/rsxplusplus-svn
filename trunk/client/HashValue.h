@@ -46,31 +46,36 @@ struct HashValue : FastAlloc<HashValue<Hasher> >{
 
 } // namespace dcpp
 
-namespace std { 
-//#if !defined(_STLPORT_VERSION)
-//	namespace tr1 {
-//#endif
+//RSX++
+#ifdef BOOST_TR1
+namespace boost {
+#else
+namespace std {
+#endif
+//END
 template<typename T>
 struct hash<dcpp::HashValue<T> > {
-	size_t operator()(const dcpp::HashValue<T>& rhs) const { return *(size_t*)rhs.data; }
+	size_t operator()(const dcpp::HashValue<T>& rhs) const { 
+		return *(size_t*)rhs.data; 
+	}
 };
 
 template<typename T>
 struct hash<dcpp::HashValue<T>* > {
-	size_t operator()(const dcpp::HashValue<T>* rhs) const { return *(size_t*)rhs; }
+	size_t operator()(const dcpp::HashValue<T>* rhs) const { 
+		return *(size_t*)rhs; 
+	}
 };
+} // namespace std/boost
 
+namespace std {
 template<typename T>
 struct equal_to<dcpp::HashValue<T>*> {
 	bool operator()(const dcpp::HashValue<T>* lhs, const dcpp::HashValue<T>* rhs) const {
 		return (*lhs) == (*rhs);
 	}
 };
-
-//#if !defined(_STLPORT_VERSION)
-//}
-//#endif
-}
+} // namespace std
 
 #endif // !defined(HASH_VALUE_H)
 

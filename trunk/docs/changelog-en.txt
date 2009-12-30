@@ -1,5 +1,103 @@
+  -- StrongDC++ 2.30 --
+  
+* fixed upload connection tokens (grant extra slot, upload queue etc.)
+* added cheating string for old clients
+* get full list when partial one is not available
+* fix round-off issue when segmented downloads are disabled (DC++ BZR)
+* fix crash on too many connections (DC++ BZR)
+* fixed slots info in ADC hubs
+* fixed info update on limiter change from toolbar
+* improved manual searching for something planned for autosearch
+* using OpenSSL with disabled TLS extension
+* better hub detection for client-to-client connections
+* hopefully fixed extra slot issues
+* upload queue position and TLS connections are enabled in spite of stealth mode
+* implemented DHT search engine
+* rewritten bandwidth limiter
+* some other changes, fixes, memory optimizations etc.
+
+
+	-- StrongDC++ 2.22 --
+
+* better URL detection in chat
+* stability fixes - now it's almost perfect :)
+* removed detection of too many same numbers in share size
+* changed default URL to client profiles
+* fixed graphics on 16-bit color depth
+* tab key switching works in PM
+* ctrl+m userlist's shortcut to send PM
+* fixed losing focus in settings' tree
+* advertising NMDC TLS support
+* small memory optimization
+* added support for secured HTTP connections (https://)
+* changed binary prefixes to match standard IEC 60027-2
+* added extra slots for partial share
+* fixed copying folders info in filelists
+* don't bold queue tab when filelist/testsur is finished
+* alternate sources are added to queue even if autosearch is disabled
+* queue automatch downloads partial filelists only
+* unsuccessful partial filelist requests are removed from queue
+* temp target file is checked for its existence before download resumes
+* added TLS support for NMDC hub connections (nmdcs://)
+* changed to stable version of OpenSSL
+* improved partial file sharing chunk size
+* fixed displaying hub name in ADC userlist
+* fixed invalid state icon in TreeListViewCtrl when using filtering
+* fixed possible file corruption on crash
+* many other bugfixes (see developer changelog for details)
+
+
+	-- StrongDC++ 2.21 --
+
+* stability fixes
+* encrypted transfers fixes
+* strings in Certificate settings are translatable
+* "Send unknown commands to hub" settings applies to PM too
+* added Cipher column to transfer window
+* nonfiltered kick messages are coloured as server messages
+* added transfer message when asking for a slot
+* removed obsolete garbage commands
+
+
+	-- StrongDC++ 2.2 --
+
+*** WARNING ***
+  All connections between StrongDC++ are automatically encrypted now.
+  If you experience problems, you can disable it in Security Certificates settings.
+
+  Since this version, you can't use direct connection on ports 80 and 2501.
+*** WARNING ***
+
+* added some other libraries which could cause crash
+* fixed that Windows subfolders were shared
+* fixed problems with disabled segmented downloads
+* fixed remote exploit (THX Fartman)
+* whole folder can be downloaded without downloading whole filelist
+* added "Browse filelist" to userlist/transferlist default actions
+* fixed usercommands in PM tab context menu
+* updated bzip2
+* fixed some problems with returning search results (DC++ BZR)
+* some fixes to chat formatting
+* fixed some crashes
+* implemented Quick Search function (ApexDC++)
+* fixed finished items' total size
+* added option to place usercommands outside of submenu
+* bars positions and sizes are saved
+* search interval is hub dependent
+* upload slots settings has its own page
+* ADL search is done via regexp
+* added option to set maximum auto-opened slots (old Kulmegil's patch)
+* implemented some tweaks to hash progress dialog (old Kulmegil's patch)
+* fixed memory leak in network settings (ApexDC++)
+* fixes for partial file sharing
+* added support for encrypted NMDC transfers
+* implemented new clients detection system (THX adrian_007)
+* added temporary fix to avoid spamming ports 80 and 2501
+
+
 	-- StrongDC++ 2.13 --
 
+* improved program performance
 * fixed columns settings
 * fixed some crashes
 * fixed search resuls count
@@ -9,6 +107,8 @@
 * improved segment auto-size (DC++ SVN)
 * improved transfer speed averaging (DC++ SVN)
 * allow shared virtual folders to have the same name (DC++ SVN)
+* fixed missing "Downloaded parts" status in queue
+* Windows folder won't be shared
 * some other fixes and optimizations
 
 

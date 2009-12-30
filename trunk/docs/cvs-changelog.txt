@@ -1,3 +1,510 @@
+** svn467
+	added check for filelist size, 256 MB is allowed maximum (THX eMTee)
+	[DHT] duplicite IPs depends on IP:port
+	bloom fixes (DC++ BZR)
+
+** svn466
+	hubhints (DC++ BZR; needs cleaning up)
+
+** svn465
+	[ADC] fixed IP settings
+	partial fix for OnlineUser/Identity crash
+
+** svn464
+	[DHT] optimized adding new nodes to routing table
+	cleanup of old limiter code
+	fixed crash with GnuTLS
+	OpenSSL is used as default library until someone is able to build GnuTLS under VC++
+	fixed library freeing in PopupManager
+	[DHT] UDP port can be changed also in Direct connection mode
+	[DHT] don't allow connections with offline users (i.e. without previous handshake)
+
+** svn463
+	[DHT] better pinging old nodes
+	[DHT] file publishing takes 20 secs only
+	[DHT] default UDP port is 6250
+	[DHT] improved UDP sending speed
+	added some missing country flags (THX RadoX)
+	hopefully fixed UTF-8 in magnet links (FlyLinkDC++)
+	added possibility to compile with GnuTLS
+	fixed getting text width (for statusbars texts)
+	added secure status to hubname + cipher into statusbar (DC++)
+
+** svn462
+	[DHT] publishing all sharelist (files > 1 MiB) and not only 200 largest files
+	[DHT] fixed encryption when our IP changes
+	[DHT] file publishing takes 40 secs instead of 140 secs
+	[DHT] encrypted packet has random first byte, so it's impossible to detect packet type
+
+** svn461
+	updated to Boost 1.40
+	[DHT] fixed parsing encrypted packets
+	removed string pool to see whether it fixes crashes
+
+** svn460
+	fixed small bug in limiter's settings
+	fixed some problems on x64 platforms
+	[DHT] fixed switching on/off
+	[DHT] faster UDP sending
+	[DHT] faster detection of dead nodes
+	[DHT] fixed publishing partial files
+	[DHT] ignore multiple nodes with same IP:port
+	[ADC] added TS support (DC++ BZR)
+	[DHT] advertising this feature to hubs
+	[DHT] implemented simple IP verification
+	[DHT] don't allow multiple same IPs in search response
+	fixed bold text of shared folders when any subfolder doesn't exist
+	[DHT] implemented general flooding protection
+	[DHT] implemented simple encryption
+
+** svn459
+	released 2.30
+
+** svn458
+	default uploadbar color is more orange than red
+
+** svn457
+	fixed bold text of shared folders in Settings
+	merged with DC++ hashing pause code
+	fixed parsing ADC commands in DHT
+
+** svn456
+	implemented %[userXX] and %[idleTI] variables into away messages
+	hopefully fixed memory leak in ShareManager
+	hopefully fixed switching DHT on/off
+	fixed exit when hashing is paused
+	updated OpenSSL
+
+** svn455
+	download partial filelist for automatch only when filepath is known
+	fixed deadlock in DHT code
+	hopefully fixed hashing pause
+
+** svn454
+	refactored bandwidth limiter
+
+** svn453
+	rewritten download limiter
+	fixed transfer status for filelists
+	added critical section to StringPool
+	upload queue fix
+	added LocalMode option to dcppboot.xml
+	some cleanup in HubFrame's status messages
+
+** svn452
+	improved bootstrap routine
+	added option to open recent hubs frame on startup
+	rewritten upload limiter, it shouldn't suffer from 50+1=100 problem (need many tests)
+
+** svn451
+	fixed random crashes in Release build
+	small tweak for firewalled nodes
+	option to autoupdate IP on DHT firewall check
+	all DHT settings should work
+	default DHT port set to 6245
+	tried adding string pool for storing userinfo
+	updated OpenSSL
+
+** svn450
+	stop hashing folders excluded from share
+	getting search results from DHT online users only (fixes crashes and non-downloadable files)
+	ADC connection speed is displayed in bytes/sec (not in bits)
+	updated OpenSSL to 1.0 beta2
+
+** svn449
+	added support for DHT passive connections
+
+** svn448
+	when dht.xml is older than 7 days, bootstrap from database
+	fixed deadlock
+	DHT publishing is delayed until bootstrapping is completed
+	don't spread firewalled DHT sources, not reliable but good enough
+	publish one file in 2 seconds
+	DHT uses UDP port 6241
+
+** svn447
+	bandwidth limiter fixes (DC++ BZR)
+	hopefully fixed DHT file publishing
+	fixed publishing partial files
+
+** svn446
+	fixed crash when no nodes available
+	possible fix for STA commands
+	changed STA commands to match ADC protocol
+
+** svn445
+	small fix to avoid IP spoofing via INF
+	updated bandwidth limiter code (BCDC++ BZR)
+	better STA handling in DHT
+
+** svn444
+	improved DHT firewall check
+	fixed memory leak
+	changed INF format for ping
+	added sources limit to search results
+	added node count check in search results
+	decreased republish time to 5 hours
+
+** svn443
+	make option to set DHT/UDP port (still cannot be changed)
+	added IP:port check for DHT packets
+	partial file sharing in DHT
+	UDP buffer size respects settings
+	DHT uses UDP port 6240
+
+** svn442
+	rewritten nodes expiration
+	decreased DHT search lifetimes
+	increased UDP receive buffer size
+	prepared for partial file sharing in DHT
+	forbidden duplicate DHT searches
+
+** svn441
+	change in routing table
+	returning more nodes in search response
+
+** svn440
+	better dead nodes detection
+	fixed broken DHT connections
+	fixed DHT connected status on startup
+	save DHT status every minute
+	improved bootstrapping
+	DHT uses UDP port 6239
+
+** svn439
+	working published files expiration
+	fixed crashes when getting DHT hub info
+	when searching for file in DHT, check own store first
+	DHT uses UDP port 6238
+
+** svn438
+	published sources expiration set to 24 hours
+	DHT active connections should work
+	only active nodes are saved to database
+	DHT uses UDP port 6237
+	fixed parsing file sources
+ 	manual searching in DHT	
+
+** svn437
+	fixed TTH of published files
+	fixed publish response
+	published files are saved on exit
+	DHT searching works
+	begun work on DHT connections
+
+** svn436
+	partial implementation of DHT search engine
+
+** svn435
+	changed hashing pause to DC++ code
+	hub hint used on more places
+	hopefully fixed extra slot issues
+	upload queue position and TLS connections are enabled in spite of stealth mode
+
+** svn434
+	fixed upload connection tokens (grant extra slot, upload queue etc.)
+	added cheating string for old clients
+	get full list when partial one is not available
+	fix round-off issue when segmented downloads are disabled (DC++ BZR)
+	fix crash on too many connections (DC++ BZR)
+	fixed slots info in ADC hubs
+	automanage sharemanager memory (DC++ BZR)
+	fixed info update on limiter change from toolbar
+	improved manual searching for something planned for autosearch
+	using OpenSSL with disabled TLS extension
+
+** svn433
+	released 2.22
+
+** svn432
+	fixed hubhints
+	fixed Highest priority extra download slots
+	updated OpenSSL
+
+** svn431
+	try to have maximum priority for testsur
+	filelist is checked only if user hasn't been banned for testsur
+	crash fix from DC++ BZR
+
+** svn430
+	fixed saving queue when adding file without any source
+	hopefully fixed protocol handlers registering on WinVista (admin rights not needed anymore)
+	removed support of external magnet handler (magnet.exe etc.)
+	fixed right click menu in upload queue frame
+	hopefully fixed invalid trailing character when copying whole chat line
+	fixed wrong cursor in chat popup menu
+
+** svn429
+	added "clear chat" to hub's tab context menu
+	fixed webserver log settings
+	ref stuff from DC++ BZR
+	added possibility to recheck unfinished downloads (DC++ BZR)
+
+** svn428
+	fixed missing CID in transfers' log
+	fixed segment size when segmented downloads are disabled
+	added more info to spam log message
+	fixed "clear chat" item in PM's tab context menu
+
+** svn427
+	adcs:// links are clickable now
+	fixed apostrophes in chat links
+	begun work on hub-dependent connections and PMs (DC++ BZR)
+	ADC partial search results contain hub's IP:port
+	added complete Boost library
+
+** svn426
+	finished partial slots settings
+
+** svn425
+	reverted NmdcHub performance stuff due to stability problems
+	fixed invalid state icon in TreeListViewCtrl when using filtering
+	fixed possible file corruption on crash
+	fixed PM crash
+
+** svn424
+	[#298137] fixed displaying hub name in ADC userlist
+	improved partial file sharing chunk size
+
+** svn423
+	added TLS support for NMDC hub connections (nmdcs://)
+	changed to stable version of OpenSSL
+	reverted to old stable code of PrivateFrame (but still not much stable)
+
+** svn422
+	temp target file is checked for its existence before download resumes
+	updated OpenSSL
+
+** svn421
+	transfer's file name is now more understandable for filelists/testsur
+	using VS2008 SP1
+	kademlia postponed to the next bigger version (because it needs many changes to work completely)
+	unsuccessful partial filelist requests are removed from queue
+
+** svn420
+	queue automatch downloads partial filelists only and is defaulty on (match efficient now!)
+	temporary fix for connection types
+	fixed deadlock
+
+** svn419
+	boostrapping from bootstrap nodes
+	saving only 200 good nodes at exit
+	don't bold queue tab when filelist/testsur is finished
+	alternate sources are added to queue even if autosearch is disabled
+	kademlia uses port 5172
+
+** svn418
+	fixed kademlia file publishing
+	ignoring duplicite kademlia searches
+	fixed copying folders info in filelists
+
+** svn417
+	duplicite publish requests are ignored
+	no coralize for kademlia bootstrap URL
+	added kademlia reponse to successful publish request
+	republishing every 24 hours
+
+** svn416
+	improved kademlia search tolerance
+	kademlia autosearches for TTH
+	added hotkeys for open download folder (Ctrl+Z) and open own filelist (Ctrl+O)
+	kademlia uses UDP port 5171
+
+** svn415
+	IP isn't advertised via kademlia anymore
+	kademlia file transfers
+	fixed kademlia IP parsing
+
+** svn414
+	kademlia bootstraps from external website
+	finished kademlia files publishing
+	added some kademlia IP checks
+	added sending and parsing INF command
+	added "McAfee VirusScan Winsock Helper" to libraries causing a crash
+	open link calls only ShellExecute without getting real protocol handler
+	added possibility to compile with yaSSL instead of OpenSSL (but it's not recommended)
+	hopefully fixed possible invalid hub user count
+	search history is sorted and doesn't show duplicites
+	kademlia UDP compression level respects settings
+	kademlia uses UDP port 5170
+	TCP port isn't advertised via kademlia anymore
+	begun work on extra slots for partial share
+
+** svn413
+	some memory optimization
+	added support for secured HTTP connections
+	nodelist is saved as XML file
+	rewritten a lot of parts of decentralized network (it doesn't match the draft now :-D)
+	decentralized network renamed to Kademlia, because it is very similar to it
+	finally removed all GetZBlock advertising
+	changed binary prefixes to match standard IEC 60027-2
+
+** svn412
+	changed default URL to client profiles
+	fixed graphics on 16-bit color depth
+	tab key switching works in PM
+	some DC++ BZR merge
+	fixed too many "Requesting" messages
+	ctrl+m userlist's shortcut to send PM
+	fixed losing focus in settings' tree
+	fixes for URL parsing in chat
+	advertising NMDC TLS support
+	removed mess which stayed there from czdc bugs
+	continued work on decentralized network
+
+** svn411
+	used magnet icon from ApexDC++
+	fast speed optimization for regex library
+	better URL detection, slower but more precise (please all report nonworking URLs)
+	segmented downloads option made as a checkbox
+	maximum hashing speed settings moved to share settings
+	fixed crash #15604
+	removed detection of too many same numbers in share size
+	PM frame is hub-dependent
+	begun work on decentralized StrongDC++ network
+	some DC++ BZR merge
+
+** svn410
+	released 2.21
+
+** svn409
+	fixed fix for transferview :-)
+
+** svn408
+	CDM fix (adrian_007)
+	forgot to commit transferview patch
+
+** svn407
+	used __cdecl for Release
+	fixed blinking single download items
+	updated OpenSSL
+
+** svn406
+	completely fixed passive flag
+	hopefully fixed getting nicks in reconnected PMs
+	fixed download chunked flag
+	revert old code for loading obsolete .antifrag files
+	CTM spam control in ADC hubs
+
+** svn405
+	webserver respects search interval
+	fixed searching through webserver
+	another changes about OnlineUser
+	playing with anti-flood constants
+
+** svn404
+	other changes to SSLSocket (DC++ BZR)
+	try to fix crashes around OnlineUser/Identity
+	included x86 OpenSSL debug libraries
+	removed x64 OpenSSL libraries - x86 libs will be removed too and users will have to compile it on their own
+	CDM fix (adrian_007)
+	removed obsolete garbage commands
+	fixed SSL threading issues
+	
+** svn403
+	fixed crash #15455
+	fixed crashes in QueueManager::findPFSSources
+	disable boost asserts in release build
+	strings in Certificate settings are translatable
+	"Send unknown commands" settings applies to PM too
+	added Cipher column to transfer window
+	removed SSLSocket's virtual table
+	nonfiltered kick messages are coloured as server messages
+	added transfer message when asking for a slot
+	64-bit build results in StrongDC64.exe/pdb
+	some changes around SSL_connect and SSL_accept - needs more fixes to work correctly (DC++ BZR)
+	fixed passive flag in ADC hubs (passive flag must be fixed for me in NMDC hubs)
+
+** svn402
+	released 2.2
+
+** svn401
+	fixed searching interval
+
+** svn400
+	added missing files
+
+** svn399
+	implemented new CDM system (THX adrian_007)
+	support for passive PSR in ADC hubs
+	removed internal string comparison functions
+	added temporary fix to avoid spamming ports 80 and 2501
+
+** svn398
+	fixed search tokens in ADC hubs
+	cleanup NMDC status flags code
+	added support for encrypted NMDC transfers
+	SSL error code 6 translated to understandable message
+	transfer main item displays all available flags
+	fixed 64-bit builds
+
+** svn397
+	added support for partial file sharing in ADC hubs
+	all UDP commands moved to queue thread
+	PCRE changed to boost's regex
+
+** svn396
+	manual searches have priority before automatic
+	fixed partial file sharing
+	fixed possible race condition with new search queue timer
+	fixed crash when MDI window is activated before creating
+	fixed cheat messages in ADC hubs
+
+** svn395
+	upload slots settings has its own page
+	search progressbar uses opera-style
+	ADL searching is done via regexp
+	added option to set maximum auto-opened slots (old Kulmegil's patch)
+	fixed memory leak in network settings (ApexDC++)
+	implemented some tweaks to hash progress dialog (old Kulmegil's patch)
+
+** svn394
+	fixed line ends in PM history
+	quick search position saved
+	fixed that 3 standard OP commands were missing in some cases
+	menu/toolbar/quicksearch position and size are saved
+	updated PCRE library
+	stopping old search request when starting new one
+	rewritten search queue + search interval is hub dependent (idea from RevConnect)
+	added missing searchresult's context menu header
+
+** svn393
+	prevent Aboutdlg crash in case of wrong versiondata (DC++ BZR)
+	add 1000 mbit upload speed (DC++ BZR)
+	some fixes for resuming old .antifrag files (DC++ BZR)
+	decreased OpenSSL libraries size
+	fixed finished items' total size
+	added option to place usercommands outside of submenu
+
+** svn392
+	possible x64 builds (with many warnings now)
+	updated OpenSSL
+	changed compiler output directory
+
+** svn391
+	some other fixes to chat formatting
+	fixed potentional race condition in QueueManager
+	implemented Quick Search function (ApexDC++)
+
+** svn390
+	fixed usercommands in PM tab context menu
+	updated bzip2
+	fixed some problems with returning search results (DC++ BZR)
+	some fixes to chat formatting
+
+** svn389
+	added "Troj/Agent-GZF" to crash libraries
+	added "Internet Monitor Layered Service provider" to crash libraries
+	fixed that Windows subfolders were shared
+	fixed problems with disabled segmented downloads
+	fixed remote exploit (THX Fartman)
+	whole folder can be downloaded without downloading whole filelist
+	added "Browse filelist" to userlist/transferlist default actions
+	updated boost library
+
+** svn388
+	released 2.13
+
 ** svn387
 	fixed saving usernicks in queue
 	fixed missing "Downloaded parts" status in queue

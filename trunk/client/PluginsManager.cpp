@@ -122,7 +122,7 @@ void PluginsManager::init(void (*f)(void*, const tstring&), void* pv) {
 				loadPlugin(p, dll);
 				plugins.push_back(p);
 				if(f && pv)
-					(*f)(pv, fname);
+					(*f)(pv, Text::toT(Util::getFileName(*i)));
 			} catch(const Exception& e) {
 				// do a cleanup
 				delete p;

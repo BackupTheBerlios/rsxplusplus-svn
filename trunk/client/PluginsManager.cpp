@@ -141,11 +141,11 @@ void PluginsManager::getPluginsInfo(std::list<dcppPluginInformation*>& p) {
 }
 
 void PluginsManager::load() {
-	getSpeaker().speak(DCPP_EVENT_CORE, DCPP_EVENT_TYPE_CORE_LOAD, 0, 0);
+	getSpeaker().speak(DCPP_EVENT_CORE, DCPP_EVENT_CORE_LOAD, 0, 0);
 }
 
 void PluginsManager::close() {
-	getSpeaker().speak(DCPP_EVENT_CORE, DCPP_EVENT_TYPE_CORE_UNLOAD, 0, 0);
+	getSpeaker().speak(DCPP_EVENT_CORE, DCPP_EVENT_CORE_UNLOAD, 0, 0);
 
 	Lock l(cs);
 	for(Plugins::const_iterator i = plugins.begin(); i != plugins.end(); ++i) {

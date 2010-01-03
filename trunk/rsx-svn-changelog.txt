@@ -1,3 +1,6 @@
+** SVN 185
+ ** compile error (oops...)
+
 ** SVN 184
  ** bigger line dialog
  ** [sdk] plugins can use settings again

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2009 adrian_007, adrian-007 on o2 point pl
+ * Copyright (C) 2007-2010 adrian_007, adrian-007 on o2 point pl
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,9 +31,9 @@ LRESULT ExtensionsCfgPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 
 	ctrlList.Attach(GetDlgItem(IDC_EXTENSIONS_CFG));
 	ctrlList.GetClientRect(rc);
-	ctrlList.InsertColumn(0, _T("Name"), LVCFMT_LEFT, rc.Width() / 3, 0);
-	ctrlList.InsertColumn(1, _T("Value"), LVCFMT_LEFT, rc.Width() / 2, 0);
-	ctrlList.SetExtendedListViewStyle(/*LVS_EX_CHECKBOXES |*/ LVS_EX_FULLROWSELECT);
+	ctrlList.InsertColumn(0, _T("Name"), LVCFMT_LEFT, rc.Width() / 2 - 10, 0);
+	ctrlList.InsertColumn(1, _T("Value"), LVCFMT_LEFT, rc.Width() / 2 - 10, 0);
+	ctrlList.SetExtendedListViewStyle(LVS_EX_FULLROWSELECT);
 
 	const StringMap& st = rsxppSettingsManager::getInstance()->getExtSettings();
 	TStringList l;
@@ -76,7 +76,6 @@ void ExtensionsCfgPage::write() {
 		rsxppSettingsManager::getInstance()->setExtSetting(name, value);
 	}
 	rsxppSettingsManager::getInstance()->unlock();
-//	PluginsManager::getInstance()->onConfigChange();
 }
 
 /**

@@ -1,3 +1,12 @@
+** SVN 184
+ ** bigger line dialog
+ ** [sdk] plugins can use settings again
+ ** [winamp_spam] make use of settings ^^
+ ** more code cleanup
+ ** changed column sizes in add-ons settings page
+ ** [sdk] DCPP_EVENT_CORE_SETTINGS_SAVE
+ ** updated copyrights
+
 ** SVN 183
  ** little code cleanup here and there
  ** fixed compilation without STLport

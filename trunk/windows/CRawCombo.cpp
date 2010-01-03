@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2009 adrian_007, adrian-007 on o2 point pl
+ * Copyright (C) 2007-2010 adrian_007, adrian-007 on o2 point pl
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,10 +17,9 @@
  */
 
 #include "stdafx.h"
+
 #include "../client/DCPlusPlus.h"
-
 #include "../client/RawManager.h"
-
 #include "../client/rsxppSettingsManager.h"
 
 #include "CRawCombo.h"

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2009 adrian_007, adrian-007 on o2 point pl
+ * Copyright (C) 2007-2010 adrian_007, adrian-007 on o2 point pl
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -68,7 +68,7 @@ PluginsManager::~PluginsManager() {
 	delete dcpp_func;
 }
 
-void PluginsManager::loadPlugin(Plugin*& p, HMODULE dll) throw(Exception) {
+void PluginsManager::loadPlugin(Plugin*& p, HINSTANCE dll) throw(Exception) {
 	typedef dcppPluginInformation* (__stdcall *plugInfo)(unsigned long long, int);
 	p = new Plugin(dll);
 
@@ -115,7 +115,7 @@ void PluginsManager::init(void (*f)(void*, const tstring&), void* pv) {
 	StringList libs = File::findFiles(Util::getPath(Util::PATH_GLOBAL_CONFIG) + "Plugins" PATH_SEPARATOR_STR, "*.dll");
 	for(StringIter i = libs.begin(); i != libs.end(); ++i) {
 		const tstring& fname = Text::toT(*i);
-		HMODULE dll = LoadLibrary(fname.c_str());
+		HINSTANCE dll = LoadLibrary(fname.c_str());
 		if(dll) {
 			Plugin* p = 0;
 			try {
@@ -158,7 +158,26 @@ void PluginsManager::close() {
 dcpp_ptr_t PluginsManager::coreCallFunc(const char* type, dcpp_ptr_t p1, dcpp_ptr_t p2, dcpp_ptr_t p3, int* handled) {
 	*handled = DCPP_TRUE;
 	if(strncmp(type, "Core/", 5) == 0) {
+		if(strncmp(type+5, "Setting/", 8) == 0) {
+			const char* name = reinterpret_cast<const char*>(p1);
+			if(strncmp(type+13, "Plug/", 5) == 0) {
+				if(strncmp(type+18, "Get", 3) == 0) {
+					dcppBuffer* buf = reinterpret_cast<dcppBuffer*>(p2);
+					if(!buf || buf->buf == 0 || buf->size == 0) return DCPP_FALSE;
+					string val = rsxppSettingsManager::getInstance()->getExtSetting(name);
+					size_t len = buf->size;
+					if(val.size() < len)
+						len = val.size();
+					memcpy(buf->buf, val.c_str(), len);
+					return len;
+				} else if(strncmp(type+18, "Set", 3) == 0) {
+					rsxppSettingsManager::getInstance()->setExtSetting(name, reinterpret_cast<const char*>(p2));
+					return DCPP_TRUE;
+				}
+			} else if(strncmp(type+13, "dcpp/", 5) == 0) {
 
+			}
+		}
 	} else if(strncmp(type, "Utils/", 6) == 0) {
 		if(strncmp(type+6, "LogMessage", 10) == 0) {
 			LogManager::getInstance()->message(string(reinterpret_cast<const char*>(p1)));

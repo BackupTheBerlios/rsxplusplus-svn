@@ -111,9 +111,12 @@ void startup(void (*f)(void*, const tstring&), void* p) {
 	PluginsManager::newInstance();
 
 	NetworkConfiguration::getInstance()->setupPorts();
-	//---
+	PluginsManager::getInstance()->init(f, p);
+	//END
+
 	SettingsManager::getInstance()->load();
-	//+++
+
+	//RSX++
 	AutoSearchManager::getInstance()->AutosearchLoad();
 	IpManager::getInstance()->load();
 	//END
@@ -143,7 +146,6 @@ void startup(void (*f)(void*, const tstring&), void* p) {
 	RsxUtil::init();
 	if(RSXPP_BOOLSETTING(IPUPDATE))
 		IpManager::getInstance()->UpdateExternalIp();
-	PluginsManager::getInstance()->init(f, p);
 	//END
 }
 

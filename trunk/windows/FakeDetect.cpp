@@ -78,7 +78,7 @@ LRESULT FakeDetect::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 	addItem(TSTRING(CTM_SPAM_KICK),				rsxppSettingsManager::CTM_SPAM_KICK,			rsxppSettingsManager::SHOW_CTM_SPAM_KICK);
 	addItem(TSTRING(PM_SPAM_KICK),				rsxppSettingsManager::PM_SPAM_KICK,				rsxppSettingsManager::SHOW_PM_SPAM_KICK);
 
-	rsxppSettingsManager::ExtActions& actions = rsxppSettingsManager::getInstance()->getActions();
+	const rsxppSettingsManager::ExtActions& actions = rsxppSettingsManager::getInstance()->getActions();
 	TStringList l;
 	for(rsxppSettingsManager::ExtActions::const_iterator i = actions.begin(); i != actions.end(); ++i) {
 		DetectorItem* item = new DetectorItem(*i);

@@ -3,7 +3,7 @@
 
 struct {
 	char *name;
-	UINT codepage;
+	uint32_t codepage;
 } codepages[] = {
 	{ "ISO8859-1", 28591 },
 	{ "UTF-7", CP_UTF7 },

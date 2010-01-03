@@ -201,17 +201,27 @@ int DCPP_CALL_CONV sendSpam(int callReason, dcpp_ptr_t lParam, dcpp_ptr_t wParam
 					addParam(&params, "userParam", tmp);
 				}
 				{
-					char* format = "is listening to  %[title] (%[elapsed]/%[length])";
+					char format[2048];
+					char thirdPerson;
 					dcppBuffer buf;
-
-					//format = (char*)f->call(DCPP_CONFIG_GET, (dcpp_ptr_t)(char*)"winamp.fmt", 0, 0);
+					memset(format, 0, sizeof(format));
+					{
+						dcppBuffer tbuf;
+						tbuf.buf = format;
+						tbuf.size = 2047;
+						f->call(DCPP_CALL_CORE_SETTING_PLUG_GET, (dcpp_ptr_t)(char*)"winamp.fmt", (dcpp_ptr_t)&tbuf, 0);
+					}
 					buf.size = 4096;
 					buf.buf = (char*)malloc(buf.size + 1);
 					memset(buf.buf, 0, buf.size + 1);
 
 					f->call(DCPP_CALL_UTILS_FORMAT_PARAMS, (dcpp_ptr_t)params, (dcpp_ptr_t)format, (dcpp_ptr_t)&buf);
-					f->call(DCPP_CALL_HUB_SEND_CHAT_MESSAGE, lParam, (dcpp_ptr_t)buf.buf, 1);
-
+					thirdPerson = strncmp(format, "/me ", 4) == 0;
+					if(thirdPerson)
+						buf.buf += 4;
+					f->call(DCPP_CALL_HUB_SEND_CHAT_MESSAGE, lParam, (dcpp_ptr_t)buf.buf, thirdPerson);
+					if(thirdPerson)
+						buf.buf -= 4;
 					free(buf.buf);
 					freeMap(&params);
 				}
@@ -231,6 +241,7 @@ dcppPluginInformation* DCPP_CALL_CONV pluginInfo(unsigned long long coreSdkVersi
 int DCPP_CALL_CONV pluginLoad(dcppFunctions* pF) {
 	f = pF;
 	f->addListener(DCPP_EVENT_HUB, sendSpam);
+	f->call(DCPP_CALL_CORE_SETTING_PLUG_SET, (dcpp_ptr_t)(char*)"winamp.fmt", (dcpp_ptr_t)(char*)"/me is listening to  %[title] (%[elapsed]/%[length])", 0);
 	return 0;
 }
 

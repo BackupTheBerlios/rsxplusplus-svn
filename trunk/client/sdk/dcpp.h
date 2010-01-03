@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2009 adrian_007, adrian-007 on o2 point pl
+ * Copyright (C) 2007-2010 adrian_007, adrian-007 on o2 point pl
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -111,10 +111,15 @@ typedef struct _dcppLL {
 #define DCPP_EVENT_CORE "Core/"
 #define DCPP_CALL_CORE "Core/"
 // Core Events
-#define DCPP_EVENT_TYPE_CORE_LOAD 0
-#define DCPP_EVENT_TYPE_CORE_UNLOAD 1
+#define DCPP_EVENT_CORE_LOAD			0
+#define DCPP_EVENT_CORE_UNLOAD			1
+#define DCPP_EVENT_CORE_SETTINGS_SAVE	2
 
-
+// Core Calls
+#define DCPP_CALL_CORE_SETTING_PLUG_GET		"Core/Setting/Plug/Get"
+#define DCPP_CALL_CORE_SETTING_PLUG_SET		"Core/Setting/Plug/Set"
+//#define DCPP_CALL_CORE_SETTING_DCPP_GET		"Core/Setting/dcpp/Get"
+//#define DCPP_CALL_CORE_SETTING_DCPP_SET		"Core/Setting/dcpp/Set"
 
 #ifdef __cplusplus
 } // extern "C"

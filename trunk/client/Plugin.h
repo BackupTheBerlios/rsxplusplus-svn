@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2009 adrian_007, adrian-007 on o2 point pl
+ * Copyright (C) 2007-2010 adrian_007, adrian-007 on o2 point pl
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,8 +28,8 @@ public:
 	typedef int (DCPP_CALL_CONV *PluginLoad)(dcppFunctions*);
 	typedef int (DCPP_CALL_CONV *PluginUnload)();
 
-	Plugin(HMODULE h) : handle(h) { }
-	HMODULE handle;
+	Plugin(HINSTANCE h) : handle(h) { }
+	HINSTANCE handle;
 
 	PluginLoad pluginLoad;
 	PluginUnload pluginUnload;

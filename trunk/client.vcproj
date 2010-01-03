@@ -47,7 +47,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost\boost\tr1\tr1&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)openssl\include32&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)openssl\include32&quot;"
 				PreprocessorDefinitions="BUILDING_DCPP"
 				StringPooling="true"
 				MinimalRebuild="true"
@@ -133,7 +133,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost\boost\tr1\tr1&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)openssl\include64&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)openssl\include64&quot;"
 				StringPooling="true"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
@@ -223,7 +223,7 @@
 				FavorSizeOrSpeed="2"
 				OmitFramePointers="false"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost\boost\tr1\tr1&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)openssl\include32&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)openssl\include32&quot;"
 				PreprocessorDefinitions="BUILDING_DCPP"
 				StringPooling="true"
 				MinimalRebuild="true"
@@ -315,7 +315,7 @@
 				FavorSizeOrSpeed="2"
 				OmitFramePointers="false"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost\boost\tr1\tr1&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)openssl\include64&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)openssl\include64&quot;"
 				StringPooling="true"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
@@ -405,7 +405,7 @@
 				FavorSizeOrSpeed="2"
 				OmitFramePointers="false"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost\boost\tr1\tr1&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)openssl\include32&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)openssl\include32&quot;"
 				PreprocessorDefinitions="SVNBUILD"
 				StringPooling="true"
 				MinimalRebuild="true"
@@ -497,7 +497,7 @@
 				FavorSizeOrSpeed="2"
 				OmitFramePointers="false"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost\boost\tr1\tr1&quot;;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)openssl\include64&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)openssl\include64&quot;"
 				PreprocessorDefinitions="SVNBUILD"
 				StringPooling="true"
 				MinimalRebuild="true"
@@ -2714,11 +2714,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\client\sdk\user.h"
+				RelativePath=".\client\User.h"
 				>
 			</File>
 			<File
-				RelativePath=".\client\User.h"
+				RelativePath=".\client\sdk\user.h"
 				>
 			</File>
 			<File

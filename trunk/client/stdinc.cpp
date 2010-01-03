@@ -20,14 +20,14 @@
 
 #if defined(_STLPORT_VERSION)
 # if (_STLPORT_VERSION >= 0x600)
-#  pragma message("STLport GIT detected")
+#  pragma message("Using STLport 6.x.x GIT")
 # elif (_STLPORT_VERSION >= 0x520)
-#  pragma message("STLport 5.2.x detected")
+#  pragma message("Using STLport 5.2.x")
 # else
-#  error You are using old version of STLport, please update it
+#  error You are using too old version of STLport, please update it
 # endif
 #else
-# pragma message("STLport not detected, using compiler default STL implementation along with boost::tr1")
+# pragma message("Using default STL implementation")
 #endif
 
 #ifdef _STLP_NO_IOSTREAMS

@@ -56,12 +56,34 @@ private:
 };
 
 } // namespace dcpp
-//RSX++
-#ifdef BOOST_TR1
-namespace boost {
-#else
+
+/*
 namespace std {
-//END
+	template<>
+	struct hash<dcpp::CID> {
+		size_t operator()(const dcpp::CID& rhs) const {
+			return *reinterpret_cast<const size_t*>(rhs.data());
+		}
+	};
+
+	template<>
+	struct hash<dcpp::CID*> {
+		size_t operator()(const dcpp::CID* rhs) const {
+			return *reinterpret_cast<const size_t*>(rhs);
+		}
+	};
+
+	template<>
+	struct equal_to<dcpp::CID*> {
+		bool operator()(const dcpp::CID* lhs, const dcpp::CID* rhs) const {
+			return (*lhs) == (*rhs);
+		}
+	};
+} // namespace std
+*/
+namespace std { 
+#if !defined(_STLPORT_VERSION)
+	namespace tr1 {
 #endif
 template<>
 struct hash<dcpp::CID> {
@@ -76,16 +98,17 @@ struct hash<dcpp::CID*> {
 		return *reinterpret_cast<const size_t*>(rhs);
 	}
 };
-} // namespace std/boost
+#if !defined(_STLPORT_VERSION)
+}
+#endif
 
-namespace std {
 template<>
 struct equal_to<dcpp::CID*> {
 	bool operator()(const dcpp::CID* lhs, const dcpp::CID* rhs) const {
 		return (*lhs) == (*rhs);
 	}
 };
-} // namespace std
+}
 #endif // !defined(CID_H)
 
 /**

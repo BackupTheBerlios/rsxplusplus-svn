@@ -1,3 +1,7 @@
+** SVN 183
+ ** little code cleanup here and there
+ ** fixed compilation without STLport
+
 ** SVN 182
  ** configuration cleanup
 

@@ -26,10 +26,12 @@
 # define BOOST_DISABLE_ASSERTS 1
 #endif
 
-#ifdef _WIN64
-#define _STLP_LIB_NAME_MOTIF "64"
-#else
-#define _STLP_LIB_NAME_MOTIF "32"
+#ifdef _STLPORT_VERSION
+# ifdef _WIN64
+#  define _STLP_LIB_NAME_MOTIF "64"
+# else
+#  define _STLP_LIB_NAME_MOTIF "32"
+# endif
 #endif
 
 // This enables stlport's debug mode (and slows it down to a crawl...)
@@ -50,6 +52,7 @@
 
 #ifdef _MSC_VER
 
+#if !defined(_STLPORT_VERSION) || (_STLPORT_VERSION < 0x600)
 typedef signed __int8 int8_t;
 typedef signed __int16 int16_t;
 typedef signed __int32 int32_t;
@@ -59,6 +62,7 @@ typedef unsigned __int8 uint8_t;
 typedef unsigned __int16 uint16_t;
 typedef unsigned __int32 uint32_t;
 typedef unsigned __int64 uint64_t;
+#endif
 
 //disable the deprecated warnings for the CRT functions.
 #define _CRT_SECURE_NO_DEPRECATE 1
@@ -119,27 +123,20 @@ typedef unsigned __int64 uint64_t;
 #include <stdint.h>
 #endif
 
-#ifndef _WIN64
-# undef memcpy
-# undef memset
-# undef memzero
-# define memcpy memcpy2
-# define memset memset2
-#endif
-
 #ifdef _MSC_VER
 #include <crtdbg.h>
 #else
 #include <assert.h>
 #endif
 
-#include <ctype.h>
-#include <stdio.h>
-#include <stdarg.h>
+#include <cctype>
+#include <cstdio>
+#include <cstdarg>
+#include <ctime>
+#include <clocale>
+
 #include <memory.h>
 #include <sys/types.h>
-#include <time.h>
-#include <locale.h>
 
 #include <algorithm>
 #include <vector>
@@ -163,22 +160,9 @@ typedef unsigned __int64 uint64_t;
 #include <boost/regex.hpp>
 
 #if defined(_MSC_VER)
-#if !defined(_STLPORT_VERSION)
-#define BOOST_TR1 1
-#endif
-
-#ifdef BOOST_TR1
-#pragma warning(push)
-#pragma warning(disable:4100)
-#pragma warning(disable:4512)
-#endif
 
 #include <unordered_map>
 #include <unordered_set>
-
-#ifdef BOOST_TR1
-#pragma warning(pop)
-#endif
 
 #elif defined(__GLIBCPP__) || defined(__GLIBCXX__)  // Using GNU C++ library?
 

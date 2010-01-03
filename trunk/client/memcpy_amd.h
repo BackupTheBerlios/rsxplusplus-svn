@@ -30,17 +30,34 @@
  Austin, TX 78741
  3dsdk.support@amd.com
 ******************************************************************************/
-#pragma once
+
+#ifndef MEMCPY_AMD
+#define MEMCPY_AMD
+
 #include "stdinc.h"
 
 #ifndef _WIN64
-void* __stdcall memcpy2(void *dest, const void *src, size_t n);
-
-void* __stdcall memset2(void *dest, int c, size_t n);
-
 unsigned long get_cpu_type();
+
+void* __stdcall memcpy2(void *destination, const void *source, size_t size);
+#ifdef memcpy
+# undef memcpy
+# define memcpy memcpy2
 #endif
 
-void __stdcall memzero(void *dest, size_t n);
+void* __stdcall memset2(void *destination, int value, size_t size);
+#ifdef memset
+# undef memset
+# define memset memset2
+#endif
 
+void  __stdcall memzero(void *destination, size_t size);
+#ifdef memzero
+# undef memzero
+#endif
 
+#else
+# define memzero(dest, n) memset(dest, 0, n)
+#endif
+
+#endif // MEMCPY_AMD

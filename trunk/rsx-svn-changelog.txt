@@ -1,3 +1,6 @@
+** SVN 180
+ ** [winamp_spam] missing commit...
+
 ** SVN 179
  ** fix for WTL SVN
  ** updated docs

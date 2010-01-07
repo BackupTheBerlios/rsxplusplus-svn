@@ -93,10 +93,10 @@ void startup(void (*f)(void*, const tstring&), void* p) {
 	DownloadManager::newInstance();
 	UploadManager::newInstance();
 	ThrottleManager::newInstance();
+	QueueManager::newInstance();
 	ShareManager::newInstance();
 	FavoriteManager::newInstance();
 	RawManager::newInstance(); //RSX++
-	QueueManager::newInstance();
 	FinishedManager::newInstance();
 	ADLSearchManager::newInstance();
 	DebugManager::newInstance();
@@ -205,5 +205,5 @@ void shutdown() {
 
 /**
  * @file
- * $Id: DCPlusPlus.cpp 454 2009-08-13 20:28:19Z BigMuscle $
+ * $Id: DCPlusPlus.cpp 468 2009-12-23 14:01:30Z bigmuscle $
  */

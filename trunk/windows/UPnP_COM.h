@@ -16,40 +16,38 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#include "stdinc.h"
-#include "DCPlusPlus.h"
+#ifndef DCPLUSPLUS_WIN32_UPNP_COM_H
+#define DCPLUSPLUS_WIN32_UPNP_COM_H
 
-#include "ChatMessage.h"
+#include "UPnP.h"
 
-#include "User.h"
-#include "Util.h"
+// for mingw64
+#ifndef interface
+#define interface struct
+#endif
 
-namespace dcpp {
+#include <natupnp.h>
 
-string ChatMessage::format() const {
-	string tmp;
+class UPnP_COM : public UPnP
+{
+public:
+	UPnP_COM() : UPnP(), pUN(0), lastPort(0) { }
 
-	if(timestamp) {
-		tmp += '[' + Util::getShortTimeString(timestamp) + "] ";
-	}
+	bool init();
 
-	const string& nick = from->getIdentity().getNick();
-	// let's *not* obey the spec here and add a space after the star. :P
-	tmp += (thirdPerson ? "* " + nick + " " : "<" + nick + "> ") + text;
+	bool open(const unsigned short port, const Protocol protocol, const string& description);
+	bool close(const unsigned short port, const Protocol protocol);
 
-	// Check all '<' and '[' after newlines as they're probably pastes...
-	size_t i = 0;
-	while( (i = tmp.find('\n', i)) != string::npos) {
-		if(i + 1 < tmp.length()) {
-			if(tmp[i+1] == '[' || tmp[i+1] == '<') {
-				tmp.insert(i+1, "- ");
-				i += 2;
-			}
-		}
-		i++;
-	}
+	string getExternalIP();
 
-	return Text::toDOS(tmp);
-}
+private:
+	IUPnPNAT* pUN;
+	// this one can become invalidated so we can't cache it
+	IStaticPortMappingCollection* getStaticPortMappingCollection();
 
-} // namespace dcpp
+	// need to save these to get the external IP...
+	unsigned short lastPort;
+	Protocol lastProtocol;
+};
+
+#endif

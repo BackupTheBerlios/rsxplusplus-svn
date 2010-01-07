@@ -259,7 +259,7 @@ void Util::initialize() {
 
 	// @todo paths[PATH_RESOURCES] = <replace from sconscript?>;
 
-	paths[PATH_DOWNLOADS] = home + "Downloads/";
+	paths[PATH_DOWNLOADS] = home + "/Downloads/";
 #endif
 
 	paths[PATH_FILE_LISTS] = paths[PATH_USER_LOCAL] + "FileLists" PATH_SEPARATOR_STR;
@@ -1226,5 +1226,5 @@ void Util::replace(string& aString, const string& findStr, const string& replace
 
 /**
  * @file
- * $Id: Util.cpp 460 2009-09-08 10:57:07Z BigMuscle $
+ * $Id: Util.cpp 466 2009-11-13 18:47:25Z BigMuscle $
  */

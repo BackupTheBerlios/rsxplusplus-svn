@@ -473,8 +473,8 @@ bool Identity::isProtectedUser(const Client& c, bool OpBotHubCheck) const {
 		return true;
 
 	string RegProtect = RSXPP_SETTING(PROTECTED_USERS);
-	if(!c.getUserProtected().empty()) {
-		RegProtect = c.getUserProtected();
+	if(!c.getProtectedUsers().empty()) {
+		RegProtect = c.getProtectedUsers();
 	}
 
 	bool ret = false;

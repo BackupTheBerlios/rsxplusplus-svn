@@ -373,7 +373,7 @@ private:
 						return Text::toT(sr->getFileName());
 					}
 				case COLUMN_HITS: return hits == 0 ? Util::emptyStringT : Util::toStringW(hits + 1) + _T(' ') + TSTRING(USERS);
-				case COLUMN_NICK: return Text::toT(Util::toString(ClientManager::getInstance()->getNicks(getUser()->getCID())));
+				case COLUMN_NICK: return WinUtil::getNicks(sr->getUser(), sr->getHubURL());
 				case COLUMN_TYPE:
 					if(sr->getType() == SearchResult::TYPE_FILE) {
 						tstring type = Text::toT(Util::getFileExt(Text::fromT(getText(COLUMN_FILENAME))));
@@ -624,6 +624,6 @@ private:
 
 /**
  * @file
- * $Id: SearchFrm.h 463 2009-10-01 16:30:22Z BigMuscle $
+ * $Id: SearchFrm.h 466 2009-11-13 18:47:25Z BigMuscle $
  */
 

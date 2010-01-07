@@ -19,7 +19,7 @@
 #ifndef DCPLUSPLUS_DCPP_POINTER_H
 #define DCPLUSPLUS_DCPP_POINTER_H
 
-#include <boost/smart_ptr/intrusive_ptr.hpp>
+#include <boost/intrusive_ptr.hpp>
 #include "Thread.h"
 
 namespace dcpp {
@@ -36,8 +36,8 @@ public:
 		intrusive_ptr_release(this);
 	}
 
-	bool unique() const throw() {
-		return (ref == 1);
+	bool unique(int val = 1) const throw() {
+		return (ref <= val);
 	}
 	
 protected:
@@ -63,5 +63,5 @@ struct DeleteFunction {
 
 /**
  * @file
- * $Id: Pointer.h 437 2009-06-16 22:07:15Z BigMuscle $
+ * $Id: Pointer.h 468 2009-12-23 14:01:30Z bigmuscle $
  */

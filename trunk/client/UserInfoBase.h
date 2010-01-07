@@ -41,7 +41,7 @@ public:
 	void removeAll();
 	void connectFav();
 	//RSX++
-	void cleanUser();
+	void cleanUser(const string& hubHint);
 	void setProtected();
 	void unsetProtected();
 	void customKick();

@@ -32,18 +32,13 @@ public:
 	}
 	~RSXPage() {
 		free(title);
-		ctrlFavGroups.Detach();
 	}
 
 	BEGIN_MSG_MAP_EX(RSXPage)
 		MESSAGE_HANDLER(WM_INITDIALOG, onInitDialog)
-		COMMAND_ID_HANDLER(IDC_RSX_FAV_ADD, onFavGroupBtn)
-		COMMAND_ID_HANDLER(IDC_RSX_FAV_REMOVE, onFavGroupBtn)
-		COMMAND_ID_HANDLER(IDC_RSX_FAV_EDIT, onFavGroupBtn)
 	END_MSG_MAP()
 
 	LRESULT onInitDialog(UINT, WPARAM, LPARAM, BOOL&);
-	LRESULT onFavGroupBtn(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndCtl */, BOOL& /* bHandled */);
 
 	// Common PropPage interface
 	PROPSHEETPAGE *getPSP() { return (PROPSHEETPAGE *)*this; }
@@ -51,8 +46,6 @@ public:
 
 //private:
 protected:
-	ExListViewCtrl ctrlFavGroups;
-
 	TCHAR* title;
 
 	static Item items[];

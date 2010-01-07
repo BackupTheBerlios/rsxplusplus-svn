@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
-// Used by w:\Visual Studio Projects\rsxplusplus\trunk\RSXPlusPlus.rc
+// Used by W:\Visual Studio Projects\rsxplusplus\trunk\RSXPlusPlus.rc
 //
 #define IDD_ABOUTBOX                    100
 #define IDC_FILETYPES                   101
@@ -118,6 +118,7 @@
 #define IDD_PARAM_DLG                   302
 #define IDR_TUSER                       305
 #define IDB_BITMAP1                     306
+#define IDD_FAVHUBGROUPS                307
 #define IDB_BITMAP2                     308
 #define IDB_BITMAP3                     309
 #define IDD_IP_PAGE                     310
@@ -729,6 +730,7 @@
 #define IDC_AB_LEVEL                    1316
 #define IDC_CP_PD_FAKE_CLIENT           1316
 #define IDC_CHECK_AUTOSEARCH            1316
+#define IDC_PRIVATE                     1316
 #define IDC_SOCKET_IN_BUFFER            1317
 #define IDC_REMOVE_ACTION               1317
 #define IDC_AB_GROUP                    1317
@@ -737,12 +739,14 @@
 #define IDC_HAS_FONT_COLOR2             1317
 #define IDC_HL_DISPLAY_POPUP            1317
 #define IDC_FILTER_HAS_FONT_COLOR       1317
+#define IDC_FAVGROUP                    1317
 #define IDC_SOCKET_OUT_BUFFER           1318
 #define IDC_TLS_CERTIFICATE_FILE        1318
 #define IDC_PORT_TLS                    1318
 #define IDC_ADD_RAW                     1318
 #define IDC_SKIPLIST_GP                 1318
 #define IDC_HL_FLASH_WINDOW             1318
+#define IDC_GROUPS                      1318
 #define IDC_SETTINGS_SOCKET_OUT_BUFFER  1319
 #define IDC_MOVE_RAW_UP                 1319
 #define IDC_PROFILE_COUNT               1319
@@ -761,12 +765,15 @@
 #define IDC_ITUNES_FORMAT               1322
 #define IDC_RSXADVANCED_BOOLEANS        1322
 #define IDC_CLIENT_ACTIVE               1322
+#define IDC_AUTOCONNECT                 1322
 #define IDC_RAW_NAME                    1323
 #define IDC_ISP_ACTIVE                  1323
+#define IDC_GROUP_PROPERTIES            1323
 #define IDC_BW_SIMPLE                   1324
 #define IDC_RAW_TIME                    1324
 #define IDC_FH_ACTION                   1324
 #define IDC_CON_CHECK                   1324
+#define IDC_NAME_STATIC                 1324
 #define IDC_BW_BOTH                     1325
 #define IDC_FH_RAW                      1325
 #define IDC_SETTINGS_NOMINALBW          1326
@@ -941,6 +948,7 @@
 #define IDC_HISTORY_STATUS              1451
 #define IDC_UPDATE_DOWNLOAD             1452
 #define IDC_UPDATE_VERSION2             1454
+#define IDC_FAVGROUP_BOX                1454
 #define IDC_UPDATE_VERSION_CURRENT_LBL_PROFIL 1455
 #define IDC_UPDATE_VERSION_LATEST_LBL_PROFIL 1456
 #define IDC_UPDATE_VERSION_LATEST_PROFIL 1457
@@ -1107,6 +1115,7 @@
 #define IDC_H_DOWN_SPEED                10034
 #define IDC_SETTINGS_KBPS5              10035
 #define IDC_SETTINGS_KBPS7              10036
+#define IDC_MANAGE_GROUPS               10037
 #define IDC_UPLOADSPEEDSPIN             10038
 #define IDC_DOWNLOADSPEEDSPIN           10039
 #define IDC_NONE                        10041
@@ -1164,7 +1173,6 @@
 #define IDC_UPLOAD_QUEUE                10085
 #define IDC_THROTTLE_ENABLE             10093
 #define IDC_DISCONNECTING_ENABLE        10094
-#define IDC_WINAMP                      10095
 #define IDC_SEGMENTED_ONLY              10095
 #define ID_VIEW_PLUGIN_TOOLBAR          10096
 #define IDC_VIEW_PLUGINS_LIST           10097

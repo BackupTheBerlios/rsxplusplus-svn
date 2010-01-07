@@ -30,6 +30,7 @@
 #include "BZUtils.h"
 #include "CryptoManager.h"
 #include "ResourceManager.h"
+#include "SimpleXMLReader.h"
 #include "User.h"
 #include "../rsx/RegexUtil.h" //RSX++
 
@@ -38,6 +39,15 @@
 #endif
 
 namespace dcpp {
+
+DirectoryListing::DirectoryListing(const HintedUser& aUser) : 
+	hintedUser(aUser), abort(false), root(new Directory(NULL, Util::emptyString, false, false)) 
+{
+}
+
+DirectoryListing::~DirectoryListing() {
+	delete root;
+}
 
 UserPtr DirectoryListing::getUserFromFilename(const string& fileName) {
 	// General file list name format: [username].[CID].[xml|xml.bz2|DcLst]
@@ -81,37 +91,16 @@ void DirectoryListing::loadFile(const string& name) throw(Exception) {
 	// For now, we detect type by ending...
 	string ext = Util::getFileExt(name);
 
+	dcpp::File ff(name, dcpp::File::READ, dcpp::File::OPEN);
 	if(stricmp(ext, ".bz2") == 0) {
-		dcpp::File ff(name, dcpp::File::READ, dcpp::File::OPEN);
 		FilteredInputStream<UnBZFilter, false> f(&ff);
-		const size_t BUF_SIZE = 64*1024;
-		boost::scoped_array<char> buf(new char[BUF_SIZE]);
-		size_t len;
-		size_t bytesRead = 0;
-		for(;;) {
-			size_t n = BUF_SIZE;
-			len = f.read(&buf[0], n);
-			txt.append(&buf[0], len);
-			bytesRead += len;
-			if(SETTING(MAX_FILELIST_SIZE) && bytesRead > (size_t)SETTING(MAX_FILELIST_SIZE)*1024*1024)
-				throw FileException("Greater than maximum filelist size");
-			if(len < BUF_SIZE)
-				break;
-		}
+		loadXML(f, false);
 	} else if(stricmp(ext, ".xml") == 0) {
-		int64_t sz = dcpp::File::getSize(name);
-		if(sz == -1 || sz >= static_cast<int64_t>(txt.max_size()))
-			throw FileException(STRING(FILE_NOT_AVAILABLE));
-			
-		txt.resize((size_t) sz);
-		size_t n = txt.length();
-		dcpp::File(name, dcpp::File::READ, dcpp::File::OPEN).read(&txt[0], n);
+		loadXML(ff, false);
 	}
-	
-	loadXML(txt, false);
 }
 
-class ListLoader : public SimpleXMLReader::CallBack {
+class ListLoader : public dcpp::SimpleXMLReader::CallBack {
 public:
 	ListLoader(DirectoryListing* aList, DirectoryListing::Directory* root, bool aUpdating, const UserPtr& aUser) : list(aList), cur(root), base("/"), inListing(false), updating(aUpdating), user(aUser) { 
 	}
@@ -133,9 +122,16 @@ private:
 	bool updating;
 };
 
-string DirectoryListing::loadXML(const string& xml, bool updating) {
+string DirectoryListing::updateXML(const string& xml) {
+	MemoryInputStream mis(xml);
+	return loadXML(mis, true);
+}
+
+string DirectoryListing::loadXML(InputStream& is, bool updating) {
 	ListLoader ll(this, getRoot(), updating, getUser());
-	SimpleXMLReader(&ll).fromXML(xml);
+
+	dcpp::SimpleXMLReader(&ll).parse(is);
+
 	return ll.getBase();
 }
 
@@ -297,8 +293,7 @@ void DirectoryListing::download(const string& aDir, const string& aTarget, bool 
 void DirectoryListing::download(File* aFile, const string& aTarget, bool view, bool highPrio, QueueItem::Priority prio) {
 	Flags::MaskType flags = (Flags::MaskType)(view ? (QueueItem::FLAG_TEXT | QueueItem::FLAG_CLIENT_VIEW) : 0);
 
-	// TODO hubHint?
-	QueueManager::getInstance()->add(aTarget, aFile->getSize(), aFile->getTTH(), getUser(), Util::emptyString, flags);
+	QueueManager::getInstance()->add(aTarget, aFile->getSize(), aFile->getTTH(), getHintedUser(), flags);
 
 	if(highPrio || (prio != QueueItem::DEFAULT))
 		QueueManager::getInstance()->setPriority(aTarget, highPrio ? QueueItem::HIGHEST : prio);
@@ -430,5 +425,5 @@ DirectoryListing::Directory::List DirectoryListing::getForbiddenDirs() {
 
 /**
  * @file
- * $Id: DirectoryListing.cpp 434 2009-03-29 11:09:33Z BigMuscle $
+ * $Id: DirectoryListing.cpp 468 2009-12-23 14:01:30Z bigmuscle $
  */

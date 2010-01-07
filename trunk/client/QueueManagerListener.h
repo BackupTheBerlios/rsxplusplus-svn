@@ -50,7 +50,7 @@ public:
 	virtual void on(Moved, const QueueItem*, const string&) throw() { }
 	virtual void on(SourcesUpdated, const QueueItem*) throw() { }
 	virtual void on(StatusUpdated, const QueueItem*) throw() { }
-	virtual void on(PartialList, const UserPtr&, const string&) throw() { }
+	virtual void on(PartialList, const HintedUser&, const string&) throw() { }
 	
 	virtual void on(RecheckStarted, const QueueItem*) throw() { }
 	virtual void on(RecheckNoFile, const QueueItem*) throw() { }
@@ -67,5 +67,5 @@ public:
 
 /**
  * @file
- * $Id: QueueManagerListener.h 434 2009-03-29 11:09:33Z BigMuscle $
+ * $Id: QueueManagerListener.h 466 2009-11-13 18:47:25Z BigMuscle $
  */

@@ -118,14 +118,15 @@ namespace dht
 					// node is already here, move it to the end
 					if(update)
 					{	
-						string oldIp = node->getIdentity().getIp();
-						if(ip != oldIp)
+						string oldIp	= node->getIdentity().getIp();
+						string oldPort	= node->getIdentity().getUdpPort();
+						if(ip != oldIp || static_cast<uint16_t>(Util::toInt(oldPort)) != port)
 						{
 							node->setIpVerified(false);
 							
 							// erase old IP and remember new one
-							ipMap.erase(oldIp);
-							ipMap.insert(ip);
+							ipMap.erase(oldIp + ":" + oldPort);
+							ipMap.insert(ip + ":" + Util::toString(port));
 						}
 							
 						if(!node->isIpVerified())
@@ -144,7 +145,8 @@ namespace dht
 				}
 			}
 			
-			dcassert(0);			
+			//dcassert(0);			
+			// this can happen when we already know this user, but it has not been added to routing table
 		}
 
 		// it's new DHT node
@@ -155,16 +157,39 @@ namespace dht
 		node->getIdentity().setUdpPort(Util::toString(port));	
 
 		// is there already such contact with this IP?
-		bool ipExists = ipMap.find(ip) != ipMap.end();
+		bool ipExists = ipMap.find(ip + ":" + Util::toString(port)) != ipMap.end();
 		
+#ifdef _DEBUG
+		if(!ipExists)
+#else
 		if(!ipExists && nodes.size() < (K * ID_BITS))
+#endif
 		{
 			// bucket still has room to store new node
 			nodes.push_back(node);
-			ipMap.insert(ip);
+			ipMap.insert(ip + ":" + Util::toString(port));
 				
 			if(DHT::getInstance())
 				DHT::getInstance()->setDirty();
+		}
+		else
+		{
+#ifdef _DEBUG
+			CID oldCID;
+			for(NodeList::iterator it = nodes.begin(); it != nodes.end(); ++it)
+			{
+				if(	(*it)->getIdentity().getIp() == ip &&
+					(*it)->getIdentity().getUdpPort() == Util::toString(port))
+				{
+					oldCID = (*it)->getUser()->getCID();
+					break;
+				}
+			}
+
+			dcassert(!oldCID.isZero());
+			// when user isn't added to routing table, this line will be processed with every packet got from that user (that' why debugger window can be spammed with a lot of messages)
+			dcdebug("DHT node NOT added to our routing table - IP %s exists: %d, old CID: %s, new CID: %s\n", ip.c_str(), (int)ipExists, oldCID.toBase32().c_str(), u->getCID().toBase32().c_str());
+#endif
 		}
 		
 		return node;
@@ -217,14 +242,15 @@ namespace dht
 			
 			if(node->getType() == 4 && node->expires > 0 && node->expires <= currentTime)
 			{
-				if(node->unique())
+				if(node->unique(2))
 				{
 					// node is dead, remove it
 					if(node->isInList)
 						ClientManager::getInstance()->putOffline((*i).get());
 					
-					string ip = node->getIdentity().getIp();
-					ipMap.erase(ip);
+					string ip	= node->getIdentity().getIp();
+					string port = node->getIdentity().getUdpPort();
+					ipMap.erase(ip + ":" + port);
 					i = nodes.erase(i);
 					dirty = true;
 				}

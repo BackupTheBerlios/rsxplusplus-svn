@@ -186,7 +186,7 @@ private:
 			STATUS_WAITING
 		};
 		
-		ItemInfo(const UserPtr& u, bool aDownload);
+		ItemInfo(const HintedUser& u, bool aDownload);
 
 		bool download;
 		bool transferFailed;
@@ -197,7 +197,7 @@ private:
 		int16_t hits;
 
 		ItemInfo* parent;
-		UserPtr user;
+		HintedUser user;
 		Status status;
 		Transfer::Type type;
 		
@@ -214,7 +214,7 @@ private:
 
 		void update(const UpdateInfo& ui);
 
-		const UserPtr& getUser() const { return user; }
+		const UserPtr& getUser() const { return user.user; }
 
 		void disconnect();
 		void removeAll();
@@ -227,7 +227,7 @@ private:
 		uint8_t imageIndex() const { return static_cast<uint8_t>(!download ? IMAGE_UPLOAD : (!parent ? IMAGE_DOWNLOAD : IMAGE_SEGMENT)); }
 
 		ItemInfo* createParent() {
-	  		ItemInfo* ii = new ItemInfo(UserPtr(NULL), true);
+	  		ItemInfo* ii = new ItemInfo(HintedUser(NULL, Util::emptyString), true);
 			ii->running = 0;
 			ii->hits = 0;
 			ii->target = target;
@@ -255,19 +255,19 @@ private:
 
 		bool operator==(const ItemInfo& ii) const { return download == ii.download && user == ii.user; }
 
-		UpdateInfo(const UserPtr& aUser, bool isDownload, bool isTransferFailed = false) : 
+		UpdateInfo(const HintedUser& aUser, bool isDownload, bool isTransferFailed = false) : 
 			updateMask(0), user(aUser), queueItem(NULL), download(isDownload), transferFailed(isTransferFailed), flagIndex(0), type(Transfer::TYPE_LAST)
 		{ }
 		
 		UpdateInfo(QueueItem* qi, bool isDownload, bool isTransferFailed = false) : 
-			updateMask(0), queueItem(qi), user(NULL), download(isDownload), transferFailed(isTransferFailed), flagIndex(0), type(Transfer::TYPE_LAST) 
+			updateMask(0), queueItem(qi), user(HintedUser(NULL, Util::emptyString)), download(isDownload), transferFailed(isTransferFailed), flagIndex(0), type(Transfer::TYPE_LAST) 
 		{ qi->inc(); }
 
 		~UpdateInfo() { if(queueItem) queueItem->dec(); }
 
 		uint32_t updateMask;
 
-		UserPtr user;
+		HintedUser user;
 
 		bool download;
 		bool transferFailed;
@@ -352,5 +352,5 @@ private:
 
 /**
  * @file
- * $Id: TransferView.h 463 2009-10-01 16:30:22Z BigMuscle $
+ * $Id: TransferView.h 466 2009-11-13 18:47:25Z BigMuscle $
  */

@@ -21,7 +21,7 @@ public:
 	typedef X<8> GetPassword;
 	typedef X<9> HubUpdated;
 	typedef X<11> Message;
-	typedef X<12> StatusMessage;	
+	typedef X<12> StatusMessage;
 	typedef X<13> HubUserCommand;
 	typedef X<14> HubFull;
 	typedef X<15> NickTaken;

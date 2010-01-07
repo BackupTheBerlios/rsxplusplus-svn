@@ -1493,10 +1493,6 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\client\HubSettings.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\rsx\IpManager.cpp"
 				>
 				<FileConfiguration
@@ -1762,6 +1758,10 @@
 			</File>
 			<File
 				RelativePath=".\client\SimpleXML.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\client\SimpleXMLReader.cpp"
 				>
 			</File>
 			<File
@@ -2294,6 +2294,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\client\FavHubGroup.h"
+				>
+			</File>
+			<File
 				RelativePath=".\client\FavoriteManager.h"
 				>
 			</File>
@@ -2355,10 +2359,6 @@
 			</File>
 			<File
 				RelativePath=".\client\sdk\hub.h"
-				>
-			</File>
-			<File
-				RelativePath=".\client\HubSettings.h"
 				>
 			</File>
 			<File
@@ -2495,6 +2495,10 @@
 			</File>
 			<File
 				RelativePath=".\client\SimpleXML.h"
+				>
+			</File>
+			<File
+				RelativePath=".\client\SimpleXMLReader.h"
 				>
 			</File>
 			<File

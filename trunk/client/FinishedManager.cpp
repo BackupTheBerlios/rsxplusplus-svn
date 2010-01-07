@@ -79,10 +79,7 @@ void FinishedManager::on(QueueManagerListener::Finished, const QueueItem* qi, co
 		
 	if(isFile || (qi->isSet(QueueItem::FLAG_USER_LIST) && BOOLSETTING(LOG_FILELIST_TRANSFERS))) {
 		
-		FinishedItemPtr item = new FinishedItem(
-			qi->getTarget(), d->getUser(),
-			Util::toString(ClientManager::getInstance()->getHubNames(d->getUser()->getCID())),
-			qi->getSize(), static_cast<int64_t>(d->getAverageSpeed()), GET_TIME(), qi->getTTH().toBase32());
+		FinishedItemPtr item = new FinishedItem(qi->getTarget(), d->getHintedUser(), qi->getSize(), static_cast<int64_t>(d->getAverageSpeed()), GET_TIME(), qi->getTTH().toBase32());
 		{
 			Lock l(cs);
 			downloads.push_back(item);
@@ -96,7 +93,7 @@ void FinishedManager::on(QueueManagerListener::Finished, const QueueItem* qi, co
 		size_t BUF_SIZE = STRING(FINISHED_DOWNLOAD).size() + MAX_PATH + 128;
 		char* buf = new char[BUF_SIZE];
 		snprintf(buf, BUF_SIZE, CSTRING(FINISHED_DOWNLOAD), Util::getFileName(qi->getTarget()).c_str(), 
-			Util::toString(ClientManager::getInstance()->getNicks(d->getUser()->getCID())).c_str());
+			Util::toString(ClientManager::getInstance()->getNicks(d->getHintedUser())).c_str());
 
 		LogManager::getInstance()->message(buf);
 		delete[] buf;
@@ -109,10 +106,7 @@ void FinishedManager::on(UploadManagerListener::Complete, const Upload* u) throw
 		if ((!SETTING(UPLOADFILE).empty() && (!BOOLSETTING(SOUNDS_DISABLED))))
 			PlaySound(Text::toT(SETTING(UPLOADFILE)).c_str(), NULL, SND_FILENAME | SND_ASYNC);
 
-		FinishedItemPtr item = new FinishedItem(
-			u->getPath(), u->getUser(),
-			Util::toString(ClientManager::getInstance()->getHubNames(u->getUser()->getCID())),
-			u->getFileSize(), static_cast<int64_t>(u->getAverageSpeed()), GET_TIME());
+		FinishedItemPtr item = new FinishedItem(u->getPath(), u->getHintedUser(),	u->getFileSize(), static_cast<int64_t>(u->getAverageSpeed()), GET_TIME());
 		{
 			Lock l(cs);
 			uploads.push_back(item);
@@ -123,7 +117,7 @@ void FinishedManager::on(UploadManagerListener::Complete, const Upload* u) throw
 		size_t BUF_SIZE = STRING(FINISHED_UPLOAD).size() + MAX_PATH + 128;
 		char* buf = new char[BUF_SIZE];
 		snprintf(buf, BUF_SIZE, CSTRING(FINISHED_UPLOAD), (Util::getFileName(u->getPath())).c_str(), 
-			Util::toString(ClientManager::getInstance()->getNicks(u->getUser()->getCID())).c_str());
+			Util::toString(ClientManager::getInstance()->getNicks(u->getHintedUser())).c_str());
 
 		LogManager::getInstance()->message(buf);
 		delete[] buf;		
@@ -169,5 +163,5 @@ bool FinishedManager::handlePartialRequest(const TTHValue& tth, vector<uint16_t>
 
 /**
  * @file
- * $Id: FinishedManager.cpp 451 2009-07-10 21:24:08Z BigMuscle $
+ * $Id: FinishedManager.cpp 466 2009-11-13 18:47:25Z BigMuscle $
  */

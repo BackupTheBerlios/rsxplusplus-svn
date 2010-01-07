@@ -23,7 +23,6 @@
 #include "FastAlloc.h"
 
 #include "MerkleTree.h"
-#include "SimpleXML.h"
 #include "Streams.h"
 #include "QueueItem.h"
 
@@ -32,7 +31,7 @@ namespace dcpp {
 class ListLoader;
 STANDARD_EXCEPTION(AbortException);
 
-class DirectoryListing : public UserInfoBase
+class DirectoryListing : boost::noncopyable, public UserInfoBase
 {
 public:
 	class Directory;
@@ -147,16 +146,13 @@ public:
 		GETSET(string, fullPath, FullPath);
 	};
 
-	DirectoryListing(const UserPtr& aUser) : user(aUser), abort(false), root(new Directory(NULL, Util::emptyString, false, false)) {
-	}
-	
-	~DirectoryListing() {
-		delete root;
-	}
+	DirectoryListing(const HintedUser& aUser);
+	~DirectoryListing();
 	
 	void loadFile(const string& name) throw(Exception);
 
-	string loadXML(const string& xml, bool updating);
+	string updateXML(const std::string&);
+	string loadXML(InputStream& xml, bool updating);
 
 	void download(const string& aDir, const string& aTarget, bool highPrio, QueueItem::Priority prio = QueueItem::DEFAULT);
 	void download(Directory* aDir, const string& aTarget, bool highPrio, QueueItem::Priority prio = QueueItem::DEFAULT);
@@ -172,24 +168,23 @@ public:
 	Directory* getRoot() { return root; }
 
 	static UserPtr getUserFromFilename(const string& fileName);
+	
+	const UserPtr& getUser() const { return hintedUser.user; }	
+		
+	GETSET(HintedUser, hintedUser, HintedUser);
 	//RSX++
 	DirectoryListing::File::List getForbiddenFiles();
 	DirectoryListing::Directory::List getForbiddenDirs();
 	//END
 
-	GETSET(UserPtr, user, User);
 	GETSET(bool, abort, Abort);
 	
 private:
 	friend class ListLoader;
 
-	DirectoryListing(const DirectoryListing&);
-	DirectoryListing& operator=(const DirectoryListing&);
-
 	Directory* root;
 		
 	Directory* find(const string& aName, Directory* current);
-	
 };
 
 inline bool operator==(DirectoryListing::Directory::Ptr a, const string& b) { return stricmp(a->getName(), b) == 0; }
@@ -201,5 +196,5 @@ inline bool operator==(DirectoryListing::File::Ptr a, const string& b) { return 
 
 /**
  * @file
- * $Id: DirectoryListing.h 434 2009-03-29 11:09:33Z BigMuscle $
+ * $Id: DirectoryListing.h 468 2009-12-23 14:01:30Z bigmuscle $
  */

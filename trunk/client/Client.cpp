@@ -107,8 +107,21 @@ void Client::reloadSettings(bool updateNick) {
 		else
 			setSearchInterval(hub->getSearchInterval() * 1000);
 		//RSX++
-		updateSettings(hub->getSettings());
-		setUsersLimit((uint32_t)hub->getUsersLimit());
+		if(!hub->getCurrentEmail().empty())
+			setCurrentEmail(hub->getCurrentEmail());
+		if(!hub->getProtectedUsers().empty())
+			setProtectedUsers(hub->getProtectedUsers());
+		setCheckOnConnect(hub->getCheckOnConnect());
+		setCheckClients(hub->getCheckClients());
+		setCheckFilelists(hub->getCheckFilelists());
+		setCheckMyInfo(hub->getCheckMyInfo());
+		setHideShare(hub->getHideShare());
+		setUseFilter(hub->getUseFilter());
+		setUseAutosearch(hub->getUseAutosearch());
+		setUseHL(hub->getUseHL());
+		setUsersLimit(hub->getUsersLimit());
+		setShowIpOnChat(hub->getShowIpOnChat());
+		setShowCountryCodeOnChat(hub->getShowCountryCodeOnChat());
 		//END
 	} else {
 		if(updateNick) {
@@ -120,9 +133,18 @@ void Client::reloadSettings(bool updateNick) {
 		setSearchInterval(SETTING(MINIMUM_SEARCH_INTERVAL) * 1000);
 		//RSX++
 		setCurrentEmail(SETTING(EMAIL));
+		setProtectedUsers(Util::emptyString);
+		setCheckOnConnect(false);
+		setCheckClients(false);
+		setCheckFilelists(false);
+		setCheckMyInfo(false);
+		setHideShare(false);
 		setUseFilter(false);
+		setUseAutosearch(false);
 		setUseHL(false);
 		setUsersLimit(0);
+		setShowIpOnChat(false);
+		setShowCountryCodeOnChat(false);
 		//END
 	}
 }

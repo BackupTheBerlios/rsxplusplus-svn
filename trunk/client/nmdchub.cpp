@@ -328,7 +328,7 @@ void NmdcHub::onLine(const string& aLine) throw() {
 					if(bPassive)
 						fire(ClientListener::SearchFlood(), this, seeker.substr(4));
 					else
-						fire(ClientListener::SearchFlood(), this, seeker + STRING(NICK_UNKNOWN));
+						fire(ClientListener::SearchFlood(), this, seeker + " " + STRING(NICK_UNKNOWN));
 				}
 				
 				flooders.push_back(make_pair(seeker, tick));
@@ -654,7 +654,10 @@ void NmdcHub::onLine(const string& aLine) throw() {
 					
 				if(CryptoManager::getInstance()->TLSOk() && !getStealth())
 					feat.push_back("TLS");
-
+					
+				if(BOOLSETTING(USE_DHT))
+					feat.push_back("DHT0");
+					
 				supports(feat);
 			}
 
@@ -774,8 +777,8 @@ void NmdcHub::onLine(const string& aLine) throw() {
 				v.push_back(&ou);
 			}
 
-			fire(ClientListener::UsersUpdated(), this, v);
 			updateCounts(false);
+			fire(ClientListener::UsersUpdated(), this, v);
 
 			// Special...to avoid op's complaining that their count is not correctly
 			// updated when they log in (they'll be counted as registered first...)
@@ -892,6 +895,8 @@ void NmdcHub::myInfo(bool alwaysSend) {
 	
 	reloadSettings(false);
 	
+	lastCounts = counts;
+
 	char StatusMode = Identity::NORMAL;
 
 	char modeChar = '?';
@@ -1075,5 +1080,5 @@ void NmdcHub::on(Second, uint64_t aTick) throw() {
 
 /**
  * @file
- * $Id: nmdchub.cpp 460 2009-09-08 10:57:07Z BigMuscle $
+ * $Id: nmdchub.cpp 469 2009-12-29 21:13:40Z bigmuscle $
  */

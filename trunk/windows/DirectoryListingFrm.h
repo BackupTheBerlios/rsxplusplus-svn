@@ -44,8 +44,8 @@ class DirectoryListingFrame : public MDITabChildWindowImpl<DirectoryListingFrame
 
 {
 public:
-	static void openWindow(const tstring& aFile, const tstring& aDir, const UserPtr& aUser, int64_t aSpeed);
-	static void openWindow(const UserPtr& aUser, const string& txt, int64_t aSpeed);
+	static void openWindow(const tstring& aFile, const tstring& aDir, const HintedUser& aUser, int64_t aSpeed);
+	static void openWindow(const HintedUser& aUser, const string& txt, int64_t aSpeed);
 	static void closeAll();
 
 	typedef MDITabChildWindowImpl<DirectoryListingFrame, RGB(255, 0, 255), IDR_DIRECTORY> baseClass;
@@ -81,7 +81,7 @@ public:
 		STATUS_LAST
 	};
 	
-	DirectoryListingFrame(const UserPtr& aUser, int64_t aSpeed);
+	DirectoryListingFrame(const HintedUser& aUser, int64_t aSpeed);
 	~DirectoryListingFrame() { 
 		dcassert(lists.find(dl->getUser()) != lists.end());
 		lists.erase(dl->getUser());
@@ -184,7 +184,7 @@ public:
 
 	void setWindowTitle() {
 		if(error.empty())
-			SetWindowText((WinUtil::getNicks(dl->getUser()) + _T(" - ") + WinUtil::getHubNames(dl->getUser()).first).c_str());
+			SetWindowText((WinUtil::getNicks(dl->getHintedUser()) + _T(" - ") + WinUtil::getHubNames(dl->getHintedUser()).first).c_str());
 		else
 			SetWindowText(error.c_str());		
 	}
@@ -420,14 +420,14 @@ private:
 				ADLSearchManager::getInstance()->matchListing(*mWindow->dl);
 				mWindow->refreshTree(mDir);
 			} else {
-				mWindow->refreshTree(Text::toT(Util::toNmdcFile(mWindow->dl->loadXML(mTxt, true))));
+				mWindow->refreshTree(Text::toT(Util::toNmdcFile(mWindow->dl->updateXML(mTxt))));
 			}
 
 			mWindow->PostMessage(WM_SPEAKER, DirectoryListingFrame::FINISHED);
 		} catch(const AbortException) {
 			mWindow->PostMessage(WM_SPEAKER, DirectoryListingFrame::ABORTED);
 		} catch(const Exception& e) {
-			mWindow->error = Text::toT(ClientManager::getInstance()->getNicks(mWindow->dl->getUser()->getCID())[0] + ": " + e.getError());
+			mWindow->error = Text::toT(ClientManager::getInstance()->getNicks(mWindow->dl->getUser()->getCID(), mWindow->dl->getHintedUser().hint)[0] + ": " + e.getError());
 			mWindow->PostMessage(WM_SPEAKER, DirectoryListingFrame::ABORTED);
 		}
 
@@ -442,5 +442,5 @@ private:
 
 /**
  * @file
- * $Id: DirectoryListingFrm.h 411 2008-07-20 22:39:42Z BigMuscle $
+ * $Id: DirectoryListingFrm.h 468 2009-12-23 14:01:30Z bigmuscle $
  */

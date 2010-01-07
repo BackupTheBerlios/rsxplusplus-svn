@@ -272,7 +272,7 @@ void ADLSearchManager::MatchesFile(DestDirList& destDirVector, DirectoryListing:
 			if(is->isAutoQueue) {
 				try {
 					QueueManager::getInstance()->add(SETTING(DOWNLOAD_DIRECTORY) + currentFile->getName(),
-						currentFile->getSize(), currentFile->getTTH(), getUser(), Util::emptyString);
+						currentFile->getSize(), currentFile->getTTH(), getUser());
 				} catch(const Exception&) {	}
 			}
 
@@ -371,10 +371,11 @@ void ADLSearchManager::PrepareDestinationDirectories(DestDirList& destDirVector,
 
 void ADLSearchManager::matchListing(DirectoryListing& aDirList) throw() {
 	StringMap params;
-	params["userNI"] = ClientManager::getInstance()->getNicks(aDirList.getUser()->getCID())[0];
+	params["userNI"] = ClientManager::getInstance()->getNicks(aDirList.getHintedUser())[0];
 	params["userCID"] = aDirList.getUser()->getCID().toBase32();
 
-	setUser(aDirList.getUser());
+	setUser(aDirList.getHintedUser());
+	//setSentRaw(false);
 
 	DestDirList destDirs;
 	PrepareDestinationDirectories(destDirs, aDirList.getRoot(), params);
@@ -402,5 +403,5 @@ void ADLSearchManager::matchRecurse(DestDirList &aDestList, DirectoryListing::Di
 
 /**
  * @file
- * $Id: ADLSearch.cpp 453 2009-08-04 15:46:31Z BigMuscle $
+ * $Id: ADLSearch.cpp 466 2009-11-13 18:47:25Z BigMuscle $
  */

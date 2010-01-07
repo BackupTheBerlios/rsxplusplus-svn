@@ -92,7 +92,7 @@ public:
 	}
 	//RSX++ //Clean User
 	LRESULT onCleanUser(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
-		((T*)this)->getUserList().forEachSelected(&UserInfoBase::cleanUser);
+		((T*)this)->getUserList().forEachSelectedT(boost::bind(&UserInfoBase::cleanUser, _1, hubHint));
 		return 0;
 	}
 	//custom protection
@@ -378,7 +378,11 @@ public:
 		}
 		lastDirs.push_back(dir);
 	}
-	
+
+	static uint32_t percent(int32_t x, uint8_t percent) {
+		return x*percent/100;
+	}
+
 	static tstring encodeFont(LOGFONT const& font);
 	
 	static bool browseFile(tstring& target, HWND owner = NULL, bool save = true, const tstring& initialDir = Util::emptyStringW, const TCHAR* types = NULL, const TCHAR* defExt = NULL);
@@ -429,13 +433,17 @@ public:
 	
 	static bool getUCParams(HWND parent, const UserCommand& cmd, StringMap& sm) throw();
 
-	static tstring getNicks(const CID& cid) throw();
-	static tstring getNicks(const UserPtr& u) { return getNicks(u->getCID()); }
-	
-	/** @return Pair of hubnames as a string and a bool representing the user's online status */
-	static pair<tstring, bool> getHubNames(const CID& cid) throw();
-	static pair<tstring, bool> getHubNames(const UserPtr& u) { return getHubNames(u->getCID()); }
+	static tstring getNicks(const CID& cid, const string& hintUrl);
+	static tstring getNicks(const UserPtr& u, const string& hintUrl);
+	static tstring getNicks(const CID& cid, const string& hintUrl, bool priv);
+	static tstring getNicks(const HintedUser& user) { return getNicks(user.user->getCID(), user.hint); }
 
+	/** @return Pair of hubnames as a string and a bool representing the user's online status */
+	static pair<tstring, bool> getHubNames(const CID& cid, const string& hintUrl);
+	static pair<tstring, bool> getHubNames(const UserPtr& u, const string& hintUrl);
+	static pair<tstring, bool> getHubNames(const CID& cid, const string& hintUrl, bool priv);
+	static pair<tstring, bool> getHubNames(const HintedUser& user) { return getHubNames(user.user->getCID(), user.hint); }
+	
 	static void splitTokens(int* array, const string& tokens, int maxItems = -1) throw();
 	static void saveHeaderOrder(CListViewCtrl& ctrl, SettingsManager::StrSetting order, 
 		SettingsManager::StrSetting widths, int n, int* indexes, int* sizes) throw();
@@ -504,5 +512,5 @@ private:
 
 /**
  * @file
- * $Id: WinUtil.h 464 2009-10-09 20:40:43Z BigMuscle $
+ * $Id: WinUtil.h 466 2009-11-13 18:47:25Z BigMuscle $
  */

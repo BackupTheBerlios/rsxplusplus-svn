@@ -33,7 +33,7 @@ namespace dcpp {
 
 class SocketException;
 
-class ConnectionQueueItem {
+class ConnectionQueueItem : boost::noncopyable {
 public:
 	typedef ConnectionQueueItem* Ptr;
 	typedef vector<Ptr> List;
@@ -46,21 +46,18 @@ public:
 		ACTIVE						// In one up/downmanager
 	};
 
-	ConnectionQueueItem(const UserPtr& aUser, bool aDownload, const string& hubHint_) : token(Util::toString(Util::rand())), hubHint(hubHint_), lastAttempt(0), state(WAITING), download(aDownload), user(aUser) { }
-	
-	UserPtr& getUser() { return user; }
-	const UserPtr& getUser() const { return user; }
+	ConnectionQueueItem(const HintedUser& aUser, bool aDownload) : token(Util::toString(Util::rand())), 
+		lastAttempt(0), state(WAITING), download(aDownload), user(aUser) { }
 	
 	GETSET(string, token, Token);
-	GETSET(string, hubHint, HubHint);
 	GETSET(uint64_t, lastAttempt, LastAttempt);
 	GETSET(State, state, State);
 	GETSET(bool, download, Download);
+
+	const HintedUser& getUser() const { return user; }
+
 private:
-	ConnectionQueueItem(const ConnectionQueueItem&);
-	ConnectionQueueItem& operator=(const ConnectionQueueItem&);
-	
-	UserPtr user;
+	HintedUser user;
 };
 
 class ExpectedMap {
@@ -106,7 +103,7 @@ public:
 	void nmdcConnect(const string& aServer, uint16_t aPort, const string& aMyNick, const string& hubUrl, string* encoding, bool stealth, bool secure);
 	void adcConnect(const OnlineUser& aUser, uint16_t aPort, const string& aToken, bool secure);
 
-	void getDownloadConnection(const UserPtr& aUser, const string& hubHint);
+	void getDownloadConnection(const HintedUser& aUser);
 	void force(const UserPtr& aUser);
 	
 	void disconnect(const UserPtr& aUser); // disconnect downloads and uploads
@@ -121,18 +118,7 @@ public:
 
 	uint16_t getPort() const { return server ? static_cast<uint16_t>(server->getPort()) : 0; }
 	uint16_t getSecurePort() const { return secureServer ? static_cast<uint16_t>(secureServer->getPort()) : 0; }
-	static uint16_t iConnToMeCount;
-	//RSX++
-	void addNmdcFeat(const std::string& feat) {
-		Lock l(cs);
-		features.push_back(feat);
-	}
-	void addAdcFeat(const std::string& feat) {
-		Lock l(cs);
-		adcFeatures.push_back("AD" + feat);
-	}
-	~ConnectionManager() throw() { shutdown(); }
-	//END
+	static uint16_t iConnToMeCount;	
 private:
 
 	class Server : public Thread {
@@ -176,7 +162,7 @@ private:
 	friend class Singleton<ConnectionManager>;
 	ConnectionManager();
 
-	//~ConnectionManager() throw() { shutdown(); } //RSX++
+	~ConnectionManager() throw() { shutdown(); }
 	
 	UserConnection* getConnection(bool aNmdc, bool secure) throw();
 	void putConnection(UserConnection* aConn);
@@ -184,7 +170,7 @@ private:
 	void addUploadConnection(UserConnection* uc);
 	void addDownloadConnection(UserConnection* uc);
 
-	ConnectionQueueItem* getCQI(const UserPtr& aUser, bool download, const string& hubHint);
+	ConnectionQueueItem* getCQI(const HintedUser& aUser, bool download);
 	void putCQI(ConnectionQueueItem* cqi);
 
 	void accept(const Socket& sock, bool secure) throw();
@@ -216,5 +202,5 @@ private:
 
 /**
  * @file
- * $Id: ConnectionManager.h 434 2009-03-29 11:09:33Z BigMuscle $
+ * $Id: ConnectionManager.h 466 2009-11-13 18:47:25Z BigMuscle $
  */

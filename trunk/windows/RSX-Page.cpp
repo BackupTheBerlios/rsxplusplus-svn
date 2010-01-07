@@ -57,15 +57,6 @@ LRESULT RSXPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 
 	CRect rc;
 
-	ctrlFavGroups.Attach(GetDlgItem(IDC_RSX_FAV_GROUPS));
-	ctrlFavGroups.GetClientRect(rc);
-	ctrlFavGroups.InsertColumn(0, _T("Dummy"), LVCFMT_LEFT, (rc.Width() - 17), 0);
-	ctrlFavGroups.SetExtendedListViewStyle(LVS_EX_FULLROWSELECT/* | LVS_EX_INFOTIP*/);
-
-	const StringList& lst = FavoriteManager::getInstance()->getFavGroups();
-	for(StringList::const_iterator j = lst.begin(); j != lst.end(); ++j)
-		ctrlFavGroups.insert(ctrlFavGroups.GetItemCount(), Text::toT((*j)));
-
 	ctrlPrio.Attach(GetDlgItem(IDC_STARTUP_PRIO));
 	ctrlPrio.AddString(CTSTRING(MENU_PRIO_REALTIME));
 	ctrlPrio.AddString(CTSTRING(MENU_PRIO_HIGH));
@@ -108,10 +99,6 @@ LRESULT RSXPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 void RSXPage::write() {
 	PropPage::write((HWND)*this, items, listItems, GetDlgItem(IDC_RSX_BOOLEANS), true);
 	rsxppSettingsManager::getInstance()->set(rsxppSettingsManager::DEFAULT_PRIO, ctrlPrio.GetCurSel());
-
-	StringList& lst = FavoriteManager::getInstance()->getFavGroups();
-	if(!lst.size()) FavoriteManager::getInstance()->addFavGroup("All Hubs");
-	FavoriteManager::getInstance()->save();
 	
 	HKEY hk;
 	tstring app = _T("\"") + Text::toT(Util::getPath(Util::PATH_GLOBAL_CONFIG)) + _T("RSXPlusPlus.exe\"");
@@ -132,61 +119,4 @@ void RSXPage::write() {
 	} else {
 		RSXPP_SET(DICTIONARY, Util::emptyString);
 	}
-}
-
-LRESULT RSXPage::onFavGroupBtn(WORD /* wNotifyCode */, WORD wID, HWND /* hWndCtl */, BOOL&  bHandled) {
-	switch(wID) {
-		case IDC_RSX_FAV_ADD: {
-			LineDlg dlg;
-			dlg.title = _T("Add Favorite Hub Group");
-			while(true) {
-				if(dlg.DoModal() == IDOK) {
-					if(!FavoriteManager::getInstance()->addFavGroup(Text::fromT(dlg.line))) {
-						MessageBox(_T("This group already exist!"));
-					} else {
-						ctrlFavGroups.insert(ctrlFavGroups.GetItemCount(), dlg.line);
-						break;
-					}						
-				} else {
-					break;
-				}
-			}
-			return 0;
-		}
-		case IDC_RSX_FAV_EDIT: {
-			if(ctrlFavGroups.GetSelectedCount() == 1) {
-				int sel = ctrlFavGroups.GetSelectedIndex();
-				TCHAR buf[256];
-				ctrlFavGroups.GetItemText(sel, 0, buf, 256);
-
-				LineDlg dlg;
-				dlg.title = _T("Edit Favorite Hub Group");
-				dlg.line = buf;
-				while(true) {
-					if(dlg.DoModal() == IDOK) {
-						if(!FavoriteManager::getInstance()->editFavGroup((uint8_t)sel, Text::fromT(dlg.line))) {
-							MessageBox(_T("This group already exist!"));
-						} else {
-							ctrlFavGroups.SetItemText(sel, 0, (dlg.line).c_str());
-							break;
-						}						
-					} else {
-						break;
-					}
-				}
-			}
-			return 0;
-		}
-		case IDC_RSX_FAV_REMOVE: {
-			if(ctrlFavGroups.GetSelectedCount() == 1) {
-				int pos = ctrlFavGroups.GetSelectedIndex();
-				FavoriteManager::getInstance()->removeFavGroup((uint8_t)pos);
-				ctrlFavGroups.DeleteItem(pos);
-			}
-			return 0;
-		}
-		default: break;
-	}
-	bHandled = FALSE;
-	return 0;
 }

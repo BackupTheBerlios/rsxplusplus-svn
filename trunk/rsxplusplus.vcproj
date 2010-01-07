@@ -1954,6 +1954,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\windows\FavHubGroupsDlg.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\windows\FavHubProperties.cpp"
 				>
 			</File>
@@ -2306,6 +2310,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\windows\UPnP_COM.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\windows\UserListColours.cpp"
 				>
 			</File>
@@ -2456,6 +2464,10 @@
 			</File>
 			<File
 				RelativePath=".\windows\FakeDetect.h"
+				>
+			</File>
+			<File
+				RelativePath=".\windows\FavHubGroupsDlg.h"
 				>
 			</File>
 			<File
@@ -2772,6 +2784,10 @@
 			</File>
 			<File
 				RelativePath=".\windows\upnp.h"
+				>
+			</File>
+			<File
+				RelativePath=".\windows\UPnP_COM.h"
 				>
 			</File>
 			<File

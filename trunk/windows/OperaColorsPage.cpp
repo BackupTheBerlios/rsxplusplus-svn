@@ -401,6 +401,6 @@ LRESULT OperaColorsPage::onSelChange(WORD /* wNotifyCode */, WORD /*wID*/, HWND 
 
 /**
  * @file
- * $Id: OperaColorsPage.cpp 295 2007-06-25 16:10:24Z bigmuscle $
+ * $Id: OperaColorsPage.cpp 412 2008-07-23 22:35:40Z BigMuscle $
  */
 

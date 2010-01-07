@@ -89,7 +89,7 @@ public:
 			active = NULL;
 		if(moving == ti)
 			moving = NULL;
-		delete ti;
+
 		tabs.erase(i);
 		viewOrder.remove(aWnd);
 		nextTab = viewOrder.end();
@@ -98,6 +98,8 @@ public:
 
 		calcRows(false);
 		Invalidate();
+
+		delete ti;
 	}
 
 	void startSwitch() {
@@ -976,5 +978,5 @@ private:
 
 /**
  * @file
- * $Id: flattabctrl.h 396 2008-07-01 21:26:33Z BigMuscle $
+ * $Id: flattabctrl.h 469 2009-12-29 21:13:40Z bigmuscle $
  */

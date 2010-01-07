@@ -150,7 +150,7 @@ void AdcHub::handle(AdcCommand::INF, AdcCommand& c) throw() {
 					nick = "[nick unknown]";
 				}
 				fire(ClientListener::StatusMessage(), this, u->getIdentity().getNick() + " (" + u->getIdentity().getSIDString() + 
-					") has same CID {" + cid + "} as " + nick + " (" + AdcCommand::fromSID(c.getFrom()) + "), ignoring.");
+					") has same CID {" + cid + "} as " + nick + " (" + AdcCommand::fromSID(c.getFrom()) + "), ignoring.", ClientListener::FLAG_IS_SPAM);
 				return;
 			}
 		} else {
@@ -281,8 +281,6 @@ void AdcHub::handle(AdcCommand::MSG, AdcCommand& c) throw() {
 	if(!message.from)
 		return;
 
-	message.thirdPerson = c.hasFlag("ME", 1);
-
 	string temp;
 	if(c.getParam("PM", 1, temp)) { // add PM<group-cid> as well
 		message.to = findUser(c.getTo());
@@ -293,6 +291,8 @@ void AdcHub::handle(AdcCommand::MSG, AdcCommand& c) throw() {
 		if(!message.replyTo)
 			return;
 	}
+
+	message.thirdPerson = c.hasFlag("ME", 1);
 
 	if(c.getParam("TS", 1, temp))
 		message.timestamp = Util::toInt64(temp);
@@ -314,29 +314,31 @@ void AdcHub::handle(AdcCommand::QUI, AdcCommand& c) throw() {
 	uint32_t s = AdcCommand::toSID(c.getParam(0));
 
 	OnlineUser* victim = findUser(s);
-	if(!victim) {
-		return;
-	}
+	if(victim) {
 
-	string tmp;
-	if(c.getParam("MS", 1, tmp)) {
-		OnlineUser* source = 0;
-		string tmp2;
-		if(c.getParam("ID", 1, tmp2)) {
-			source = findUser(AdcCommand::toSID(tmp2));
+		string tmp;
+		if(c.getParam("MS", 1, tmp)) {
+			OnlineUser* source = 0;
+			string tmp2;
+			if(c.getParam("ID", 1, tmp2)) {
+				source = findUser(AdcCommand::toSID(tmp2));
+			}
+		
+			if(source) {
+				tmp = victim->getIdentity().getNick() + " was kicked by " +	source->getIdentity().getNick() + ": " + tmp;
+			} else {
+				tmp = victim->getIdentity().getNick() + " was kicked: " + tmp;
+			}
+			fire(ClientListener::StatusMessage(), this, tmp, ClientListener::FLAG_IS_SPAM);
 		}
 	
-		if(source) {
-			tmp = victim->getIdentity().getNick() + " was kicked by " +	source->getIdentity().getNick() + ": " + tmp;
-		} else {
-			tmp = victim->getIdentity().getNick() + " was kicked: " + tmp;
-		}
-		fire(ClientListener::StatusMessage(), this, tmp, ClientListener::FLAG_IS_SPAM);
+		putUser(s, c.getParam("DI", 1, tmp)); 
 	}
-
-	putUser(s, c.getParam("DI", 1, tmp)); 
 	
 	if(s == sid) {
+		// this QUI is directed to us
+
+		string tmp;
 		if(c.getParam("TL", 1, tmp)) {
 			if(tmp == "-1") {
 				setAutoReconnect(false);
@@ -344,6 +346,9 @@ void AdcHub::handle(AdcCommand::QUI, AdcCommand& c) throw() {
 				setAutoReconnect(true);
 				setReconnDelay(Util::toUInt32(tmp));
 			}
+		}
+		if(!victim && c.getParam("MS", 1, tmp)) {
+			fire(ClientListener::StatusMessage(), this, tmp, ClientListener::FLAG_NORMAL);
 		}
 		if(c.getParam("RD", 1, tmp)) {
 			fire(ClientListener::Redirect(), this, tmp);
@@ -502,23 +507,38 @@ void AdcHub::handle(AdcCommand::STA, AdcCommand& c) throw() {
 		return;
 	}
 
-	int code = Util::toInt(c.getParam(0).substr(1));
+	switch(Util::toInt(c.getParam(0).substr(1))) {
 
-	if(code == AdcCommand::ERROR_BAD_PASSWORD) {
+	case AdcCommand::ERROR_BAD_PASSWORD:
+		{
 		setPassword(Util::emptyString);
-	} else if(code == AdcCommand::ERROR_PROTOCOL_UNSUPPORTED) {
-		string tmp;
-		if(c.getParam("PR", 1, tmp)) {
-			if(tmp == CLIENT_PROTOCOL) {
-				u->getUser()->setFlag(User::NO_ADC_1_0_PROTOCOL);
-			} else if(tmp == CLIENT_PROTOCOL_TEST) {
-				u->getUser()->setFlag(User::NO_ADC_0_10_PROTOCOL);
-			} else if(tmp == SECURE_CLIENT_PROTOCOL_TEST) {
-				u->getUser()->setFlag(User::NO_ADCS_0_10_PROTOCOL);
-				u->getUser()->unsetFlag(User::TLS);
+			break;
+		}
+
+	case AdcCommand::ERROR_COMMAND_ACCESS:
+		{
+			string tmp;
+			if(c.getParam("FC", 1, tmp) && tmp.size() == 4)
+				forbiddenCommands.insert(AdcCommand::toFourCC(tmp.c_str()));
+			break;
+		}
+
+	case AdcCommand::ERROR_PROTOCOL_UNSUPPORTED:
+		{
+			string tmp;
+			if(c.getParam("PR", 1, tmp)) {
+				if(tmp == CLIENT_PROTOCOL) {
+					u->getUser()->setFlag(User::NO_ADC_1_0_PROTOCOL);
+				} else if(tmp == CLIENT_PROTOCOL_TEST) {
+					u->getUser()->setFlag(User::NO_ADC_0_10_PROTOCOL);
+				} else if(tmp == SECURE_CLIENT_PROTOCOL_TEST) {
+					u->getUser()->setFlag(User::NO_ADCS_0_10_PROTOCOL);
+					u->getUser()->unsetFlag(User::TLS);
+				}
+				// Try again...
+				ConnectionManager::getInstance()->force(u->getUser());
 			}
-			// Try again...
-			ConnectionManager::getInstance()->force(u->getUser());
+			break;
 		}
 	}
 
@@ -560,10 +580,21 @@ void AdcHub::handle(AdcCommand::PSR, AdcCommand& c) throw() {
 
 void AdcHub::handle(AdcCommand::GET, AdcCommand& c) throw() {
 	if(c.getParameters().size() < 5) {
-		dcdebug("Get with few parameters");
-		// TODO return STA?
+		if(c.getParameters().size() > 0) {
+			if(c.getParam(0) == "blom") {
+				send(AdcCommand(AdcCommand::SEV_FATAL, AdcCommand::ERROR_PROTOCOL_GENERIC,
+					"Too few parameters for blom", AdcCommand::TYPE_HUB));
+			} else {
+				send(AdcCommand(AdcCommand::SEV_FATAL, AdcCommand::ERROR_TRANSFER_GENERIC,
+					"Unknown transfer type", AdcCommand::TYPE_HUB));
+			}
+		} else {
+			send(AdcCommand(AdcCommand::SEV_FATAL, AdcCommand::ERROR_PROTOCOL_GENERIC,
+				"Too few parameters for GET", AdcCommand::TYPE_HUB));
+		}
 		return;
 	}
+
 	const string& type = c.getParam(0);
 	string sk, sh;
 	if(type == "blom" && c.getParam("BK", 4, sk) && c.getParam("BH", 4, sh))  {
@@ -573,18 +604,22 @@ void AdcHub::handle(AdcCommand::GET, AdcCommand& c) throw() {
 		size_t h = Util::toUInt32(sh);
 				
 		if(k > 8 || k < 1) {
-			send(AdcCommand(AdcCommand::SEV_FATAL, AdcCommand::ERROR_TRANSFER_GENERIC, "Unsupported k"));
+			send(AdcCommand(AdcCommand::SEV_FATAL, AdcCommand::ERROR_TRANSFER_GENERIC, 
+				"Unsupported k", AdcCommand::TYPE_HUB));
 			return;
 		}
 		if(h > 64 || h < 1) {
-			send(AdcCommand(AdcCommand::SEV_FATAL, AdcCommand::ERROR_TRANSFER_GENERIC, "Unsupported h"));
+			send(AdcCommand(AdcCommand::SEV_FATAL, AdcCommand::ERROR_TRANSFER_GENERIC, 
+				"Unsupported h", AdcCommand::TYPE_HUB));
 			return;
 		}
+
 		size_t n = ShareManager::getInstance()->getSharedFiles();
 		
 		// Ideal size for m is n * k / ln(2), but we allow some slack
-		if(m > (5 * n * k / log(2.)) || m > static_cast<size_t>(1 << h)) {
-			send(AdcCommand(AdcCommand::SEV_FATAL, AdcCommand::ERROR_TRANSFER_GENERIC, "Unsupported m"));
+		if(m > (static_cast<size_t>(5 * Util::roundUp((int64_t)(n * k / log(2.)), (int64_t)64))) || m > static_cast<size_t>(1 << h)) {
+			send(AdcCommand(AdcCommand::SEV_FATAL, AdcCommand::ERROR_TRANSFER_GENERIC,
+				"Unsupported m", AdcCommand::TYPE_HUB));
 			return;
 		}
 		
@@ -827,9 +862,11 @@ string AdcHub::checkNick(const string& aNick) {
 }
 
 void AdcHub::send(const AdcCommand& cmd) {
-	if(cmd.getType() == AdcCommand::TYPE_UDP)
-		sendUDP(cmd);
-	send(cmd.toString(sid));
+	if(forbiddenCommands.find(AdcCommand::toFourCC(cmd.getFourCC().c_str())) == forbiddenCommands.end()) {
+		if(cmd.getType() == AdcCommand::TYPE_UDP)
+			sendUDP(cmd);
+		send(cmd.toString(sid));
+	}
 }
 
 void AdcHub::on(Connected c) throw() {
@@ -837,6 +874,7 @@ void AdcHub::on(Connected c) throw() {
 
 	lastInfoMap.clear();
 	sid = 0;
+	forbiddenCommands.clear();
 
 	AdcCommand cmd(AdcCommand::CMD_SUP, AdcCommand::TYPE_HUB);
 	cmd.addParam(BAS0_SUPPORT).addParam(BASE_SUPPORT).addParam(TIGR_SUPPORT);
@@ -884,5 +922,5 @@ void AdcHub::on(Second s, uint64_t aTick) throw() {
 
 /**
  * @file
- * $Id: AdcHub.cpp 465 2009-10-31 15:28:56Z BigMuscle $
+ * $Id: AdcHub.cpp 468 2009-12-23 14:01:30Z bigmuscle $
  */

@@ -52,18 +52,6 @@
 
 #ifdef _MSC_VER
 
-#if !defined(_STLPORT_VERSION) || (_STLPORT_VERSION < 0x600)
-typedef signed __int8 int8_t;
-typedef signed __int16 int16_t;
-typedef signed __int32 int32_t;
-typedef signed __int64 int64_t;
-
-typedef unsigned __int8 uint8_t;
-typedef unsigned __int16 uint16_t;
-typedef unsigned __int32 uint32_t;
-typedef unsigned __int64 uint64_t;
-#endif
-
 //disable the deprecated warnings for the CRT functions.
 #define _CRT_SECURE_NO_DEPRECATE 1
 #define _ATL_SECURE_NO_DEPRECATE 1
@@ -77,7 +65,6 @@ typedef unsigned __int64 uint64_t;
 # pragma warning(disable: 4503) // decorated name length exceeded, name was truncated
 # pragma warning(disable: 4428) // universal-character-name encountered in source
 # pragma warning(disable: 4201) // nonstadard extension used : nameless struct/union
-# pragma warning(disable: 4512) // assignment operator could not be generated //RSX++ ohh it's pissing me off
 
 #ifdef _WIN64
 # pragma warning(disable: 4244) // conversion from 'xxx' to 'yyy', possible loss of data
@@ -152,14 +139,15 @@ typedef unsigned __int64 uint64_t;
 #include <limits>
 
 #include <boost/format.hpp>
-#include <boost/smart_ptr/scoped_array.hpp>
-#include <boost/smart_ptr/shared_ptr.hpp>
+#include <boost/scoped_array.hpp>
+#include <boost/shared_ptr.hpp>
 #include <boost/noncopyable.hpp>
 
 #define BOOST_REGEX_NO_LIB 1
 #include <boost/regex.hpp>
+//#include <regex>
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) || defined(_STLPORT_VERSION)
 
 #include <unordered_map>
 #include <unordered_set>
@@ -171,6 +159,18 @@ typedef unsigned __int64 uint64_t;
 
 #else
 #error "Unknown STL, please configure accordingly"
+#endif
+
+#if !defined(_STLPORT_VERSION) || (_STLPORT_VERSION < 0x600)	// current STLPort GIT implements this
+	typedef signed __int8 int8_t;
+	typedef signed __int16 int16_t;
+	typedef signed __int32 int32_t;
+	typedef signed __int64 int64_t;
+
+	typedef unsigned __int8 uint8_t;
+	typedef unsigned __int16 uint16_t;
+	typedef unsigned __int32 uint32_t;
+	typedef unsigned __int64 uint64_t;
 #endif
 
 namespace dcpp {

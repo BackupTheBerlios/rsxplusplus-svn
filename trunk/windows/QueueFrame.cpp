@@ -123,7 +123,7 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const {
 			int online = 0;
 			QueueItem::SourceList sources = QueueManager::getInstance()->getSources(qi);
 			for(QueueItem::SourceConstIter j = sources.begin(); j != sources.end(); ++j) {
-				if(j->getUser()->isOnline())
+				if(j->getUser().user->isOnline())
 					online++;
 			}
 
@@ -326,7 +326,8 @@ HTREEITEM QueueFrame::addDirectory(const string& dir, bool isFileList /* = false
 		tvi.item.lParam = (LPARAM) new string(dir);
 		fileLists = ctrlDirs.InsertItem(&tvi);
 		return fileLists;
-	}
+	} 
+
 	// More complicated, we have to find the last available tree item and then see...
 	string::size_type i = 0;
 	string::size_type j;
@@ -814,6 +815,10 @@ LRESULT QueueFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, B
 					sources = QueueManager::getInstance()->getSources(ii->getQueueItem());
 					for(QueueItem::SourceConstIter i = sources.begin(); i != sources.end(); ++i) {
 						tstring nick = WinUtil::escapeMenu(WinUtil::getNicks(i->getUser()));
+						// add hub hint to menu
+						if(!i->getUser().hint.empty())
+							nick += _T(" (") + Text::toT(i->getUser().hint) + _T(")");
+
 						mi.fMask = MIIM_ID | MIIM_TYPE | MIIM_DATA;
 						mi.fType = MFT_STRING;
 						mi.dwTypeData = (LPTSTR)nick.c_str();
@@ -824,7 +829,7 @@ LRESULT QueueFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, B
 						removeMenu.InsertMenuItem(menuItems + 2, TRUE, &mi); // "All" and separator come first
 						mi.wID = IDC_REMOVE_SOURCES + menuItems;
 						removeAllMenu.InsertMenuItem(menuItems, TRUE, &mi);
-						if(i->getUser()->isOnline()) {
+						if(i->getUser().user->isOnline()) {
 							mi.wID = IDC_PM + menuItems;
 							pmMenu.InsertMenuItem(menuItems, TRUE, &mi);
 							pmItems++;
@@ -851,6 +856,11 @@ LRESULT QueueFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, B
 						} else if(i->isSet(QueueItem::Source::FLAG_UNTRUSTED)) {
 							nick += _T(" (") + TSTRING(CERTIFICATE_NOT_TRUSTED) + _T(")");
 						}
+
+						// add hub hint to menu
+						if(!i->getUser().hint.empty())
+							nick += _T(" (") + Text::toT(i->getUser().hint) + _T(")");
+
 						mi.fMask = MIIM_ID | MIIM_TYPE | MIIM_DATA;
 						mi.fType = MFT_STRING;
 						mi.dwTypeData = (LPTSTR)nick.c_str();
@@ -987,7 +997,7 @@ LRESULT QueueFrame::onBrowseList(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*
 		OMenuItem* omi = (OMenuItem*)mi.dwItemData;
 		QueueItem::Source* s = (QueueItem::Source*)omi->data;
 		try {
-			QueueManager::getInstance()->addList(s->getUser(), Util::emptyString, QueueItem::FLAG_CLIENT_VIEW);
+			QueueManager::getInstance()->addList(s->getUser(), QueueItem::FLAG_CLIENT_VIEW);
 		} catch(const Exception&) {
 		}
 	}
@@ -1008,13 +1018,13 @@ LRESULT QueueFrame::onReadd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BO
 			// re-add all sources
 			QueueItem::SourceList badSources = QueueManager::getInstance()->getBadSources(ii->getQueueItem());
 			for(QueueItem::SourceConstIter s = badSources.begin(); s != badSources.end(); s++) {
-				QueueManager::getInstance()->readd(ii->getTarget(), s->getUser(), Util::emptyString);
+				QueueManager::getInstance()->readd(ii->getTarget(), s->getUser());
 			}
 		} else {
 			OMenuItem* omi = (OMenuItem*)mi.dwItemData;
 			QueueItem::Source* s = (QueueItem::Source*)omi->data;
 			try {
-				QueueManager::getInstance()->readd(ii->getTarget(), s->getUser(), Util::emptyString);
+				QueueManager::getInstance()->readd(ii->getTarget(), s->getUser());
 			} catch(const Exception& e) {
 				ctrlStatus.SetText(1, Text::toT(e.getError()).c_str());
 			}
@@ -1489,8 +1499,8 @@ LRESULT QueueFrame::onRemoveOffline(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
 
 		QueueItem::SourceList sources = QueueManager::getInstance()->getSources(ii->getQueueItem());
 		for(QueueItem::SourceConstIter i =	sources.begin(); i != sources.end(); i++) {
-			if(!i->getUser()->isOnline()) {
-				QueueManager::getInstance()->removeSource(ii->getTarget(), i->getUser(), QueueItem::Source::FLAG_REMOVED);
+			if(!i->getUser().user->isOnline()) {
+				QueueManager::getInstance()->removeSource(ii->getTarget(), i->getUser().user, QueueItem::Source::FLAG_REMOVED);
 			}
 		}
 	}
@@ -1554,5 +1564,5 @@ void QueueFrame::on(QueueManagerListener::RecheckDone, const QueueItem* aQI) thr
 	
 /**
  * @file
- * $Id: QueueFrame.cpp 429 2009-02-06 17:26:54Z BigMuscle $
+ * $Id: QueueFrame.cpp 468 2009-12-23 14:01:30Z bigmuscle $
  */

@@ -42,13 +42,7 @@ public:
 class SettingsManager : public Singleton<SettingsManager>, public Speaker<SettingsManagerListener>
 {
 public:
-	//RSX++
-	enum Types {
-		TYPE_STRING,
-		TYPE_INT,
-		TYPE_INT64
-	};
-	//END
+
 	static StringList connectionSpeeds;
 
 	enum StrSetting { STR_FIRST,
@@ -156,13 +150,6 @@ public:
 
 	enum Int64Setting { INT64_FIRST = INT_LAST + 1,
 		TOTAL_UPLOAD = INT64_FIRST, TOTAL_DOWNLOAD, INT64_LAST, SETTINGS_LAST = INT64_LAST };
-	//RSX++
-	bool getType(const char* name, int& n, int& type) const;
-	int getInt(const string& sname);
-	int64_t getInt64(const string& sname);
-	const string& getString(const string& sname) const;
-	//END
-	enum {	BWSETTINGS_DEFAULT, BWSETTINGS_ADVANCED };
 
 	enum {	INCOMING_DIRECT, INCOMING_FIREWALL_UPNP, INCOMING_FIREWALL_NAT_PMP, INCOMING_FIREWALL_NAT,
 		INCOMING_FIREWALL_PASSIVE };
@@ -284,16 +271,11 @@ public:
 
 	void load(const string& aFileName);
 	void save(const string& aFileName);
-	//RSX++
-	SettingsManager();
-	~SettingsManager() throw() { }
-	//END
+
 private:
 	friend class Singleton<SettingsManager>;
-	//RSX++
-	//SettingsManager();
-	//~SettingsManager() throw() { }
-	//END
+	SettingsManager();
+	~SettingsManager() throw() { }
 
 	static const string settingTags[SETTINGS_LAST+1];
 

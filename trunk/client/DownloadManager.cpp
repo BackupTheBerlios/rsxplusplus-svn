@@ -271,7 +271,7 @@ void DownloadManager::startData(UserConnection* aSource, int64_t start, int64_t 
 	try {
 		QueueManager::getInstance()->setFile(d);
 	} catch(const FileException& e) {
-		failDownload(aSource, STRING(COULD_NOT_OPEN_TARGET_FILE) + e.getError());
+		failDownload(aSource, STRING(COULD_NOT_OPEN_TARGET_FILE) + " " + e.getError());
 		return;
 	} catch(const Exception& e) {
 		failDownload(aSource, e.getError());
@@ -414,7 +414,7 @@ void DownloadManager::noSlots(UserConnection* aSource, string param) {
 		return;
 	}
 
-	string extra = param.empty() ? Util::emptyString : " - " + STRING(QUEUED) + param;
+	string extra = param.empty() ? Util::emptyString : " - " + STRING(QUEUED) + " " + param;
 	failDownload(aSource, STRING(NO_SLOTS_AVAILABLE) + extra);
 }
 
@@ -591,5 +591,5 @@ void DownloadManager::fileNotAvailable(UserConnection* aSource) {
 
 /**
  * @file
- * $Id: DownloadManager.cpp 464 2009-10-09 20:40:43Z BigMuscle $
+ * $Id: DownloadManager.cpp 469 2009-12-29 21:13:40Z bigmuscle $
  */

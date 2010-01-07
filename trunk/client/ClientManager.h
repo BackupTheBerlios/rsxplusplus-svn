@@ -43,14 +43,6 @@ class ClientManager : public Speaker<ClientManagerListener>,
 {
 public:
 	//RSX++
-	typedef unordered_multimap<CID*, OnlineUser*> OnlineMap;
-	typedef OnlineMap::iterator OnlineIter;
-	typedef OnlineMap::const_iterator OnlineIterC;
-
-	~ClientManager() throw() {
-		TimerManager::getInstance()->removeListener(this); 
-	}
-
 	void openHub(const string& url) {
 		fire(ClientManagerListener::ClientOpen(), url);
 	}
@@ -63,9 +55,17 @@ public:
 	Client* getClient(const string& aHubURL);
 	void putClient(Client* aClient);
 
-	StringList getHubs(const CID& cid) const;
-	StringList getHubNames(const CID& cid) const;
-	StringList getNicks(const CID& cid) const;
+	StringList getHubs(const CID& cid, const string& hintUrl) const;
+	StringList getHubNames(const CID& cid, const string& hintUrl) const;
+	StringList getNicks(const CID& cid, const string& hintUrl) const;
+
+	StringList getHubs(const CID& cid, const string& hintUrl, bool priv) const;
+	StringList getHubNames(const CID& cid, const string& hintUrl, bool priv) const;
+	StringList getNicks(const CID& cid, const string& hintUrl, bool priv) const;
+
+	StringList getNicks(const HintedUser& user) const { return getNicks(user.user->getCID(), user.hint); }
+	StringList getHubNames(const HintedUser& user) const { return getHubNames(user.user->getCID(), user.hint); }
+
 	string getConnection(const CID& cid) const;
 	uint8_t getSlots(const CID& cid) const;
 
@@ -83,6 +83,12 @@ public:
 
 	string findHub(const string& ipPort) const;
 	const string& findHubEncoding(const string& aUrl) const;
+
+	/**
+	* @param priv discard any user that doesn't match the hint.
+	* @return OnlineUser* found by CID and hint; might be only by CID if priv is false.
+	*/
+	OnlineUser* findOnlineUser(const CID& cid, const string& hintUrl, bool priv) const throw();
 
 	UserPtr findUser(const string& aNick, const string& aHubUrl) const throw() { return findUser(makeCid(aNick, aHubUrl)); }
 	UserPtr findUser(const CID& cid) const throw();
@@ -111,61 +117,11 @@ public:
 		}
 	}
 	
-	void reportUser(const UserPtr& p, const string& hubHint) {
-		string nick, report;
-		Client* c = 0;
-		{
-			Lock l(cs);
-			OnlineUser* u = findOnlineUser(p->getCID(), hubHint);
-			if(!u)
-				return;
-
-			nick = u->getIdentity().getNick();
-			report = u->getIdentity().getReport();
-			c = &u->getClient();
-		}
-		if(c)
-			c->cheatMessage("*** Info on " + nick + " ***" + "\r\n" + report + "\r\n");
-	}
-	//RSX++ // Clean User
-	void cleanUser(const UserPtr& p) {
-		Lock l(cs);
-		OnlineUser* ou = findOnlineUser(p->getCID(), Util::emptyString);
-		if(!ou)
-			return;
-
-		ou->getIdentity().cleanUser();
-		ou->getClient().updated(ou);
-	}
-	//RSX++ //Hide Share
-	bool getSharingHub(const UserPtr& p, const string& hubHint = Util::emptyString) {
-		Client* c = 0;
-		{
-			Lock l(cs);
-			OnlineUser* ou = findOnlineUser(p->getCID(), hubHint);
-			if(!ou)
-				return false;
-			c = &ou->getClient();
-		}
-		return c ? c->getHideShare() : false;
-	}
-	//RSX++ //check slot count
-	void checkSlots(const UserPtr& p, int slots) {
-		Client* c = 0;
-		string report = Util::emptyString;
-		{
-			Lock l(cs);
-			OnlineUser* ou = findOnlineUser(p->getCID(), Util::emptyString);
-			if(!ou)
-				return;
-			c = &ou->getClient();
-			if(ou->getIdentity().get("SC").empty())
-				report = ou->getIdentity().checkSlotsCount(*ou, slots);
-		}
-		if(c && !report.empty()) {
-			c->cheatMessage(report);
-		}
-	}
+	void reportUser(const HintedUser& user);
+	//RSX++
+	void cleanUser(const HintedUser& user);
+	bool getSharingHub(const HintedUser& user);
+	void checkSlots(const HintedUser& user, int slots);
 	//END
 
 	bool isOp(const UserPtr& aUser, const string& aHubUrl) const;
@@ -179,9 +135,9 @@ public:
 
 	UserPtr& getMe();
 	
-	void connect(const UserPtr& p, const string& token, const string& hintUrl);
 	void send(AdcCommand& c, const CID& to);
-	void privateMessage(const UserPtr& p, const string& msg, bool thirdPerson, const string& hintUrl);
+	void connect(const HintedUser& user, const string& token);
+	void privateMessage(const HintedUser& user, const string& msg, bool thirdPerson);
 
 	void userCommand(const UserPtr& p, const UserCommand& uc, StringMap& params, bool compatibility);
 	void sendRawCommand(const UserPtr& user, const string& aRaw, bool checkProtection = false);
@@ -215,7 +171,6 @@ public:
 		bool _badClient, bool _badFileList, bool _clientCheckComplete, bool _fileListCheckComplete);
 	//RSX++
 	void addCheckToQueue(const UserPtr& p, bool filelist);
-	const OnlineMap& getOnlineUsers() const { Lock l(cs); return onlineUsers; }
 	//END
 
 	// NMDC functions only!!!
@@ -234,9 +189,9 @@ private:
 
 	typedef unordered_map<CID*, std::string> NickMap;
 
-	//typedef unordered_multimap<CID*, OnlineUser*> OnlineMap;
-	//typedef OnlineMap::iterator OnlineIter;
-	//typedef OnlineMap::const_iterator OnlineIterC;
+	typedef unordered_multimap<CID*, OnlineUser*> OnlineMap;
+	typedef OnlineMap::iterator OnlineIter;
+	typedef OnlineMap::const_iterator OnlineIterC;
 	typedef pair<OnlineIter, OnlineIter> OnlinePair;
 	typedef pair<OnlineIterC, OnlineIterC> OnlinePairC;
 	
@@ -257,13 +212,22 @@ private:
 		TimerManager::getInstance()->addListener(this); 
 	}
 
-//	~ClientManager() throw() {
-//		TimerManager::getInstance()->removeListener(this); 
-//	}
+	~ClientManager() throw() {
+		TimerManager::getInstance()->removeListener(this); 
+	}
 
 	void updateNick(const OnlineUser& user) throw();
 		
-	OnlineUser* findOnlineUser(const CID& cid, const string& hintUrl = Util::emptyString) throw();
+	/// @return OnlineUser* found by CID and hint; discard any user that doesn't match the hint.
+	OnlineUser* findOnlineUser_hint(const CID& cid, const string& hintUrl) const throw() {
+		OnlinePairC p;
+		return findOnlineUser_hint(cid, hintUrl, p);
+	}
+	/**
+	* @param p OnlinePair of all the users found by CID, even those who don't match the hint.
+	* @return OnlineUser* found by CID and hint; discard any user that doesn't match the hint.
+	*/
+	OnlineUser* findOnlineUser_hint(const CID& cid, const string& hintUrl, OnlinePairC& p) const throw();
 
 	// ClientListener
 	void on(Connected, const Client* c) throw();
@@ -285,5 +249,5 @@ private:
 
 /**
  * @file
- * $Id: ClientManager.h 450 2009-07-05 15:02:34Z BigMuscle $
+ * $Id: ClientManager.h 466 2009-11-13 18:47:25Z BigMuscle $
  */

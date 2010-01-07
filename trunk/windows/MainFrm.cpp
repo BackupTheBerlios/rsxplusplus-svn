@@ -41,7 +41,7 @@
 #include "UploadQueueFrame.h"
 #include "LineDlg.h"
 #include "HashProgressDlg.h"
-#include "UPnP.h"
+#include "UPnP_COM.h"
 #include "PrivateFrame.h"
 #include "WinUtil.h"
 #include "CDMDebugFrame.h"
@@ -121,13 +121,15 @@ public:
 			UserPtr u = DirectoryListing::getUserFromFilename(*i);
 			if(!u)
 				continue;
-			DirectoryListing dl(u);
+				
+			HintedUser user(u, Util::emptyString);
+			DirectoryListing dl(user);
 			try {
 				dl.loadFile(*i);
 				string tmp;
 				tmp.resize(STRING(MATCHED_FILES).size() + 16);
 				tmp.resize(snprintf(&tmp[0], tmp.size(), CSTRING(MATCHED_FILES), QueueManager::getInstance()->matchListing(dl, Util::emptyString)));
-				LogManager::getInstance()->message(Util::toString(ClientManager::getInstance()->getNicks(u->getCID())) + ": " + tmp);
+				LogManager::getInstance()->message(Util::toString(ClientManager::getInstance()->getNicks(user)) + ": " + tmp);
 			} catch(const Exception&) {
 
 			}
@@ -184,10 +186,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	// Set window name
 
 	SetWindowText(RsxUtil::getWndTitle().c_str());
-	//RSX++
-	UpdateManager::getInstance()->addListener(this);
-	FavoriteManager::getInstance()->mergeHubSettings();
-	//END
+	UpdateManager::getInstance()->addListener(this); //RSX++
 
 	// Load images
 	// create command bar window
@@ -360,7 +359,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 		//END
 	} catch (const FileException) {	}
 
-	PluginsManager::getInstance()->load();
+	PluginsManager::getInstance()->load(); //RSX++
 
 	startSocket();
 	
@@ -556,82 +555,65 @@ void MainFrame::startSocket() {
 void MainFrame::startUPnP() {
 	stopUPnP();
 
-	if( SETTING(INCOMING_CONNECTIONS) == SettingsManager::INCOMING_FIREWALL_UPNP ) {
-		bool ok = true;
+	if(SETTING(INCOMING_CONNECTIONS) != SettingsManager::INCOMING_FIREWALL_UPNP)
+		return;
 
-		uint16_t port = ConnectionManager::getInstance()->getPort();
-		if(port != 0) {
-			UPnP_TCP.reset(new UPnP( Util::getLocalIp(), "TCP", APPNAME " Transfer Port (" + Util::toString(port) + " TCP)", port));
-			ok &= UPnP_TCP->open();
-		}
-		port = ConnectionManager::getInstance()->getSecurePort();
-		if(ok && port != 0) {
-			UPnP_TLS.reset(new UPnP( Util::getLocalIp(), "TCP", APPNAME " Encrypted Transfer Port (" + Util::toString(port) + " TCP)", port));
-			ok &= UPnP_TLS->open();
-		}
-		port = SearchManager::getInstance()->getPort();
-		if(ok && port != 0) {
-			UPnP_UDP.reset(new UPnP( Util::getLocalIp(), "UDP", APPNAME " Search Port (" + Util::toString(port) + " UDP)", port));
-			ok &= UPnP_UDP->open();
-		}
-		
-		port = DHT::getInstance()->getPort();
-		if(port != 0) {
-			UPnP_DHT.reset(new UPnP( Util::getLocalIp(), "UDP", APPNAME " DHT Port (" + Util::toString(port) + " UDP)", port));
-			if (!UPnP_DHT->open())
-			{
-				LogManager::getInstance()->message(STRING(UPNP_FAILED_TO_CREATE_MAPPINGS));
-				UPnP_DHT.reset();
-			}
-		}
-	
-		if(ok) {
-			if(!BOOLSETTING(NO_IP_OVERRIDE)) {
-				// now lets configure the external IP (connect to me) address
-				string ExternalIP = UPnP_TCP->GetExternalIP();
-				if ( !ExternalIP.empty() ) {
-					// woohoo, we got the external IP from the UPnP framework
-					SettingsManager::getInstance()->set(SettingsManager::EXTERNAL_IP, ExternalIP );
-				} else {
-					//:-( Looks like we have to rely on the user setting the external IP manually
-					// no need to do cleanup here because the mappings work
-					LogManager::getInstance()->message(STRING(UPNP_FAILED_TO_GET_EXTERNAL_IP));
-					MessageBox(CTSTRING(UPNP_FAILED_TO_GET_EXTERNAL_IP), _T(APPNAME) _T(" ") _T(VERSIONSTRING), MB_OK | MB_ICONWARNING);
-				}
-			}
+	pUPnP.reset(new UPnP_COM());
+
+	if(!initUPnP()) {
+		/// @todo try again with a different impl if we have one
+
+		/// @todo the UPnP impl might return a meaningful error, show it to the user
+		LogManager::getInstance()->message(STRING(UPNP_FAILED_TO_CREATE_MAPPINGS));
+		MessageBox(CTSTRING(UPNP_FAILED_TO_CREATE_MAPPINGS), _T(APPNAME) _T(" ") _T(VERSIONSTRING), MB_OK | MB_ICONWARNING);
+
+		stopUPnP();
+	}
+}
+
+bool MainFrame::initUPnP() {
+	if(!pUPnP->init())
+		return false;
+
+	uint16_t port = ConnectionManager::getInstance()->getPort();
+	if(port != 0 && !pUPnP->open(port, UPnP::PROTOCOL_TCP, APPNAME " Transfer Port (" + Util::toString(port) + " TCP)"))
+		return false;
+
+	port = ConnectionManager::getInstance()->getSecurePort();
+	if(port != 0 && !pUPnP->open(port, UPnP::PROTOCOL_TCP, APPNAME " Encrypted Transfer Port (" + Util::toString(port) + " TCP)"))
+		return false;
+
+	port = SearchManager::getInstance()->getPort();
+	if(port != 0 && !pUPnP->open(port, UPnP::PROTOCOL_UDP, APPNAME " Search Port (" + Util::toString(port) + " TCP)"))
+		return false;
+
+	port = DHT::getInstance()->getPort();
+	if(port != 0 && !pUPnP->open(port, UPnP::PROTOCOL_UDP, APPNAME " DHT Port (" + Util::toString(port) + " UDP)"))
+		return false;
+
+	if(!BOOLSETTING(NO_IP_OVERRIDE)) {
+		// now lets configure the external IP (connect to me) address
+		string ExternalIP = pUPnP->getExternalIP();
+		if(!ExternalIP.empty()) {
+			// woohoo, we got the external IP from the UPnP framework
+			SettingsManager::getInstance()->set(SettingsManager::EXTERNAL_IP, ExternalIP);
 		} else {
-			LogManager::getInstance()->message(STRING(UPNP_FAILED_TO_CREATE_MAPPINGS));
-			MessageBox(CTSTRING(UPNP_FAILED_TO_CREATE_MAPPINGS), _T(APPNAME) _T(" ") _T(VERSIONSTRING), MB_OK | MB_ICONWARNING);
-			stopUPnP();
+			//:-( Looks like we have to rely on the user setting the external IP manually
+			// no need to do cleanup here because the mappings work
+			LogManager::getInstance()->message(STRING(UPNP_FAILED_TO_GET_EXTERNAL_IP));
+			MessageBox(CTSTRING(UPNP_FAILED_TO_GET_EXTERNAL_IP), _T(APPNAME) _T(" ") _T(VERSIONSTRING), MB_OK | MB_ICONWARNING);
 		}
-	}	
+	}
+
+	return true;
 }
 
 void MainFrame::stopUPnP() {
-	// Just check if the port mapping objects are initialized (NOT NULL)
-	if(UPnP_TCP.get()) {
-		if(!UPnP_TCP->close()) {
+	if(pUPnP.get()) {
+		if(!pUPnP->close()) {
 			LogManager::getInstance()->message(STRING(UPNP_FAILED_TO_REMOVE_MAPPINGS));
 		}
-		UPnP_TCP.reset();
-	}
-	if(UPnP_TLS.get()) {
-		if(!UPnP_TLS->close()) {
-			LogManager::getInstance()->message(STRING(UPNP_FAILED_TO_REMOVE_MAPPINGS));
-		}
-		UPnP_TLS.reset();
-	}
-	if(UPnP_UDP.get()) {
-		if(!UPnP_UDP->close()) {
-			LogManager::getInstance()->message(STRING(UPNP_FAILED_TO_REMOVE_MAPPINGS));
-		}
-		UPnP_UDP.reset();
-	}	
-	if(UPnP_DHT.get()) {
-		if(!UPnP_DHT->close()) {
-			LogManager::getInstance()->message(STRING(UPNP_FAILED_TO_REMOVE_MAPPINGS));
-		}
-		UPnP_DHT.reset();
+		pUPnP.reset();
 	}
 }
 
@@ -872,8 +854,10 @@ LRESULT MainFrame::OnFileSettings(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 			SETTING(DHT_PORT) != lastDHT || BOOLSETTING(USE_DHT) != lastDHTConn)
 		{
 			startSocket();
-		}
-		ClientManager::getInstance()->infoUpdated();
+		} else if(SETTING(INCOMING_CONNECTIONS) == SettingsManager::INCOMING_FIREWALL_UPNP && !pUPnP.get()) {
+			// previous UPnP mappings had failed; try again
+			startUPnP();
+		} 
 
 		if(BOOLSETTING(SORT_FAVUSERS_FIRST) != lastSortFavUsersFirst)
 			HubFrame::resortUsers();
@@ -895,20 +879,28 @@ LRESULT MainFrame::OnFileSettings(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 			WinUtil::urlMagnetRegistered = false;
 		}
 
-		if(BOOLSETTING(THROTTLE_ENABLE)) ctrlToolbar.CheckButton(IDC_LIMITER, true);
-		else ctrlToolbar.CheckButton(IDC_LIMITER, false);
+		if(BOOLSETTING(THROTTLE_ENABLE)) 
+			ctrlToolbar.CheckButton(IDC_LIMITER, true);
+		else 
+			ctrlToolbar.CheckButton(IDC_LIMITER, false);
 
-		if(Util::getAway()) ctrlToolbar.CheckButton(IDC_AWAY, true);
-		else ctrlToolbar.CheckButton(IDC_AWAY, false);
+		if(Util::getAway()) 
+			ctrlToolbar.CheckButton(IDC_AWAY, true);
+		else 
+			ctrlToolbar.CheckButton(IDC_AWAY, false);
 
-		if(getShutDown()) ctrlToolbar.CheckButton(IDC_SHUTDOWN, true);
-		else ctrlToolbar.CheckButton(IDC_SHUTDOWN, false);
+		if(getShutDown()) 
+			ctrlToolbar.CheckButton(IDC_SHUTDOWN, true);
+		else 
+			ctrlToolbar.CheckButton(IDC_SHUTDOWN, false);
 	
 		updateTray(BOOLSETTING(MINIMIZE_TRAY));
 		if(tabsontop != BOOLSETTING(TABS_ON_TOP)) {
 			tabsontop = BOOLSETTING(TABS_ON_TOP);
 			UpdateLayout();
 		}
+
+		ClientManager::getInstance()->infoUpdated();
 	}
 	return 0;
 }
@@ -1092,6 +1084,7 @@ LRESULT MainFrame::onEndSession(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 	
 	QueueManager::getInstance()->saveQueue();
 	SettingsManager::getInstance()->save();
+	
 	return 0;
 }
 
@@ -1263,7 +1256,7 @@ LRESULT MainFrame::onOpenFileList(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl
 	
 	if(wID == IDC_OPEN_MY_LIST){
 		if(!ShareManager::getInstance()->getOwnListFile().empty()){
-			DirectoryListingFrame::openWindow(Text::toT(ShareManager::getInstance()->getOwnListFile()), Text::toT(Util::emptyString), ClientManager::getInstance()->getMe(), 0);
+			DirectoryListingFrame::openWindow(Text::toT(ShareManager::getInstance()->getOwnListFile()), Text::toT(Util::emptyString), HintedUser(ClientManager::getInstance()->getMe(), Util::emptyString), 0);
 		}
 		return 0;
 	}
@@ -1271,7 +1264,7 @@ LRESULT MainFrame::onOpenFileList(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl
 	if(WinUtil::browseFile(file, m_hWnd, false, Text::toT(Util::getListPath()), types)) {
 		UserPtr u = DirectoryListing::getUserFromFilename(Text::fromT(file));
 		if(u) {
-			DirectoryListingFrame::openWindow(file, Text::toT(Util::emptyString), u, 0);
+			DirectoryListingFrame::openWindow(file, Text::toT(Util::emptyString), HintedUser(u, Util::emptyString), 0);
 		} else {
 			MessageBox(CTSTRING(INVALID_LISTNAME), _T(APPNAME) _T(" ") _T(VERSIONSTRING));
 		}
@@ -1346,7 +1339,7 @@ LRESULT MainFrame::OnViewQuickSearchBar(WORD /*wNotifyCode*/, WORD /*wID*/, HWND
 	static BOOL bVisible = TRUE;	// initially visible
 	bVisible = !bVisible;
 	CReBarCtrl rebar = m_hWndToolBar;
-	int nBandIndex = rebar.IdToIndex(ATL_IDW_BAND_FIRST + 2);	// quick search is 3rd added band
+	int nBandIndex = rebar.IdToIndex(ATL_IDW_BAND_FIRST + 2);	// toolbar is 3rd added band
 	rebar.ShowBand(nBandIndex, bVisible);
 	UISetCheck(ID_TOGGLE_QSEARCH, bVisible);
 	UpdateLayout();
@@ -1469,7 +1462,7 @@ void MainFrame::on(TimerManagerListener::Second, uint64_t aTick) throw() {
 	}
 }
 
-void MainFrame::on(PartialList, const UserPtr& aUser, const string& text) throw() {
+void MainFrame::on(PartialList, const HintedUser& aUser, const string& text) throw() {
 	PostMessage(WM_SPEAKER, BROWSE_LISTING, (LPARAM)new DirectoryBrowseInfo(aUser, text));
 }
 
@@ -1477,14 +1470,14 @@ void MainFrame::on(QueueManagerListener::Finished, const QueueItem* qi, const st
 	if(qi->isSet(QueueItem::FLAG_CLIENT_VIEW)) {
 		if(qi->isSet(QueueItem::FLAG_USER_LIST)) {
 			// This is a file listing, show it...
-			DirectoryListInfo* i = new DirectoryListInfo(qi->getDownloads()[0]->getUser(), Text::toT(qi->getListName()), Text::toT(dir), static_cast<int64_t>(download->getAverageSpeed()));
+			DirectoryListInfo* i = new DirectoryListInfo(qi->getDownloads()[0]->getHintedUser(), Text::toT(qi->getListName()), Text::toT(dir), static_cast<int64_t>(download->getAverageSpeed()));
 
 			PostMessage(WM_SPEAKER, DOWNLOAD_LISTING, (LPARAM)i);
 		} else if(qi->isSet(QueueItem::FLAG_TEXT)) {
 			PostMessage(WM_SPEAKER, VIEW_FILE_AND_DELETE, (LPARAM) new tstring(Text::toT(qi->getTarget())));
 		}
 	} else if(qi->isSet(QueueItem::FLAG_USER_LIST) && qi->isSet(QueueItem::FLAG_CHECK_FILE_LIST)) {
-		DirectoryListInfo* i = new DirectoryListInfo(qi->getDownloads()[0]->getUser(), Text::toT(qi->getListName()), Text::toT(dir), static_cast<int64_t>(download->getAverageSpeed()));
+		DirectoryListInfo* i = new DirectoryListInfo(qi->getDownloads()[0]->getHintedUser(), Text::toT(qi->getListName()), Text::toT(dir), static_cast<int64_t>(download->getAverageSpeed()));
 		
 		if(listQueue.stop) {
 			listQueue.stop = false;

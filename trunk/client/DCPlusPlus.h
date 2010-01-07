@@ -55,7 +55,6 @@ _CrtDbgBreak(); } } while(false)
 #define dcassert(exp) assert(exp)
 #endif
 #define dcdrun(exp) exp
-#define dcdebug_use(x) x
 #else //_DEBUG
 #ifdef _MSC_VER
 #define dcasserta(exp) __assume(exp)
@@ -65,7 +64,6 @@ _CrtDbgBreak(); } } while(false)
 #define dcdebug if (false) printf
 #define dcassert(exp)
 #define dcdrun(exp)
-#define dcdebug_use(x)
 #endif //_DEBUG
 
 // Make sure we're using the templates from algorithm...
@@ -169,18 +167,6 @@ inline int strnicmp(const string& a, const string& b, size_t n) { return _strnic
 inline int stricmp(const wstring& a, const wstring& b) { return wcsicmp(a.c_str(), b.c_str()); }
 inline int strnicmp(const wstring& a, const wstring& b, size_t n) { return _wcsnicmp(a.c_str(), b.c_str(), n); }
 
-//RSX++ // be sure that this buffer will be deleted somewhere...
-template<class T1, class T2>
-inline T1* get_c_string_t(const T2& str) {
-	T1* buf = (T1*)malloc(sizeof(T1) * str.length() + 1);
-	std::memset(buf, 0, str.length()+1);
-	std::memcpy(buf, str.c_str(), str.length());
-	return buf;
-}
-inline char* get_c_string(const std::string& str) { return get_c_string_t<char, std::string>(str); }
-inline wchar_t* get_c_string(const std::wstring& str) { return get_c_string_t<wchar_t, std::wstring>(str); }
-
-//END
 extern void startup(void (*f)(void*, const tstring&), void* p);
 extern void shutdown();
 

@@ -83,7 +83,7 @@ LRESULT MagnetDlg::onCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, 
 		} else if(IsDlgButtonChecked(IDC_MAGNET_QUEUE)) {
 			try {
 				string target = SETTING(DOWNLOAD_DIRECTORY) + Text::fromT(mFileName);
-				QueueManager::getInstance()->add(target, mSize, TTHValue(Text::fromT(mHash)), UserPtr(), Util::emptyString);
+				QueueManager::getInstance()->add(target, mSize, TTHValue(Text::fromT(mHash)), HintedUser(UserPtr(), Util::emptyString));
 			} catch(const Exception& e) {
 				LogManager::getInstance()->message(e.getError());
 			}
@@ -113,5 +113,5 @@ LRESULT MagnetDlg::onRadioButton(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*
 
 /**
 * @file
-* $Id: MagnetDlg.cpp 463 2009-10-01 16:30:22Z BigMuscle $
+* $Id: MagnetDlg.cpp 466 2009-11-13 18:47:25Z BigMuscle $
 */

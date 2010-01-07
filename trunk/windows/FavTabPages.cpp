@@ -72,8 +72,8 @@ LRESULT CFavTabOp::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 	::CheckDlgButton(*this, IDC_CHECK_ON_CONNECT, hub->getCheckOnConnect()	? BST_CHECKED : BST_UNCHECKED);
 	::CheckDlgButton(*this, IDC_CHECK_CLIENTS, hub->getCheckClients()		? BST_CHECKED : BST_UNCHECKED);
 	::CheckDlgButton(*this, IDC_CHECK_FILELISTS, hub->getCheckFilelists()	? BST_CHECKED : BST_UNCHECKED);
-	::CheckDlgButton(*this, IDC_CHECK_MYINFO, hub->getCheckUserInfo()		? BST_CHECKED : BST_UNCHECKED);
-	SetDlgItemText(IDC_CHECK_PROTECTED_USER, Text::toT(hub->getUserProtected()).c_str());
+	::CheckDlgButton(*this, IDC_CHECK_MYINFO, hub->getCheckMyInfo()			? BST_CHECKED : BST_UNCHECKED);
+	SetDlgItemText(IDC_CHECK_PROTECTED_USER, Text::toT(hub->getProtectedUsers()).c_str());
 	SetDlgItemText(IDC_FAV_MIN_USERS_LIMIT, Util::toStringW(hub->getUsersLimit()).c_str());
 
 	CUpDownCtrl spin;
@@ -108,14 +108,14 @@ void CFavTabOp::prepareClose() {
 	hub->setCheckFilelists(RsxUtil::toBool(btn.GetCheck()));
 
 	btn = ::GetDlgItem(m_hWnd, IDC_CHECK_MYINFO);
-	hub->setCheckUserInfo(RsxUtil::toBool(btn.GetCheck()));
+	hub->setCheckMyInfo(RsxUtil::toBool(btn.GetCheck()));
 
 	TCHAR buf[512];
 	GetDlgItemText(IDC_FAV_MIN_USERS_LIMIT, buf, 128);
 	hub->setUsersLimit(Util::toInt(Text::fromT(buf)));
 
 	GetDlgItemText(IDC_CHECK_PROTECTED_USER, buf, 512);
-	hub->setUserProtected(Text::fromT(buf));
+	hub->setProtectedUsers(Text::fromT(buf));
 }
 
 LRESULT CCustomTab::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
@@ -130,7 +130,7 @@ LRESULT CCustomTab::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 	::CheckDlgButton(*this, IDC_HIDE_SHARE, hub->getHideShare()				? BST_CHECKED : BST_UNCHECKED);
 	::CheckDlgButton(*this, IDC_USE_FILTER_FAV, hub->getUseFilter()			? BST_CHECKED : BST_UNCHECKED);
 	::CheckDlgButton(*this, IDC_USE_HIGHLIGHT_FAV, hub->getUseHL()			? BST_CHECKED : BST_UNCHECKED);
-	::CheckDlgButton(*this, IDC_CHECK_AUTOSEARCH, hub->getAutosearch()		? BST_CHECKED : BST_UNCHECKED);
+	::CheckDlgButton(*this, IDC_CHECK_AUTOSEARCH, hub->getUseAutosearch()	? BST_CHECKED : BST_UNCHECKED);
 
 	CheckDlgButton(IDC_SHOW_IP, hub->getShowIpOnChat() ? BST_CHECKED : BST_UNCHECKED);
 	CheckDlgButton(IDC_SHOW_CC, hub->getShowCountryCodeOnChat() ? BST_CHECKED : BST_UNCHECKED);
@@ -149,7 +149,7 @@ void CCustomTab::prepareClose() {
 	hub->setUseFilter(RsxUtil::toBool(btn.GetCheck()));
 
 	btn = ::GetDlgItem(m_hWnd, IDC_CHECK_AUTOSEARCH);
-	hub->setAutosearch(RsxUtil::toBool(btn.GetCheck()));
+	hub->setUseAutosearch(RsxUtil::toBool(btn.GetCheck()));
 
 	btn = ::GetDlgItem(m_hWnd, IDC_USE_HIGHLIGHT_FAV);
 	hub->setUseHL(RsxUtil::toBool(btn.GetCheck()));
@@ -167,61 +167,26 @@ LRESULT CFavTabSettings::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /
 	CRect rc;
 	ctrlList.Attach(GetDlgItem(IDC_SETTINGS));
 	ctrlList.GetClientRect(rc);
-	ctrlList.InsertColumn(0, _T("Code"), LVCFMT_LEFT, 40, 0);
-	ctrlList.InsertColumn(1, _T("Name"), LVCFMT_LEFT, (rc.Width() / 2) - 40, 0);
-	ctrlList.InsertColumn(2, _T("Value"), LVCFMT_LEFT, (rc.Width() / 2) - 20, 0);
+	ctrlList.InsertColumn(0, _T("Name"), LVCFMT_LEFT, (rc.Width() / 2) - 20, 0);
+	ctrlList.InsertColumn(1, _T("Value"), LVCFMT_LEFT, (rc.Width() / 2), 0);
 	ctrlList.SetExtendedListViewStyle(/*LVS_EX_INFOTIP | */LVS_EX_FULLROWSELECT);
 
-	const std::map<uint32_t, StringPair>& list = FavoriteManager::getDefHubSettings();
-	const HubSettings::SettingsMap& stg = hub->getSettings();
+#pragma message("//@todo: plug settings here")
 
-	for(HubSettings::SettingsMap::const_iterator i = stg.begin(); i != stg.end(); ++i) {
-		std::map<uint32_t, StringPair>::const_iterator j = list.find(i->first);
-		if(j != list.end() && !j->second.second.empty()) {
-			TStringList strings;
-			strings.push_back(Text::toT(string((const char*)&i->first, 4)));
-			strings.push_back(Text::toT(j->second.second));
-			strings.push_back(Text::toT(i->second));
-			int item = ctrlList.insert(ctrlList.GetItemCount(), strings, NULL, NULL);
-			ctrlList.SetItemData(item, (int)i->second.size());
-		}
-	}
 	return 0;
 }
 
 void CFavTabSettings::prepareClose() {
 	int cnt = ctrlList.GetItemCount();
 	for(int i = 0; i < cnt; ++i) {
-		tstring buf;
-		buf.resize(4);
-		ctrlList.GetItemText(i, 0, &buf[0], buf.size()+1);
-		const char* code = Text::fromT(buf).c_str();
 
-		buf.resize((int)ctrlList.GetItemData(i));
-		ctrlList.GetItemText(i, 2, &buf[0], buf.size()+1);
-		hub->set(code, Text::fromT(buf));
 	}
 }
 
 LRESULT CFavTabSettings::onDblClick(int /*idCtrl*/, LPNMHDR /* pnmh */, BOOL& /*bHandled*/) {
 	int sel = ctrlList.GetSelectedIndex();
 	if(sel != -1) {
-		LineDlg dlg;
-		dlg.title = _T("Change Hub Setting");
 
-		tstring buf;
-		buf.resize((int)ctrlList.GetItemData(sel));
-		ctrlList.GetItemText(sel, 2, &buf[0], buf.size()+1);
-		dlg.line = buf;
-
-		buf.resize(1024);
-		ctrlList.GetItemText(sel, 1, &buf[0], 1024);
-		dlg.description = buf;
-
-		if(dlg.DoModal() == IDOK) {
-			ctrlList.SetItemText(sel, 2, dlg.line.c_str());
-			ctrlList.SetItemData(sel, (int)dlg.line.size());
-		}
 	}
 	return 0;
 }

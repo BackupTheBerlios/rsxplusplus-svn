@@ -160,6 +160,8 @@ public:
 
 	const UserPtr& getUser() const { return user; }
 	UserPtr& getUser() { return user; }
+	const HintedUser getHintedUser() const { return HintedUser(user, hubUrl); }
+
 	bool isSecure() const { return socket && socket->isSecure(); }
 	bool isTrusted() const { return socket && socket->isTrusted(); }
 	std::string getCipherName() const { return socket ? socket->getCipherName() : Util::emptyString; }
@@ -195,12 +197,7 @@ public:
 	GETSET(uint8_t, slotType, SlotType);
 	
 	BufferedSocket const* getSocket() { return socket; } 
-	//RSX++
-	~UserConnection() throw() {
-		BufferedSocket::putSocket(socket);
-		dcassert(!download);
-	}
-	//END
+
 private:
 	int64_t chunkSize;
 	BufferedSocket* socket;
@@ -219,6 +216,11 @@ private:
 		if(secure_) {
 			setFlag(FLAG_SECURE);
 		}
+	}
+
+	~UserConnection() throw() {
+		BufferedSocket::putSocket(socket);
+		dcassert(!download);
 	}
 
 	friend struct DeleteFunction;
@@ -253,5 +255,5 @@ private:
 
 /**
  * @file
- * $Id: UserConnection.h 435 2009-06-02 19:21:43Z BigMuscle $
+ * $Id: UserConnection.h 466 2009-11-13 18:47:25Z BigMuscle $
  */

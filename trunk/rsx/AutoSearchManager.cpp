@@ -30,6 +30,7 @@
 #include "../client/Pointer.h"
 #include "../client/Thread.h"
 #include "../client/SearchResult.h"
+#include "../client/SimpleXML.h"
 
 #define AUTOSEARCH_FILE "Autosearch.xml"
 
@@ -252,7 +253,7 @@ private:
 		const string& fullpath = SETTING(DOWNLOAD_DIRECTORY) + s->getFileName();
 		if(!ShareManager::getInstance()->isTTHShared(s->getTTH())) {
 			try {
-				QueueManager::getInstance()->add(fullpath, s->getSize(), s->getTTH(), s->getUser(), s->getHubURL());
+				QueueManager::getInstance()->add(fullpath, s->getSize(), s->getTTH(), HintedUser(s->getUser(), s->getHubURL()));
 				if(pausePrio)
 					QueueManager::getInstance()->setPriority(fullpath, QueueItem::PAUSED);
 			} catch(...) {

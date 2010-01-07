@@ -30,162 +30,12 @@
 #include "ClientManagerListener.h"
 #include "FavoriteManagerListener.h"
 #include "ClientManager.h"
-#include "StringTokenizer.h" //RSX++
-#include "HubSettings.h" //RSX++
+#include "HubEntry.h"
+#include "FavHubGroup.h"
 #include "rsxppSettingsManager.h"
 
 namespace dcpp {
-	
-class HubEntry {
-public:
-	typedef vector<HubEntry> List;
-	
-	HubEntry(const string& aName, const string& aServer, const string& aDescription, const string& aUsers) throw() : 
-	name(aName), server(aServer), description(aDescription), country(Util::emptyString), 
-	rating(Util::emptyString), reliability(0.0), shared(0), minShare(0), users(Util::toInt(aUsers)), minSlots(0), maxHubs(0), maxUsers(0) { }
-
-	HubEntry(const string& aName, const string& aServer, const string& aDescription, const string& aUsers, const string& aCountry,
-		const string& aShared, const string& aMinShare, const string& aMinSlots, const string& aMaxHubs, const string& aMaxUsers,
-		const string& aReliability, const string& aRating) : name(aName), server(aServer), description(aDescription), country(aCountry), 
-		rating(aRating), reliability((float)(Util::toFloat(aReliability) / 100.0)), shared(Util::toInt64(aShared)), minShare(Util::toInt64(aMinShare)),
-		users(Util::toInt(aUsers)), minSlots(Util::toInt(aMinSlots)), maxHubs(Util::toInt(aMaxHubs)), maxUsers(Util::toInt(aMaxUsers)) 
-	{
-
-	}
-
-	HubEntry() throw() { }
-	HubEntry(const HubEntry& rhs) throw() : name(rhs.name), server(rhs.server), description(rhs.description), country(rhs.country), 
-		rating(rhs.rating), reliability(rhs.reliability), shared(rhs.shared), minShare(rhs.minShare), users(rhs.users), minSlots(rhs.minSlots),
-		maxHubs(rhs.maxHubs), maxUsers(rhs.maxUsers) { }
-
-	~HubEntry() throw() { }
-
-	GETSET(string, name, Name);
-	GETSET(string, server, Server);
-	GETSET(string, description, Description);
-	GETSET(string, country, Country);
-	GETSET(string, rating, Rating);
-	GETSET(float, reliability, Reliability);
-	GETSET(int64_t, shared, Shared);
-	GETSET(int64_t, minShare, MinShare);
-	GETSET(int, users, Users);
-	GETSET(int, minSlots, MinSlots);
-	GETSET(int, maxHubs, MaxHubs)
-	GETSET(int, maxUsers, MaxUsers);
-};
-
-class FavoriteHubEntry : public HubSettings {
-public:
-	typedef FavoriteHubEntry* Ptr;
-	typedef vector<Ptr> List;
-	typedef List::const_iterator Iter;
-
-	FavoriteHubEntry() throw() : connect(false), encoding(Text::systemCharset), chatusersplit(0), stealth(false), userliststate(true), mode(0), ip(Util::emptyString), searchInterval(SETTING(MINIMUM_SEARCH_INTERVAL)) {
-		//RSX++
-		setUsersLimit(0);
-		setGroupId(0);
-		setUseFilter(RSXPP_BOOLSETTING(USE_FILTER_FAV));
-		setUseHL(RSXPP_BOOLSETTING(USE_HL_FAV));
-		//END
-	}
-	FavoriteHubEntry(const HubEntry& rhs) throw() : name(rhs.getName()), server(rhs.getServer()), encoding(Text::systemCharset), searchInterval(SETTING(MINIMUM_SEARCH_INTERVAL)),
-		description(rhs.getDescription()), connect(false), chatusersplit(0), stealth(false), userliststate(true), mode(0), ip(Util::emptyString) {
-		//RSX++
-		setUsersLimit(0);
-		setGroupId(0);
-		setUseFilter(RSXPP_BOOLSETTING(USE_FILTER_FAV));
-		setUseHL(RSXPP_BOOLSETTING(USE_HL_FAV));
-		//END
-	}
-	FavoriteHubEntry(const FavoriteHubEntry& rhs) throw() : userdescription(rhs.userdescription), name(rhs.getName()), 
-		server(rhs.getServer()), description(rhs.getDescription()), password(rhs.getPassword()), connect(rhs.getConnect()), 
-		nick(rhs.nick), chatusersplit(rhs.chatusersplit), stealth(rhs.stealth), searchInterval(rhs.searchInterval),
-		userliststate(rhs.userliststate), mode(rhs.mode), ip(rhs.ip), encoding(rhs.getEncoding()) {
-		//RSX++
-		updateSettings(rhs.getSettings());
-		setAwayMsg(rhs.getAwayMsg());
-		setUsersLimit(rhs.getUsersLimit());
-		setGroupId(rhs.getGroupId());
-		//END
-	}
-	~FavoriteHubEntry() throw() { 
-		//RSX++
-		for(FavoriteHubEntry::FavAction::List::const_iterator j = action.begin(); j != action.end(); ++j) {
-			delete j->second;
-		}
-		//END
-	}
-	
-	const string& getNick(bool useDefault = true) const { 
-		return (!nick.empty() || !useDefault) ? nick : SETTING(NICK);
-	}
-
-	void setNick(const string& aNick) { nick = aNick; }
-
-	GETSET(string, userdescription, UserDescription);
-	GETSET(string, name, Name);
-	GETSET(string, server, Server);
-	GETSET(string, description, Description);
-	GETSET(string, password, Password);
-	GETSET(string, headerOrder, HeaderOrder);
-	GETSET(string, headerWidths, HeaderWidths);
-	GETSET(string, headerVisible, HeaderVisible);
-	GETSET(string, encoding, Encoding);
-	GETSET(string, ip, IP);
-	GETSET(uint32_t, searchInterval, SearchInterval);
-	GETSET(int, mode, Mode); // 0 = default, 1 = active, 2 = passive	
-	GETSET(int, chatusersplit, ChatUserSplit);
-	GETSET(bool, connect, Connect);	
-	GETSET(bool, stealth, Stealth);
-	GETSET(bool, userliststate, UserListState);		
-	//RSX++
-	GETSET(string, awayMsg, AwayMsg);
-	GETSET(int, usersLimit, UsersLimit);
-	GETSET(int, groupId, GroupId);
-	GS_STR(CurrentEmail, "MAIL")
-	GS_STR(UserProtected, "PROT");
-	GS_BOOL(CheckOnConnect, "DEOC");
-	GS_BOOL(CheckClients, "DECC")
-	GS_BOOL(CheckFilelists, "DEFL")
-	GS_BOOL(CheckUserInfo, "DEUI")
-	GS_BOOL(HideShare, "HIDS")
-	GS_BOOL(Autosearch, "AUSR")
-	GS_BOOL(UseFilter, "UCHF")
-	GS_BOOL(UseHL, "UCHL")
-	GS_BOOL(ShowIpOnChat, "SWIP")
-	GS_BOOL(ShowCountryCodeOnChat, "SWCC")
-
-	//RSX++ //Raw Manager
-	struct FavAction {
-		typedef unordered_map<int, FavAction*> List;
-
-		FavAction(bool _enabled, string _raw = Util::emptyString, int id = 0) throw();
-
-		GETSET(bool, enabled, Enabled);
-		std::list<int> raws;
-	};
-
-	FavAction::List action;
-	//END
-private:
-	string nick;
-};
-
-class RecentHubEntry {
-public:
-	typedef RecentHubEntry* Ptr;
-	typedef vector<Ptr> List;
-	typedef List::const_iterator Iter;
-
-	~RecentHubEntry() throw() { }	
-	
-	GETSET(string, name, Name);
-	GETSET(string, server, Server);
-	GETSET(string, description, Description);
-	GETSET(string, users, Users);
-	GETSET(string, shared, Shared);	
-};
-
+//RSX++
 class DirectoriesEx {
 public:
 	typedef DirectoriesEx* Ptr;
@@ -200,7 +50,7 @@ public:
 	GETSET(string, path, Path);
 	GETSET(string, extension, Extension);
 };
-//RSX++
+//END
 class PreviewApplication {
 public:
 	typedef PreviewApplication* Ptr;
@@ -277,8 +127,6 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>, private HttpCon
 	private SettingsManagerListener, private ClientManagerListener
 {
 public:
-	~FavoriteManager() throw();
-
 // Public Hubs
 	enum HubTypes {
 		TYPE_NORMAL,
@@ -318,6 +166,13 @@ public:
 	void removeFavorite(const FavoriteHubEntry* entry);
 	bool isFavoriteHub(const std::string& aUrl);
 	FavoriteHubEntry* getFavoriteHubEntry(const string& aServer) const;
+
+// Favorite hub groups
+	const FavHubGroups& getFavHubGroups() const { return favHubGroups; }
+	void setFavHubGroups(const FavHubGroups& favHubGroups_) { favHubGroups = favHubGroups_; }
+
+	FavoriteHubEntryList getFavoriteHubs(const string& group) const;
+	bool isPrivate(const string& url) const;
 
 // Favorite Directories
 	bool addFavoriteDir(const string& aDirectory, const string& aName);
@@ -400,42 +255,8 @@ public:
 			filters.erase(filters.begin() + index);
 	}
 
-	//RSX++
-	static void registerHubSetting(const char* sn, const string& sv, const string& sd) {
-		StringPair p = make_pair(sv, sd);
-		defHubSettings[*(uint32_t*)sn] = p;
-	}
-	static bool isHubSetting(const char* sn) {
-		std::map<uint32_t, StringPair>::const_iterator i = defHubSettings.find(*(uint32_t*)sn);
-		return i != defHubSettings.end();
-	}
-	static const std::map<uint32_t, StringPair>& getDefHubSettings() { return defHubSettings; }
+	string getAwayMessage(const string& aServer); //RSX++
 
-	void mergeHubSettings();
-
-	string getAwayMessage(const string& aServer);
-
-	StringList& getFavGroups() { return favGroups; }
-	bool addFavGroup(const string& gName) {
-		for(StringIter i = favGroups.begin(); i != favGroups.end(); ++i) {
-			if(gName.compare((*i)) == 0) return false;
-		}
-		favGroups.push_back(gName);
-		return true;
-	}
-	void removeFavGroup(uint8_t pos) {
-		Lock l(cs);
-		StringIter i = favGroups.begin() + pos;
-		if(i != favGroups.end())
-			favGroups.erase(i);
-	}
-	bool editFavGroup(uint8_t pos, const string& gName) {
-		for(StringIter i = favGroups.begin(); i != favGroups.end(); ++i)
-			if(gName.compare((*i)) == 0) return false;
-		favGroups[pos] = gName;
-		return true;
-	}
-	//END
 	PreviewApplication* addPreviewApp(string name, string application, string arguments, string extension){
 		PreviewApplication* pa = new PreviewApplication(name, application, arguments, extension);
 		previewApplications.push_back(pa);
@@ -497,6 +318,7 @@ public:
 	
 private:
 	FavoriteHubEntryList favoriteHubs;
+	FavHubGroups favHubGroups;
 	StringPairList favoriteDirs;
 	RecentHubEntry::List recentHubs;
 	PreviewApplication::List previewApplications;
@@ -508,8 +330,6 @@ private:
 	Filters::List filters;
 	DirectoriesEx::List dirsEx;
 	HighLight::List hls;
-	StringList favGroups;
-	static std::map<uint32_t, StringPair> defHubSettings;
 	//END
 
 	mutable CriticalSection cs;
@@ -530,19 +350,10 @@ private:
 	friend class Singleton<FavoriteManager>;
 	
 	FavoriteManager();
-//	~FavoriteManager() throw();
+	~FavoriteManager() throw();
 	
-	FavoriteHubEntryList::const_iterator getFavoriteHub(const string& aServer);
-	void loadXmlList(const string& xml);
-
-	RecentHubEntry::Iter getRecentHub(const string& aServer) const {
-		for(RecentHubEntry::Iter i = recentHubs.begin(); i != recentHubs.end(); ++i) {
-			if(stricmp((*i)->getServer(), aServer) == 0) {
-				return i;
-			}
-		}
-		return recentHubs.end();
-	}
+	FavoriteHubEntryList::const_iterator getFavoriteHub(const string& aServer) const;
+	RecentHubEntry::Iter getRecentHub(const string& aServer) const;
 
 	// ClientManagerListener
 	void on(UserUpdated, const OnlineUser& user) throw();
@@ -552,12 +363,12 @@ private:
 	// HttpConnectionListener
 	void on(Data, HttpConnection*, const uint8_t*, size_t) throw();
 	void on(Failed, HttpConnection*, const string&) throw();
-	void on(Complete, HttpConnection*, const string&) throw();
+	void on(Complete, HttpConnection*, const string&, bool) throw();
 	void on(Redirected, HttpConnection*, const string&) throw();
 	void on(TypeNormal, HttpConnection*) throw();
 	void on(TypeBZ2, HttpConnection*) throw();
 
-	void onHttpFinished(bool fromHttp) throw();
+	bool onHttpFinished(bool fromHttp) throw();
 
 	// SettingsManagerListener
 	void on(SettingsManagerListener::Load, SimpleXML& xml) throw() {
@@ -592,5 +403,5 @@ private:
 
 /**
  * @file
- * $Id: FavoriteManager.h 434 2009-03-29 11:09:33Z BigMuscle $
+ * $Id: FavoriteManager.h 470 2010-01-02 23:23:39Z bigmuscle $
  */

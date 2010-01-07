@@ -23,7 +23,7 @@
 #include "SearchManager.h"
 #include "SettingsManager.h"
 #include "HashManager.h"
-#include "DownloadManager.h"
+#include "QueueManagerListener.h"
 
 #include "Exception.h"
 #include "CriticalSection.h"
@@ -51,11 +51,9 @@ class MemoryInputStream;
 
 struct ShareLoader;
 class ShareManager : public Singleton<ShareManager>, private SettingsManagerListener, private Thread, private TimerManagerListener,
-	private HashManagerListener, private DownloadManagerListener
+	private HashManagerListener, private QueueManagerListener
 {
 public:
-	~ShareManager(); //RSX++
-
 	/**
 	 * @param aDirectory Physical directory location
 	 * @param aName Virtual name
@@ -73,7 +71,7 @@ public:
 	
 	bool shareFolder(const string& path, bool thoroughCheck = false) const;
 	int64_t removeExcludeFolder(const string &path, bool returnSize = true);
-	int64_t addExcludeFolder(const string &path, bool checkForDouble = false);
+	int64_t addExcludeFolder(const string &path);
 
 	void search(SearchResultList& l, const string& aString, int aSearchType, int64_t aSize, int aFileType, Client* aClient, StringList::size_type maxResults) throw();
 	void search(SearchResultList& l, const StringList& params, StringList::size_type maxResults) throw();
@@ -113,21 +111,8 @@ public:
 		Lock l(cs);
 		return tthIndex.find(tth) != tthIndex.end();
 	}
-	//RSX++
-	static bool checkType(const string& aString, int aType);
-	void setHiddenDirectory(const string& vname, bool set) {
-		Lock l(cs);
-		StringList::iterator i = std::find(hiddenDirectories.begin(), hiddenDirectories.end(), vname);
-		if(i == hiddenDirectories.end())
-			if(set) hiddenDirectories.push_back(vname);
-		else
-			if(!set) hiddenDirectories.erase(i);
-	}
-	bool isHiddenDirectory(const string& vname) {
-		Lock l(cs);
-		return isHiddenDir(vname);
-	}
-	//END
+
+	static bool checkType(const string& aString, int aType); //RSX++
 
 	GETSET(size_t, hits, Hits);
 	GETSET(string, bzXmlFile, BZXmlFile);
@@ -135,7 +120,7 @@ public:
 
 private:
 	struct AdcSearch;
-	class Directory : public FastAlloc<Directory>, public intrusive_ptr_base<Directory>/*, boost::noncopyable*/ {
+	class Directory : public FastAlloc<Directory>, public intrusive_ptr_base<Directory>, boost::noncopyable {
 	public:
 		typedef boost::intrusive_ptr<Directory> Ptr;
 		typedef unordered_map<string, Ptr, noCaseStringHash, noCaseStringEq> Map;
@@ -226,8 +211,8 @@ private:
 
 	friend class Singleton<ShareManager>;
 	ShareManager();
-
-	//~ShareManager(); //RSX++
+	
+	~ShareManager();
 	
 	struct AdcSearch {
 		AdcSearch(const StringList& params);
@@ -304,6 +289,7 @@ private:
 	Directory::File::Set::const_iterator findFile(const string& virtualFile) const throw(ShareException);
 
 	Directory::Ptr buildTree(const string& aName, const Directory::Ptr& aParent);
+	bool checkHidden(const string& aName) const;
 
 	void rebuildIndices();
 
@@ -321,17 +307,10 @@ private:
 
 	Directory::Ptr getDirectory(const string& fname);
 
-	//RSX++
-	StringList hiddenDirectories;
-	bool isHiddenDir(const string& vname) {
-		StringList::const_iterator i = std::find(hiddenDirectories.begin(), hiddenDirectories.end(), vname);
-		return i != hiddenDirectories.end();
-	}
-	//END
 	int run();
 
-	// DownloadManagerListener
-	void on(DownloadManagerListener::Complete, const Download* d, bool) throw();
+	// QueueManagerListener
+	virtual void on(QueueManagerListener::Finished, QueueItem* qi, const string& dir, int64_t speed) throw();
 
 	// HashManagerListener
 	void on(HashManagerListener::TTHDone, const string& fname, const TTHValue& root) throw();
@@ -357,5 +336,5 @@ private:
 
 /**
  * @file
- * $Id: ShareManager.h 462 2009-09-10 15:46:23Z BigMuscle $
+ * $Id: ShareManager.h 469 2009-12-29 21:13:40Z bigmuscle $
  */

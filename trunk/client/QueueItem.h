@@ -121,14 +121,13 @@ public:
 				| FLAG_NO_TREE | FLAG_TTH_INCONSISTENCY | FLAG_UNTRUSTED
 		};
 
-		Source(const UserPtr& aUser) : user(aUser), partialSource(NULL) { }
+		Source(const HintedUser& aUser) : user(aUser), partialSource(NULL) { }
 		Source(const Source& aSource) : Flags(aSource), user(aSource.user), partialSource(aSource.partialSource) { }
 
 		bool operator==(const UserPtr& aUser) const { return user == aUser; }
-		UserPtr& getUser() { return user; }
 		PartialSource::Ptr& getPartialSource() { return partialSource; }
 
-		GETSET(UserPtr, user, User);
+		GETSET(HintedUser, user, User);
 		GETSET(PartialSource::Ptr, partialSource, PartialSource);
 	};
 
@@ -161,17 +160,12 @@ public:
 	~QueueItem() { }
 
 	size_t countOnlineUsers() const;
+	void getOnlineUsers(HintedUserList& l) const;
 
 	SourceList& getSources() { return sources; }
 	const SourceList& getSources() const { return sources; }
 	SourceList& getBadSources() { return badSources; }
 	const SourceList& getBadSources() const { return badSources; }
-
-	void getOnlineUsers(UserList& l) const {
-		for(SourceConstIter i = sources.begin(); i != sources.end(); ++i)
-			if(i->getUser()->isOnline())
-				l.push_back(i->getUser());
-	}
 
 	string getTargetFileName() const { return Util::getFileName(getTarget()); }
 
@@ -217,7 +211,7 @@ public:
 	 */
 	void getPartialInfo(PartsInfo& partialInfo, int64_t blockSize) const;
 
-	int64_t getDownloadedBytes() const;
+	uint64_t getDownloadedBytes() const;
 	double getDownloadedFraction() const { return static_cast<double>(getDownloadedBytes()) / getSize(); }
 	
 	DownloadList& getDownloads() { return downloads; }
@@ -304,7 +298,7 @@ private:
 	SourceList badSources;
 	string tempTarget;
 
-	void addSource(const UserPtr& aUser);
+	void addSource(const HintedUser& aUser);
 	void removeSource(const UserPtr& aUser, Flags::MaskType reason);
 };
 
@@ -314,5 +308,5 @@ private:
 
 /**
 * @file
-* $Id: QueueItem.h 443 2009-06-24 16:54:13Z BigMuscle $
+* $Id: QueueItem.h 468 2009-12-23 14:01:30Z bigmuscle $
 */

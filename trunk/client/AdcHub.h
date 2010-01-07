@@ -92,6 +92,8 @@ private:
 	string salt;
 	uint32_t sid;
 
+	std::tr1::unordered_set<uint32_t> forbiddenCommands;
+
 	static const string CLIENT_PROTOCOL;
 	static const string CLIENT_PROTOCOL_TEST;
 	static const string SECURE_CLIENT_PROTOCOL_TEST;
@@ -160,5 +162,5 @@ private:
 
 /**
  * @file
- * $Id: AdcHub.h 465 2009-10-31 15:28:56Z BigMuscle $
+ * $Id: AdcHub.h 466 2009-11-13 18:47:25Z BigMuscle $
  */

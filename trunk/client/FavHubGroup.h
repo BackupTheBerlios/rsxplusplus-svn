@@ -16,40 +16,25 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#include "stdinc.h"
-#include "DCPlusPlus.h"
-
-#include "ChatMessage.h"
-
-#include "User.h"
-#include "Util.h"
+#ifndef DCPLUSPLUS_DCPP_FAVHUBGROUP_H
+#define DCPLUSPLUS_DCPP_FAVHUBGROUP_H
 
 namespace dcpp {
 
-string ChatMessage::format() const {
-	string tmp;
+struct FavHubGroupProperties {
+	/**
+	* Designates a private group; hubs in a private group don't share their users with any other
+	* hub when trying to match an online user, and are not shared with any peer.
+	*/
+	bool priv;
 
-	if(timestamp) {
-		tmp += '[' + Util::getShortTimeString(timestamp) + "] ";
-	}
+	/** Connect to all hubs in this group when the program starts. */
+	bool connect;
+};
 
-	const string& nick = from->getIdentity().getNick();
-	// let's *not* obey the spec here and add a space after the star. :P
-	tmp += (thirdPerson ? "* " + nick + " " : "<" + nick + "> ") + text;
-
-	// Check all '<' and '[' after newlines as they're probably pastes...
-	size_t i = 0;
-	while( (i = tmp.find('\n', i)) != string::npos) {
-		if(i + 1 < tmp.length()) {
-			if(tmp[i+1] == '[' || tmp[i+1] == '<') {
-				tmp.insert(i+1, "- ");
-				i += 2;
-			}
-		}
-		i++;
-	}
-
-	return Text::toDOS(tmp);
-}
+typedef std::tr1::unordered_map<string, FavHubGroupProperties> FavHubGroups;
+typedef FavHubGroups::value_type FavHubGroup;
 
 } // namespace dcpp
+
+#endif

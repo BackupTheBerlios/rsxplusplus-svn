@@ -566,7 +566,6 @@ SettingsManager::SettingsManager()
 	setDefault(TOP_SPEED, 100);
 	setDefault(TOP_UP_SPEED, 50);
 	setDefault(PROGRESSBAR_ODC_BUMPED, true);
-	setDefault(BWSETTING_MODE, BWSETTINGS_DEFAULT);
 	setDefault(STEALTHY_INDICATE_SPEEDS, false);
 	setDefault(PROGRESSBAR_MODE, 2);
 
@@ -733,56 +732,10 @@ void SettingsManager::save(string const& aFileName) {
 		// ...
 	}
 }
-//RSX++ // Lua
-bool SettingsManager::getType(const char* name, int& n, int& type) const {
-	for(n = 0; n < INT64_LAST; n++) {
-		if(strcmp(settingTags[n].c_str(), name) == 0) {
-			if(n < STR_LAST) {
-				type = TYPE_STRING;
-				return true;
-			} else if(n < INT_LAST) {
-				type = TYPE_INT;
-				return true;
-			} else {
-				type = TYPE_INT64;
-				return true;
-			}
-		}
-	}
-	return false;
-}
-//RSX++ //PluginAPI
-int SettingsManager::getInt(const string& sname) {
-	for(int n = INT_FIRST; n < INT_LAST; n++) {
-		if(strcmp(settingTags[n].c_str(), sname.c_str()) == 0) {
-			return get((IntSetting)n);
-		}
-	}
-	return 0;
-}
-
-int64_t SettingsManager::getInt64(const string& sname) {
-	for(int n = INT64_FIRST; n < INT64_LAST; n++) {
-		if(strcmp(settingTags[n].c_str(), sname.c_str()) == 0) {
-			return get((Int64Setting)n);
-		}
-	}
-	return 0;
-}
-
-const string& SettingsManager::getString(const string& sname) const {
-	for(int n = STR_FIRST; n < STR_LAST; n++) {
-		if(strcmp(settingTags[n].c_str(), sname.c_str()) == 0) {
-			return get((StrSetting)n);
-		}
-	}
-	return Util::emptyString;
-}
-//END
 
 } // namespace dcpp
 
 /**
  * @file
- * $Id: SettingsManager.cpp 463 2009-10-01 16:30:22Z BigMuscle $
+ * $Id: SettingsManager.cpp 469 2009-12-29 21:13:40Z bigmuscle $
  */

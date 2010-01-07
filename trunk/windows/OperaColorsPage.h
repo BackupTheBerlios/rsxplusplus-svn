@@ -146,6 +146,6 @@ private:
 
 /**
  * @file
- * $Id: OperaColorsPage.h 308 2007-07-13 18:57:02Z bigmuscle $
+ * $Id: OperaColorsPage.h 321 2007-08-10 19:48:22Z bigmuscle $
  */
 

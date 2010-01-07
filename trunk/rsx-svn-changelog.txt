@@ -1,3 +1,10 @@
+** SVN 186
+ ** one big sdc svn merge (need heavy testing)
+ ** removed HubSettings class
+
+** WARNING **
+ this update will reset some of favhub settings
+
 ** SVN 185
  ** compile error (oops...)
 

@@ -268,6 +268,7 @@ public:
 	void parseCommandLine(const tstring& cmdLine);
 
 	void startUPnP();
+	bool initUPnP();
 	void stopUPnP();
 
 	LRESULT onWhereAreYou(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
@@ -389,16 +390,16 @@ private:
 
 	class DirectoryListInfo {
 	public:
-		DirectoryListInfo(const UserPtr& aUser, const tstring& aFile, const tstring& aDir, int64_t aSpeed) : user(aUser), file(aFile), dir(aDir), speed(aSpeed) { }
-		UserPtr user;
+		DirectoryListInfo(const HintedUser& aUser, const tstring& aFile, const tstring& aDir, int64_t aSpeed) : user(aUser), file(aFile), dir(aDir), speed(aSpeed) { }
+		HintedUser user;
 		tstring file;
 		tstring dir;
 		int64_t speed;
 	};
 	class DirectoryBrowseInfo {
 	public:
-		DirectoryBrowseInfo(const UserPtr& ptr, string aText) : user(ptr), text(aText) { }
-		UserPtr user;
+		DirectoryBrowseInfo(const HintedUser& ptr, string aText) : user(ptr), text(aText) { }
+		HintedUser user;
 		string text;
 	};
 	class FileListQueue: public Thread {
@@ -514,24 +515,21 @@ private:
 
 	// QueueManagerListener
 	void on(QueueManagerListener::Finished, const QueueItem* qi, const string& dir, const Download*) throw();
-	void on(PartialList, const UserPtr&, const string& text) throw();
+	void on(PartialList, const HintedUser&, const string& text) throw();
+
+	std::auto_ptr<UPnP> pUPnP;
+
 	//RSX++
 	// UpdateManagerListener
 	void on(UpdateManagerListener::VersionUpdated, const VersionInfo::Client&, const VersionInfo::Profiles&) throw();
 	void on(ClientManagerListener::ClientOpen, const std::string&) throw();
 	void on(ClientManagerListener::ClientClose, const std::string&) throw();
 	//END
-
-	// UPnP connectors
-	std::auto_ptr<UPnP> UPnP_TCP;
-	std::auto_ptr<UPnP> UPnP_TLS;
-	std::auto_ptr<UPnP> UPnP_UDP;
-	std::auto_ptr<UPnP> UPnP_DHT;
 };
 
 #endif // !defined(MAIN_FRM_H)
 
 /**
  * @file
- * $Id: MainFrm.h 436 2009-06-15 21:14:05Z BigMuscle $
+ * $Id: MainFrm.h 470 2010-01-02 23:23:39Z bigmuscle $
  */

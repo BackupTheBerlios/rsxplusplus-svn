@@ -30,6 +30,8 @@ LRESULT FavHubProperties::OnInitDialog(UINT, WPARAM, LPARAM, BOOL&)
 {
 	// Translate dialog
 	SetWindowText(CTSTRING(FAVORITE_HUB_PROPERTIES));
+	SetDlgItemText(IDOK, CTSTRING(OK));
+	SetDlgItemText(IDCANCEL, CTSTRING(CANCEL));
 	SetDlgItemText(IDC_FH_HUB, CTSTRING(HUB));
 	SetDlgItemText(IDC_FH_IDENT, CTSTRING(FAVORITE_HUB_IDENTITY));
 	SetDlgItemText(IDC_FH_NAME, CTSTRING(HUB_NAME));
@@ -42,6 +44,8 @@ LRESULT FavHubProperties::OnInitDialog(UINT, WPARAM, LPARAM, BOOL&)
 	SetDlgItemText(IDC_ACTIVE, CTSTRING(SETTINGS_DIRECT));
 	SetDlgItemText(IDC_PASSIVE, CTSTRING(SETTINGS_FIREWALL_PASSIVE));
 	SetDlgItemText(IDC_STEALTH, CTSTRING(STEALTH_MODE));
+	//SetDlgItemText(IDC_FAV_SEARCH_INTERVAL, CTSTRING(MINIMUM_SEARCH_INTERVAL));
+	SetDlgItemText(IDC_FAVGROUP, CTSTRING(GROUP));
 
 	// Fill in values
 	SetDlgItemText(IDC_HUBNAME, Text::toT(entry->getName()).c_str());
@@ -74,16 +78,23 @@ LRESULT FavHubProperties::OnInitDialog(UINT, WPARAM, LPARAM, BOOL&)
 	ResourceLoader::LoadImageList(IDP_FAVTABS, images, 16, 16);
 	ctrlTabs.SetImageList(images);
 	ctrlTabs.SetCurSel(0);
-
-	StringList& glst = FavoriteManager::getInstance()->getFavGroups();
-	CComboBox combo;
-	combo.Attach(GetDlgItem(IDC_FAV_DLG_GROUP));
-	combo.AddString(_T("No Group"));
-	for(StringIter i = glst.begin(); i != glst.end(); ++i)
-		combo.AddString(Text::toT((*i)).c_str());
-	combo.SetCurSel(entry->getGroupId());
-	combo.Detach();
 	//END
+	CComboBox combo;
+	combo.Attach(GetDlgItem(IDC_FAVGROUP_BOX));
+	combo.AddString(_T("---"));
+	combo.SetCurSel(0);
+
+	const FavHubGroups& favHubGroups = FavoriteManager::getInstance()->getFavHubGroups();
+	for(FavHubGroups::const_iterator i = favHubGroups.begin(); i != favHubGroups.end(); ++i) {
+		const string& name = i->first;
+		int pos = combo.AddString(Text::toT(name).c_str());
+		
+		if(name == entry->getGroup())
+			combo.SetCurSel(pos);
+	}
+
+	combo.Detach();
+
 	if(entry->getMode() == 0)
 		CheckRadioButton(IDC_ACTIVE, IDC_DEFAULT, IDC_DEFAULT);
 	else if(entry->getMode() == 1)
@@ -154,7 +165,18 @@ LRESULT FavHubProperties::OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWnd
 
 		CComboBox combo;
 		combo.Attach(GetDlgItem(IDC_FAV_DLG_GROUP));
-		entry->setGroupId(combo.GetCurSel());
+	
+		if(combo.GetCurSel() == 0)
+		{
+			entry->setGroup(Util::emptyString);
+		}
+		else
+		{
+			tstring text(combo.GetWindowTextLength() + 1, _T('\0'));
+			combo.GetWindowText(&text[0], text.size());
+			text.resize(text.size()-1);
+			entry->setGroup(Text::fromT(text));
+		}
 		combo.Detach();
 		//init close and save values
 		ctrlOpTab.prepareClose();
@@ -174,7 +196,7 @@ LRESULT FavHubProperties::OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWnd
 		else if(IsDlgButtonChecked(IDC_PASSIVE))
 			ct = 2;
 
-		entry->setMode(ct);	
+		entry->setMode(ct);
 
 		FavoriteManager::getInstance()->save();
 	}
@@ -218,5 +240,5 @@ LRESULT FavHubProperties::OnTextChanged(WORD /*wNotifyCode*/, WORD wID, HWND hWn
 
 /**
  * @file
- * $Id: FavHubProperties.cpp 317 2007-08-04 14:52:24Z bigmuscle $
+ * $Id: FavHubProperties.cpp 470 2010-01-02 23:23:39Z bigmuscle $
  */

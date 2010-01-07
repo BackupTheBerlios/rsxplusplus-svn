@@ -39,7 +39,7 @@ public:
 
 	virtual void on(Data, HttpConnection*, const uint8_t*, size_t) throw() =0;
 	virtual void on(Failed, HttpConnection*, const string&) throw() { }
-	virtual void on(Complete, HttpConnection*, const string&) throw() { }
+	virtual void on(Complete, HttpConnection*, const string&, bool) throw() { }
 	virtual void on(Redirected, HttpConnection*, const string&) throw() { }
 	virtual void on(TypeNormal, HttpConnection*) throw() { }
 	virtual void on(TypeBZ2, HttpConnection*) throw() { }
@@ -95,5 +95,5 @@ private:
 
 /**
  * @file
- * $Id: HttpConnection.h 434 2009-03-29 11:09:33Z BigMuscle $
+ * $Id: HttpConnection.h 470 2010-01-02 23:23:39Z bigmuscle $
  */

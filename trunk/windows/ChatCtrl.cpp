@@ -664,7 +664,7 @@ LRESULT ChatCtrl::onContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam,
 
 		if(!sSelectedIP.empty()) {
 			menu.InsertSeparatorFirst(sSelectedIP);
-			menu.AppendMenu(MF_STRING, IDC_WHOIS_IP, (CTSTRING(WHO_IS) + sSelectedIP).c_str() );
+			menu.AppendMenu(MF_STRING, IDC_WHOIS_IP, (TSTRING(WHO_IS) + _T(" ") + sSelectedIP).c_str() );
 			if (client && client->isOp()) {
 				menu.AppendMenu(MF_SEPARATOR);
 				menu.AppendMenu(MF_STRING, IDC_BAN_IP, (_T("!banip ") + sSelectedIP).c_str());
@@ -916,7 +916,7 @@ LRESULT ChatCtrl::onGrantSlot(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, 
 		}
 		
 		if(time > 0)
-			UploadManager::getInstance()->reserveSlot(ou->getUser(), time, client->getHubUrl());
+			UploadManager::getInstance()->reserveSlot(HintedUser(ou->getUser(), client->getHubUrl()), time);
 		else
 			UploadManager::getInstance()->unreserveSlot(ou->getUser());
 	}
@@ -958,7 +958,7 @@ LRESULT ChatCtrl::onGetUserResponses(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*
 	const OnlineUserPtr ou = client->findUser(Text::fromT(sSelectedUser));
 	if(ou) {
 		try {
-			string fname = QueueManager::getInstance()->addClientCheck(ou->getUser(), client->getHubUrl());
+			string fname = QueueManager::getInstance()->addClientCheck(HintedUser(ou->getUser(), client->getHubUrl()));
 			if(!fname.empty())
 				ou->getIdentity().setTestSURQueued(fname);
 		} catch(const Exception& e) {
@@ -973,7 +973,7 @@ LRESULT ChatCtrl::onCheckList(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl
 	const OnlineUserPtr ou = client->findUser(Text::fromT(sSelectedUser));
 	if(ou) {
 		try {
-			string fname = QueueManager::getInstance()->addFileListCheck(ou->getUser(), client->getHubUrl());
+			string fname = QueueManager::getInstance()->addFileListCheck(HintedUser(ou->getUser(), client->getHubUrl()));
 			if(!fname.empty())
 				ou->getIdentity().setFileListQueued(fname);
 		} catch(const Exception& e) {

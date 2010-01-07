@@ -31,7 +31,6 @@
 //RSX++
 #include "rsxppSettingsManager.h"
 #include "CommandQueue.h"
-#include "HubSettings.h"
 #include "sdk/dcpp.h"
 //END
 namespace dcpp {
@@ -54,8 +53,7 @@ public:
 };
 
 /** Yes, this should probably be called a Hub */
-class Client : public ClientBase, public Speaker<ClientListener>, public BufferedSocketListener, protected TimerManagerListener, 
-	/*RSX++*/public HubSettings/*END*/ {
+class Client : public ClientBase, public Speaker<ClientListener>, public BufferedSocketListener, protected TimerManagerListener {
 public:
 	typedef unordered_map<string*, Client*, noCaseStringHash, noCaseStringEq> List;
 	typedef List::const_iterator Iter;
@@ -165,9 +163,11 @@ public:
 
 	const string& getHubUrl() const { return hubUrl; }
 
-	GETSET(string, defpassword, Password);
 	GETSET(Identity, myIdentity, MyIdentity);
 	GETSET(Identity, hubIdentity, HubIdentity);
+
+	GETSET(string, defpassword, Password);
+	
 	GETSET(string, currentNick, CurrentNick);
 	//RSX++
 	GETSET(bool, checkedAtConnect, CheckedAtConnect);
@@ -175,18 +175,20 @@ public:
 		currentDescription = description;
 	}
 	string getCurrentDescription() const;
-	GS_STR(CurrentEmail,			"MAIL")
-	GS_STR(UserProtected,			"PROT")
-	GS_BOOL(UseFilter,				"UCHF")
-	GS_BOOL(UseHL,					"UCHL")
-	GS_BOOL(UseAutosearch,			"AUSR")
-	GS_BOOL(CheckClients,			"DECC")
-	GS_BOOL(CheckFilelists,			"DEFL")
-	GS_BOOL(CheckOnConnect,			"DEOC")
-	GS_BOOL(CheckMyInfo,			"DEUI")
-	GS_BOOL(HideShare,				"HIDS")
-	GS_BOOL(ShowIpOnChat,			"SWIP")
-	GS_BOOL(ShowCountryCodeOnChat,	"SWCC")
+
+	GETSET(string, currentEmail, CurrentEmail);
+	GETSET(string, protectedUsers, ProtectedUsers);
+	GETSET(bool, useFilter, UseFilter);
+	GETSET(bool, useHL, UseHL);
+	GETSET(bool, useAutosearch, UseAutosearch);
+	GETSET(bool, checkClients, CheckClients);
+	GETSET(bool, checkFilelists, CheckFilelists);
+	GETSET(bool, checkOnConnect, CheckOnConnect);
+	GETSET(bool, checkMyInfo, CheckMyInfo);
+	GETSET(bool, hideShare, HideShare);
+	GETSET(bool, showIpOnChat, ShowIpOnChat);
+	GETSET(bool, showCCOnChat, ShowCountryCodeOnChat);
+	GETSET(uint32_t, usersLimit, UsersLimit);
 	//END
 	GETSET(string, favIp, FavIp);
 	
@@ -200,12 +202,11 @@ public:
 	GETSET(bool, stealth, Stealth);
 
 	mutable CriticalSection cs; //RSX++
+protected:
+	friend class ClientManager;
+	Client(const string& hubURL, char separator, bool secure_);
 	virtual ~Client() throw();
 
-protected:
-	Client(const string& hubURL, char separator, bool secure_);
-
-	friend class ClientManager;
 	friend class PluginsManager; //RSX++
 
 	struct Counts {
@@ -249,10 +250,7 @@ protected:
 	virtual void on(Connected) throw();
 	virtual void on(Line, const string& aLine) throw();
 	virtual void on(Failed, const string&) throw();
-	//RSX++
-	GETSET(uint32_t, usersLimit, UsersLimit);
-	size_t userCount;
-	//END
+	size_t userCount; //RSX++
 private:
 	//RSX++
 	static dcpp_ptr_t DCPP_CALL_CONV clientCallFunc(const char* type, dcpp_ptr_t p1, dcpp_ptr_t p2, dcpp_ptr_t p3, int* handled);
@@ -286,5 +284,5 @@ private:
 
 /**
  * @file
- * $Id: Client.h 440 2009-06-21 17:24:05Z BigMuscle $
+ * $Id: Client.h 463 2009-10-01 16:30:22Z BigMuscle $
  */

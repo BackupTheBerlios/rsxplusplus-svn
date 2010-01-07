@@ -312,7 +312,7 @@ private:
 						Lock l(cs);
 						if(action & ADD_CLIENT_CHECK) {
 							try {
-								string fname = QueueManager::getInstance()->addClientCheck(ou->getUser(), client->getHubUrl());
+								string fname = QueueManager::getInstance()->addClientCheck(HintedUser(ou->getUser(), client->getHubUrl()));
 								if(!fname.empty())
 									ou->getIdentity().setTestSURQueued(fname);
 							} catch(...) {
@@ -320,7 +320,7 @@ private:
 							}
 						} else if(action & ADD_FILELIST_CHECK) {
 							try {
-								string fname = QueueManager::getInstance()->addFileListCheck(ou->getUser(), client->getHubUrl());
+								string fname = QueueManager::getInstance()->addFileListCheck(HintedUser(ou->getUser(), client->getHubUrl()));
 								if(!fname.empty())
 									ou->getIdentity().setFileListQueued(fname);
 							} catch(...) {

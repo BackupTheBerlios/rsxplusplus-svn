@@ -48,6 +48,7 @@ public:
 };
 
 class SimpleXML;
+
 class AutoSearchManager : public Singleton<AutoSearchManager>, private TimerManagerListener, private SearchManagerListener {
 public:
 	AutoSearchManager();

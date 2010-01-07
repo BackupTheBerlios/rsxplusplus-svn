@@ -295,7 +295,7 @@ public:
 	typedef vector<DestDir> DestDirList;
 
 	// Constructor/destructor
-	ADLSearchManager() { Load(); }
+	ADLSearchManager() : user(UserPtr(), Util::emptyString) { Load(); }
 	~ADLSearchManager() { Save(); }
 
 	// Search collection
@@ -307,8 +307,9 @@ public:
 	void Save();
 
 	// Settings
-	GETSET(UserPtr, user, User)
 	GETSET(bool, breakOnFirst, BreakOnFirst)
+	GETSET(HintedUser, user, User)
+	//GETSET(bool, sentRaw, SentRaw);
 
 	// @remarks Used to add ADLSearch directories to an existing DirectoryListing
 	void matchListing(DirectoryListing& /*aDirList*/) throw();
@@ -364,5 +365,5 @@ private:
 
 /**
  * @file
- * $Id: ADLSearch.h 453 2009-08-04 15:46:31Z BigMuscle $
+ * $Id: ADLSearch.h 466 2009-11-13 18:47:25Z BigMuscle $
   */

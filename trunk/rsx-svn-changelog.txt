@@ -1,3 +1,6 @@
+** SVN 187
+ ** [sdk] UserConnection implementation done
+
 ** SVN 186
  ** one big sdc svn merge (need heavy testing)
  ** removed HubSettings class

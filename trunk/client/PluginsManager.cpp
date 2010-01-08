@@ -60,6 +60,7 @@ PluginsManager::PluginsManager() : dcpp_func(new dcppFunctions) {
 
 	getSpeaker().addCaller(&PluginsManager::coreCallFunc);
 	getSpeaker().addCaller(&Client::clientCallFunc);
+	getSpeaker().addCaller(&UserConnection::ucCallFunc);
 }
 
 PluginsManager::~PluginsManager() {

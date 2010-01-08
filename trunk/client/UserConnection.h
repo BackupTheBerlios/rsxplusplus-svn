@@ -31,6 +31,7 @@
 #include "MerkleTree.h"
 #include "DebugManager.h"
 #include "ClientManager.h"
+#include "sdk/dcpp.h" //RSX++
 
 namespace dcpp {
 
@@ -140,8 +141,6 @@ public:
 	void snd(const string& aType, const string& aName, const int64_t aStart, const int64_t aBytes) {  send(AdcCommand(AdcCommand::CMD_SND).addParam(aType).addParam(aName).addParam(Util::toString(aStart)).addParam(Util::toString(aBytes))); }
 	void send(const AdcCommand& c) { send(c.toString(0, isSet(FLAG_NMDC))); }
 
-	void sendRaw(const std::string& line) { send(line, false); } //RSX++
-
 	void setDataMode(int64_t aBytes = -1) { dcassert(socket); socket->setDataMode(aBytes); }
 	void setLineMode(size_t rollback) { dcassert(socket); socket->setLineMode(rollback); }
 
@@ -224,6 +223,11 @@ private:
 	}
 
 	friend struct DeleteFunction;
+	//RSX++
+	friend class PluginsManager;
+	static dcpp_ptr_t DCPP_CALL_CONV ucCallFunc(const char* type, dcpp_ptr_t p1, dcpp_ptr_t p2, dcpp_ptr_t p3, int* handled);
+	bool plugLine(const std::string& line, bool incoming);
+	//END
 
 	void setUser(const UserPtr& aUser) {
 		user = aUser;
@@ -231,11 +235,10 @@ private:
 
 	void onLine(const string& aLine) throw();
 
-	bool extOnLineOut(const string& line); //RSX++
 	void send(const string& aString, bool ext = true) {
 		lastActivity = GET_TICK();
 		COMMAND_DEBUG(aString, DebugManager::CLIENT_OUT, getRemoteIp());
-		if(ext && extOnLineOut(aString)) return;
+		if(ext && plugLine(aString, false)) return; //RSX++
 		socket->write(aString);
 	}
 

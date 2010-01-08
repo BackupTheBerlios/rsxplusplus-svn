@@ -28,6 +28,7 @@
 #include "Transfer.h"
 #include "DebugManager.h"
 //RSX++
+#include "sdk/connection.h"
 #include "PluginsManager.h"
 #include "Download.h"
 //END
@@ -57,10 +58,9 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) throw
 
 	COMMAND_DEBUG(aLine, DebugManager::CLIENT_IN, getRemoteIp());
 	//RSX++
-//	bool plugins = PluginsManager::getInstance()->onUserConnectionLineIn(this, aLine.c_str());
-
-//	if(plugins)
-//		return;
+	if(plugLine(aLine, true)) {
+		return;
+	}
 	//END
 	if(aLine[0] == 'C' && !isSet(FLAG_NMDC)) {
 		dispatch(aLine);
@@ -273,10 +273,51 @@ void UserConnection::updateChunkSize(int64_t leafSize, int64_t lastChunk, uint64
 	chunkSize = targetSize;
 }
 //RSX++
-bool UserConnection::extOnLineOut(const string& line) {
-//	bool plugins = PluginsManager::getInstance()->onUserConnectionLineOut(this, line.c_str());
-//	return plugins;
-	return false;
+dcpp_ptr_t UserConnection::ucCallFunc(const char* type, dcpp_ptr_t p1, dcpp_ptr_t p2, dcpp_ptr_t p3, int* handled) {
+	*handled = DCPP_TRUE;
+	if(strncmp(type, "UserConnection/", 15) == 0) {
+		const char* cmd = type + 15;
+		UserConnection* uc = reinterpret_cast<UserConnection*>(p1);
+		if(!uc) return DCPP_FALSE;
+
+		if(strncmp(cmd, "WriteLine", 9) == 0) {
+			uc->send(reinterpret_cast<const char*>(p2), false);
+			return DCPP_TRUE;
+		} else if(strncmp(cmd, "Disconnect", 10) == 0) {
+			uc->disconnect(p2 != 0 ? true : false);
+			return DCPP_TRUE;
+		} else if(strncmp(cmd, "SetFlags", 8) == 0) {
+			uc->setFlag(static_cast<uint16_t>(p2));
+			return DCPP_TRUE;
+		} else if(strncmp(cmd, "GetFlags", 8) == 0) {
+			return static_cast<dcpp_ptr_t>(uc->getFlags());
+		} else if(strncmp(cmd, "GetInfo", 7) == 0) {
+			dcppConnectionInfo* ci = reinterpret_cast<dcppConnectionInfo*>(p2);
+			if(!ci) return DCPP_FALSE;
+			ci->ip = uc->getRemoteIp().c_str();
+			ci->port = uc->getPort();
+			ci->secured = uc->isSecure() ? 1 : 0;
+			ci->flags = uc->getFlags();
+			ci->slotType = uc->getSlotType();
+			ci->state = uc->getState();
+			return DCPP_TRUE;
+		}
+	}
+	*handled = DCPP_FALSE;
+	return DCPP_FALSE;
+}
+
+bool UserConnection::plugLine(const std::string& line, bool incoming) {
+	dcppConnectionLine m;
+	memzero(&m, sizeof(m));
+	m.connectionPtr = reinterpret_cast<dcpp_ptr_t>(this);
+	m.length = line.length();
+	m.line = line.c_str();
+	m.flags = getFlags();
+
+	int p = PluginsManager::getInstance()->getSpeaker().speak(DCPP_EVENT_CONNECTION, DCPP_EVENT_CONNECTION_LINE, reinterpret_cast<dcpp_ptr_t>(&m), incoming ? 1 : 0);
+	return p == DCPP_TRUE;
+
 }
 //END
 } // namespace dcpp

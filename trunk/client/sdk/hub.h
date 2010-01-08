@@ -68,7 +68,7 @@ typedef struct {
 	uint8_t isSecured;
 	const char* address;
 	const char* ip;
-} dcppHubInformation;
+} dcppHubInfo;
 */
 typedef struct {
 	dcpp_ptr_t hubPtr;

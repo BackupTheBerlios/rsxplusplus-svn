@@ -22,23 +22,31 @@
 #define DCPP_EVENT_CONNECTION "UserConnection/"
 #define DCPP_CALL_CONNECTION "UserConnection/"
 
-#define DCPP_EVENT_CONNECTION_MESSAGE_IN	1 //"UserConnection/MessageIn"
-#define DCPP_EVENT_CONNECTION_MESSAGE_OUT	2 //"UserConnection/MessageOut"
+#define DCPP_EVENT_CONNECTION_LINE			1
 
 #define DCPP_CALL_CONNECTION_WRITE_LINE		"UserConnection/WriteLine"
 #define DCPP_CALL_CONNECTION_DISCONNECT		"UserConnection/Disconnect"
 #define DCPP_CALL_CONNECTION_SET_FLAGS		"UserConnection/SetFlags"
 #define DCPP_CALL_CONNECTION_GET_FLAGS		"UserConnection/GetFlags"
+#define DCPP_CALL_CONNECTION_GET_INFO		"UserConnection/GetInfo"
+
+typedef struct {
+	uint16_t		port;
+	const char*		ip;
+	uint8_t			secured;
+
+	uint16_t		flags;
+	uint16_t		state;
+	uint16_t		slotType;
+} dcppConnectionInfo;
 
 typedef struct {
 	dcpp_ptr_t		connectionPtr;
 
-	uint32_t		mask;
-	uint32_t		flags;
-	uint16_t		port;
-	const char*		ip;
-	uint8_t			secured;
-} dcppConnectionInfo;
+	dcpp_ptr_t		length;
+	uint16_t		flags;
+	const char*		line;
+} dcppConnectionLine;
 
 #endif
 

@@ -68,7 +68,7 @@ void ChatCtrl::AdjustTextSize() {
 	}
 }
 
-void ChatCtrl::AppendText(const Identity& i, const tstring& sMyNick, const tstring& sTime, const tstring& sMsg, CHARFORMAT2& cf, bool bUseEmo/* = true*/, bool useHL/* = true*/, const tstring& aIpCc) {
+void ChatCtrl::AppendText(const Identity& i, const tstring& sMyNick, const tstring& sTime, const tstring& sMsg, CHARFORMAT2& cf, bool bUseEmo/* = true*/, bool useHL/* = true*/, tstring chatExtraInfo) {
 	SetRedraw(FALSE);
 
 	SCROLLINFO si = { 0 };
@@ -101,12 +101,13 @@ void ChatCtrl::AppendText(const Identity& i, const tstring& sMyNick, const tstri
 	//RSX++
 	bool isMyMessage = i.getUser() == ClientManager::getInstance()->getMe();
 
-	if(!aIpCc.empty()) {
+	if(!chatExtraInfo.empty()) {
+		chatExtraInfo += _T(" ");
 		lSelEnd = lSelBegin = GetTextLengthEx(GTL_NUMCHARS);
 		SetSel(lSelEnd, lSelEnd);
-		ReplaceSel(aIpCc.c_str(), false);
+		ReplaceSel(chatExtraInfo.c_str(), false);
 		lSelEnd = GetTextLengthEx(GTL_NUMCHARS);
-		SetSel(lSelBegin, lSelEnd - 1);
+		SetSel(lSelBegin, lSelEnd /*- 1*/);
 		SetSelectionCharFormat(isMyMessage ? WinUtil::m_ChatTextMyOwn : WinUtil::m_ChatTextGeneral);
 
 		PARAFORMAT2 pf;

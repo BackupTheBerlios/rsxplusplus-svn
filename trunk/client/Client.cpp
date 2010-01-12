@@ -120,8 +120,7 @@ void Client::reloadSettings(bool updateNick) {
 		setUseAutosearch(hub->getUseAutosearch());
 		setUseHL(hub->getUseHL());
 		setUsersLimit(hub->getUsersLimit());
-		setShowIpOnChat(hub->getShowIpOnChat());
-		setShowCountryCodeOnChat(hub->getShowCountryCodeOnChat());
+		setChatExtraInfo(hub->getChatExtraInfo());
 		//END
 	} else {
 		if(updateNick) {
@@ -143,8 +142,7 @@ void Client::reloadSettings(bool updateNick) {
 		setUseAutosearch(false);
 		setUseHL(false);
 		setUsersLimit(0);
-		setShowIpOnChat(false);
-		setShowCountryCodeOnChat(false);
+		setChatExtraInfo(Util::emptyString);
 		//END
 	}
 }

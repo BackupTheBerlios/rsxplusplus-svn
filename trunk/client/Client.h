@@ -178,6 +178,7 @@ public:
 
 	GETSET(string, currentEmail, CurrentEmail);
 	GETSET(string, protectedUsers, ProtectedUsers);
+	GETSET(string, chatExtraInfo, ChatExtraInfo);
 	GETSET(bool, useFilter, UseFilter);
 	GETSET(bool, useHL, UseHL);
 	GETSET(bool, useAutosearch, UseAutosearch);
@@ -186,8 +187,6 @@ public:
 	GETSET(bool, checkOnConnect, CheckOnConnect);
 	GETSET(bool, checkMyInfo, CheckMyInfo);
 	GETSET(bool, hideShare, HideShare);
-	GETSET(bool, showIpOnChat, ShowIpOnChat);
-	GETSET(bool, showCCOnChat, ShowCountryCodeOnChat);
 	GETSET(uint32_t, usersLimit, UsersLimit);
 	//END
 	GETSET(string, favIp, FavIp);

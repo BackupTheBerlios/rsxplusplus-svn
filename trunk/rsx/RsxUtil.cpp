@@ -295,24 +295,6 @@ int RsxUtil::CalcContrastColor(int crBg) {
 		return crBg ^ 0xFFFFFF;
 }
 
-tstring RsxUtil::formatAdditionalInfo(const string& aIp, bool sIp, bool sCC) {
-	string ret = Util::emptyString;
-
-	if(!aIp.empty()) {
-		string cc = Util::getIpCountry(aIp);
-		bool showIp = RSXPP_BOOLSETTING(IP_IN_CHAT) || sIp;
-		bool showCc = (RSXPP_BOOLSETTING(COUNTRY_IN_CHAT) || sCC) && !cc.empty();
-
-		if(showIp) {
-			ret = "[ " + aIp + " ] ";
-		}
-		if(showCc) {
-			ret += "[ " + cc + " ] ";
-		}
-	}
-	return Text::toT(ret);
-}
-
 #ifdef _WIN64
 #define CONFIGURATION_TYPE "x86-64"
 #else

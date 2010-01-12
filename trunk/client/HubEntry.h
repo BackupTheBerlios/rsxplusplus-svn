@@ -67,19 +67,19 @@ public:
 
 	FavoriteHubEntry() throw() : connect(false), encoding(Text::systemCharset), chatusersplit(0), stealth(false), userliststate(true), mode(0), ip(Util::emptyString), searchInterval(SETTING(MINIMUM_SEARCH_INTERVAL)),
 		//RSX++
-		useFilter(RSXPP_BOOLSETTING(USE_FILTER_FAV)), useHL(RSXPP_BOOLSETTING(USE_HL_FAV)), useAutosearch(false), 
-		checkClients(false), checkFilelists(false), checkOnConnect(false), 
-		checkMyInfo(false), hideShare(false), showIpOnChat(false), 
-		showCCOnChat(false), usersLimit(0) 
+		currentEmail(Util::emptyString), protectedUsers(Util::emptyString), useFilter(RSXPP_BOOLSETTING(USE_FILTER_FAV)), 
+		useHL(RSXPP_BOOLSETTING(USE_HL_FAV)), useAutosearch(false), checkClients(false), 
+		checkFilelists(false), checkOnConnect(false), checkMyInfo(false), 
+		hideShare(false), chatExtraInfo(Util::emptyString), usersLimit(0) 
 		//END
 	{ }
 	FavoriteHubEntry(const HubEntry& rhs) throw() : name(rhs.getName()), server(rhs.getServer()), encoding(Text::systemCharset), searchInterval(SETTING(MINIMUM_SEARCH_INTERVAL)),
 		description(rhs.getDescription()), connect(false), chatusersplit(0), stealth(false), userliststate(true), mode(0), ip(Util::emptyString),
 		//RSX++
-		useFilter(RSXPP_BOOLSETTING(USE_FILTER_FAV)), useHL(RSXPP_BOOLSETTING(USE_HL_FAV)), useAutosearch(false), 
-		checkClients(false), checkFilelists(false), checkOnConnect(false), 
-		checkMyInfo(false), hideShare(false), showIpOnChat(false), 
-		showCCOnChat(false), usersLimit(0) 
+		currentEmail(Util::emptyString), protectedUsers(Util::emptyString), useFilter(RSXPP_BOOLSETTING(USE_FILTER_FAV)), 
+		useHL(RSXPP_BOOLSETTING(USE_HL_FAV)), useAutosearch(false), checkClients(false), 
+		checkFilelists(false), checkOnConnect(false), checkMyInfo(false), 
+		hideShare(false), chatExtraInfo(Util::emptyString), usersLimit(0) 
 		//END
 	{ }
 	FavoriteHubEntry(const FavoriteHubEntry& rhs) throw() : userdescription(rhs.userdescription), name(rhs.getName()), 
@@ -91,8 +91,7 @@ public:
 		currentEmail(rhs.currentEmail), protectedUsers(rhs.protectedUsers), useFilter(rhs.useFilter),
 		useHL(rhs.useHL), useAutosearch(rhs.useAutosearch), checkClients(rhs.checkClients),
 		checkFilelists(rhs.checkFilelists), checkOnConnect(rhs.checkOnConnect), checkMyInfo(rhs.checkMyInfo),
-		hideShare(rhs.hideShare), showIpOnChat(rhs.showIpOnChat), showCCOnChat(rhs.showCCOnChat),
-		usersLimit(rhs.usersLimit) 
+		hideShare(rhs.hideShare), chatExtraInfo(rhs.chatExtraInfo), usersLimit(rhs.usersLimit) 
 		//END
 	{ }
 	~FavoriteHubEntry() throw() {
@@ -130,6 +129,7 @@ public:
 	GETSET(string, awayMsg, AwayMsg);
 	GETSET(string, currentEmail, CurrentEmail);
 	GETSET(string, protectedUsers, ProtectedUsers);
+	GETSET(string, chatExtraInfo, ChatExtraInfo);
 	GETSET(bool, useFilter, UseFilter);
 	GETSET(bool, useHL, UseHL);
 	GETSET(bool, useAutosearch, UseAutosearch);
@@ -138,8 +138,6 @@ public:
 	GETSET(bool, checkOnConnect, CheckOnConnect);
 	GETSET(bool, checkMyInfo, CheckMyInfo);
 	GETSET(bool, hideShare, HideShare);
-	GETSET(bool, showIpOnChat, ShowIpOnChat);
-	GETSET(bool, showCCOnChat, ShowCountryCodeOnChat);
 	GETSET(uint32_t, usersLimit, UsersLimit);
 
 	//Raw Manager

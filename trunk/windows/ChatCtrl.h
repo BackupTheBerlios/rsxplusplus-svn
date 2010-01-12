@@ -132,7 +132,7 @@ public:
 	void runUserCommand(UserCommand& uc);
 
 	void AdjustTextSize();
-	void AppendText(const Identity& i, const tstring& sMyNick, const tstring& sTime, const tstring& sMsg, CHARFORMAT2& cf, bool bUseEmo = true, bool useHL = true, const tstring& aIpCc = Util::emptyStringT);
+	void AppendText(const Identity& i, const tstring& sMyNick, const tstring& sTime, const tstring& sMsg, CHARFORMAT2& cf, bool bUseEmo = true, bool useHL = true, tstring chatExtraInfo = Util::emptyStringT);
 
 	static void setSelectedUser(const tstring& s) { sSelectedUser = s; }
 	static const tstring& getSelectedUser() { return sSelectedUser; }

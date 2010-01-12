@@ -423,11 +423,13 @@ void PrivateFrame::addLine(const Identity& from, const tstring& aLine, CHARFORMA
 	CRect r;
 	ctrlClient.GetClientRect(r);
 
+	//RSX++ changed a bit to fit extra info in mainchat
+	StringMap params;
+
+	const CID& cid = replyTo->getCID();
+	const string& hint = getHubHint();
+
 	if(BOOLSETTING(LOG_PRIVATE_CHAT)) {
-		StringMap params;
-		const CID& cid = replyTo->getCID();
-		const string& hint = getHubHint();
-		
 		params["message"] = Text::fromT(aLine);
 		params["hubNI"] = Util::toString(ClientManager::getInstance()->getHubNames(cid, hint));
 		params["hubURL"] = Util::toString(ClientManager::getInstance()->getHubs(cid, hint));
@@ -436,11 +438,25 @@ void PrivateFrame::addLine(const Identity& from, const tstring& aLine, CHARFORMA
 		params["myCID"] = ClientManager::getInstance()->getMe()->getCID().toBase32();
 		LOG(LogManager::PM, params);
 	}
+	//RSX++
+	tstring extraInfo = Util::emptyStringT;
+	if(ctrlClient.getClient()) {
+		Client* c = ctrlClient.getClient();
+		from.getParams(params, "user", true);
+		c->getHubIdentity().getParams(params, "hub", false);
+		c->getMyIdentity().getParams(params, "my", true);
 
+		if(from.getIp().empty())
+			params["country"] = "??";
+		else
+			params["country"] = Util::getIpCountry(from.getIp());
+		extraInfo = Text::toT(Util::formatParams(c->getChatExtraInfo(), params, false));
+	}
+	//END
 	if(BOOLSETTING(TIME_STAMPS)) {
-		ctrlClient.AppendText(from, ctrlClient.getMyNick(), Text::toT("[" + Util::getShortTimeString() + "] "), aLine + _T('\n'), cf);
+		ctrlClient.AppendText(from, ctrlClient.getMyNick(), Text::toT("[" + Util::getShortTimeString() + "] "), aLine + _T('\n'), cf, true, true, extraInfo);
 	} else {
-		ctrlClient.AppendText(from, ctrlClient.getMyNick(), _T(""), aLine + _T('\n'), cf);
+		ctrlClient.AppendText(from, ctrlClient.getMyNick(), _T(""), aLine + _T('\n'), cf, true, true, extraInfo);
 	}
 	//... end
 	addClientLine(TSTRING(LAST_CHANGE) + _T(" ") + Text::toT(Util::getTimeString()));

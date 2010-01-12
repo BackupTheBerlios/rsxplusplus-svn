@@ -1,3 +1,6 @@
+** SVN 188
+ ** removed country code & ip in chat and added extra info in chat (user/my/hub params + country)
+
 ** SVN 187
  ** [sdk] UserConnection implementation done
 

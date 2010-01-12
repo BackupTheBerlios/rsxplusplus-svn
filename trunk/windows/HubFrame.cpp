@@ -1126,22 +1126,31 @@ void HubFrame::addLine(const tstring& aLine, CHARFORMAT2& cf, bool bUseEmo/* = t
 
 void HubFrame::addLine(const Identity& i, const tstring& aLine, CHARFORMAT2& cf, bool bUseEmo/* = true*/, bool useHL/* = true*/) {
 	ctrlClient.AdjustTextSize();
+	//RSX++ changed a bit to fit extra info in mainchat
+	string userIp = i.getIp();
+	StringMap params;
+	params["hubURL"] = client->getHubUrl();
+
+	client->getHubIdentity().getParams(params, "hub", false);
+	client->getMyIdentity().getParams(params, "my", true);
+	i.getParams(params, "user", false);
 
 	if(BOOLSETTING(LOG_MAIN_CHAT)) {
-		StringMap params;
 		params["message"] = Text::fromT(aLine);
-		client->getHubIdentity().getParams(params, "hub", false);
-		params["hubURL"] = client->getHubUrl();
-		client->getMyIdentity().getParams(params, "my", true);
-		i.getParams(params, "user", false); //RSX++
 		LOG(LogManager::CHAT, params);
 	}
+	//RSX++
+	if(i.getIp().empty())
+		params["country"] = "??";
+	else
+		params["country"] = Util::getIpCountry(i.getIp());
 
-	tstring extraInfo = RsxUtil::formatAdditionalInfo(i.getIp(), client->getShowIpOnChat(), client->getShowCountryCodeOnChat());
+	tstring extraInfo = Text::toT(Util::formatParams(client->getChatExtraInfo(), params, false));
+	//END
 	if(timeStamps) {
 		ctrlClient.AppendText(i, Text::toT(client->getCurrentNick()), Text::toT("[" + Util::getShortTimeString() + "] "), aLine + _T('\n'), cf, bUseEmo, useHL, extraInfo);
 	} else {
-		ctrlClient.AppendText(i, Text::toT(client->getCurrentNick()), _T(""), aLine + _T('\n'), cf, bUseEmo, useHL, extraInfo);
+		ctrlClient.AppendText(i, Text::toT(client->getCurrentNick()), Util::emptyStringT, aLine + _T('\n'), cf, bUseEmo, useHL, extraInfo);
 	}
 	if (BOOLSETTING(BOLD_HUB)) {
 		setDirty();

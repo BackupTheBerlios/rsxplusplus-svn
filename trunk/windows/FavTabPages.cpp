@@ -26,13 +26,6 @@ LRESULT CFavTabRaw::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 
 	ctrlList.SetRedraw(TRUE);
 	ctrlList.Invalidate();
-
-	/*HTREEITEM item = ctrlList.GetRootItem();
-	while(item != NULL) {
-		ctrlList.Expand(item, TVE_EXPAND);
-		item = ctrlList.GetNextItem(item, TVGN_NEXT);
-	}*/
-
 	return 0;
 }
 
@@ -126,15 +119,13 @@ LRESULT CCustomTab::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 	updown.SetRange32(10, 9999);
 	updown.Detach();
 
-	::CheckDlgButton(*this, IDC_STEALTH, hub->getStealth()					? BST_CHECKED : BST_UNCHECKED);
-	::CheckDlgButton(*this, IDC_HIDE_SHARE, hub->getHideShare()				? BST_CHECKED : BST_UNCHECKED);
-	::CheckDlgButton(*this, IDC_USE_FILTER_FAV, hub->getUseFilter()			? BST_CHECKED : BST_UNCHECKED);
-	::CheckDlgButton(*this, IDC_USE_HIGHLIGHT_FAV, hub->getUseHL()			? BST_CHECKED : BST_UNCHECKED);
-	::CheckDlgButton(*this, IDC_CHECK_AUTOSEARCH, hub->getUseAutosearch()	? BST_CHECKED : BST_UNCHECKED);
+	CheckDlgButton(IDC_STEALTH, hub->getStealth()					? BST_CHECKED : BST_UNCHECKED);
+	CheckDlgButton(IDC_HIDE_SHARE, hub->getHideShare()				? BST_CHECKED : BST_UNCHECKED);
+	CheckDlgButton(IDC_USE_FILTER_FAV, hub->getUseFilter()			? BST_CHECKED : BST_UNCHECKED);
+	CheckDlgButton(IDC_USE_HIGHLIGHT_FAV, hub->getUseHL()			? BST_CHECKED : BST_UNCHECKED);
+	CheckDlgButton(IDC_CHECK_AUTOSEARCH, hub->getUseAutosearch()	? BST_CHECKED : BST_UNCHECKED);
 
-	CheckDlgButton(IDC_SHOW_IP, hub->getShowIpOnChat() ? BST_CHECKED : BST_UNCHECKED);
-	CheckDlgButton(IDC_SHOW_CC, hub->getShowCountryCodeOnChat() ? BST_CHECKED : BST_UNCHECKED);
-
+	SetDlgItemText(IDC_CHAT_EXTRA_INFO, Text::toT(hub->getChatExtraInfo()).c_str());
 	return 0;
 }
 
@@ -153,14 +144,15 @@ void CCustomTab::prepareClose() {
 
 	btn = ::GetDlgItem(m_hWnd, IDC_USE_HIGHLIGHT_FAV);
 	hub->setUseHL(RsxUtil::toBool(btn.GetCheck()));
-	hub->setShowCountryCodeOnChat(IsDlgButtonChecked(IDC_SHOW_CC) == BST_CHECKED);
-	hub->setShowIpOnChat(IsDlgButtonChecked(IDC_SHOW_IP) == BST_CHECKED);
 
 	tstring buf;
-	int len = ::GetWindowTextLength(GetDlgItem(IDC_FAV_SEARCH_INTERVAL_BOX)) + 1;
-	buf.resize(len);
-	GetDlgItemText(IDC_FAV_SEARCH_INTERVAL_BOX, &buf[0], len);
+	buf.resize(::GetWindowTextLength(GetDlgItem(IDC_FAV_SEARCH_INTERVAL_BOX)) + 1);
+	buf.resize(GetDlgItemText(IDC_FAV_SEARCH_INTERVAL_BOX, &buf[0], buf.size()));
 	hub->setSearchInterval(Util::toUInt32(Text::fromT(buf)));
+
+	buf.resize(::GetWindowTextLength(GetDlgItem(IDC_CHAT_EXTRA_INFO)) + 1);
+	buf.resize(GetDlgItemText(IDC_CHAT_EXTRA_INFO, &buf[0], buf.size()));
+	hub->setChatExtraInfo(Text::fromT(buf));
 }
 
 LRESULT CFavTabSettings::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {

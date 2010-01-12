@@ -439,8 +439,7 @@ void FavoriteManager::save() {
 			xml.addChildAttrib("UseFilter", (*i)->getUseFilter());
 			xml.addChildAttrib("UseAutosearch", (*i)->getUseAutosearch());
 			xml.addChildAttrib("UseHighLight", (*i)->getUseHL());
-			xml.addChildAttrib("ShowIpInChat", (*i)->getShowIpOnChat());
-			xml.addChildAttrib("ShowCountryCodeInChat", (*i)->getShowCountryCodeOnChat());
+			xml.addChildAttrib("ChatExtraInfo", (*i)->getChatExtraInfo());
 			xml.addChildAttrib("UsersLimitToUseActions", (*i)->getUsersLimit());
 			//RSX++
 			xml.stepIn();
@@ -749,8 +748,7 @@ void FavoriteManager::load(SimpleXML& aXml) {
 			e->setUseFilter(aXml.getBoolChildAttrib("UseFilter"));
 			e->setUseAutosearch(aXml.getBoolChildAttrib("UseAutosearch"));
 			e->setUseHL(aXml.getBoolChildAttrib("UseHighLight"));
-			e->setShowIpOnChat(aXml.getBoolChildAttrib("ShowIpInChat"));
-			e->setShowCountryCodeOnChat(aXml.getBoolChildAttrib("ShowCountryCodeInChat"));
+			e->setChatExtraInfo(aXml.getChildAttrib("ChatExtraInfo"));
 			e->setUsersLimit(aXml.getIntChildAttrib("UsersLimitToUseActions"));
 			//END
 			e->setMode(Util::toInt(aXml.getChildAttrib("Mode")));

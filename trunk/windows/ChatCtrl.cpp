@@ -100,14 +100,15 @@ void ChatCtrl::AppendText(const Identity& i, const tstring& sMyNick, const tstri
 	}
 	//RSX++
 	bool isMyMessage = i.getUser() == ClientManager::getInstance()->getMe();
+	bool isRealUser = i.getUser().get() != 0 && !i.isBot() && !i.isHub() && !i.isHidden();
 
-	if(!chatExtraInfo.empty()) {
+	if(!chatExtraInfo.empty() && isRealUser) {
 		chatExtraInfo += _T(" ");
 		lSelEnd = lSelBegin = GetTextLengthEx(GTL_NUMCHARS);
 		SetSel(lSelEnd, lSelEnd);
 		ReplaceSel(chatExtraInfo.c_str(), false);
 		lSelEnd = GetTextLengthEx(GTL_NUMCHARS);
-		SetSel(lSelBegin, lSelEnd /*- 1*/);
+		SetSel(lSelBegin, lSelEnd - 1);
 		SetSelectionCharFormat(isMyMessage ? WinUtil::m_ChatTextMyOwn : WinUtil::m_ChatTextGeneral);
 
 		PARAFORMAT2 pf;

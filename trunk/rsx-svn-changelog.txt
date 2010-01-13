@@ -1,3 +1,6 @@
+** SVN 189
+ ** show extra info only for real users
+
 ** SVN 188
  ** removed country code & ip in chat and added extra info in chat (user/my/hub params + country)
 

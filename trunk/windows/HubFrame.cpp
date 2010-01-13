@@ -1127,7 +1127,6 @@ void HubFrame::addLine(const tstring& aLine, CHARFORMAT2& cf, bool bUseEmo/* = t
 void HubFrame::addLine(const Identity& i, const tstring& aLine, CHARFORMAT2& cf, bool bUseEmo/* = true*/, bool useHL/* = true*/) {
 	ctrlClient.AdjustTextSize();
 	//RSX++ changed a bit to fit extra info in mainchat
-	string userIp = i.getIp();
 	StringMap params;
 	params["hubURL"] = client->getHubUrl();
 

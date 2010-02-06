@@ -497,6 +497,7 @@ public:
 	static int getFirstSelectedIndex(CListViewCtrl& list);
 	static int setButtonPressed(int nID, bool bPressed = true);
 	//RSX++
+	static void setListViewExplorerStyle(HWND hListView);
 	static void flashWindow();
 	static tstring toYesNo(bool value);
 	static string CPUInfo();

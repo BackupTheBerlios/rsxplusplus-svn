@@ -53,7 +53,7 @@ using namespace dht;
 extern CAppModule _Module;
 
 #define _WTL_MDIWINDOWMENU_TEXT CTSTRING(MENU_WINDOW)
-#define _WTL_CMDBAR_VISTA_MENUS 0
+//#define _WTL_CMDBAR_VISTA_MENUS 0
 //#define _WTL_NO_AUTO_THEME 1
 #include <atlwin.h>
 #include <atlframe.h>

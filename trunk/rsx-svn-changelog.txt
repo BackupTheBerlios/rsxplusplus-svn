@@ -1,3 +1,7 @@
+** SVN 190
+ ** some vista listview style here and there
+ ** main window won't block unhandled application commands (like extra buttons on keyboard)
+
 ** SVN 189
  ** show extra info only for real users
 

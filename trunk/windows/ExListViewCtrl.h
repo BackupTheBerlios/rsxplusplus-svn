@@ -47,6 +47,7 @@ public:
 	typedef ListViewArrows<ExListViewCtrl> arrowBase;
 
 	BEGIN_MSG_MAP(ExListViewCtrl)
+		MESSAGE_HANDLER(WM_CREATE, onCreate) //RSX++
 		MESSAGE_HANDLER(WM_CHAR, onChar)
 		CHAIN_MSG_MAP(arrowBase)
 	END_MSG_MAP()
@@ -153,7 +154,13 @@ public:
 			result = -result;
 		return result;
 	}
-	
+	//RSX++
+	LRESULT onCreate(UINT /*msg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled) {
+		WinUtil::setListViewExplorerStyle(m_hWnd);
+		bHandled = FALSE;
+		return FALSE;
+	}
+	//END
 	LRESULT onChar(UINT /*msg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled) {
 		if((GetKeyState(VkKeyScan('A') & 0xFF) & 0xFF00) > 0 && (GetKeyState(VK_CONTROL) & 0xFF00) > 0){
 			int count = GetItemCount();

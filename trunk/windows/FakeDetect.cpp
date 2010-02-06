@@ -57,6 +57,7 @@ LRESULT FakeDetect::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 	ctrlList.InsertColumn(1, CTSTRING(ACTION), LVCFMT_LEFT, (rc.Width() / 3) - 35, 1);
 	ctrlList.InsertColumn(2, CTSTRING(SETTINGS_DISPLAY_CHEATS_IN_MAIN_CHAT), LVCFMT_LEFT, (rc.Width() / 3) - 60, 2);
 	ctrlList.SetExtendedListViewStyle(LVS_EX_FULLROWSELECT | LVS_EX_INFOTIP);
+	WinUtil::setListViewExplorerStyle(ctrlList.m_hWnd);
 
 	cRaw.attach(GetDlgItem(IDC_RAW_DETECTOR), 0);
 

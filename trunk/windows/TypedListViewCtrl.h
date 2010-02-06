@@ -53,6 +53,7 @@ public:
 	typedef ListViewArrows<thisClass> arrowBase;
 
 	BEGIN_MSG_MAP(thisClass)
+		MESSAGE_HANDLER(WM_CREATE, onCreate) //RSX++
 		MESSAGE_HANDLER(WM_MENUCOMMAND, onHeaderMenu)
 		MESSAGE_HANDLER(WM_CHAR, onChar)
 		MESSAGE_HANDLER(WM_ERASEBKGND, onEraseBkgnd)
@@ -105,7 +106,13 @@ public:
 		int cur;
 		int cnt;
 	};
-
+	//RSX++
+	LRESULT onCreate(UINT /*msg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled) {
+		WinUtil::setListViewExplorerStyle(m_hWnd);
+		bHandled = FALSE;
+		return FALSE;
+	}
+	//END
 	LRESULT onChar(UINT /*msg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled) {
 		if((GetKeyState(VkKeyScan('A') & 0xFF) & 0xFF00) > 0 && (GetKeyState(VK_CONTROL) & 0xFF00) > 0){
 			int count = GetItemCount();

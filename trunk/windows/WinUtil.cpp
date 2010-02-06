@@ -1868,6 +1868,15 @@ void WinUtil::saveReBarSettings(HWND bar) {
 	
 	SettingsManager::getInstance()->set(SettingsManager::TOOLBAR_SETTINGS, toolbarSettings);
 }
+//RSX++
+void WinUtil::setListViewExplorerStyle(HWND hListView) {
+	typedef HRESULT (CALLBACK* LPFUNC)(HWND, LPCWSTR, LPCWSTR);
+	ListView_SetExtendedListViewStyle(hListView, ListView_GetExtendedListViewStyle(hListView) | LVS_EX_DOUBLEBUFFER);
+	HMODULE uxdll = LoadLibrary(_T("uxtheme"));
+	LPFUNC _SetWindowTheme = (LPFUNC)GetProcAddress(uxdll, "SetWindowTheme");
+	_SetWindowTheme(hListView, _T("explorer"), NULL);
+	FreeLibrary(uxdll);
+}
 //RSX++ //flash window
 void WinUtil::flashWindow() {
 	if( GetForegroundWindow() != WinUtil::mainWnd ) {

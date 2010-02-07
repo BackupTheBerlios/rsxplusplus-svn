@@ -15,11 +15,6 @@
 			Name="x64"
 		/>
 	</Platforms>
-	<ToolFiles>
-		<ToolFile
-			RelativePath=".\boost\libs\thread\boost-thread.rules"
-		/>
-	</ToolFiles>
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"

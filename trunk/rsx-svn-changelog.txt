@@ -1,3 +1,6 @@
+** SVN 192
+ ** fix build...
+
 ** SVN 191
  ** sdc svn merge
  ** dht crash fix

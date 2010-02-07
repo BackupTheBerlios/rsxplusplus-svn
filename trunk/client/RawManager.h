@@ -18,7 +18,7 @@
 #ifndef RAW_MANAGER_H
 #define RAW_MANAGER_H
 
-#include "CriticalSection.h"
+#include "Thread.h"
 #include "Singleton.h"
 #include "ActionRaw.h"
 #include "rsxppSettingsManager.h"
@@ -30,8 +30,8 @@ class SimpleXML;
 class RawManager : public Singleton<RawManager>, private SettingsManagerListener {
 public:
 	// remember to unlock, if locked before. use when changing sth in action/raw content
-	void lock() { cs.enter(); }
-	void unlock() { cs.leave(); }
+	void lock() { cs.lock(); }
+	void unlock() { cs.unlock(); }
 
 	Action::ActionList& getActions() { Lock l(cs); return actions; }
 	Action* findAction(int id) throw();

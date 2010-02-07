@@ -19,7 +19,7 @@
 #ifndef RSXPLUSPLUS_COMMAND_QUEUE
 #define RSXPLUSPLUS_COMMAND_QUEUE
 
-#include "CriticalSection.h"
+#include "Thread.h"
 
 namespace dcpp {
 class Client;

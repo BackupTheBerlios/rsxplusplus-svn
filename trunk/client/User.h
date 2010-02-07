@@ -23,7 +23,6 @@
 #include "Pointer.h"
 #include "CID.h"
 #include "FastAlloc.h"
-#include "CriticalSection.h"
 #include "Flags.h"
 #include "forward.h"
 
@@ -36,25 +35,24 @@ namespace dcpp {
 class ClientBase;
 
 /** A user connected to one or more hubs. */
-class User : public FastAlloc<User>, public intrusive_ptr_base<User>, public Flags
+class User : public FastAlloc<User>, public intrusive_ptr_base<User>, public Flags, private boost::noncopyable
 {
 public:
 	/** Each flag is set if it's true in at least one hub */
 	enum UserFlags {
-		ONLINE		= 0x01,
-		DCPLUSPLUS	= 0x02,
-		PASSIVE		= 0x04,
-		NMDC		= 0x08,
-		BOT			= 0x10,
-		TLS			= 0x20,	//< Client supports TLS
-		OLD_CLIENT	= 0x40, //< Can't download - old client
+		ONLINE					= 0x01,
+		DCPLUSPLUS				= 0x02,
+		PASSIVE					= 0x04,
+		NMDC					= 0x08,
+		BOT						= 0x10,
+		TLS						= 0x20,	//< Client supports TLS
+		OLD_CLIENT				= 0x40, //< Can't download - old client
 		NO_ADC_1_0_PROTOCOL		=  0x80,	//< Doesn't support "ADC/1.0" (dc++ <=0.703)
-		NO_ADC_0_10_PROTOCOL	= 0x100,	//< Doesn't support "ADC/0.10"
-		NO_ADCS_0_10_PROTOCOL	= 0x200,	//< Doesn't support "ADCS/0.10"
-		DHT			= 0x400,
+		NO_ADCS_0_10_PROTOCOL	= 0x100,	//< Doesn't support "ADCS/0.10"
+		DHT						= 0x200,
 		//RSX++
-		PROTECTED 				= 0x800,	//< User protected
-		IGNORED					= 0x1000	//< User ignored
+		PROTECTED 				= 0x400,	//< User protected
+		IGNORED					= 0x800	//< User ignored
 		//END
 	};
 
@@ -75,9 +73,6 @@ public:
 
 	GETSET(bool, soundActive, SoundActive); //RSX++
 private:
-	User(const User&);
-	User& operator=(const User&);
-
 	CID cid;
 };
 
@@ -116,7 +111,8 @@ public:
 		AWAY		= 0x02,
 		SERVER		= 0x04,
 		FIREBALL	= 0x08,
-		TLS			= 0x10
+		TLS			= 0x10,
+		NAT			= 0x20
 	};
 	
 	Identity() { resetCounters(); }
@@ -163,7 +159,7 @@ public:
 	bool isBot() const { return isClientType(CT_BOT) || isSet("BO"); }
 	bool isAway() const { return (getStatus() & AWAY) || isSet("AW"); }
 	bool isTcpActive(const Client* = NULL) const;
-	bool isUdpActive() const { return !getIp().empty() && !getUdpPort().empty(); }
+	bool isUdpActive() const;
 	//RSX++
 	bool isClientChecked() const { return isSet("TC"); }
 	bool isFileListChecked() const { return isSet("FC"); }

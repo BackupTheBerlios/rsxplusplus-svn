@@ -21,7 +21,6 @@
 
 #include "SettingsManager.h"
 
-#include "CriticalSection.h"
 #include "HttpConnection.h"
 #include "User.h"
 #include "UserCommand.h"
@@ -403,5 +402,5 @@ private:
 
 /**
  * @file
- * $Id: FavoriteManager.h 470 2010-01-02 23:23:39Z bigmuscle $
+ * $Id: FavoriteManager.h 473 2010-01-12 23:17:33Z bigmuscle $
  */

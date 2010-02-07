@@ -145,8 +145,8 @@ public:
 	int getMode(const string& aHubUrl) const;
 	bool isActive(const string& aHubUrl = Util::emptyString) const { return getMode(aHubUrl) != SettingsManager::INCOMING_FIREWALL_PASSIVE; }
 
-	void lock() throw() { cs.enter(); }
-	void unlock() throw() { cs.leave(); }
+	void lock() throw() { cs.lock(); }
+	void unlock() throw() { cs.unlock(); }
 
 	//RSX++
 	void sendAction(const UserPtr& p, const int aAction);
@@ -249,5 +249,5 @@ private:
 
 /**
  * @file
- * $Id: ClientManager.h 466 2009-11-13 18:47:25Z BigMuscle $
+ * $Id: ClientManager.h 473 2010-01-12 23:17:33Z bigmuscle $
  */

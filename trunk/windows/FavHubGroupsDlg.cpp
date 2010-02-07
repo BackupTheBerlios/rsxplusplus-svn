@@ -35,12 +35,12 @@ LRESULT FavHubGroupsDlg::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /
 
 	ctrlGroups.InsertColumn(0, _T("Name"), LVCFMT_LEFT, WinUtil::percent(width, 70), 0);
 	ctrlGroups.InsertColumn(1, _T("Private"), LVCFMT_LEFT, WinUtil::percent(width, 15), 0);
-	ctrlGroups.InsertColumn(2, _T("Connect"), LVCFMT_LEFT, WinUtil::percent(width, 15), 0);
-	ctrlGroups.SetExtendedListViewStyle(LVS_EX_FULLROWSELECT);
+	ctrlGroups.SetExtendedListViewStyle(LVS_EX_FULLROWSELECT | LVS_EX_DOUBLEBUFFER);
+	WinUtil::setListViewExplorerStyle(ctrlGroups.m_hWnd);
 
 	const FavHubGroups& groups = FavoriteManager::getInstance()->getFavHubGroups();
 	for(FavHubGroups::const_iterator i = groups.begin(); i != groups.end(); ++i) {
-		addItem(Text::toT(i->first), i->second.priv, i->second.connect);
+		addItem(Text::toT(i->first), i->second.priv);
 	}
 	updateSelectedGroup(true);
 	return 0;
@@ -70,7 +70,6 @@ void FavHubGroupsDlg::save() {
 		groups.insert(group);*/
 		name = Text::fromT(getText(0, i));
 		group.priv = getText(1, i) == _T("Yes");
-		group.connect = getText(2, i) == _T("Yes");
 		groups.insert(make_pair(name, group));
 	}
 	FavoriteManager::getInstance()->setFavHubGroups(groups);
@@ -88,15 +87,14 @@ int FavHubGroupsDlg::findGroup(LPCTSTR name) {
 	return -1;
 }
 
-void FavHubGroupsDlg::addItem(const tstring& name, bool priv, bool conn, bool select /*= false*/) {
+void FavHubGroupsDlg::addItem(const tstring& name, bool priv, bool select /*= false*/) {
 	int32_t item = ctrlGroups.InsertItem(ctrlGroups.GetItemCount(), name.c_str());
 	ctrlGroups.SetItemText(item, 1, priv ? _T("Yes") : _T("No"));
-	ctrlGroups.SetItemText(item, 2, conn ? _T("Yes") : _T("No"));
 	if(select)
 		ctrlGroups.SelectItem(item);
 }
 
-bool FavHubGroupsDlg::getItem(tstring& name, bool& priv, bool& conn, bool checkSel) {
+bool FavHubGroupsDlg::getItem(tstring& name, bool& priv, bool checkSel) {
 	{
 		name.resize(4096);
 		CEdit wnd;
@@ -120,12 +118,6 @@ bool FavHubGroupsDlg::getItem(tstring& name, bool& priv, bool& conn, bool checkS
 		priv = wnd.GetCheck() == 1;
 		wnd.Detach();
 	}
-	{
-		CButton wnd;
-		wnd.Attach(GetDlgItem(IDC_AUTOCONNECT));
-		conn = wnd.GetCheck() == 1;
-		wnd.Detach();
-	}
 	return true;
 }
 
@@ -142,14 +134,12 @@ tstring FavHubGroupsDlg::getText(int column, int item /*= -1*/) const {
 void FavHubGroupsDlg::updateSelectedGroup(bool forceClean /*= false*/) {
 	tstring name;
 	bool priv = false;
-	bool connect = false;
 	bool enableButtons = false;
 
 	if(ctrlGroups.GetSelectedIndex() != -1) {
 		if(forceClean == false) {
 			name = getText(0);
 			priv = getText(1) == _T("Yes");
-			connect = getText(2) == _T("Yes");
 		}
 		enableButtons = true;
 	}
@@ -176,20 +166,13 @@ void FavHubGroupsDlg::updateSelectedGroup(bool forceClean /*= false*/) {
 		wnd.SetCheck(priv ? 1 : 0);
 		wnd.Detach();
 	}
-	{
-		CButton wnd;
-		wnd.Attach(GetDlgItem(IDC_AUTOCONNECT));
-		wnd.SetCheck(connect ? 1 : 0);
-		wnd.Detach();
-	}
 }
 
 LRESULT FavHubGroupsDlg::onAdd(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
 	tstring name;
 	bool priv;
-	bool connect;
-	if(getItem(name, priv, connect, false)) {
-		addItem(name, priv, connect, true);
+	if(getItem(name, priv, false)) {
+		addItem(name, priv, true);
 		updateSelectedGroup(true);
 	}
 	return 0;
@@ -229,8 +212,7 @@ LRESULT FavHubGroupsDlg::onUpdate(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 		tstring name;
 		tstring oldName = getText(0);
 		bool priv;
-		bool connect;
-		if(getItem(name, priv, connect, true)) {
+		if(getItem(name, priv, true)) {
 			if(oldName != name) {
 				FavoriteHubEntryList l = FavoriteManager::getInstance()->getFavoriteHubs(Text::fromT(oldName));
 				for(FavoriteHubEntryList::iterator i = l.begin(); i != l.end(); ++i) {
@@ -238,7 +220,7 @@ LRESULT FavHubGroupsDlg::onUpdate(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 				}
 			}
 			ctrlGroups.DeleteItem(item);
-			addItem(name, priv, connect, true);
+			addItem(name, priv, true);
 			updateSelectedGroup();
 		}
 	}

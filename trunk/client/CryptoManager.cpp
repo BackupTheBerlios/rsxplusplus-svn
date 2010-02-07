@@ -29,6 +29,7 @@
 
 #ifdef HEADER_OPENSSLV_H
 # include <openssl/bn.h>
+# include <openssl/err.h>
 # ifdef _DEBUG
 #  pragma comment(lib, "libeay32d.lib")
 #  pragma comment(lib, "ssleay32d.lib")
@@ -81,7 +82,8 @@ CryptoManager::CryptoManager()
 #endif
 	
 	SSL_library_init();
-	
+	SSL_load_error_strings();
+
 	clientContext.reset(SSL_CTX_new(TLSv1_client_method()));
 	clientVerContext.reset(SSL_CTX_new(TLSv1_client_method()));
 	serverContext.reset(SSL_CTX_new(TLSv1_server_method()));
@@ -168,6 +170,8 @@ CryptoManager::CryptoManager()
 }
 
 CryptoManager::~CryptoManager() {
+	ERR_free_strings();
+
 #ifdef HEADER_OPENSSLV_H
 	CRYPTO_set_locking_callback(NULL);
 	delete[] cs;
@@ -483,12 +487,12 @@ string CryptoManager::makeKey(const string& aLock) {
 }
 
 #ifdef HEADER_OPENSSLV_H
-void CryptoManager::locking_function(int mode, int n, const char *file, int line)
+void CryptoManager::locking_function(int mode, int n, const char* /*file*/, int /*line*/)
 {
     if (mode & CRYPTO_LOCK) {
-        cs[n].enter();
+        cs[n].lock();
     } else {
-        cs[n].leave();
+        cs[n].unlock();
     }
 }
 #endif
@@ -497,5 +501,5 @@ void CryptoManager::locking_function(int mode, int n, const char *file, int line
 
 /**
  * @file
- * $Id: CryptoManager.cpp 469 2009-12-29 21:13:40Z bigmuscle $
+ * $Id: CryptoManager.cpp 477 2010-01-29 08:59:43Z bigmuscle $
  */

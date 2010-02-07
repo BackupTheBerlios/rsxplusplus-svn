@@ -34,51 +34,52 @@
 #pragma comment(lib, "iphlpapi.lib")
 
 PropPage::TextItem NetworkPage::texts[] = {
-	{ IDC_DIRECT, ResourceManager::SETTINGS_DIRECT },
-	{ IDC_DIRECT_OUT, ResourceManager::SETTINGS_DIRECT },
-	{ IDC_FIREWALL_UPNP, ResourceManager::SETTINGS_FIREWALL_UPNP },
-	{ IDC_FIREWALL_NAT, ResourceManager::SETTINGS_FIREWALL_NAT },
-	{ IDC_FIREWALL_PASSIVE, ResourceManager::SETTINGS_FIREWALL_PASSIVE },
-	{ IDC_OVERRIDE, ResourceManager::SETTINGS_OVERRIDE },
-//	{ IDC_UPDATE_IP, ResourceManager::SETTINGS_UPDATE_IP },
-	{ IDC_SOCKS5, ResourceManager::SETTINGS_SOCKS5 }, 
-	{ IDC_SETTINGS_PORTS, ResourceManager::SETTINGS_PORTS },
-	{ IDC_SETTINGS_IP, ResourceManager::SETTINGS_EXTERNAL_IP },
-	{ IDC_SETTINGS_PORT_TCP, ResourceManager::SETTINGS_TCP_PORT },
-	{ IDC_SETTINGS_PORT_UDP, ResourceManager::SETTINGS_UDP_PORT },
-	{ IDC_SETTINGS_PORT_TLS, ResourceManager::SETTINGS_TLS_PORT },
-	{ IDC_SETTINGS_PORT_DHT, ResourceManager::SETTINGS_DHT_PORT },
-	{ IDC_SETTINGS_SOCKS5_IP, ResourceManager::SETTINGS_SOCKS5_IP },
-	{ IDC_SETTINGS_SOCKS5_PORT, ResourceManager::SETTINGS_SOCKS5_PORT },
-	{ IDC_SETTINGS_SOCKS5_USERNAME, ResourceManager::SETTINGS_SOCKS5_USERNAME },
-	{ IDC_SETTINGS_SOCKS5_PASSWORD, ResourceManager::PASSWORD },
-	{ IDC_SOCKS_RESOLVE, ResourceManager::SETTINGS_SOCKS5_RESOLVE },
-	{ IDC_SETTINGS_INCOMING, ResourceManager::SETTINGS_INCOMING },
-	{ IDC_SETTINGS_OUTGOING, ResourceManager::SETTINGS_OUTGOING },
-	{ IDC_SETTINGS_BIND_ADDRESS, ResourceManager::SETTINGS_BIND_ADDRESS },
-	{ IDC_SETTINGS_BIND_ADDRESS_HELP, ResourceManager::SETTINGS_BIND_ADDRESS_HELP },
+	{ IDC_DIRECT,						ResourceManager::SETTINGS_DIRECT			},
+	{ IDC_DIRECT_OUT,					ResourceManager::SETTINGS_DIRECT			},
+	{ IDC_FIREWALL_UPNP,				ResourceManager::SETTINGS_FIREWALL_UPNP		},
+	{ IDC_FIREWALL_NAT,					ResourceManager::SETTINGS_FIREWALL_NAT		},
+	{ IDC_FIREWALL_PASSIVE,				ResourceManager::SETTINGS_FIREWALL_PASSIVE	},
+	{ IDC_OVERRIDE,						ResourceManager::SETTINGS_OVERRIDE			},
+	{ IDC_IPUPDATE,						ResourceManager::SETTINGS_UPDATE_IP			},
+	{ IDC_SOCKS5,						ResourceManager::SETTINGS_SOCKS5			}, 
+	{ IDC_SETTINGS_PORTS,				ResourceManager::SETTINGS_PORTS				},
+	{ IDC_SETTINGS_IP,					ResourceManager::SETTINGS_EXTERNAL_IP		},
+	{ IDC_SETTINGS_PORT_TCP,			ResourceManager::SETTINGS_TCP_PORT			},
+	{ IDC_SETTINGS_PORT_UDP,			ResourceManager::SETTINGS_UDP_PORT			},
+	{ IDC_SETTINGS_PORT_TLS,			ResourceManager::SETTINGS_TLS_PORT			},
+	{ IDC_SETTINGS_PORT_DHT,			ResourceManager::SETTINGS_DHT_PORT			},
+	{ IDC_SETTINGS_SOCKS5_IP,			ResourceManager::SETTINGS_SOCKS5_IP			},
+	{ IDC_SETTINGS_SOCKS5_PORT,			ResourceManager::SETTINGS_SOCKS5_PORT		},
+	{ IDC_SETTINGS_SOCKS5_USERNAME,		ResourceManager::SETTINGS_SOCKS5_USERNAME	},
+	{ IDC_SETTINGS_SOCKS5_PASSWORD,		ResourceManager::PASSWORD					},
+	{ IDC_SOCKS_RESOLVE,				ResourceManager::SETTINGS_SOCKS5_RESOLVE	},
+	{ IDC_SETTINGS_INCOMING,			ResourceManager::SETTINGS_INCOMING			},
+	{ IDC_SETTINGS_OUTGOING,			ResourceManager::SETTINGS_OUTGOING			},
+	{ IDC_SETTINGS_BIND_ADDRESS,		ResourceManager::SETTINGS_BIND_ADDRESS		},
+	{ IDC_SETTINGS_BIND_ADDRESS_HELP,	ResourceManager::SETTINGS_BIND_ADDRESS_HELP },
+	{ IDC_NATT,							ResourceManager::ALLOW_NAT_TRAVERSAL		},
 	//RSX++
 	{ IDC_CON_CHECK, ResourceManager::CHECK_SETTINGS },
-	{ IDC_IPUPDATE, ResourceManager::UPDATE_IP },
 	{ IDC_GETIP, ResourceManager::GET_IP },
 	//END
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
 
 PropPage::Item NetworkPage::items[] = {
-	{ IDC_EXTERNAL_IP,	SettingsManager::EXTERNAL_IP,	PropPage::T_STR }, 
-	{ IDC_PORT_TCP,		SettingsManager::TCP_PORT,		PropPage::T_INT }, 
-	{ IDC_PORT_UDP,		SettingsManager::UDP_PORT,		PropPage::T_INT }, 
-	{ IDC_PORT_TLS,		SettingsManager::TLS_PORT,		PropPage::T_INT },
-	{ IDC_PORT_DHT,		SettingsManager::DHT_PORT,		PropPage::T_INT },	
-	{ IDC_OVERRIDE,		SettingsManager::NO_IP_OVERRIDE, PropPage::T_BOOL },
-//	{ IDC_UPDATE_IP,	SettingsManager::UPDATE_IP,		PropPage::T_BOOL },	
-	{ IDC_SOCKS_SERVER, SettingsManager::SOCKS_SERVER,	PropPage::T_STR },
-	{ IDC_SOCKS_PORT,	SettingsManager::SOCKS_PORT,	PropPage::T_INT },
-	{ IDC_SOCKS_USER,	SettingsManager::SOCKS_USER,	PropPage::T_STR },
-	{ IDC_SOCKS_PASSWORD, SettingsManager::SOCKS_PASSWORD, PropPage::T_STR },
-	{ IDC_SOCKS_RESOLVE, SettingsManager::SOCKS_RESOLVE, PropPage::T_BOOL },
-	{ IDC_BIND_ADDRESS, SettingsManager::BIND_ADDRESS, PropPage::T_STR },
+	{ IDC_EXTERNAL_IP,		SettingsManager::EXTERNAL_IP,			PropPage::T_STR		}, 
+	{ IDC_PORT_TCP,			SettingsManager::TCP_PORT,				PropPage::T_INT		}, 
+	{ IDC_PORT_UDP,			SettingsManager::UDP_PORT,				PropPage::T_INT		}, 
+	{ IDC_PORT_TLS,			SettingsManager::TLS_PORT,				PropPage::T_INT		},
+	{ IDC_PORT_DHT,			SettingsManager::DHT_PORT,				PropPage::T_INT		},	
+	{ IDC_OVERRIDE,			SettingsManager::NO_IP_OVERRIDE,		PropPage::T_BOOL	},
+	{ IDC_IPUPDATE,			rsxppSettingsManager::IPUPDATE,			PropPage::T_BOOL_RSX },
+	{ IDC_SOCKS_SERVER,		SettingsManager::SOCKS_SERVER,			PropPage::T_STR		},
+	{ IDC_SOCKS_PORT,		SettingsManager::SOCKS_PORT,			PropPage::T_INT		},
+	{ IDC_SOCKS_USER,		SettingsManager::SOCKS_USER,			PropPage::T_STR		},
+	{ IDC_SOCKS_PASSWORD,	SettingsManager::SOCKS_PASSWORD,		PropPage::T_STR		},
+	{ IDC_SOCKS_RESOLVE,	SettingsManager::SOCKS_RESOLVE,			PropPage::T_BOOL	},
+	{ IDC_BIND_ADDRESS,		SettingsManager::BIND_ADDRESS,			PropPage::T_STR		},
+	{ IDC_NATT,				SettingsManager::ALLOW_NAT_TRAVERSAL,	PropPage::T_BOOL	},
 	//RSX++
 	{ IDC_NAT_PMP_GATEWAY, SettingsManager::NAT_PMP_GATEWAY, PropPage::T_STR },
 	{ IDC_NAT_PMP_RANDOM_PORTS, SettingsManager::FIREWALL_RAND_PORTS, PropPage::T_BOOL },
@@ -203,10 +204,12 @@ void NetworkPage::fixControls() {
 	//RSX++
 	BOOL natpmp = IsDlgButtonChecked(IDC_FIREWALL_NAT_PMP) == BST_CHECKED;
 	BOOL randPorts = IsDlgButtonChecked(IDC_NAT_PMP_RANDOM_PORTS) == BST_CHECKED;
+	BOOL nat_traversal = IsDlgButtonChecked(IDC_NATT) == BST_CHECKED;
 	//END
 
 	::EnableWindow(GetDlgItem(IDC_EXTERNAL_IP), direct || upnp || natpmp || nat);
 	::EnableWindow(GetDlgItem(IDC_OVERRIDE), direct || upnp || natpmp || nat);
+	::EnableWindow(GetDlgItem(IDC_NATT), !direct && !upnp && !nat); // for pasive settings only
 
 	//RSX++
 	::EnableWindow(GetDlgItem(IDC_NAT_PMP_RANDOM_PORTS), natpmp);

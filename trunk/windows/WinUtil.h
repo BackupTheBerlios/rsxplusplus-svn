@@ -513,5 +513,5 @@ private:
 
 /**
  * @file
- * $Id: WinUtil.h 466 2009-11-13 18:47:25Z BigMuscle $
+ * $Id: WinUtil.h 471 2010-01-09 23:17:42Z bigmuscle $
  */

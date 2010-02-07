@@ -164,7 +164,7 @@ LRESULT FavHubProperties::OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWnd
 		entry->setAwayMsg(Text::fromT(buf));
 
 		CComboBox combo;
-		combo.Attach(GetDlgItem(IDC_FAV_DLG_GROUP));
+		combo.Attach(GetDlgItem(IDC_FAVGROUP_BOX));
 	
 		if(combo.GetCurSel() == 0)
 		{

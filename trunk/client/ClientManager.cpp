@@ -224,8 +224,10 @@ const string& ClientManager::findHubEncoding(const string& aUrl) const {
 }
 
 UserPtr ClientManager::findLegacyUser(const string& aNick) const throw() {
+	if (aNick.empty())
+		return UserPtr();
+
 	Lock l(cs);
-	dcassert(aNick.size() > 0);
 
 	// this be slower now, but it's not called so often
 	for(NickMap::const_iterator i = nicks.begin(); i != nicks.end(); ++i) {
@@ -360,7 +362,7 @@ OnlineUser* ClientManager::findOnlineUser_hint(const CID& cid, const string& hin
 	if(!p.first->second->getUser()->isSet(User::DHT) && !hintUrl.empty()) {
 		for(OnlineIterC i = p.first; i != p.second; ++i) {
 			OnlineUser* u = i->second;
-			if(u->getClient().getAddress() == hintUrl) {
+			if(u->getClient().getHubUrl() == hintUrl) {
 				return u;
 			}
 		}
@@ -414,6 +416,8 @@ void ClientManager::send(AdcCommand& cmd, const CID& cid) {
 	if(i != onlineUsers.end()) {
 		OnlineUser& u = *i->second;
 		if(cmd.getType() == AdcCommand::TYPE_UDP && !u.getIdentity().isUdpActive()) {
+			if(u.getUser()->isNMDC() || u.getClientBase().getType() == Client::DHT)
+				return;
 			cmd.setType(AdcCommand::TYPE_DIRECT);
 			cmd.setTo(u.getIdentity().getSID());
 			u.getClient().send(cmd);
@@ -706,8 +710,9 @@ void ClientManager::on(HubUserCommand, const Client* client, int aType, int ctx,
 void ClientManager::setListLength(const UserPtr& p, const string& listLen) {
 	Lock l(cs);
 	OnlineIterC i = onlineUsers.find(const_cast<CID*>(&p->getCID()));
-	if(i == onlineUsers.end()) return;
-	i->second->getIdentity().set("LL", listLen);
+	if(i != onlineUsers.end()) {
+		i->second->getIdentity().set("LL", listLen);
+	}
 }
 
 void ClientManager::fileListDisconnected(const UserPtr& p) {

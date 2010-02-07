@@ -107,9 +107,8 @@ PropertiesDlg::PropertiesDlg(HWND parent, SettingsManager *s) : TreePropertyShee
 	}
 
 	// Hide "Apply" button
-	m_psh.dwFlags |= PSH_NOAPPLYNOW;// | PSH_NOCONTEXTHELP;
-	//m_psh.dwFlags &= ~PSH_HASHELP;
-	m_psh.dwFlags |= PSH_HASHELP;
+	m_psh.dwFlags |= PSH_NOAPPLYNOW | PSH_NOCONTEXTHELP;
+	m_psh.dwFlags &= ~PSH_HASHELP;
 }
 
 PropertiesDlg::~PropertiesDlg() {

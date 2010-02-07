@@ -20,7 +20,6 @@
 #define SEMAPHORE_H
 
 #ifndef _WIN32
-#include "CriticalSection.h"
 #include <sys/time.h>
 #endif
 
@@ -99,5 +98,5 @@ private:
 
 /**
  * @file
- * $Id: Semaphore.h 434 2009-03-29 11:09:33Z BigMuscle $
+ * $Id: Semaphore.h 473 2010-01-12 23:17:33Z bigmuscle $
  */

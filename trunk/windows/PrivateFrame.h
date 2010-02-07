@@ -42,7 +42,7 @@ class PrivateFrame : public MDITabChildWindowImpl<PrivateFrame, RGB(0, 255, 255)
 {
 public:
 	static void gotMessage(const Identity& from, const UserPtr& to, const UserPtr& replyTo, const tstring& aMessage, Client* c);
-	static void openWindow(const UserPtr& replyTo, const tstring& aMessage = Util::emptyStringT, Client* c = NULL);
+	static void openWindow(const HintedUser& replyTo, const tstring& aMessage = Util::emptyStringT, Client* c = NULL);
 	static bool isOpen(const UserPtr u) { return frames.find(u) != frames.end(); }
 	static void closeAll();
 	static void closeAllOffline();
@@ -113,11 +113,11 @@ public:
 	//RSX++
 	LRESULT onSoundActive(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled) {
 		bHandled = FALSE;
-		replyTo->setSoundActive(wParam == BST_CHECKED);
-		if (replyTo->getSoundActive()) {
-			replyTo->setSoundActive(true);
+		replyTo.user->setSoundActive(wParam == BST_CHECKED);
+		if (replyTo.user->getSoundActive()) {
+			replyTo.user->setSoundActive(true);
 		} else {
-			replyTo->setSoundActive(false);
+			replyTo.user->setSoundActive(false);
 		}
 		return 0;
     }
@@ -177,7 +177,8 @@ public:
 	void sendMessage(const tstring& msg, bool thirdPerson = false);
 
 private:
-	PrivateFrame(const UserPtr& replyTo_, Client* c) : replyTo(replyTo_),
+	PrivateFrame(const HintedUser& replyTo_, Client* c) : replyTo(replyTo_),
+		priv(FavoriteManager::getInstance()->isPrivate(replyTo_.hint)),
 		created(false), closed(false), isoffline(false), curCommandPosition(0),  
 		ctrlMessageContainer(WC_EDIT, this, PM_MESSAGE_MAP),
 		ctrlClientContainer(WC_EDIT, this, PM_MESSAGE_MAP), menuItems(0),
@@ -209,7 +210,8 @@ private:
 	string getCustomAway(const Identity& from) const;
 	//END
 
-	UserPtr replyTo;
+	HintedUser replyTo;
+	const bool priv;
 	
 	CContainedWindow ctrlMessageContainer;
 	CContainedWindow ctrlClientContainer;
@@ -225,21 +227,19 @@ private:
 	tstring currentCommand;
 	TStringList::size_type curCommandPosition;
 	
-	const string& getHubHint() const { return ctrlClient.getClient() ? ctrlClient.getClient()->getHubUrl() : Util::emptyString; }
-
 	// ClientManagerListener
 	void on(ClientManagerListener::UserUpdated, const OnlineUser& aUser) throw() {
-		if(aUser.getUser() == replyTo) {
+		if(aUser.getUser() == replyTo.user) {
 			ctrlClient.setClient(const_cast<Client*>(&aUser.getClient()));
 			PostMessage(WM_SPEAKER, USER_UPDATED);
 		}
 	}
 	void on(ClientManagerListener::UserConnected, const UserPtr& aUser) throw() {
-		if(aUser == replyTo)
+		if(aUser == replyTo.user)
 			PostMessage(WM_SPEAKER, USER_UPDATED);
 	}
 	void on(ClientManagerListener::UserDisconnected, const UserPtr& aUser) throw() {
-		if(aUser == replyTo) {
+		if(aUser == replyTo.user) {
 			ctrlClient.setClient(NULL);
 			PostMessage(WM_SPEAKER, USER_UPDATED);
 		}
@@ -251,5 +251,5 @@ private:
 
 /**
  * @file
- * $Id: PrivateFrame.h 428 2009-02-01 18:14:42Z BigMuscle $
+ * $Id: PrivateFrame.h 473 2010-01-12 23:17:33Z bigmuscle $
  */

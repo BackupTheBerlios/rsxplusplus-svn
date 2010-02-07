@@ -52,12 +52,13 @@ LRESULT QueueFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 	
 	ctrlQueue.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | 
 		WS_HSCROLL | WS_VSCROLL | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_SHAREIMAGELISTS, WS_EX_CLIENTEDGE, IDC_QUEUE);
-	ctrlQueue.SetExtendedListViewStyle(LVS_EX_LABELTIP | LVS_EX_HEADERDRAGDROP | LVS_EX_FULLROWSELECT | 0x00010000 | LVS_EX_INFOTIP);
+	ctrlQueue.SetExtendedListViewStyle(LVS_EX_LABELTIP | LVS_EX_HEADERDRAGDROP | LVS_EX_FULLROWSELECT | LVS_EX_DOUBLEBUFFER | LVS_EX_INFOTIP);
 
 	ctrlDirs.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS |
-		TVS_HASBUTTONS | TVS_LINESATROOT | TVS_HASLINES | TVS_SHOWSELALWAYS | TVS_DISABLEDRAGDROP, 
+		TVS_HASBUTTONS | TVS_LINESATROOT | TVS_HASLINES | TVS_SHOWSELALWAYS | TVS_DISABLEDRAGDROP | TVS_TRACKSELECT, 
 		 WS_EX_CLIENTEDGE, IDC_DIRECTORIES);
 	
+	WinUtil::setListViewExplorerStyle(ctrlDirs.m_hWnd);
 	ctrlDirs.SetImageList(WinUtil::fileImages, TVSIL_NORMAL);
 	ctrlQueue.SetImageList(WinUtil::fileImages, LVSIL_SMALL);
 	
@@ -345,22 +346,22 @@ HTREEITEM QueueFrame::addDirectory(const string& dir, bool isFileList /* = false
 		while(next != NULL) {
 			if(next != fileLists && (next != flcRoot && next != testsurRoot)) { //rsx++ was here
 				string* stmp = reinterpret_cast<string*>(ctrlDirs.GetItemData(next));
-					if(strnicmp(*stmp, dir, 3) == 0)
-						break;
-				}
+				if(strnicmp(*stmp, dir, 3) == 0)
+					break;
+			}
 			next = ctrlDirs.GetNextSiblingItem(next);
 		}
 
-	if(next == NULL) {
-		// First addition, set commonStart to the dir minus the last part...
-		i = dir.rfind('\\', dir.length()-2);
+		if(next == NULL) {
+			// First addition, set commonStart to the dir minus the last part...
+			i = dir.rfind('\\', dir.length()-2);
 			if(i != string::npos) {
 				tstring name = Text::toT(dir.substr(0, i));
 				tvi.hParent = NULL;
 				tvi.item.pszText = const_cast<TCHAR*>(name.c_str());
 				tvi.item.lParam = (LPARAM)new string(dir.substr(0, i+1));
 				next = ctrlDirs.InsertItem(&tvi);
-		} else {
+			} else {
 				dcassert(dir.length() == 3);
 				tstring name = Text::toT(dir);
 				tvi.hParent = NULL;
@@ -369,22 +370,22 @@ HTREEITEM QueueFrame::addDirectory(const string& dir, bool isFileList /* = false
 				next = ctrlDirs.InsertItem(&tvi);
 			}
 		} 
-		
+
 		// Ok, next now points to x:\... find how much is common
 
 		string* rootStr = (string*)ctrlDirs.GetItemData(next);
-		
-			i = 0;
 
-			for(;;) {
+		i = 0;
+
+		for(;;) {
 			j = dir.find('\\', i);
-				if(j == string::npos)
-					break;
-				if(strnicmp(dir.c_str() + i, rootStr->c_str() + i, j - i + 1) != 0)
-					break;
-					i = j + 1;
-				}
-		
+			if(j == string::npos)
+				break;
+			if(strnicmp(dir.c_str() + i, rootStr->c_str() + i, j - i + 1) != 0)
+				break;
+			i = j + 1;
+		}
+
 		if(i < rootStr->length()) {
 			HTREEITEM oldRoot = next;
 
@@ -401,14 +402,14 @@ HTREEITEM QueueFrame::addDirectory(const string& dir, bool isFileList /* = false
 			while(next != NULL) {
 				moveNode(next, parent);
 				next = ctrlDirs.GetChildItem(oldRoot);
-				}
+			}
 			delete rootStr;
 			ctrlDirs.DeleteItem(oldRoot);
 			parent = newRoot;
-			} else {
+		} else {
 			// Use this root as parent
 			parent = next;
-				next = ctrlDirs.GetChildItem(parent);
+			next = ctrlDirs.GetChildItem(parent);
 		}
 	} else {
 		parent = startAt;
@@ -417,20 +418,18 @@ HTREEITEM QueueFrame::addDirectory(const string& dir, bool isFileList /* = false
 		dcassert(strnicmp(getDir(parent), dir, getDir(parent).length()) == 0);
 	}
 
-	HTREEITEM firstParent = parent;
-
 	while( i < dir.length() ) {
 		while(next != NULL) {
 			if(next != fileLists && (next != flcRoot && next != testsurRoot)) { //rsx++ was here
 				const string& n = getDir(next);
-			if(strnicmp(n.c_str()+i, dir.c_str()+i, n.length()-i) == 0) {
-				// Found a part, we assume it's the best one we can find...
-				i = n.length();
+				if(strnicmp(n.c_str()+i, dir.c_str()+i, n.length()-i) == 0) {
+					// Found a part, we assume it's the best one we can find...
+					i = n.length();
 
-				parent = next;
-				next = ctrlDirs.GetChildItem(next);
-				break;
-			}
+					parent = next;
+					next = ctrlDirs.GetChildItem(next);
+					break;
+				}
 			}
 			next = ctrlDirs.GetNextSiblingItem(next);
 		}
@@ -443,15 +442,12 @@ HTREEITEM QueueFrame::addDirectory(const string& dir, bool isFileList /* = false
 			tvi.hParent = parent;
 			tvi.item.pszText = const_cast<TCHAR*>(name.c_str());
 			tvi.item.lParam = (LPARAM) new string(dir.substr(0, j+1));
-			
+
 			parent = ctrlDirs.InsertItem(&tvi);
-			
+
 			i = j + 1;
 		}
 	}
-
-	if(BOOLSETTING(EXPAND_QUEUE) && firstParent != NULL)
-		ctrlDirs.Expand(firstParent);
 
 	return parent;
 }
@@ -1526,43 +1522,43 @@ void QueueFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/) throw() {
 	}
 }
 
-void QueueFrame::onRechecked(const QueueItem* qi, const string& message) {
+void QueueFrame::onRechecked(const string& target, const string& message) {
 	string buf;
-	buf.resize(STRING(INTEGRITY_CHECK).length() + message.length() + qi->getTargetFileName().length() + 16);
-	sprintf(&buf[0], CSTRING(INTEGRITY_CHECK), message.c_str(), qi->getTargetFileName().c_str());
+	buf.resize(STRING(INTEGRITY_CHECK).length() + message.length() + target.length() + 16);
+	sprintf(&buf[0], CSTRING(INTEGRITY_CHECK), message.c_str(), target.c_str());
 		
 	speak(UPDATE_STATUS, new StringTask(&buf[0]));
 }
 
-void QueueFrame::on(QueueManagerListener::RecheckStarted, const QueueItem* aQI) throw() {
-	onRechecked(aQI, STRING(STARTED));
+void QueueFrame::on(QueueManagerListener::RecheckStarted, const string& target) throw() {
+	onRechecked(target, STRING(STARTED));
 }
 
-void QueueFrame::on(QueueManagerListener::RecheckNoFile, const QueueItem* aQI) throw() {
-	onRechecked(aQI, STRING(UNFINISHED_FILE_NOT_FOUND));
+void QueueFrame::on(QueueManagerListener::RecheckNoFile, const string& target) throw() {
+	onRechecked(target, STRING(UNFINISHED_FILE_NOT_FOUND));
 }
 
-void QueueFrame::on(QueueManagerListener::RecheckFileTooSmall, const QueueItem* aQI) throw() {
-	onRechecked(aQI, STRING(UNFINISHED_FILE_TOO_SMALL));
+void QueueFrame::on(QueueManagerListener::RecheckFileTooSmall, const string& target) throw() {
+	onRechecked(target, STRING(UNFINISHED_FILE_TOO_SMALL));
 }
 
-void QueueFrame::on(QueueManagerListener::RecheckDownloadsRunning, const QueueItem* aQI) throw() {
-	onRechecked(aQI, STRING(DOWNLOADS_RUNNING));
+void QueueFrame::on(QueueManagerListener::RecheckDownloadsRunning, const string& target) throw() {
+	onRechecked(target, STRING(DOWNLOADS_RUNNING));
 }
 
-void QueueFrame::on(QueueManagerListener::RecheckNoTree, const QueueItem* aQI) throw() {
-	onRechecked(aQI, STRING(NO_FULL_TREE));
+void QueueFrame::on(QueueManagerListener::RecheckNoTree, const string& target) throw() {
+	onRechecked(target, STRING(NO_FULL_TREE));
 }
 
-void QueueFrame::on(QueueManagerListener::RecheckAlreadyFinished, const QueueItem* aQI) throw() {
-	onRechecked(aQI, STRING(FILE_ALREADY_FINISHED));
+void QueueFrame::on(QueueManagerListener::RecheckAlreadyFinished, const string& target) throw() {
+	onRechecked(target, STRING(FILE_ALREADY_FINISHED));
 }
 
-void QueueFrame::on(QueueManagerListener::RecheckDone, const QueueItem* aQI) throw() {
-	onRechecked(aQI, STRING(DONE));
+void QueueFrame::on(QueueManagerListener::RecheckDone, const string& target) throw() {
+	onRechecked(target, STRING(DONE));
 }
 	
 /**
  * @file
- * $Id: QueueFrame.cpp 468 2009-12-23 14:01:30Z bigmuscle $
+ * $Id: QueueFrame.cpp 479 2010-02-02 15:50:33Z bigmuscle $
  */

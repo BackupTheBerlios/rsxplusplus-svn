@@ -23,7 +23,7 @@
 #include "../client/SearchManager.h"
 #include "../client/SearchManagerListener.h"
 
-#include "../client/CriticalSection.h"
+#include "../client/Thread.h"
 #include "../client/Singleton.h"
 #include "../client/Util.h"
 

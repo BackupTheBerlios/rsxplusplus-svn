@@ -31,7 +31,7 @@
 
 #include "../client/Client.h"
 #include "../client/SearchManager.h"
-#include "../client/CriticalSection.h"
+#include "../client/Thread.h"
 #include "../client/ClientManagerListener.h"
 #include "../client/FavoriteManager.h"
 #include "../client/QueueManager.h"

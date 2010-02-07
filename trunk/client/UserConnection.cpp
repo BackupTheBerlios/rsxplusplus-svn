@@ -63,6 +63,10 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) throw
 	}
 	//END
 	if(aLine[0] == 'C' && !isSet(FLAG_NMDC)) {
+		if(!Text::validateUtf8(aLine)) {
+			// @todo Report to user?
+			return;
+		}
 		dispatch(aLine);
 		return;
 	} else if(aLine[0] == '$') {
@@ -96,7 +100,7 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) throw
 			fire(UserConnectionListener::Direction(), this, param.substr(0, x), param.substr(x+1));
 		}
 	} else if(cmd == "Error") {
-		if(stricmp(param.c_str(), FILE_NOT_AVAILABLE) == 0 || 
+		if(stricmp(param.c_str(), FILE_NOT_AVAILABLE) == 0 ||
 			param.rfind(/*path/file*/" no more exists") != string::npos) { 
     		fire(UserConnectionListener::FileNotAvailable(), this);
     	} else {
@@ -160,12 +164,12 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) throw
 	}
 }
 
-void UserConnection::connect(const string& aServer, uint16_t aPort) throw(SocketException, ThreadException) { 
+void UserConnection::connect(const string& aServer, uint16_t aPort, uint16_t localPort, BufferedSocket::NatRoles natRole) throw(SocketException, ThreadException) {
 	dcassert(!socket);
 
 	socket = BufferedSocket::getSocket(0);
 	socket->addListener(this);
-	socket->connect(aServer, aPort, isSet(FLAG_SECURE), BOOLSETTING(ALLOW_UNTRUSTED_CLIENTS), true);
+	socket->connect(aServer, aPort, localPort, natRole, isSet(FLAG_SECURE), BOOLSETTING(ALLOW_UNTRUSTED_CLIENTS), true);
 }
 
 void UserConnection::accept(const Socket& aServer) throw(SocketException, ThreadException) {
@@ -324,5 +328,5 @@ bool UserConnection::plugLine(const std::string& line, bool incoming) {
 
 /**
  * @file
- * $Id: UserConnection.cpp 434 2009-03-29 11:09:33Z BigMuscle $
+ * $Id: UserConnection.cpp 476 2010-01-25 21:43:12Z bigmuscle $
  */

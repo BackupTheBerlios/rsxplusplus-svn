@@ -20,6 +20,8 @@
 #include "DCPlusPlus.h"
 
 #include "User.h"
+
+#include "AdcHub.h"
 #include "Client.h"
 #include "StringTokenizer.h"
 #include "FavoriteUser.h"
@@ -43,6 +45,22 @@ FastCriticalSection Identity::cs;
 OnlineUser::OnlineUser(const UserPtr& ptr, ClientBase& client_, uint32_t sid_) : identity(ptr, sid_), client(client_), isInList(false) { 
 	if(getUser().get() != 0 && !getUser()->isSet(User::DHT))
 		identity.isProtectedUser(getClient(), true); //RSX++ // run init check
+}
+
+bool Identity::isTcpActive(const Client* c) const {
+	if(c != NULL && user == ClientManager::getInstance()->getMe()) {
+		return c->isActive(); // userlist should display our real mode
+	} else {
+		return (!user->isSet(User::NMDC)) ?
+			!getIp().empty() && supports(AdcHub::TCP4_FEATURE) :
+			!user->isSet(User::PASSIVE);	
+	}
+}
+
+bool Identity::isUdpActive() const {
+	if(getIp().empty() || getUdpPort().empty())
+		return false;
+	return (!user->isSet(User::NMDC)) ? supports(AdcHub::UDP4_FEATURE) : !user->isSet(User::PASSIVE);
 }
 
 void Identity::getParams(StringMap& sm, const string& prefix, bool compatibility, bool dht) const {
@@ -142,14 +160,6 @@ bool Identity::supports(const string& name) const {
 			return true;
 	}
 	return false;
-}
-
-bool Identity::isTcpActive(const Client* c) const {
-	if(c != NULL && user == ClientManager::getInstance()->getMe()) {
-		return c->isActive();
-	} else {
-		return user->isSet(User::NMDC) ? !user->isSet(User::PASSIVE) : !getIp().empty();
-	}
 }
 
 void FavoriteUser::update(const OnlineUser& info) { 

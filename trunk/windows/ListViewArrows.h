@@ -162,6 +162,7 @@ public:
 		rebuildArrows();
 		T* pThis = (T*)this;
 		_Module.AddSettingChangeNotify(pThis->m_hWnd);
+		WinUtil::setListViewExplorerStyle(pThis->m_hWnd);
 		bHandled = FALSE;
 		return 0;
 	}
@@ -191,5 +192,5 @@ private:
 
 /**
  * @file
- * $Id: ListViewArrows.h 264 2006-11-12 20:32:08Z bigmuscle $
+ * $Id: ListViewArrows.h 474 2010-01-14 18:37:06Z bigmuscle $
  */

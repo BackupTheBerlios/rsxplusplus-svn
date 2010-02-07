@@ -20,7 +20,7 @@
 #define RSXPLUSPLUS_DETECTION_MANAGER_H
 
 #include "Singleton.h"
-#include "CriticalSection.h"
+#include "Thread.h"
 #include "DetectionEntry.h"
 #include "SimpleXML.h"
 

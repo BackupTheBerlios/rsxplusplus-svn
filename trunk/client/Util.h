@@ -114,6 +114,8 @@ public:
 		PATH_USER_LOCAL,
 		/** Various resources (help files etc) */
 		PATH_RESOURCES,
+		/** Translations */
+		PATH_LOCALE,
 		/** Default download location */
 		PATH_DOWNLOADS,
 		/** Default file list location */
@@ -414,7 +416,6 @@ public:
 	static wstring::size_type findSubString(const wstring& aString, const wstring& aSubString, wstring::size_type start = 0) throw();
 	
 	static void replace(string& aString, const string& findStr, const string& replaceStr);
-	static TCHAR* strstr(const TCHAR *str1, const TCHAR *str2, int *pnIdxFound);
 	
 	static string getIpCountry (const string& IP);
 
@@ -518,11 +519,27 @@ struct noCaseStringEq {
 	}
 };
 
+/** Case insensitive string ordering */
+struct noCaseStringLess {
+	bool operator()(const string* a, const string* b) const {
+		return stricmp(*a, *b) < 0;
+	}
+	bool operator()(const string& a, const string& b) const {
+		return stricmp(a, b) < 0;
+	}
+	bool operator()(const wstring* a, const wstring* b) const {
+		return stricmp(*a, *b) < 0;
+	}
+	bool operator()(const wstring& a, const wstring& b) const {
+		return stricmp(a, b) < 0;
+	}
+};
+
 } // namespace dcpp
 
 #endif // !defined(UTIL_H)
 
 /**
  * @file
- * $Id: Util.h 467 2009-11-22 13:02:00Z bigmuscle $
+ * $Id: Util.h 476 2010-01-25 21:43:12Z bigmuscle $
  */

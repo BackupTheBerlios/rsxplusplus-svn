@@ -23,7 +23,6 @@
 #include "SettingsManager.h"
 
 #include "forward.h"
-#include "CriticalSection.h"
 #include "Text.h"
 #include "Client.h"
 #include "ConnectionManager.h"
@@ -152,5 +151,5 @@ private:
 
 /**
  * @file
- * $Id: nmdchub.h 434 2009-03-29 11:09:33Z BigMuscle $
+ * $Id: nmdchub.h 473 2010-01-12 23:17:33Z bigmuscle $
  */

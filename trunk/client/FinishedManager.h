@@ -23,7 +23,6 @@
 #include "UploadManagerListener.h"
 
 #include "Speaker.h"
-#include "CriticalSection.h"
 #include "Singleton.h"
 #include "FinishedManagerListener.h"
 #include "Util.h"
@@ -60,7 +59,7 @@ public:
 			case COLUMN_DONE: return Text::toT(Util::formatTime("%Y-%m-%d %H:%M:%S", getTime()));
 			case COLUMN_PATH: return Text::toT(Util::getFilePath(getTarget()));
 			case COLUMN_NICK: return Text::toT(Util::toString(ClientManager::getInstance()->getNicks(getUser())));
-			case COLUMN_HUB: return Text::toT(getUser().hint);
+			case COLUMN_HUB: return Text::toT(Util::toString(ClientManager::getInstance()->getHubNames(getUser()))); 
 			case COLUMN_SIZE: return Util::formatBytesW(getSize());
 			case COLUMN_SPEED: return Util::formatBytesW(getAvgSpeed()) + _T("/s");
 			default: return Util::emptyStringT;
@@ -93,8 +92,8 @@ class FinishedManager : public Singleton<FinishedManager>,
 	public Speaker<FinishedManagerListener>, private QueueManagerListener, private UploadManagerListener
 {
 public:
-	const FinishedItemList& lockList(bool upload = false) { cs.enter(); return upload ? uploads : downloads; }
-	void unlockList() { cs.leave(); }
+	const FinishedItemList& lockList(bool upload = false) { cs.lock(); return upload ? uploads : downloads; }
+	void unlockList() { cs.unlock(); }
 
 	void remove(FinishedItemPtr item, bool upload = false);
 	void removeAll(bool upload = false);
@@ -122,5 +121,5 @@ private:
 
 /**
  * @file
- * $Id: FinishedManager.h 466 2009-11-13 18:47:25Z BigMuscle $
+ * $Id: FinishedManager.h 473 2010-01-12 23:17:33Z bigmuscle $
  */

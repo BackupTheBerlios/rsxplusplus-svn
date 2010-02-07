@@ -388,7 +388,7 @@ void rsxppSettingsManager::setExtSetting(const std::string& name, const std::str
 	extSettings[name] = value;
 }
 
-void rsxppSettingsManager::lock() { cs.enter(); }
-void rsxppSettingsManager::unlock() { cs.leave(); }
+void rsxppSettingsManager::lock() { cs.lock(); }
+void rsxppSettingsManager::unlock() { cs.unlock(); }
 
 } // namespace dcpp

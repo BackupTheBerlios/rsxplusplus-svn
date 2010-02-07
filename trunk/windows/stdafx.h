@@ -32,15 +32,6 @@ using namespace dht;
 #define STRICT
 #define WIN32_LEAN_AND_MEAN
 #define _WTL_NO_CSTRING
-#define _ATL_NO_OPENGL
-//#define _ATL_NO_MSIMG
-#define _ATL_NO_COM
-#define _ATL_NO_HOSTING
-#define _ATL_NO_OLD_NAMES
-#define _ATL_NO_COM_SUPPORT
-#define _ATL_NO_PERF_SUPPORT
-#define _ATL_NO_SERVICE
-#define _ATL_NO_DOCHOSTUIHANDLER
 
 #include <winsock2.h>
 
@@ -62,13 +53,14 @@ extern CAppModule _Module;
 #include <atlctrlw.h>
 #include <atlmisc.h>
 #include <atlsplit.h>
+#include <atltheme.h>
 #include <Shellapi.h>
 #endif // _WIN32
 
 #define WM_SPEAKER (WM_APP + 500)
-#endif // DCPLUSPLUS_WIN32_STDAFX_H
+#endif
 
 /**
  * @file
- * $Id: stdafx.h 470 2010-01-02 23:23:39Z bigmuscle $
+ * $Id: stdafx.h 474 2010-01-14 18:37:06Z bigmuscle $
  */

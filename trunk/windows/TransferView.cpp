@@ -62,7 +62,6 @@ LRESULT TransferView::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 	ctrlTransfers.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | 
 		WS_HSCROLL | WS_VSCROLL | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_SHAREIMAGELISTS, WS_EX_CLIENTEDGE, IDC_TRANSFERS);
 	ctrlTransfers.SetExtendedListViewStyle(LVS_EX_LABELTIP | LVS_EX_HEADERDRAGDROP | LVS_EX_FULLROWSELECT | LVS_EX_DOUBLEBUFFER | LVS_EX_INFOTIP);
-	WinUtil::setListViewExplorerStyle(ctrlTransfers.m_hWnd);
 
 	WinUtil::splitTokens(columnIndexes, SETTING(MAINFRAME_ORDER), COLUMN_LAST);
 	WinUtil::splitTokens(columnSizes, SETTING(MAINFRAME_WIDTHS), COLUMN_LAST);
@@ -529,6 +528,7 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 			ItemInfo* ii = (ItemInfo*)cd->nmcd.lItemlParam;
 			CRect rc;
 			ctrlTransfers.GetSubItemRect((int)cd->nmcd.dwItemSpec, cd->iSubItem, LVIR_BOUNDS, rc);
+			/* should this be enabled for XP?
 			COLORREF color;
 			if(ctrlTransfers.GetItemState((int)cd->nmcd.dwItemSpec, LVIS_SELECTED) & LVIS_SELECTED) {
 				if(ctrlTransfers.m_hWnd == ::GetFocus()) {
@@ -549,7 +549,10 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 			Rectangle(cd->nmcd.hdc,rc.left, rc.top, rc.right, rc.bottom);
 
 			DeleteObject(::SelectObject(cd->nmcd.hdc, oldpen));
-			DeleteObject(::SelectObject(cd->nmcd.hdc, oldbr));
+			DeleteObject(::SelectObject(cd->nmcd.hdc, oldbr));*/
+
+			SetTextColor(cd->nmcd.hdc, WinUtil::textColor);
+			DrawThemeBackground(GetWindowTheme(ctrlTransfers.m_hWnd), cd->nmcd.hdc, LVP_LISTITEM, 3, &rc, &rc );
 
 			TCHAR buf[256];
 			ctrlTransfers.GetItemText((int)cd->nmcd.dwItemSpec, cd->iSubItem, buf, 255);
@@ -1454,5 +1457,5 @@ void TransferView::on(QueueManagerListener::Removed, const QueueItem* qi) throw(
 
 /**
  * @file
- * $Id: TransferView.cpp 466 2009-11-13 18:47:25Z BigMuscle $
+ * $Id: TransferView.cpp 476 2010-01-25 21:43:12Z bigmuscle $
  */

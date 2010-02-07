@@ -41,12 +41,11 @@ namespace dht
 		
 		enum InfType { NONE = 0, PING = 1, MAKE_ONLINE = 2 };
 		
-		/** Socket functions */
-		void listen();
-		void disconnect() { socket.disconnect(); }
+		/** Starts DHT. */
+		void start();
+		void stop(bool exiting = false);
+
 		uint16_t getPort() const { return BOOLSETTING(USE_DHT) ? socket.getPort() : 0; }
-		
-		void create();
 		
 		/** Process incoming command */
 		void dispatch(const string& aLine, const string& ip, uint16_t port, bool isUdpKeyValid);
@@ -54,8 +53,11 @@ namespace dht
 		/** Sends command to ip and port */
 		void send(AdcCommand& cmd, const string& ip, uint16_t port, const CID& targetCID, const CID& udpKey);
 		
-		/** Insert (or update) user into routing table */
-		Node::Ptr addUser(const CID& cid, const string& ip, uint16_t port, bool update, bool isUdpKeyValid);
+		/** Creates new (or update existing) node which is NOT added to our routing table */
+		Node::Ptr createNode(const CID& cid, const string& ip, uint16_t port, bool update, bool isUdpKeyValid);
+
+		/** Adds node to routing table */
+		bool addNode(const Node::Ptr& node, bool makeOnline);
 		
 		/** Returns counts of nodes available in k-buckets */
 		unsigned int getNodesCount() { Lock l(cs); return bucket->getNodes().size(); }

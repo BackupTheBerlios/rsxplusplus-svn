@@ -108,7 +108,7 @@ public:
 	};
 	//RSX++
 	LRESULT onCreate(UINT /*msg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled) {
-		WinUtil::setListViewExplorerStyle(m_hWnd);
+		SetWindowTheme(m_hWnd, _T("explorer"), 0);
 		bHandled = FALSE;
 		return FALSE;
 	}

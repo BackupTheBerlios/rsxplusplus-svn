@@ -502,13 +502,47 @@ void NmdcHub::onLine(const string& aLine) throw() {
 		if(j+1 >= param.size()) {
 			return;
 		}
-		string port = param.substr(j+1);
 		
+		string senderNick;
+		string port;
+
+		i = param.find(' ', j+1);
+		if(i == string::npos) {
+			port = param.substr(j+1);
+		} else {
+			senderNick = param.substr(i+1);
+			port = param.substr(j+1, i-j-1);
+		}
+
 		bool secure = false;
 		if(port[port.size() - 1] == 'S') {
 			port.erase(port.size() - 1);
 			if(CryptoManager::getInstance()->TLSOk()) {
 				secure = true;
+			}
+		}
+
+		if(BOOLSETTING(ALLOW_NAT_TRAVERSAL)) {
+			if(port[port.size() - 1] == 'N') {
+				if(senderNick.empty())
+					return;
+
+				port.erase(port.size() - 1);
+
+				// Trigger connection attempt sequence locally ...
+				ConnectionManager::getInstance()->nmdcConnect(server, static_cast<uint16_t>(Util::toInt(port)), sock->getLocalPort(), 
+					BufferedSocket::NAT_CLIENT, getMyNick(), getHubUrl(), getEncoding(), getStealth(), secure && !getStealth());
+
+				// ... and signal other client to do likewise.
+				send("$ConnectToMe " + senderNick + " " + getLocalIp() + ":" + Util::toString(sock->getLocalPort()) + (secure ? "RS" : "R") + "|");
+				return;
+			} else if(port[port.size() - 1] == 'R') {
+				port.erase(port.size() - 1);
+				
+				// Trigger connection attempt sequence locally
+				ConnectionManager::getInstance()->nmdcConnect(server, static_cast<uint16_t>(Util::toInt(port)), sock->getLocalPort(), 
+					BufferedSocket::NAT_SERVER, getMyNick(), getHubUrl(), getEncoding(), getStealth(), secure);
+				return;
 			}
 		}
 		
@@ -551,6 +585,11 @@ void NmdcHub::onLine(const string& aLine) throw() {
 
 		if(isActive()) {
 			connectToMe(*u);
+		} else if(BOOLSETTING(ALLOW_NAT_TRAVERSAL) && (u->getIdentity().getStatus() & Identity::NAT)) {
+			bool secure = CryptoManager::getInstance()->TLSOk() && u->getUser()->isSet(User::TLS) && !getStealth();
+			// NMDC v2.205 supports "$ConnectToMe sender_nick remote_nick ip:port", but many NMDC hubsofts block it
+			// sender_nick at the end should work at least in most used hubsofts
+			send("$ConnectToMe " + fromUtf8(u->getIdentity().getNick()) + " " + getLocalIp() + ":" + Util::toString(sock->getLocalPort()) + (secure ? "NS " : "N ") + fromUtf8(getMyNick()) + "|");
 		} else {
 			if(!u->getUser()->isSet(User::PASSIVE)) {
 				u->getUser()->setFlag(User::PASSIVE);
@@ -928,6 +967,9 @@ void NmdcHub::myInfo(bool alwaysSend) {
 		if (UploadManager::getInstance()->getFireballStatus()) {
 			StatusMode |= Identity::FIREBALL;
 		}
+		if(BOOLSETTING(ALLOW_NAT_TRAVERSAL) && !isActive()) {
+			StatusMode |= Identity::NAT;
+		}
 	}
 	string extVer = getStealth() ? "<RSX++ " VERSIONSTRING ">" : Util::emptyString; //RSX++
 
@@ -1080,5 +1122,5 @@ void NmdcHub::on(Second, uint64_t aTick) throw() {
 
 /**
  * @file
- * $Id: nmdchub.cpp 469 2009-12-29 21:13:40Z bigmuscle $
+ * $Id: nmdchub.cpp 477 2010-01-29 08:59:43Z bigmuscle $
  */

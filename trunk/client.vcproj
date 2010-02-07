@@ -1893,6 +1893,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\client\ThrottleManager.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\client\TigerHash.cpp"
 				>
 			</File>
@@ -2239,10 +2243,6 @@
 			</File>
 			<File
 				RelativePath=".\client\ConnectionManagerListener.h"
-				>
-			</File>
-			<File
-				RelativePath=".\client\CriticalSection.h"
 				>
 			</File>
 			<File
@@ -2718,11 +2718,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\client\User.h"
+				RelativePath=".\client\sdk\user.h"
 				>
 			</File>
 			<File
-				RelativePath=".\client\sdk\user.h"
+				RelativePath=".\client\User.h"
 				>
 			</File>
 			<File

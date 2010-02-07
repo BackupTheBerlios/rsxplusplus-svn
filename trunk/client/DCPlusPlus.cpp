@@ -51,6 +51,7 @@
 #include "DetectionManager.h"
 #include "WebServerManager.h"
 #include "ThrottleManager.h"
+#include "File.h"
 
 #include "../dht/dht.h"
 #include "../windows/PopupManager.h"
@@ -122,7 +123,10 @@ void startup(void (*f)(void*, const tstring&), void* p) {
 	//END
 
 	if(!SETTING(LANGUAGE_FILE).empty()) {
-		ResourceManager::getInstance()->loadLanguage(SETTING(LANGUAGE_FILE));
+		string languageFile = SETTING(LANGUAGE_FILE);
+		if(!File::isAbsolute(languageFile))
+			languageFile = Util::getPath(Util::PATH_LOCALE) + languageFile;
+		ResourceManager::getInstance()->loadLanguage(languageFile);
 	}
 
 	FavoriteManager::getInstance()->load();
@@ -205,5 +209,5 @@ void shutdown() {
 
 /**
  * @file
- * $Id: DCPlusPlus.cpp 468 2009-12-23 14:01:30Z bigmuscle $
+ * $Id: DCPlusPlus.cpp 476 2010-01-25 21:43:12Z bigmuscle $
  */

@@ -19,7 +19,7 @@
 #if !defined(FAST_ALLOC_H)
 #define FAST_ALLOC_H
 
-#include "CriticalSection.h"
+#include "Thread.h"
 
 namespace dcpp {
 
@@ -104,5 +104,5 @@ template<class T> struct FastAlloc { };
 
 /**
  * @file
- * $Id: FastAlloc.h 451 2009-07-10 21:24:08Z BigMuscle $
+ * $Id: FastAlloc.h 473 2010-01-12 23:17:33Z bigmuscle $
  */

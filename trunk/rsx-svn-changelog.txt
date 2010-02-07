@@ -1,3 +1,8 @@
+** SVN 191
+ ** sdc svn merge
+ ** dht crash fix
+ ** more vista look goodies
+
 ** SVN 190
  ** some vista listview style here and there
  ** main window won't block unhandled application commands (like extra buttons on keyboard)

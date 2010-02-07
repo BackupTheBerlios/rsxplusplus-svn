@@ -6,7 +6,7 @@
 	ProjectGUID="{47AB24A7-9FAB-4F6F-B411-01C9FF54E22D}"
 	RootNamespace="dht"
 	Keyword="Win32Proj"
-	TargetFrameworkVersion="131072"
+	TargetFrameworkVersion="196613"
 	>
 	<Platforms>
 		<Platform
@@ -46,7 +46,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)openssl\include32&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)\client&quot;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)openssl\include32&quot;"
 				StringPooling="true"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
@@ -276,7 +276,7 @@
 				FavorSizeOrSpeed="2"
 				OmitFramePointers="false"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)openssl\include64&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)\client&quot;&quot;$(SolutionDir)boost&quot;;&quot;$(SolutionDir)openssl\include64&quot;"
 				StringPooling="true"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
@@ -289,7 +289,6 @@
 				ForceConformanceInForLoopScope="true"
 				RuntimeTypeInfo="false"
 				UsePrecompiledHeader="2"
-				AssemblerOutput="0"
 				WarningLevel="4"
 				SuppressStartupBanner="true"
 				Detect64BitPortabilityProblems="false"

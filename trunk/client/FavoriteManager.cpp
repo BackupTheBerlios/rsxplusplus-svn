@@ -404,7 +404,6 @@ void FavoriteManager::save() {
 			xml.addTag("Group");
 			xml.addChildAttrib("Name", i->first);
 			xml.addChildAttrib("Private", i->second.priv);
-			xml.addChildAttrib("Connect", i->second.connect);
 		}
 
 		for(FavoriteHubEntryList::const_iterator i = favoriteHubs.begin(), iend = favoriteHubs.end(); i != iend; ++i) {
@@ -501,6 +500,7 @@ void FavoriteManager::save() {
 			xml.addChildAttrib("Name", i->second);
 		}
 		xml.stepOut();
+
 		xml.stepOut();
 
 		string fname = getConfigFile();
@@ -715,7 +715,7 @@ void FavoriteManager::load(SimpleXML& aXml) {
 			string name = aXml.getChildAttrib("Name");
 			if(name.empty())
 				continue;
-			FavHubGroupProperties props = { aXml.getBoolChildAttrib("Private"), aXml.getBoolChildAttrib("Connect") };
+			FavHubGroupProperties props = { aXml.getBoolChildAttrib("Private") };
 			favHubGroups[name] = props;
 		}
 
@@ -1255,5 +1255,5 @@ string FavoriteManager::getAwayMessage(const string& aServer) {
 
 /**
  * @file
- * $Id: FavoriteManager.cpp 470 2010-01-02 23:23:39Z bigmuscle $
+ * $Id: FavoriteManager.cpp 471 2010-01-09 23:17:42Z bigmuscle $
  */

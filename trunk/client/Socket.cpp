@@ -535,7 +535,7 @@ bool Socket::waitConnected(uint64_t millis) {
 	return wait(millis, Socket::WAIT_CONNECT) == WAIT_CONNECT;
 }
 
-bool Socket::waitAccepted(uint64_t millis) {
+bool Socket::waitAccepted(uint64_t /*millis*/) {
 	// Normal sockets are always connected after a call to accept
 	return true;
 }
@@ -571,6 +571,18 @@ string Socket::getLocalIp() const throw() {
 		return inet_ntoa(sock_addr.sin_addr);
 	}
 	return Util::emptyString;
+}
+
+uint16_t Socket::getLocalPort() throw() {
+	if(sock == INVALID_SOCKET)
+		return 0;
+
+	sockaddr_in sock_addr;
+	socklen_t len = sizeof(sock_addr);
+	if(getsockname(sock, (sockaddr*)&sock_addr, &len) == 0) {
+		return ntohs(sock_addr.sin_port);
+	}
+	return 0;
 }
 
 void Socket::socksUpdated() {
@@ -658,5 +670,5 @@ string Socket::getRemoteHost(const string& aIp) {
 
 /**
  * @file
- * $Id: Socket.cpp 434 2009-03-29 11:09:33Z BigMuscle $
+ * $Id: Socket.cpp 476 2010-01-25 21:43:12Z bigmuscle $
  */

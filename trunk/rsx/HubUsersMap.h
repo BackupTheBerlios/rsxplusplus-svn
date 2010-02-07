@@ -214,7 +214,7 @@ private:
 			if(!ou->isCheckable((uint16_t)RSXPP_SETTING(CHECK_DELAY)))
 				return CONTINUE;
 			if(isADC) {
-				if((ou->getUser()->isSet(User::NO_ADC_1_0_PROTOCOL) || ou->getUser()->isSet(User::NO_ADC_0_10_PROTOCOL)) && 
+				if(ou->getUser()->isSet(User::NO_ADC_1_0_PROTOCOL) && 
 					!(ou->getIdentity().isClientChecked() || ou->getIdentity().isFileListChecked())) {
 					//nasty...
 					ou->getIdentity().setTestSURChecked(Util::toString(GET_TIME()));

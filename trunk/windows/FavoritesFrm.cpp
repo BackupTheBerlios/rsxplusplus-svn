@@ -38,11 +38,12 @@ ResourceManager::NICK, ResourceManager::PASSWORD, ResourceManager::SERVER, Resou
 LRESULT FavoriteHubsFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled) {
 	ctrlHubs.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | 
 		WS_HSCROLL | WS_VSCROLL | LVS_REPORT | LVS_SHOWSELALWAYS, WS_EX_CLIENTEDGE, IDC_HUBLIST);
-	ctrlHubs.SetExtendedListViewStyle(LVS_EX_LABELTIP | LVS_EX_FULLROWSELECT | LVS_EX_CHECKBOXES | LVS_EX_HEADERDRAGDROP | LVS_EX_INFOTIP);	
+	ctrlHubs.SetExtendedListViewStyle(LVS_EX_LABELTIP | LVS_EX_FULLROWSELECT | LVS_EX_CHECKBOXES | LVS_EX_HEADERDRAGDROP | LVS_EX_DOUBLEBUFFER | LVS_EX_INFOTIP);	
 	ctrlHubs.SetBkColor(WinUtil::bgColor);
 	ctrlHubs.SetTextBkColor(WinUtil::bgColor);
 	ctrlHubs.SetTextColor(WinUtil::textColor);
-	
+	ctrlHubs.EnableGroupView(TRUE);
+
 	// Create listview columns
 	WinUtil::splitTokens(columnIndexes, SETTING(FAVORITESFRAME_ORDER), COLUMN_LAST);
 	WinUtil::splitTokens(columnSizes, SETTING(FAVORITESFRAME_WIDTHS), COLUMN_LAST);
@@ -86,12 +87,13 @@ LRESULT FavoriteHubsFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
 
 	ctrlManageGroups.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 		BS_PUSHBUTTON , 0, IDC_MANAGE_GROUPS);
-	ctrlManageGroups.SetWindowText(_T("Manage Groups"));
+	ctrlManageGroups.SetWindowText(CTSTRING(MANAGE_GROUPS));
 	ctrlManageGroups.SetFont(WinUtil::font);
 
 	FavoriteManager::getInstance()->addListener(this);
 	SettingsManager::getInstance()->addListener(this);
-	updateList(FavoriteManager::getInstance()->getFavoriteHubs());
+
+	fillList();
 	
 	hubsMenu.CreatePopupMenu();
 	hubsMenu.AppendMenu(MF_STRING, IDC_OPEN_HUB_LOG, CTSTRING(OPEN_HUB_LOG));
@@ -132,7 +134,7 @@ void FavoriteHubsFrame::openSelected() {
 	return;
 }
 
-void FavoriteHubsFrame::addEntry(const FavoriteHubEntry* entry, int pos) {
+void FavoriteHubsFrame::addEntry(const FavoriteHubEntry* entry, int pos, int groupIndex) {
 	TStringList l;
 	l.push_back(Text::toT(entry->getName()));
 	l.push_back(Text::toT(entry->getDescription()));
@@ -143,6 +145,13 @@ void FavoriteHubsFrame::addEntry(const FavoriteHubEntry* entry, int pos) {
 	bool b = entry->getConnect();
 	int i = ctrlHubs.insert(pos, l, 0, (LPARAM)entry);
 	ctrlHubs.SetCheckState(i, b);
+
+    LVITEM lvItem = { 0 };
+    lvItem.mask = LVIF_GROUPID;
+    lvItem.iItem = i;
+    lvItem.iSubItem = 0;
+    lvItem.iGroupId = groupIndex;
+    ctrlHubs.SetItem( &lvItem );
 }
 
 LRESULT FavoriteHubsFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled) {
@@ -238,13 +247,7 @@ LRESULT FavoriteHubsFrame::onEdit(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 		FavHubProperties dlg(e);
 		if(dlg.DoModal(m_hWnd) == IDOK)
 		{
-			ctrlHubs.SetItemText(i, COLUMN_NAME, Text::toT(e->getName()).c_str());
-			ctrlHubs.SetItemText(i, COLUMN_DESCRIPTION, Text::toT(e->getDescription()).c_str());
-			ctrlHubs.SetItemText(i, COLUMN_SERVER, Text::toT(e->getServer()).c_str());
-			ctrlHubs.SetItemText(i, COLUMN_NICK, Text::toT(e->getNick(false)).c_str());
-			ctrlHubs.SetItemText(i, COLUMN_PASSWORD, tstring(e->getPassword().size(), 0x25CF).c_str());
-			ctrlHubs.SetItemText(i, COLUMN_USERDESCRIPTION, Text::toT(e->getUserDescription()).c_str());
-
+			fillList();
 		}
 	}
 	return 0;
@@ -280,46 +283,63 @@ bool FavoriteHubsFrame::checkNick() {
 }
 
 LRESULT FavoriteHubsFrame::onMoveUp(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
-	nosave = true;
-	int j = ctrlHubs.GetItemCount();
-	FavoriteHubEntry::List& fh = FavoriteManager::getInstance()->getFavoriteHubs();
-	ctrlHubs.SetRedraw(FALSE);
-	for(int i = 1; i < j; ++i) {
-		if(ctrlHubs.GetItemState(i, LVIS_SELECTED)) {
-			FavoriteHubEntry* e = fh[i];
-			swap(fh[i], fh[i-1]);
-			ctrlHubs.DeleteItem(i);
-			addEntry(e, i-1);
-			ctrlHubs.SetItemState(i-1, LVIS_SELECTED, LVIS_SELECTED);
-			ctrlHubs.EnsureVisible(i-1, FALSE);
-		}
-	}
-	ctrlHubs.SetRedraw(TRUE);
-	nosave = false;
-	FavoriteManager::getInstance()->save();
+	handleMove(true);
 	return 0;
 }
 
 LRESULT FavoriteHubsFrame::onMoveDown(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
-	int j = ctrlHubs.GetItemCount() - 2;
-	FavoriteHubEntry::List& fh = FavoriteManager::getInstance()->getFavoriteHubs();
+	handleMove(false);
+	return 0;
+}
 
-	nosave = true;
+void FavoriteHubsFrame::handleMove(bool up)
+{
+	FavoriteHubEntryList& fh = FavoriteManager::getInstance()->getFavoriteHubs();
+
 	ctrlHubs.SetRedraw(FALSE);
-	for(int i = j; i >= 0; --i) {
-		if(ctrlHubs.GetItemState(i, LVIS_SELECTED)) {
-			FavoriteHubEntry* e = fh[i];
-			swap(fh[i], fh[i+1]);
-			addEntry(e, i+2);
-			ctrlHubs.SetItemState(i+2, LVIS_SELECTED, LVIS_SELECTED);
-			ctrlHubs.DeleteItem(i);
-			ctrlHubs.EnsureVisible(i, FALSE);
+
+	// in grouped mode, the indexes of each item are completely random, so use entry pointers instead
+	FavoriteHubEntryList selected;
+	for(int i = ctrlHubs.GetItemCount() - 2; i >= 0; --i) {
+		if(ctrlHubs.GetItemState(i, LVIS_SELECTED))
+			selected.push_back((FavoriteHubEntry*)ctrlHubs.GetItemData(i));
+	}
+	
+	FavoriteHubEntryList fh_copy = fh;
+	if(!up)
+		reverse(fh_copy.begin(), fh_copy.end());
+	for(FavoriteHubEntryList::iterator i = fh_copy.begin() + 1; i != fh_copy.end(); ++i) {
+		if(find(selected.begin(), selected.end(), *i) == selected.end())
+			continue;
+		const string& group = (*i)->getGroup();
+		for(FavoriteHubEntryList::iterator j = i - 1; ; --j) {
+			if((*j)->getGroup() == group) {
+				swap(*i, *j);
+				break;
+			}
+			if(j == fh_copy.begin())
+				break;
 		}
 	}
-	ctrlHubs.SetRedraw(TRUE);
-	nosave = false;
+	if(!up)
+		reverse(fh_copy.begin(), fh_copy.end());
+	fh = fh_copy;
 	FavoriteManager::getInstance()->save();
-	return 0;
+
+	fillList();
+
+	int count = ctrlHubs.GetItemCount() - 2;
+	for(FavoriteHubEntryList::const_iterator i = selected.begin(), iend = selected.end(); i != iend; ++i) {
+		for(int j = count; j >= 0; --j) {
+			if((FavoriteHubEntry*)ctrlHubs.GetItemData(j) == *i)
+			{
+				ctrlHubs.SetItemState(j, LVIS_SELECTED, LVIS_SELECTED);
+				break;
+			}
+		}
+	}
+
+	ctrlHubs.SetRedraw(TRUE);
 }
 
 LRESULT FavoriteHubsFrame::onItemChanged(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/) {
@@ -389,7 +409,8 @@ void FavoriteHubsFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 	rc.OffsetRect(bspace + bwidth +2, 0);
 	ctrlConnect.MoveWindow(rc);
 
-	rc.OffsetRect(bspace + bwidth +2, 0);
+	rc.OffsetRect(bspace + bwidth + 2, 0);
+	rc.right += 16;
 	ctrlManageGroups.MoveWindow(rc);
 }
 
@@ -414,6 +435,8 @@ LRESULT FavoriteHubsFrame::onOpenHubLog(WORD /*wNotifyCode*/, WORD /*wID*/, HWND
 LRESULT FavoriteHubsFrame::onManageGroups(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
 	FavHubGroupsDlg dlg;
 	dlg.DoModal();
+
+	fillList();
 	return 0;
 }
 
@@ -448,5 +471,5 @@ LRESULT FavoriteHubsFrame::onColumnClickHublist(int /*idCtrl*/, LPNMHDR pnmh, BO
 
 /**
  * @file
- * $Id: FavoritesFrm.cpp 389 2008-06-08 10:51:15Z BigMuscle $
+ * $Id: FavoritesFrm.cpp 477 2010-01-29 08:59:43Z bigmuscle $
  */

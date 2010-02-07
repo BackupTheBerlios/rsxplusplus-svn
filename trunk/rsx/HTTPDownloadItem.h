@@ -22,7 +22,7 @@
 #include <boost/function.hpp>
 #include <boost/bind.hpp>
 
-#include "../client/CriticalSection.h"
+#include "../client/Thread.h"
 #include "../client/HttpConnection.h"
 
 namespace dcpp {

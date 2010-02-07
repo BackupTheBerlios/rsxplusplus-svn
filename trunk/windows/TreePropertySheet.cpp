@@ -76,7 +76,8 @@ void TreePropertySheet::addTree()
 	::MapWindowPoints(NULL, m_hWnd, (LPPOINT)&rcPage, 2);
 
 	CRect rc(SPACE_LEFT, rcPage.top, TREE_WIDTH, rcPage.bottom);
-	ctrlTree.Create(m_hWnd, rc, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_SHOWSELALWAYS | TVS_DISABLEDRAGDROP, WS_EX_CLIENTEDGE, IDC_PAGE);
+	ctrlTree.Create(m_hWnd, rc, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_SHOWSELALWAYS | TVS_DISABLEDRAGDROP | TVS_TRACKSELECT, WS_EX_CLIENTEDGE, IDC_PAGE);
+	SetWindowTheme(ctrlTree.m_hWnd, L"explorer", NULL);
 	ctrlTree.SetImageList(tree_icons, TVSIL_NORMAL);
 }
 
@@ -202,5 +203,5 @@ LRESULT TreePropertySheet::onSetCurSel(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lP
 
 /**
 * @file
-* $Id: TreePropertySheet.cpp 412 2008-07-23 22:35:40Z BigMuscle $
+* $Id: TreePropertySheet.cpp 474 2010-01-14 18:37:06Z bigmuscle $
 */

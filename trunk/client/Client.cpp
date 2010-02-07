@@ -457,5 +457,5 @@ bool Client::plugChatSendLine(const std::string& line) {
 
 /**
  * @file
- * $Id: Client.cpp 449 2009-07-02 20:42:24Z BigMuscle $
+ * $Id: Client.cpp 463 2009-10-01 16:30:22Z BigMuscle $
  */

@@ -59,7 +59,7 @@ const string SettingsManager::settingTags[] =
 	"MainFrameVisible", "SearchFrameVisible", "QueueFrameVisible", "HubFrameVisible", "UploadQueueFrameVisible", 
 	"EmoticonsFile", "TLSPrivateKeyFile", "TLSCertificateFile", "TLSTrustedCertificatesPath",
 	"FinishedVisible", "FinishedULVisible", "DirectoryListingFrameVisible",
-	"RecentFrameOrder", "RecentFrameWidths", "ToolbarSettings",
+	"RecentFrameOrder", "RecentFrameWidths", "ToolbarSettings", "DHTKey",
 	//RSX++
 	"NATPMPGateway",
 	"RawLogFormat", "RawLogFile",
@@ -79,7 +79,7 @@ const string SettingsManager::settingTags[] =
 	"SkipZeroByte", "AdlsBreakOnFirst",
 	"HubUserCommands", "AutoSearchAutoMatch", "DownloadBarColor", "UploadBarColor", "LogSystem",
 	"LogFilelistTransfers", "ShowStatusbar", "BandwidthSettingMode", "ShowToolbar", "ShowTransferview", 
-	"SearchPassiveAlways", "SetMinislotSize", "MaxFilelistSize", /*"ShutdownInterval",*/ "DontAnnounceNewVersions", 
+	"SearchPassiveAlways", "SetMinislotSize", /*"ShutdownInterval",*/ "DontAnnounceNewVersions", 
 	"CzertHiddenSettingA", "CzertHiddenSettingB", "ExtraSlots", "ExtraPartialSlots",
 	"TextGeneralBackColor", "TextGeneralForeColor", "TextGeneralBold", "TextGeneralItalic", 
 	"TextMyOwnBackColor", "TextMyOwnForeColor", "TextMyOwnBold", "TextMyOwnItalic", 
@@ -132,7 +132,8 @@ const string SettingsManager::settingTags[] =
  	"AllowUntrustedHubs", "AllowUntrustedClients", "TLSPort", "FastHash", "DownConnPerSec",
 	"HighestPrioSize", "HighPrioSize", "NormalPrioSize", "LowPrioSize", "LowestPrio",
 	"FilterEnter", "SortFavUsersFirst", "ShowShellMenu", "SendBloom", "OverlapChunks", "ShowQuickSearch",
-	"UcSubMenu", "AutoSlots", "Coral", "UseDHT", "DHTPort", "UpdateIP", "DHTKey",
+	"UcSubMenu", "AutoSlots", "Coral", "UseDHT", "DHTPort", "UpdateIP", "KeepFinishedFiles",
+	"AllowNATTraversal",
 	//RSX++
 	"FirewallRandPorts", "OdcStyleBumped", "StealthyIndicateSpeeds", "ProgressBarMode", "RawCmdLog",
 	"TopSpeed", "TopUpSpeed",
@@ -272,7 +273,6 @@ SettingsManager::SettingsManager()
 	setDefault(TOGGLE_ACTIVE_WINDOW, true);
 	setDefault(SEARCH_HISTORY, 10);
 	setDefault(SET_MINISLOT_SIZE, 512);
-	setDefault(MAX_FILELIST_SIZE, 512);
 	setDefault(PRIO_HIGHEST_SIZE, 64);
 	setDefault(PRIO_HIGH_SIZE, 0);
 	setDefault(PRIO_NORMAL_SIZE, 0);
@@ -314,7 +314,7 @@ SettingsManager::SettingsManager()
 	setDefault(SORT_FAVUSERS_FIRST, false);
 	setDefault(SHOW_SHELL_MENU, false);
 	setDefault(SEND_BLOOM, true);
-	setDefault(CORAL, true);	
+	setDefault(CORAL, false);	
 	setDefault(NUMBER_OF_SEGMENTS, 3);
 	setDefault(SEGMENTS_MANUAL, false);
 	setDefault(HUB_SLOTS, 1);
@@ -455,6 +455,7 @@ SettingsManager::SettingsManager()
 	setDefault(DISCONNECT_FILESIZE, 50);
     setDefault(REMOVE_SPEED, 2);
 	setDefault(OVERLAP_CHUNKS, true);
+	setDefault(KEEP_FINISHED_FILES, false);
 
 	setDefault(MAIN_WINDOW_STATE, SW_SHOWNORMAL);
 	setDefault(MAIN_WINDOW_SIZE_X, CW_USEDEFAULT);
@@ -561,7 +562,7 @@ SettingsManager::SettingsManager()
 	
 	setDefault(USE_DHT, true);
 	setDefault(UPDATE_IP, false);
-	setDefault(DHT_KEY, Util::rand());
+	setDefault(ALLOW_NAT_TRAVERSAL, true);
 	//RSX++
 	setDefault(TOP_SPEED, 100);
 	setDefault(TOP_UP_SPEED, 50);
@@ -674,6 +675,9 @@ void SettingsManager::load(string const& aFileName)
 		set(UDP_PORT, (int)Util::rand(1025, 32000));
 		set(TLS_PORT, (int)Util::rand(1025, 32000));
 	}
+
+	if(SETTING(DHT_KEY).length() != 39 || CID(SETTING(DHT_KEY)).isZero())
+		set(DHT_KEY, CID::generate().toBase32());
 }
 
 void SettingsManager::save(string const& aFileName) {
@@ -737,5 +741,5 @@ void SettingsManager::save(string const& aFileName) {
 
 /**
  * @file
- * $Id: SettingsManager.cpp 469 2009-12-29 21:13:40Z bigmuscle $
+ * $Id: SettingsManager.cpp 478 2010-02-01 18:42:24Z bigmuscle $
  */

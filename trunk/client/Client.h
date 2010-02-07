@@ -44,6 +44,8 @@ public:
 	enum P2PType { DIRECT_CONNECT, DHT };
 	P2PType type;
 	
+	P2PType getType() const { return type; }
+
 	virtual const string& getHubUrl() const = 0;
 	virtual string getHubName() const = 0;
 	virtual bool isOp() const = 0;
@@ -283,5 +285,5 @@ private:
 
 /**
  * @file
- * $Id: Client.h 463 2009-10-01 16:30:22Z BigMuscle $
+ * $Id: Client.h 476 2010-01-25 21:43:12Z bigmuscle $
  */

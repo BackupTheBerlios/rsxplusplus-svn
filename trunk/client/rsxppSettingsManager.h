@@ -18,9 +18,9 @@
 #define RSXPLUSPLUS_SETTINGS_MANAGER
 
 #include "SettingsManager.h"
+#include "Thread.h"
 
 namespace dcpp {
-class CriticalSection;
 
 class rsxppSettingsManager : public Singleton<rsxppSettingsManager>, public SettingsManagerListener {
 public:

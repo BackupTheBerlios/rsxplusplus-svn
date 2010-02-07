@@ -20,7 +20,6 @@
 #define DCPLUSPLUS_DCPP_LOG_MANAGER_H
 
 #include "File.h"
-#include "CriticalSection.h"
 #include "Singleton.h"
 #include "TimerManager.h"
 
@@ -122,5 +121,5 @@ private:
 
 /**
  * @file
- * $Id: LogManager.h 434 2009-03-29 11:09:33Z BigMuscle $
+ * $Id: LogManager.h 473 2010-01-12 23:17:33Z bigmuscle $
  */

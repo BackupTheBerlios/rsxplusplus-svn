@@ -21,7 +21,6 @@
 #include "KBucket.h"
 
 #include "../client/CID.h"
-#include "../client/CriticalSection.h"
 #include "../client/FastAlloc.h"
 #include "../client/MerkleTree.h"
 #include "../client/Singleton.h"
@@ -85,7 +84,7 @@ namespace dht
 		void processSearches();
 		
 		/** Processes incoming search results */
-		bool processSearchResults(const UserPtr& user);
+		bool processSearchResults(const UserPtr& user, size_t slots);
 		
 	private:
 	

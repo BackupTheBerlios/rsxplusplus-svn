@@ -19,7 +19,7 @@
 #ifndef _STRINGPOOL_H
 #define _STRINGPOOL_H
 
-#include "CriticalSection.h"
+#include "Thread.h"
 
 namespace dcpp
 {

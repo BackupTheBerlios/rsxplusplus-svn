@@ -19,7 +19,7 @@
 #include "stdinc.h"
 #include "DCPlusPlus.h"
 
-#include "CriticalSection.h"
+#include "Thread.h"
 #include "PluginSpeaker.hpp"
 
 namespace dcpp {

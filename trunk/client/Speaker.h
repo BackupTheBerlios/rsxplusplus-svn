@@ -19,7 +19,7 @@
 #ifndef DCPLUSPLUS_DCPP_SPEAKER_H
 #define DCPLUSPLUS_DCPP_SPEAKER_H
 
-#include "CriticalSection.h"
+#include "Thread.h"
 
 namespace dcpp {
 
@@ -142,5 +142,5 @@ protected:
 
 /**
  * @file
- * $Id: Speaker.h 434 2009-03-29 11:09:33Z BigMuscle $
+ * $Id: Speaker.h 473 2010-01-12 23:17:33Z bigmuscle $
  */

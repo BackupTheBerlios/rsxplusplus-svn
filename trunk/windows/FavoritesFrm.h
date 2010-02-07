@@ -127,17 +127,59 @@ private:
 
 	void openSelected();
 	
-	void updateList(const FavoriteHubEntry::List& fl) {
+	void fillList() {
 		ctrlHubs.SetRedraw(FALSE);
-		for(FavoriteHubEntry::List::const_iterator i = fl.begin(); i != fl.end(); ++i) {
-			addEntry(*i, ctrlHubs.GetItemCount());
+
+		bool old_nosave = nosave;
+		nosave = true;
+
+		ctrlHubs.DeleteAllItems(); 
+		
+		// sort groups
+		set<tstring, noCaseStringLess> sorted_groups;
+		const FavHubGroups& favHubGroups = FavoriteManager::getInstance()->getFavHubGroups();
+		for(FavHubGroups::const_iterator i = favHubGroups.begin(), iend = favHubGroups.end(); i != iend; ++i)
+			sorted_groups.insert(Text::toT(i->first));
+
+		TStringList groups(sorted_groups.begin(), sorted_groups.end());
+		groups.insert(groups.begin(), Util::emptyStringT); // default group (otherwise, hubs without group don't show up) 
+		
+		for(int i = 0; i < groups.size(); ++i) {
+			// insert groups
+			LVGROUP lg = {0};
+			lg.cbSize = sizeof(lg);
+			lg.iGroupId = i;
+			lg.state = LVGS_NORMAL | (WinUtil::getOsMajor() >= 6 ? LVGS_COLLAPSIBLE : 0);
+			lg.mask = LVGF_GROUPID | LVGF_HEADER | LVGF_STATE | LVGF_ALIGN;
+			lg.uAlign = LVGA_HEADER_LEFT;
+
+			// Header-title must be unicode (Convert if necessary)
+			lg.pszHeader = (LPWSTR)groups[i].c_str();
+			lg.cchHeader = groups[i].size();
+			ctrlHubs.InsertGroup(i, &lg );
 		}
+
+		const FavoriteHubEntryList& fl = FavoriteManager::getInstance()->getFavoriteHubs();
+		for(FavoriteHubEntryList::const_iterator i = fl.begin(); i != fl.end(); ++i) {
+			const string& group = (*i)->getGroup();
+
+			int index = 0;
+			if(!group.empty()) {
+				TStringList::const_iterator groupI = find(groups.begin() + 1, groups.end(), Text::toT(group));
+				if(groupI != groups.end())
+					index = groupI - groups.begin();
+			}
+
+			addEntry(*i, ctrlHubs.GetItemCount(), index);
+		}
+
+		nosave = old_nosave;
 		ctrlHubs.SetRedraw(TRUE);
-		ctrlHubs.Invalidate();
 	}
 
-	void addEntry(const FavoriteHubEntry* entry, int pos);
-	void on(FavoriteAdded, const FavoriteHubEntry* e)  throw() { addEntry(e, ctrlHubs.GetItemCount()); }
+	void addEntry(const FavoriteHubEntry* entry, int pos, int groupIndex);
+	void handleMove(bool up);
+	void on(FavoriteAdded, const FavoriteHubEntry* e)  throw() { fillList(); }
 	void on(FavoriteRemoved, const FavoriteHubEntry* e) throw() { ctrlHubs.DeleteItem(ctrlHubs.find((LPARAM)e)); }
 	void on(SettingsManagerListener::Save, SimpleXML& /*xml*/) throw();
 };
@@ -146,5 +188,5 @@ private:
 
 /**
  * @file
- * $Id: FavoritesFrm.h 308 2007-07-13 18:57:02Z bigmuscle $
+ * $Id: FavoritesFrm.h 476 2010-01-25 21:43:12Z bigmuscle $
  */

@@ -22,7 +22,6 @@
 #include "TimerManager.h"
 #include "ClientManager.h"
 
-#include "CriticalSection.h"
 #include "Exception.h"
 #include "User.h"
 #include "File.h"
@@ -154,7 +153,7 @@ public:
 	void addDirectory(const string& aDir, const HintedUser& aUser, const string& aTarget, 
 		QueueItem::Priority p = QueueItem::DEFAULT) throw();
 	
-	int matchListing(const DirectoryListing& dl, const string& hubHint) throw();
+	int matchListing(const DirectoryListing& dl) throw();
 
 	bool getTTH(const string& name, TTHValue& tth) const throw();
 
@@ -171,8 +170,8 @@ public:
 	void setAutoPriority(const string& aTarget, bool ap) throw();
 
 	void getTargets(const TTHValue& tth, StringList& sl);
-	const QueueItem::StringMap& lockQueue() throw() { cs.enter(); return fileQueue.getQueue(); } ;
-	void unlockQueue() throw() { cs.leave(); }
+	const QueueItem::StringMap& lockQueue() throw() { cs.lock(); return fileQueue.getQueue(); } ;
+	void unlockQueue() throw() { cs.unlock(); }
 
 	QueueItem::SourceList getSources(const QueueItem* qi) const { Lock l(cs); return qi->getSources(); }
 	QueueItem::SourceList getBadSources(const QueueItem* qi) const { Lock l(cs); return qi->getBadSources(); }
@@ -372,12 +371,13 @@ private:
 	/** Sanity check for the target filename */
 	static string checkTarget(const string& aTarget, bool checkExsistence) throw(QueueException, FileException);
 	/** Add a source to an existing queue item */
-	bool addSource(QueueItem* qi, const HintedUser& aUser, Flags::MaskType addBad, bool wasFinished) throw(QueueException, FileException);
+	bool addSource(QueueItem* qi, const HintedUser& aUser, Flags::MaskType addBad) throw(QueueException, FileException);
 
 	void processList(const string& name, const HintedUser& user, int flags);
 
 	void load(const SimpleXML& aXml);
 	void moveFile(const string& source, const string& target);
+	static void moveFile_(const string& source, const string& target);
 	void moveStuckFile(QueueItem* qi);
 	void rechecked(QueueItem* qi);
 
@@ -403,5 +403,5 @@ private:
 
 /**
  * @file
- * $Id: QueueManager.h 470 2010-01-02 23:23:39Z bigmuscle $
+ * $Id: QueueManager.h 479 2010-02-02 15:50:33Z bigmuscle $
  */

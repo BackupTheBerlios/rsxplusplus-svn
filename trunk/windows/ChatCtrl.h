@@ -128,14 +128,12 @@ public:
 	LRESULT onMultihubKick(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 	//END
 
-	//void setClient(Client* pClient) { client = pClient; }
 	void runUserCommand(UserCommand& uc);
 
-	void AdjustTextSize();
-	void AppendText(const Identity& i, const tstring& sMyNick, const tstring& sTime, const tstring& sMsg, CHARFORMAT2& cf, bool bUseEmo = true, bool useHL = true, tstring chatExtraInfo = Util::emptyStringT);
+	void AppendText(const Identity& i, const tstring& sMyNick, const tstring& sTime, tstring sMsg, CHARFORMAT2& cf, bool bUseEmo = true, bool useHL = true, tstring chatExtraInfo = Util::emptyStringT);
 
-	static void setSelectedUser(const tstring& s) { sSelectedUser = s; }
-	static const tstring& getSelectedUser() { return sSelectedUser; }
+	void setSelectedUser(const tstring& s) { sSelectedUser = s; }
+	const tstring& getSelectedUser() { return sSelectedUser; }
 
 	void Subclass() {
 		ccw.SubclassWindow(this->CRichEditCtrl::m_hWnd);
@@ -155,7 +153,17 @@ private:
 	bool HitURL();
 
 	tstring LineFromPos(const POINT& p) const;
-	void AppendTextOnly(const tstring& sMyNick, const TCHAR* sMsg, CHARFORMAT2& cf, bool isMyMessage, const tstring& sAuthor, bool useHL = true);
+	void FormatChatLine(const tstring& sMyNick, const tstring& sMsg, CHARFORMAT2& cf, bool isMyMessage, const tstring& sAuthor, LONG lSelBegin, bool bUseEmo);
+	void FormatEmoticonsAndLinks(const tstring& sText, const tstring& sTextLower, LONG lSelBegin, bool bUseEmo);
+
+	static string escapeUnicode(tstring str);
+	static tstring rtfEscape(tstring str);
+
+	void setText(const tstring& text) {
+		string tmp = "{\\urtf " + escapeUnicode(rtfEscape(text)) + "}";
+		// The cast below isn't a mistake...
+		SetTextEx((LPCTSTR)tmp.c_str(), ST_SELECTION, CP_ACP);
+	}
 	void scrollToEnd();
 
     bool m_bPopupMenu;
@@ -163,10 +171,10 @@ private:
 
 	CContainedWindow ccw;
 
-	static tstring sSelectedLine;
-	static tstring sSelectedIP;
-	static tstring sSelectedUser;
-	static tstring sSelectedURL;
+	tstring sSelectedLine;
+	tstring sSelectedIP;
+	tstring sSelectedUser;
+	tstring sSelectedURL;
 
 	//RSX++
 	struct hlAction { tstring match; bool actPopup; bool actFlash; bool actSound; string soundPath; };

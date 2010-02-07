@@ -21,7 +21,7 @@
 
 #include "../client/Singleton.h"
 #include "../client/HttpConnection.h"
-#include "../client/CriticalSection.h"
+#include "../client/Thread.h"
 #include "../client/TimerManager.h"
 
 #include "UpdateManagerListener.h"

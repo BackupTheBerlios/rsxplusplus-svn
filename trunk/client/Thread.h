@@ -27,9 +27,16 @@
 
 #include "Exception.h"
 
+#include <boost/thread.hpp>
+
 namespace dcpp {
 
 STANDARD_EXCEPTION(ThreadException);
+
+typedef boost::recursive_mutex	CriticalSection;
+typedef boost::detail::spinlock	FastCriticalSection;
+typedef boost::lock_guard<boost::recursive_mutex> Lock;
+typedef boost::lock_guard<boost::detail::spinlock> FastLock;
 
 class Thread : private boost::noncopyable
 {
@@ -176,5 +183,5 @@ protected:
 
 /**
  * @file
- * $Id: Thread.h 434 2009-03-29 11:09:33Z BigMuscle $
+ * $Id: Thread.h 473 2010-01-12 23:17:33Z bigmuscle $
  */

@@ -53,7 +53,7 @@ LRESULT UCPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 	ctrlCommands.InsertColumn(0, CTSTRING(SETTINGS_NAME), LVCFMT_LEFT, rc.Width()/4, 0);
 	ctrlCommands.InsertColumn(1, CTSTRING(SETTINGS_COMMAND), LVCFMT_LEFT, rc.Width()*2 / 4, 1);
 	ctrlCommands.InsertColumn(2, CTSTRING(HUB), LVCFMT_LEFT, rc.Width() / 4, 2);
-	ctrlCommands.SetExtendedListViewStyle(LVS_EX_LABELTIP | LVS_EX_FULLROWSELECT);
+	ctrlCommands.SetExtendedListViewStyle(LVS_EX_LABELTIP | LVS_EX_FULLROWSELECT | LVS_EX_DOUBLEBUFFER);
 
 	// Do specialized reading here
 	UserCommand::List lst = FavoriteManager::getInstance()->getUserCommands();
@@ -205,5 +205,5 @@ void UCPage::write() {
 
 /**
  * @file
- * $Id: UCPage.cpp 373 2008-02-06 17:23:49Z bigmuscle $
+ * $Id: UCPage.cpp 477 2010-01-29 08:59:43Z bigmuscle $
  */

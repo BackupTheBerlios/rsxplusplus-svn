@@ -315,8 +315,7 @@ void UserInfoBase::addFav() {
 }
 void UserInfoBase::pm(const string& hubHint) {
 	if(getUser()) {
-		// TODO provide client
-		PrivateFrame::openWindow(getUser(), Util::emptyStringT, NULL);
+		PrivateFrame::openWindow(HintedUser(getUser(), hubHint), Util::emptyStringT, NULL);
 	}
 }
 void UserInfoBase::connectFav() {
@@ -1938,5 +1937,5 @@ tstring WinUtil::getWindowText(HWND _hwnd, int ctrlID) {
 //END
 /**
  * @file
- * $Id: WinUtil.cpp 469 2009-12-29 21:13:40Z bigmuscle $
+ * $Id: WinUtil.cpp 473 2010-01-12 23:17:33Z bigmuscle $
  */

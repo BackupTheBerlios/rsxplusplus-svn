@@ -766,6 +766,7 @@
 #define IDC_RSXADVANCED_BOOLEANS        1322
 #define IDC_CLIENT_ACTIVE               1322
 #define IDC_AUTOCONNECT                 1322
+#define IDC_NATT                        1322
 #define IDC_RAW_NAME                    1323
 #define IDC_ISP_ACTIVE                  1323
 #define IDC_GROUP_PROPERTIES            1323

@@ -40,15 +40,9 @@
 namespace dht
 {
 
-	DHT::DHT(void) : bucket(NULL), lastPacket(0), dirty(false), requestFWCheck(true)
+	DHT::DHT(void) : bucket(NULL), lastPacket(0), dirty(false), requestFWCheck(true), firewalled(true)
 	{
-		// start with global firewalled status
-		firewalled = !ClientManager::getInstance()->isActive(Util::emptyString);
-		
-		if(!BOOLSETTING(USE_DHT))
-			return;
-	
-		create();
+		lastExternalIP = Util::getLocalIp(); // hack
 	}
 
 	DHT::~DHT(void)
@@ -57,50 +51,65 @@ namespace dht
 		if(bucket == NULL)
 			return;
 			
-		disconnect();
-		
-		dirty = true;
-		saveData();
-		
-		delete bucket;
-		
-		ConnectionManager::deleteInstance();		
-		TaskManager::deleteInstance();
-		IndexManager::deleteInstance();
-		SearchManager::deleteInstance();
-		BootstrapManager::deleteInstance();
+		stop(true);
 	}
 	
-	void DHT::create()
-	{
-		//if(BOOLSETTING(UPDATE_IP))
-		//	SettingsManager::getInstance()->set(SettingsManager::EXTERNAL_IP, Util::emptyString);
-				
-		bucket = new KBucket();	
-			
-		BootstrapManager::newInstance();
-		SearchManager::newInstance();
-		IndexManager::newInstance();
-		TaskManager::newInstance();
-		ConnectionManager::newInstance();
-				
-		loadData();	
-	}
-	
-	void DHT::listen() 
+	/*
+	 * Starts DHT.
+	 */
+	void DHT::start() 
 	{ 
 		if(!BOOLSETTING(USE_DHT))
 			return;
 			
+		// start with global firewalled status
+		firewalled = !ClientManager::getInstance()->isActive(Util::emptyString);
+		requestFWCheck = true;
+
 		if(!bucket) 
 		{
-			create();
+			//if(BOOLSETTING(UPDATE_IP))
+			//	SettingsManager::getInstance()->set(SettingsManager::EXTERNAL_IP, Util::emptyString);
+					
+			bucket = new KBucket();	
+				
+			BootstrapManager::newInstance();
+			SearchManager::newInstance();
+			IndexManager::newInstance();
+			TaskManager::newInstance();
+			ConnectionManager::newInstance();
+					
+			loadData();	
 		}
 			
 		socket.listen(); 
 		BootstrapManager::getInstance()->bootstrap(); 
 	}
 	
+	void DHT::stop(bool exiting) 
+	{ 
+		if(!bucket)
+			return;
+
+		socket.disconnect(); 
+		
+		if(!BOOLSETTING(USE_DHT) || exiting)
+		{
+			saveData();
+
+			delete bucket;
+			bucket = NULL;
+
+			ConnectionManager::deleteInstance();		
+			TaskManager::deleteInstance();
+			IndexManager::deleteInstance();
+			SearchManager::deleteInstance();
+			BootstrapManager::deleteInstance();
+
+			lastPacket = 0;
+		}
+	}
+
 	/*
 	 * Process incoming command 
 	 */
@@ -130,13 +139,9 @@ namespace dht
 				return;
 				
 			lastPacket = GET_TICK();	
-				
-			// backward compatibility, it will be removed later
-			if(!isUdpKeyValid && (cmd.getCommand() == AdcCommand::CMD_RES || cmd.getCommand() == AdcCommand::CMD_SND || cmd.getCommand() == AdcCommand::CMD_STA))
-				isUdpKeyValid = true;
 			
-			// add user to routing table
-			Node::Ptr node = addUser(CID(cid), ip, port, true, isUdpKeyValid);
+			// don't add node here, because it may block verified nodes when table becomes full of unverified nodes
+			Node::Ptr node = createNode(CID(cid), ip, port, true, isUdpKeyValid);
 			
 			// all communication to this node will be encrypted with this key
 			string udpKey;
@@ -210,17 +215,41 @@ namespace dht
 	}
 	
 	/*
-	 * Insert (or update) user into routing table 
+	 * Creates new (or update existing) node which is NOT added to our routing table 
 	 */
-	Node::Ptr DHT::addUser(const CID& cid, const string& ip, uint16_t port, bool update, bool isUdpKeyValid)
+	Node::Ptr DHT::createNode(const CID& cid, const string& ip, uint16_t port, bool update, bool isUdpKeyValid)
 	{
 		// create user as offline (only TCP connected users will be online)
 		UserPtr u = ClientManager::getInstance()->getUser(cid);
-		
+
 		Lock l(cs);
-		return bucket->insert(u, ip, port, update, isUdpKeyValid);
+		return bucket->createNode(u, ip, port, update, isUdpKeyValid);
 	}
-	
+
+	/*
+	 * Adds node to routing table 
+	 */
+	bool DHT::addNode(const Node::Ptr& node, bool makeOnline)
+	{
+		bool isAcceptable = true;
+		if(!node->getUser()->isOnline())
+		{
+			{
+				Lock l(cs);
+				isAcceptable = bucket->insert(node); // insert node to our routing table
+			}
+
+			if(makeOnline)
+			{
+				// put him online so we can make a connection with him
+				node->inc();
+				ClientManager::getInstance()->putOnline(node.get());
+			}
+		}
+
+		return isAcceptable;
+	}
+
 	/*
 	 * Finds "max" closest nodes and stores them to the list 
 	 */
@@ -288,7 +317,6 @@ namespace dht
 		if(!isFirewalled())
 			su += UDP4_FEATURE ",";
 			
-			
 		if(!su.empty()) {
 			su.erase(su.size() - 1);
 		}
@@ -302,13 +330,14 @@ namespace dht
 	 */
 	void DHT::connect(const OnlineUser& ou, const string& token)
 	{
-		ConnectionManager::getInstance()->connect(ou, token);
+		// this is DHT's node, so we can cast ou to Node
+		ConnectionManager::getInstance()->connect((Node*)&ou, token);
 	}
 	
 	/*
 	 * Sends private message to online node 
 	 */
-	void DHT::privateMessage(const OnlineUser& ou, const string& aMessage, bool thirdPerson)
+	void DHT::privateMessage(const OnlineUser& /*ou*/, const string& /*aMessage*/, bool /*thirdPerson*/)
 	{
 		//AdcCommand cmd(AdcCommand::CMD_MSG, AdcCommand::TYPE_UDP);
 		//cmd.addParam(aMessage);
@@ -415,16 +444,11 @@ namespace dht
 			node->getIdentity().setConnection(Util::formatBytes(node->getIdentity().get("US")) + "/s");
 		}
 		
-		if(!node->isInList)
-		{
-			// put him online so we can make a connection with him
-			node->inc();
-			node->isInList = true;
-			ClientManager::getInstance()->putOnline(node.get());
-		}
+		// add node to our routing table and put him online
+		addNode(node, true);
 		
 		// do we wait for any search results from this user?
-		SearchManager::getInstance()->processSearchResults(node->getUser());		
+		SearchManager::getInstance()->processSearchResults(node->getUser(), Util::toInt(node->getIdentity().get("SL")));		
 		
 		if(it & PING)
 		{
@@ -583,11 +607,12 @@ namespace dht
 	// partial file request
 	void DHT::handle(AdcCommand::PSR, const Node::Ptr& node, AdcCommand& c) throw()
 	{
+		c.getParameters().erase(c.getParameters().begin());	 // remove CID from UDP command
 		dcpp::SearchManager::getInstance()->onPSR(c, node->getUser(), node->getIdentity().getIp());
 	}
 
 	// private message
-	void DHT::handle(AdcCommand::MSG, const Node::Ptr& node, AdcCommand& c) throw()
+	void DHT::handle(AdcCommand::MSG, const Node::Ptr& /*node*/, AdcCommand& /*c*/) throw()
 	{
 		// not implemented yet
 		//fire(ClientListener::PrivateMessage(), this, *node, to, node, c.getParam(0), c.hasFlag("ME", 1));
@@ -624,10 +649,10 @@ namespace dht
 				
 			string nodesXML;
 			StringOutputStream sos(nodesXML);
-			sos.write(SimpleXML::utf8Header);
+			//sos.write(SimpleXML::utf8Header);
 			xml.toXML(&sos);
 				
-			cmd.addParam(nodesXML);
+			cmd.addParam(Utils::compressXML(nodesXML));
 			
 			send(cmd, node->getIdentity().getIp(), static_cast<uint16_t>(Util::toInt(node->getIdentity().getUdpPort())), node->getUser()->getCID(), node->getUdpKey());
 		}
@@ -637,12 +662,16 @@ namespace dht
 	{
 		if(c.getParam(1) == "nodes" && c.getParam(2) == "dht.xml")
 		{
+			// add node to our routing table
+			if(node->isIpVerified())
+				addNode(node, false);
+
 			try
 			{
 				SimpleXML xml;
 				xml.fromXML(c.getParam(3));
 				xml.stepIn();
-				
+
 				// extract bootstrap nodes
 				unsigned int n = 20;
 				while(xml.findChild("Node") && n-- > 0)
@@ -660,9 +689,10 @@ namespace dht
 					if(!Utils::isGoodIPPort(i4, u4))
 						continue;
 
-					// add user to our routing table
-					Node::Ptr node = addUser(CID(cid), i4, u4, false, false);
-					node->setIpVerified(true);	// assume IP is verified
+					// create verified node, it's not big risk here and allows faster bootstrapping
+					// if this node already exists in our routing table, don't update it's ip/port for security reasons
+					Node::Ptr node = DHT::getInstance()->createNode(cid, i4, u4, false, true);
+					DHT::getInstance()->addNode(node, false);
 				}
 										
 				xml.stepOut();

@@ -22,12 +22,12 @@
 #include "Singleton.h"
 #include "TimerManager.h"
 #include "PluginSpeaker.hpp"
+#include "Thread.h"
 
 #include "sdk/dcpp.h"
 
 namespace dcpp {
 class Plugin;
-class CriticalSection;
 class Exception;
 
 class PluginsManager : public Singleton<PluginsManager>, public TimerManagerListener {

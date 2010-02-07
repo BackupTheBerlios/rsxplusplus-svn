@@ -82,6 +82,7 @@ namespace dht
 			case AdcCommand::CMD_PUB: maxAllowedPacketsPerMinute = 10; break;
 			case AdcCommand::CMD_INF: maxAllowedPacketsPerMinute = 3; break;
 			case AdcCommand::CMD_CTM: maxAllowedPacketsPerMinute = 2; break;
+			case AdcCommand::CMD_RCM: maxAllowedPacketsPerMinute = 2; break;
 			case AdcCommand::CMD_GET: maxAllowedPacketsPerMinute = 2; break;
 			case AdcCommand::CMD_PSR: maxAllowedPacketsPerMinute = 3; break;
 			
@@ -167,13 +168,19 @@ namespace dht
 	 */
 	CID Utils::getUdpKey(const string& targetIp)
 	{
-		int myUdpKey = SETTING(DHT_KEY);
+		CID myUdpKey = CID(SETTING(DHT_KEY));
 		
 		TigerTree th;
-		th.update(&myUdpKey, sizeof(int));
+		th.update(myUdpKey.data(), sizeof(CID));
 		th.update(targetIp.c_str(), targetIp.size());
 		return CID(th.finalize());
 	}
 
+	bool IsInvalid(char ch) { return ch == '\r' || ch == '\n' || ch == '\t'; }
+	const string& Utils::compressXML(string& xml)
+	{
+		xml.erase(std::remove_if(xml.begin(), xml.end(), IsInvalid), xml.end());
+		return xml;
+	}
 
 } // namespace dht

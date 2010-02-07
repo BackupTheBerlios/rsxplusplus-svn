@@ -30,6 +30,7 @@ AdcCommand::AdcCommand(Severity sev, Error err, const string& desc, char aType /
 	addParam((sev == SEV_SUCCESS && err == SUCCESS) ? "000" : Util::toString(sev * 100 + err));
 	addParam(desc);
 }
+
 AdcCommand::AdcCommand(const string& aLine, bool nmdc /* = false */) throw(ParseException) : cmdInt(0), type(TYPE_CLIENT) {
 	parse(aLine, nmdc);
 }
@@ -263,5 +264,5 @@ bool AdcCommand::hasFlag(const char* name, size_t start) const {
 
 /**
  * @file
- * $Id: AdcCommand.cpp 446 2009-06-28 09:52:00Z BigMuscle $
+ * $Id: AdcCommand.cpp 476 2010-01-25 21:43:12Z bigmuscle $
  */

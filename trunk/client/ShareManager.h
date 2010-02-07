@@ -26,7 +26,6 @@
 #include "QueueManagerListener.h"
 
 #include "Exception.h"
-#include "CriticalSection.h"
 #include "StringSearch.h"
 #include "Singleton.h"
 #include "BloomFilter.h"
@@ -336,5 +335,5 @@ private:
 
 /**
  * @file
- * $Id: ShareManager.h 469 2009-12-29 21:13:40Z bigmuscle $
+ * $Id: ShareManager.h 473 2010-01-12 23:17:33Z bigmuscle $
  */

@@ -23,7 +23,7 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
-#include "CriticalSection.h"
+#include "Thread.h"
 #include "File.h"
 
 namespace dcpp {
@@ -64,5 +64,5 @@ private:
 
 /**
  * @file
- * $Id: TraceManager.h 373 2008-02-06 17:23:49Z bigmuscle $
+ * $Id: TraceManager.h 473 2010-01-12 23:17:33Z bigmuscle $
  */

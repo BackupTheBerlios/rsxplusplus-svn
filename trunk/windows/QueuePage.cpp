@@ -79,8 +79,9 @@ PropPage::ListItem QueuePage::optionItems[] = {
 	{ SettingsManager::SKIP_ZERO_BYTE, ResourceManager::SETTINGS_SKIP_ZERO_BYTE },
 	{ SettingsManager::DONT_DL_ALREADY_SHARED, ResourceManager::SETTINGS_DONT_DL_ALREADY_SHARED },
 	{ SettingsManager::ANTI_FRAG, ResourceManager::SETTINGS_ANTI_FRAG },
-	{ SettingsManager::AUTO_PRIORITY_DEFAULT ,ResourceManager::SETTINGS_AUTO_PRIORITY_DEFAULT },
-	{ SettingsManager::OVERLAP_CHUNKS ,ResourceManager::OVERLAP_CHUNKS },
+	{ SettingsManager::AUTO_PRIORITY_DEFAULT, ResourceManager::SETTINGS_AUTO_PRIORITY_DEFAULT },
+	{ SettingsManager::OVERLAP_CHUNKS, ResourceManager::OVERLAP_CHUNKS },
+	{ SettingsManager::KEEP_FINISHED_FILES, ResourceManager::KEEP_FINISHED_FILES },
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
 
@@ -115,5 +116,5 @@ void QueuePage::write() {
 
 /**
  * @file
- * $Id: QueuePage.cpp 411 2008-07-20 22:39:42Z BigMuscle $
+ * $Id: QueuePage.cpp 476 2010-01-25 21:43:12Z bigmuscle $
  */

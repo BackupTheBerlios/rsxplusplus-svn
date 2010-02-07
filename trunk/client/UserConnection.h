@@ -24,7 +24,6 @@
 #include "UserConnectionListener.h"
 #include "BufferedSocketListener.h"
 #include "BufferedSocket.h"
-#include "CriticalSection.h"
 #include "File.h"
 #include "User.h"
 #include "AdcCommand.h"
@@ -144,7 +143,7 @@ public:
 	void setDataMode(int64_t aBytes = -1) { dcassert(socket); socket->setDataMode(aBytes); }
 	void setLineMode(size_t rollback) { dcassert(socket); socket->setLineMode(rollback); }
 
-	void connect(const string& aServer, uint16_t aPort) throw(SocketException, ThreadException);
+	void connect(const string& aServer, uint16_t aPort, uint16_t localPort, const BufferedSocket::NatRoles natRole) throw(SocketException, ThreadException);
 	void accept(const Socket& aServer) throw(SocketException, ThreadException);
 
 	void updated() { if(socket) socket->updated(); }
@@ -258,5 +257,5 @@ private:
 
 /**
  * @file
- * $Id: UserConnection.h 466 2009-11-13 18:47:25Z BigMuscle $
+ * $Id: UserConnection.h 476 2010-01-25 21:43:12Z bigmuscle $
  */

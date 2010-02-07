@@ -23,7 +23,6 @@
 
 #include "UserConnection.h"
 #include "User.h"
-#include "CriticalSection.h"
 #include "Singleton.h"
 #include "Util.h"
 
@@ -101,7 +100,9 @@ public:
 	}
 
 	void nmdcConnect(const string& aServer, uint16_t aPort, const string& aMyNick, const string& hubUrl, string* encoding, bool stealth, bool secure);
+	void nmdcConnect(const string& aServer, uint16_t aPort, uint16_t localPort, BufferedSocket::NatRoles natRole, const string& aNick, const string& hubUrl, string* encoding, bool stealth, bool secure);
 	void adcConnect(const OnlineUser& aUser, uint16_t aPort, const string& aToken, bool secure);
+	void adcConnect(const OnlineUser& aUser, uint16_t aPort, uint16_t localPort, BufferedSocket::NatRoles natRole, const string& aToken, bool secure);
 
 	void getDownloadConnection(const HintedUser& aUser);
 	void force(const UserPtr& aUser);
@@ -202,5 +203,5 @@ private:
 
 /**
  * @file
- * $Id: ConnectionManager.h 466 2009-11-13 18:47:25Z BigMuscle $
+ * $Id: ConnectionManager.h 476 2010-01-25 21:43:12Z bigmuscle $
  */

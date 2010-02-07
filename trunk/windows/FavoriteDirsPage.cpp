@@ -46,7 +46,7 @@ LRESULT FavoriteDirsPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM 
 {
 	PropPage::translate((HWND)(*this), texts);
 	ctrlDirectories.Attach(GetDlgItem(IDC_FAVORITE_DIRECTORIES));
-	ctrlDirectories.SetExtendedListViewStyle(LVS_EX_LABELTIP | LVS_EX_FULLROWSELECT);
+	ctrlDirectories.SetExtendedListViewStyle(LVS_EX_LABELTIP | LVS_EX_FULLROWSELECT | LVS_EX_DOUBLEBUFFER);
 		
 	// Prepare shared dir list
 	CRect rc; 
@@ -149,6 +149,7 @@ LRESULT FavoriteDirsPage::onDoubleClick(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bH
 			PostMessage(WM_COMMAND, IDC_ADD_EX, 0);
 		}
 	}
+
 	return 0;
 }
 
@@ -302,5 +303,5 @@ void FavoriteDirsPage::addDirEx(DirectoriesEx::Ptr pa, int pos) {
 //END
 /**
  * @file
- * $Id: FavoriteDirsPage.cpp 382 2008-03-09 10:40:22Z BigMuscle $
+ * $Id: FavoriteDirsPage.cpp 477 2010-01-29 08:59:43Z bigmuscle $
  */

@@ -20,9 +20,9 @@
 #define RSXPLUSPLUS_PLUGIN_SPEAKER
 
 #include "sdk/dcpp.h"
+#include "Thread.h"
 
 namespace dcpp {
-class CriticalSection;
 
 class PluginSpeaker {
 public:

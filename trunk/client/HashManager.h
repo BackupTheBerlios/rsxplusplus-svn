@@ -22,7 +22,6 @@
 #include "Singleton.h"
 #include "MerkleTree.h"
 #include "Thread.h"
-#include "CriticalSection.h"
 #include "Semaphore.h"
 #include "TimerManager.h"
 #include "Util.h"
@@ -256,5 +255,5 @@ private:
 
 /**
  * @file
- * $Id: HashManager.h 457 2009-08-24 20:37:33Z BigMuscle $
+ * $Id: HashManager.h 473 2010-01-12 23:17:33Z bigmuscle $
  */

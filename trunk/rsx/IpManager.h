@@ -20,7 +20,7 @@
 #define RSXPLUSPLUS_IP_MANAGER_H
 
 #include "../client/Singleton.h"
-#include "../client/CriticalSection.h"
+#include "../client/Thread.h"
 #include "../client/Util.h"
 #include "../client/SettingsManager.h"
 

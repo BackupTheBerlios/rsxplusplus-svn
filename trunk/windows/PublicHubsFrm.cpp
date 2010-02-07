@@ -72,7 +72,7 @@ LRESULT PublicHubsFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 	
 	ctrlHubs.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | 
 		WS_HSCROLL | WS_VSCROLL | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_SINGLESEL | LVS_SHAREIMAGELISTS, WS_EX_CLIENTEDGE, IDC_HUBLIST);
-	ctrlHubs.SetExtendedListViewStyle(LVS_EX_LABELTIP | LVS_EX_HEADERDRAGDROP | LVS_EX_FULLROWSELECT | LVS_EX_INFOTIP);
+	ctrlHubs.SetExtendedListViewStyle(LVS_EX_LABELTIP | LVS_EX_HEADERDRAGDROP | LVS_EX_FULLROWSELECT | LVS_EX_DOUBLEBUFFER | LVS_EX_INFOTIP);
 
 	// Create listview columns
 	WinUtil::splitTokens(columnIndexes, SETTING(PUBLICHUBSFRAME_ORDER), COLUMN_LAST);
@@ -635,11 +635,11 @@ void PublicHubsFrame::on(DownloadFailed, const string& l) throw() {
 	speak(SET_TEXT, TSTRING(DOWNLOAD_FAILED) + _T(" ") + Text::toT(l)); 
 }
 
-void PublicHubsFrame::on(DownloadFinished, const string& l, bool fromCoral) throw() { 
+void PublicHubsFrame::on(DownloadFinished, const string& l, bool /* TODO fromCoral*/) throw() { 
 	speak(FINISHED, TSTRING(HUB_LIST_DOWNLOADED) + _T(" (") + Text::toT(l) + _T(")"));
 }
 
-void PublicHubsFrame::on(LoadedFromCache, const string& l, const string& d) throw() { 
+void PublicHubsFrame::on(LoadedFromCache, const string& l, const string& /* TODO d*/) throw() { 
 	speak(FINISHED, TSTRING(HUB_LIST_LOADED_FROM_CACHE) + _T(" (") + Text::toT(l) + _T(")")); 
 }
 
@@ -672,5 +672,5 @@ void PublicHubsFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/) thro
 
 /**
  * @file
- * $Id: PublicHubsFrm.cpp 470 2010-01-02 23:23:39Z bigmuscle $
+ * $Id: PublicHubsFrm.cpp 477 2010-01-29 08:59:43Z bigmuscle $
  */

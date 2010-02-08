@@ -138,16 +138,15 @@
 #include <numeric>
 #include <limits>
 
+#define BOOST_ALL_NO_LIB 1
+
 #include <boost/format.hpp>
 #include <boost/scoped_array.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/noncopyable.hpp>
-
-//#define BOOST_REGEX_NO_LIB 1
-//#define BOOST_THREAD_NO_LIB 1
-#define BOOST_ALL_NO_LIB 1
 #include <boost/regex.hpp>
-//#include <regex>
+#include <boost/flyweight.hpp>
+typedef boost::flyweight<std::string> fw_string;
 
 #if defined(_MSC_VER) || defined(_STLPORT_VERSION)
 

@@ -146,7 +146,7 @@ namespace dht
 			case AdcCommand::CMD_CTM:
 			case AdcCommand::CMD_GET:
 			case AdcCommand::CMD_PSR:
-				OutPacket p = { ip, now, cmd.getCommand() };
+				OutPacket p = { fw_string(ip), now, cmd.getCommand() };
 				sentPackets.push_back(p);
 				break;
 		}

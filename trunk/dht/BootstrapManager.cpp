@@ -123,7 +123,12 @@ namespace dht
 	
 	void BootstrapManager::addBootstrapNode(const string& ip, uint16_t udpPort, const CID& targetCID, const UDPKey& udpKey)
 	{
-		BootstrapNode node = { ip, udpPort, targetCID, udpKey };
+		//BootstrapNode node = { ip, udpPort, targetCID, udpKey };
+		BootstrapNode node;
+		node.cid = targetCID;
+		node.udpKey = udpKey;
+		node.udpPort = udpPort;
+		node.ip = ip;
 		bootstrapNodes.push_back(node);
 	}
 	

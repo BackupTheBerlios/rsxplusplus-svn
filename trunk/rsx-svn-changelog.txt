@@ -1,3 +1,6 @@
+** SVN 193
+ ** experimental use of boost::flyweight to reduce memory usage
+
 ** SVN 192
  ** fix build...
 

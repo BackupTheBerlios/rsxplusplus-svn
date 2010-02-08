@@ -77,7 +77,7 @@ private:
 
 	//mutable CriticalSection cs;
 
-	typedef unordered_map<string, OnlineUser*, noCaseStringHash, noCaseStringEq> NMDCMap;
+	typedef unordered_map<fw_string, OnlineUser*, noCaseStringHash, noCaseStringEq> NMDCMap;
 	typedef HubUsersMap<false, NMDCMap> NickMap;
 	typedef NickMap::const_iterator NickIter;
 
@@ -96,7 +96,7 @@ private:
 	int64_t lastBytesShared;
 	int supportFlags;
 
-	typedef list<pair<string, uint64_t> > FloodMap;
+	typedef list<pair<fw_string, uint64_t> > FloodMap;
 	typedef FloodMap::const_iterator FloodIter;
 	FloodMap seekers;
 	FloodMap flooders;

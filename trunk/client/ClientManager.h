@@ -187,7 +187,7 @@ private:
 	typedef unordered_map<CID*, UserPtr> UserMap;
 	typedef UserMap::iterator UserIter;
 
-	typedef unordered_map<CID*, std::string> NickMap;
+	typedef unordered_map<CID*, fw_string> NickMap;
 
 	typedef unordered_multimap<CID*, OnlineUser*> OnlineMap;
 	typedef OnlineMap::iterator OnlineIter;

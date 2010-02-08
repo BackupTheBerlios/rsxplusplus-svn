@@ -288,14 +288,14 @@ namespace dht
 		// TODO: what info is needed?
 		AdcCommand cmd(AdcCommand::CMD_INF, AdcCommand::TYPE_UDP);
 
-#ifdef SVNVERSION
-#define VER VERSIONSTRING SVNVERSION
+#ifdef SVN_REVISION
+#define VER "RSX++ " VERSIONSTRING "SVN:" BOOST_STRINGIZE(SVN_REVISION)
 #else
-#define VER VERSIONSTRING
+#define VER "RSX++ " VERSIONSTRING
 #endif		
 
 		cmd.addParam("TY", Util::toString(type));
-		cmd.addParam("VE", ("StrgDC++ " VER));
+		cmd.addParam("VE", (VER));
 		cmd.addParam("NI", SETTING(NICK));
 		cmd.addParam("SL", Util::toString(UploadManager::getInstance()->getSlots()));
 			

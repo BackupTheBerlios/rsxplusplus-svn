@@ -52,7 +52,8 @@ public:
 		DHT						= 0x200,
 		//RSX++
 		PROTECTED 				= 0x400,	//< User protected
-		IGNORED					= 0x800	//< User ignored
+		IGNORED					= 0x800,	//< User ignored
+		MUTED					= 0x1000 // performance trick
 		//END
 	};
 
@@ -60,7 +61,7 @@ public:
 		size_t operator()(const UserPtr& x) const { return ((size_t)(&(*x)))/sizeof(User); }
 	};
 
-	User(const CID& aCID) : cid(aCID), soundActive(true) { }
+	User(const CID& aCID) : cid(aCID) { }
 
 	~User() throw() { }
 
@@ -71,7 +72,12 @@ public:
 	bool isNMDC() const { return isSet(NMDC); }
 	bool isFavorite();
 
-	GETSET(bool, soundActive, SoundActive); //RSX++
+	inline bool getSoundActive() {
+		return isSet(MUTED) == false;
+	}
+	inline void setSoundActive(bool active) {
+		active ? unsetFlag(MUTED) : setFlag(MUTED);
+	}
 private:
 	CID cid;
 };
@@ -201,7 +207,7 @@ public:
 	GETSET(UserPtr, user, User);
 	GETSET(uint64_t, loggedIn, LoggedIn); //RSX++
 private:
-	typedef std::tr1::unordered_map<short, std::string> InfMap;
+	typedef std::tr1::unordered_map<short, fw_string> InfMap;
 	typedef InfMap::const_iterator InfIter;
 	InfMap info;
 

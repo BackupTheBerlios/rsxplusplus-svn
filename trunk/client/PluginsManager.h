@@ -46,6 +46,8 @@ public:
 	void getPluginsInfo(std::list<dcppPluginInformation*>& p);
 
 	PluginSpeaker& getSpeaker() { return speaker; }
+
+	static dcpp_ptr_t dcppBuffer_strcpy(const string& str, dcppBuffer* buf);
 private:
 	typedef std::list<Plugin*> Plugins;
 

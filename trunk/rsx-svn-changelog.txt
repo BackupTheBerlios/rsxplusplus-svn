@@ -1,3 +1,8 @@
+** SVN 194
+ ** unused files cleanup
+ ** [sdk] GetPath in Utils
+ ** removed PK & Lock columns from users list (it doesn't exists in adc)
+
 ** SVN 193
  ** experimental use of boost::flyweight to reduce memory usage
 

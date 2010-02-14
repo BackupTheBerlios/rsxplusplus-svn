@@ -64,8 +64,6 @@ int HubFrame::columnSizes[] = {
 	70,	 //ip
 	70,	 //host
 	70,	 //isp
-	100, //pk
-	100, //lock
 	100, //support
 	50,	 //status
 	100	 //comment
@@ -88,8 +86,6 @@ int HubFrame::columnIndexes[] = {
 	OnlineUser::COLUMN_IP,
 	OnlineUser::COLUMN_HOST,
 	OnlineUser::COLUMN_ISP,
-	OnlineUser::COLUMN_PK, 
-	OnlineUser::COLUMN_LOCK,
 	OnlineUser::COLUMN_SUPPORT,
 	OnlineUser::COLUMN_STATUS,
 	OnlineUser::COLUMN_COMMENT
@@ -113,8 +109,6 @@ ResourceManager::Strings HubFrame::columnNames[] = {
 	ResourceManager::IP_BARE,
 	ResourceManager::HOST,
 	ResourceManager::ISP,
-	ResourceManager::PK, 
-	ResourceManager::LOCK,
 	ResourceManager::SUPPORT, 
 	ResourceManager::STATUS,
 	ResourceManager::COMMENT 

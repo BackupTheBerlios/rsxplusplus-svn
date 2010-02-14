@@ -156,6 +156,16 @@ void PluginsManager::close() {
 	plugins.clear();
 }
 
+dcpp_ptr_t PluginsManager::dcppBuffer_strcpy(const string& str, dcppBuffer* buf) {
+	if(!buf || buf->buf == 0 || buf->size == 0)
+		return 0;
+	dcpp_ptr_t len = buf->size;
+	if(str.size() < len)
+		len = str.size();
+	memcpy(buf->buf, &str[0], len);
+	return len;
+}
+
 dcpp_ptr_t PluginsManager::coreCallFunc(const char* type, dcpp_ptr_t p1, dcpp_ptr_t p2, dcpp_ptr_t p3, int* handled) {
 	*handled = DCPP_TRUE;
 	if(strncmp(type, "Core/", 5) == 0) {
@@ -164,13 +174,7 @@ dcpp_ptr_t PluginsManager::coreCallFunc(const char* type, dcpp_ptr_t p1, dcpp_pt
 			if(strncmp(type+13, "Plug/", 5) == 0) {
 				if(strncmp(type+18, "Get", 3) == 0) {
 					dcppBuffer* buf = reinterpret_cast<dcppBuffer*>(p2);
-					if(!buf || buf->buf == 0 || buf->size == 0) return DCPP_FALSE;
-					string val = rsxppSettingsManager::getInstance()->getExtSetting(name);
-					size_t len = buf->size;
-					if(val.size() < len)
-						len = val.size();
-					memcpy(buf->buf, val.c_str(), len);
-					return len;
+					return dcppBuffer_strcpy(rsxppSettingsManager::getInstance()->getExtSetting(name), buf);
 				} else if(strncmp(type+18, "Set", 3) == 0) {
 					rsxppSettingsManager::getInstance()->setExtSetting(name, reinterpret_cast<const char*>(p2));
 					return DCPP_TRUE;
@@ -193,12 +197,7 @@ dcpp_ptr_t PluginsManager::coreCallFunc(const char* type, dcpp_ptr_t p1, dcpp_pt
 				ptr = ptr->next;
 			}
 
-			string format = Util::formatParams(reinterpret_cast<char*>(p2), params, false);
-			size_t len = buf->size;
-			if(format.size() < len)
-				len = format.size();
-			memcpy(buf->buf, &format[0], len);
-			return len;
+			return dcppBuffer_strcpy(Util::formatParams(reinterpret_cast<char*>(p2), params, false), buf);
 		} else if(strncmp(type+6, "WideToUtf8", 10) == 0) {
 			const uint16_t* str = reinterpret_cast<const uint16_t*>(p1); // unsigned short - 2 bytes
 			dcppBuffer* buf = reinterpret_cast<dcppBuffer*>(p2);
@@ -209,6 +208,63 @@ dcpp_ptr_t PluginsManager::coreCallFunc(const char* type, dcpp_ptr_t p1, dcpp_pt
 				len = s.size()*sizeof(wchar_t);
 			memcpy(buf->buf, &s[0], len);
 			return len;
+		} else if(strncmp(type+6, "GetPath", 7) == 0) {
+			dcppBuffer* buf = reinterpret_cast<dcppBuffer*>(p2);
+			int16_t pathType;
+			switch(p1) {
+				case DCPP_UTILS_PATH_GLOBAL_CONFIG: {
+					pathType = Util::PATH_GLOBAL_CONFIG;
+					break;
+				}
+				case DCPP_UTILS_PATH_USER_CONFIG: {
+					pathType = Util::PATH_USER_CONFIG;
+					break;
+				}
+				case DCPP_UTILS_PATH_USER_LOCAL: {
+					pathType = Util::PATH_USER_LOCAL;
+					break;
+				}
+				case DCPP_UTILS_PATH_RESOURCES: {
+					pathType = Util::PATH_RESOURCES;
+					break;
+				}
+				case DCPP_UTILS_PATH_LOCALE: {
+					pathType = Util::PATH_LOCALE;
+					break;
+				}
+				case DCPP_UTILS_PATH_DOWNLOADS: {
+					pathType = Util::PATH_DOWNLOADS;
+					break;
+				}
+				case DCPP_UTILS_PATH_FILE_LISTS: {
+					pathType = Util::PATH_FILE_LISTS;
+					break;
+				}
+				case DCPP_UTILS_PATH_HUB_LISTS: {
+					pathType = Util::PATH_HUB_LISTS;
+					break;
+				}
+				case DCPP_UTILS_PATH_NOTEPAD: {
+					pathType = Util::PATH_NOTEPAD;
+					break;
+				}
+				case DCPP_UTILS_PATH_EMOPACKS: {
+					pathType = Util::PATH_EMOPACKS;
+					break;
+				}
+				default: { 
+					pathType = -1;
+				}
+			}
+			if(pathType != -1) {
+				string path = Util::getPath((Util::Paths)pathType);
+				// append - trick to make own path easily
+				if(p3) {
+					path += reinterpret_cast<const char*>(p3);
+				}
+				return dcppBuffer_strcpy(path, buf);
+			}
+			return DCPP_FALSE;
 		}
 	}
 	*handled = DCPP_FALSE;

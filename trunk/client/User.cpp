@@ -849,10 +849,10 @@ tstring OnlineUser::getText(uint8_t col) const {
 		case COLUMN_TAG: return Text::toT(identity.getTag());
 		case COLUMN_CONNECTION: return Text::toT(identity.getConnection());
 		case COLUMN_IP: {
-			string ip = identity.getIp();
-			string country = ip.empty() ? Util::emptyString : Util::getIpCountry(ip);
-			if (!country.empty())
-				ip = country + " (" + ip + ")";
+			string ip(identity.getIp());
+			if(!ip.empty()) {
+				ip = Util::getIpCountry(ip) + " (" + ip + ")";
+			}
 			return Text::toT(ip);
 		}
 		case COLUMN_EMAIL: return Text::toT(identity.getEmail());
@@ -886,8 +886,6 @@ tstring OnlineUser::getText(uint8_t col) const {
 		case COLUMN_CHEATING_DESCRIPTION: return Text::toT(identity.get("CS"));
 		case COLUMN_HOST: return Text::toT(identity.get("HT"));
 		case COLUMN_ISP: return Text::toT(identity.getISP());
-		case COLUMN_PK: return Text::toT(identity.get("PK"));
-		case COLUMN_LOCK: return Text::toT(identity.get("LO"));
 		case COLUMN_SUPPORT: return Text::toT(identity.get("SU"));
 		case COLUMN_STATUS: { 
 			if(getUser()->isSet(User::NMDC)) {
@@ -906,7 +904,6 @@ tstring OnlineUser::getText(uint8_t col) const {
 	}
 }
 
-tstring old = Util::emptyStringT;
 bool OnlineUser::update(int sortCol, const tstring& oldText) {
 	bool needsSort = ((identity.get("WO").empty() ? false : true) != identity.isOp());
 	

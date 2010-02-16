@@ -84,7 +84,7 @@ private:
 	NickMap users;
 	//RSX++
 	void parseCommand(const string& command) {
-		onLine(command);
+		onLine(fromUtf8(command));
 	}
 	tstring startChecking(const tstring& aParams) { return users.startChecking(this, aParams); }
 	void stopChecking()	{ users.stopCheck(); }

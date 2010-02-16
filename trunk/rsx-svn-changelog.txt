@@ -1,3 +1,7 @@
+** SVN 196
+ ** fixed encoding issue with Client::parseCommand in nmdc hub
+ ** [bcdc_lua] don't use raw socket->send for chat messages
+
 ** SVN 195
  ** [sdk] hub created/destroyed, connected/disconnected event implemented
  ** [sdk] more text conversions

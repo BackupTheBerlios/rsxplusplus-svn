@@ -82,7 +82,7 @@ int LuaManager::SendClientMessage(lua_State* L) {
 int LuaManager::SendHubMessage(lua_State* L) {
 	if(lua_gettop(L) == 2 && lua_islightuserdata(L, -2) && lua_isstring(L, -1)) {
 		const char* msg = lua_tostring(L, -1);
-		LuaManager::dcppLib->call(DCPP_CALL_HUB_LINE_WRITE, (dcpp_ptr_t)lua_touserdata(L, -2), (dcpp_ptr_t)msg, strlen(msg));
+		LuaManager::dcppLib->call(DCPP_CALL_HUB_SEND_USER_COMMAND, (dcpp_ptr_t)lua_touserdata(L, -2), (dcpp_ptr_t)msg, 0);
 	}
 	return 0;
 }

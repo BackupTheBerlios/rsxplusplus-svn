@@ -1,3 +1,14 @@
+** SVN 195
+ ** [sdk] hub created/destroyed, connected/disconnected event implemented
+ ** [sdk] more text conversions
+ ** [sdk] some changes in hub structs to get info if hub is nmdc/adc as function param
+ ** [sdk] option to get hub info
+ ** fixed crash on close
+ ** initial release of bcdc++ lua plugin
+
+ ** WARNING **
+ if you experience any problem with winamp_spam, recompile with new sdk
+
 ** SVN 194
  ** unused files cleanup
  ** [sdk] GetPath in Utils

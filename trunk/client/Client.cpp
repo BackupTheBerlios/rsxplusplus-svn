@@ -414,6 +414,16 @@ dcpp_ptr_t Client::clientCallFunc(const char* type, dcpp_ptr_t p1, dcpp_ptr_t p2
 			} else if(strncmp(cmd, "DispatchLine", 12) == 0) {
 				c->parseCommand(reinterpret_cast<const char*>(p2));
 				return DCPP_TRUE;
+			} else if(strncmp(cmd, "GetHubInfo", 10) == 0) {
+				dcppHubInfo* nfo = reinterpret_cast<dcppHubInfo*>(p2);
+				if(!nfo) return DCPP_FALSE;
+				nfo->port = c->getPort();
+				nfo->address = c->getAddress().c_str();
+				nfo->url = c->getHubUrl().c_str();
+				nfo->ip = c->getIp().c_str();
+				nfo->isAdc = c->getType() == ClientBase::ADC ? 1 : 0;
+				nfo->isSecured = c->isSecure() ? 1 : 0;
+				return DCPP_TRUE;
 			}
 		}
 	}
@@ -431,7 +441,7 @@ bool Client::plugChatMessage(const ChatMessage& cm) {
 	m.message = cm.text.c_str();
 	m.thirdPerson = cm.thirdPerson ? 1 : 0;
 	m.timestamp = cm.timestamp;
-	int p = PluginsManager::getInstance()->getSpeaker().speak(DCPP_EVENT_HUB, DCPP_EVENT_HUB_CHAT_MESSAGE, reinterpret_cast<dcpp_ptr_t>(&m), 0);
+	int p = PluginsManager::getInstance()->getSpeaker().speak(DCPP_EVENT_HUB, DCPP_EVENT_HUB_CHAT_MESSAGE, reinterpret_cast<dcpp_ptr_t>(&m), getType() == ADC ? 1 : 0);
 	return p == DCPP_TRUE;
 }
 
@@ -441,8 +451,9 @@ bool Client::plugHubLine(const char* line, size_t len, bool incoming) {
 	m.hubPtr = reinterpret_cast<dcpp_ptr_t>(this);
 	m.line = line;
 	m.length = len;
+	m.incoming = incoming ? 1 : 0;
 
-	int p = PluginsManager::getInstance()->getSpeaker().speak(DCPP_EVENT_HUB, DCPP_EVENT_HUB_LINE, reinterpret_cast<dcpp_ptr_t>(&m), incoming ? 1 : 0);
+	int p = PluginsManager::getInstance()->getSpeaker().speak(DCPP_EVENT_HUB, DCPP_EVENT_HUB_LINE, reinterpret_cast<dcpp_ptr_t>(&m), getType() == ADC ? 1 : 0);
 	return p == DCPP_TRUE;
 }
 

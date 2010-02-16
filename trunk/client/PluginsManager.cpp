@@ -147,6 +147,7 @@ void PluginsManager::load() {
 
 void PluginsManager::close() {
 	getSpeaker().speak(DCPP_EVENT_CORE, DCPP_EVENT_CORE_UNLOAD, 0, 0);
+	getSpeaker().cleanup();
 
 	Lock l(cs);
 	for(Plugins::const_iterator i = plugins.begin(); i != plugins.end(); ++i) {
@@ -208,6 +209,18 @@ dcpp_ptr_t PluginsManager::coreCallFunc(const char* type, dcpp_ptr_t p1, dcpp_pt
 				len = s.size()*sizeof(wchar_t);
 			memcpy(buf->buf, &s[0], len);
 			return len;
+		} else if(strncmp(type+6, "Utf8ToAcp", 9) == 0) {
+			const char* str = reinterpret_cast<const char*>(p1);
+			dcppBuffer* buf = reinterpret_cast<dcppBuffer*>(p2);
+			if(!str || !buf || buf->size == 0) return DCPP_FALSE;
+			string s = Text::utf8ToAcp(str);
+			return dcppBuffer_strcpy(s, buf);
+		} else if(strncmp(type+6, "AcpToUtf8", 9) == 0) {
+			const char* str = reinterpret_cast<const char*>(p1);
+			dcppBuffer* buf = reinterpret_cast<dcppBuffer*>(p2);
+			if(!str || !buf || buf->size == 0) return DCPP_FALSE;
+			string s = Text::acpToUtf8(str);
+			return dcppBuffer_strcpy(s, buf);
 		} else if(strncmp(type+6, "GetPath", 7) == 0) {
 			dcppBuffer* buf = reinterpret_cast<dcppBuffer*>(p2);
 			int16_t pathType;
@@ -272,11 +285,11 @@ dcpp_ptr_t PluginsManager::coreCallFunc(const char* type, dcpp_ptr_t p1, dcpp_pt
 }
 
 void PluginsManager::on(TimerManagerListener::Second, uint64_t tick) throw() {
-	getSpeaker().speak(DCPP_EVENT_TIMER, DCPP_EVENT_TYPE_TIMER_TICK_SECOND, (dcpp_ptr_t)&tick, 0);
+	getSpeaker().speak(DCPP_EVENT_TIMER, DCPP_EVENT_TIMER_TICK_SECOND, (dcpp_ptr_t)&tick, 0);
 }
 
 void PluginsManager::on(TimerManagerListener::Minute, uint64_t tick) throw() {
-	getSpeaker().speak(DCPP_EVENT_TIMER, DCPP_EVENT_TYPE_TIMER_TICK_MINUTE, (dcpp_ptr_t)&tick, 0);
+	getSpeaker().speak(DCPP_EVENT_TIMER, DCPP_EVENT_TIMER_TICK_MINUTE, (dcpp_ptr_t)&tick, 0);
 }
 
 } // namespace dcpp

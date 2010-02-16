@@ -38,6 +38,7 @@
 #include "QueueManager.h"
 #include "FinishedManager.h"
 //RSX++
+#include "sdk/hub.h"
 #include "PluginsManager.h"
 #include "rsxppSettingsManager.h"
 #include "RawManager.h"
@@ -66,14 +67,14 @@ Client* ClientManager::getClient(const string& aHubURL) {
 
 	c->addListener(this);
 	//RSX++
-//	PluginsManager::getInstance()->onHubConnected(c);
+	PluginsManager::getInstance()->getSpeaker().speak(DCPP_EVENT_HUB, DCPP_EVENT_HUB_CREATED, (dcpp_ptr_t)c, c->getType() == ClientBase::ADC ? 1 : 0);
 	//END
 	return c;
 }
 
 void ClientManager::putClient(Client* aClient) {
 	//RSX++
-//	PluginsManager::getInstance()->onHubDisconnected(aClient);
+	PluginsManager::getInstance()->getSpeaker().speak(DCPP_EVENT_HUB, DCPP_EVENT_HUB_DESTROYED, (dcpp_ptr_t)aClient, aClient->getType() == ClientBase::ADC ? 1 : 0);
 	//END
 	fire(ClientManagerListener::ClientDisconnected(), aClient);
 	aClient->removeListeners();
@@ -669,7 +670,7 @@ string ClientManager::getMyNick(const string& hubUrl) const {
 }
 	
 void ClientManager::on(Connected, const Client* c) throw() {
-//	PluginsManager::getInstance()->onHubConnected((Client*)c); //RSX++
+	PluginsManager::getInstance()->getSpeaker().speak(DCPP_EVENT_HUB, DCPP_EVENT_HUB_CONNECTED, (dcpp_ptr_t)c, 0); //RSX++
 	fire(ClientManagerListener::ClientConnected(), c);
 }
 
@@ -688,8 +689,8 @@ void ClientManager::on(HubUpdated, const Client* c) throw() {
 	fire(ClientManagerListener::ClientUpdated(), c);
 }
 
-void ClientManager::on(Failed, const Client* client, const string&) throw() {
-//	PluginsManager::getInstance()->onHubDisconnected((Client*)client); //RSX++
+void ClientManager::on(Failed, const Client* client, const string& error) throw() {
+	PluginsManager::getInstance()->getSpeaker().speak(DCPP_EVENT_HUB, DCPP_EVENT_HUB_DISCONNECTED, (dcpp_ptr_t)client, (dcpp_ptr_t)error.c_str()); //RSX++
 	fire(ClientManagerListener::ClientDisconnected(), client);
 }
 

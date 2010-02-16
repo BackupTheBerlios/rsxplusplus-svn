@@ -95,5 +95,5 @@ typedef struct {
 
 /**
  * @file
- * $Id$
+ * $Id: hub.h 187 2010-01-08 14:50:36Z adrian_007 $
  */

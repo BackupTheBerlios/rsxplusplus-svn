@@ -22,6 +22,7 @@
 #define DCPP_CALL_UTILS_LOG_MESSAGE		"Utils/LogMessage"
 #define DCPP_CALL_UTILS_FORMAT_PARAMS	"Utils/FormatParams"
 #define DCPP_CALL_UTILS_ACP_TO_UTF8		"Utils/AcpToUtf8"
+#define DCPP_CALL_UTILS_UTF8_TO_ACP		"Utils/Utf8ToAcp"
 #define DCPP_CALL_UTILS_WIDE_TO_UTF8	"Utils/WideToUtf8"
 #define DCPP_CALL_UTILS_GET_PATH		"Utils/GetPath"
 

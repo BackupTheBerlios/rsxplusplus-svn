@@ -51,6 +51,7 @@ const string AdcHub::BLO0_SUPPORT("ADBLO0");
 const string AdcHub::DHT0_SUPPORT("ADDHT0");
 
 AdcHub::AdcHub(const string& aHubURL, bool secure) : Client(aHubURL, '\n', secure), oldPassword(false), sid(0) {
+	type = ClientBase::ADC; //RSX++
 	TimerManager::getInstance()->addListener(this);
 }
 

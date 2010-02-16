@@ -16,16 +16,19 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef DCPP_SDK_TIMER
-#define DCPP_SDK_TIMER
+#ifndef DCPP_SDK
+#define DCPP_SDK
 
-#define DCPP_EVENT_TIMER "Timer/"
-#define DCPP_EVENT_TIMER_TICK_SECOND 0
-#define DCPP_EVENT_TIMER_TICK_MINUTE 1
+#include "dcpp.h"
+#include "user.h"
+#include "hub.h"
+#include "connection.h"
+#include "timer.h"
+#include "utils.h"
 
 #endif
 
 /**
  * @file
- * $Id$
+ * $Id: sdk.h 184 2010-01-03 23:30:18Z adrian_007 $
  */

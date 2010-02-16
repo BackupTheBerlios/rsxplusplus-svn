@@ -38,6 +38,12 @@ public:
 
 	int speak(const std::string& type, int callReason, dcpp_ptr_t param1, dcpp_ptr_t param2);
 	dcpp_ptr_t call(const char* type, dcpp_ptr_t p1, dcpp_ptr_t p2, dcpp_ptr_t p3);
+
+	void cleanup() {
+		sp.clear();
+		cp.clear();
+		protectedSpeakers.clear();
+	}
 private:
 	typedef std::list<dcppCallFunc> Callers;
 	typedef std::list<dcppListenerFunc> Listeners;

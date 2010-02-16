@@ -1,0 +1,6 @@
+LIBRARY	"bcdc_lua"
+
+EXPORTS
+    pluginInfo
+    pluginLoad
+    pluginUnload

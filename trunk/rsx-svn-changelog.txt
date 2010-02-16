@@ -1,3 +1,6 @@
+** SVN 197
+ ** [bcdc_lua] timer & some error msg stuff
+
 ** SVN 196
  ** fixed encoding issue with Client::parseCommand in nmdc hub
  ** [bcdc_lua] don't use raw socket->send for chat messages

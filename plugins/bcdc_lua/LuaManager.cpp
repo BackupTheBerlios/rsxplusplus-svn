@@ -101,7 +101,10 @@ int LuaManager::SendUDPPacket(lua_State* L) {
 
 int LuaManager::DropUserConnection(lua_State* L) {
 	if(lua_gettop(L) == 1 && lua_islightuserdata(L, -1)) {
-		LuaManager::dcppLib->call(DCPP_CALL_CONNECTION_DISCONNECT, (dcpp_ptr_t)lua_touserdata(L, -1), 0, 0);
+		if(!LuaManager::dcppLib->call(DCPP_CALL_CONNECTION_DISCONNECT, (dcpp_ptr_t)lua_touserdata(L, -1), 0, 0)) {
+			lua_pushliteral(L, "DropUserConnection: can't find connection at given address");
+			lua_error(L);
+		}
 	}
 	return 0;
 }
@@ -123,7 +126,7 @@ int LuaManager::ToUtf8(lua_State* L) {
 		delete[] buf.buf;
 		return 1;
 	} else {
-		lua_pushliteral(L, "Missing argument");
+		lua_pushliteral(L, "ToUtf8: string needed as argument");
 		lua_error(L);
 	}
 	return 0;
@@ -141,7 +144,7 @@ int LuaManager::FromUtf8(lua_State* L) {
 		delete[] buf.buf;
 		return 1;
 	} else {
-		lua_pushliteral(L, "Missing argument");
+		lua_pushliteral(L, "FromUtf8: string needed as argument");
 		lua_error(L);
 	}
 	return 0;
@@ -207,6 +210,11 @@ int LuaManager::GetHubUrl(lua_State* L) {
 }
 
 int LuaManager::RunTimer(lua_State* L) {
-	//@todo
+	if(lua_gettop(L) == 1 && lua_isnumber(L, -1)) {
+		LuaManager::timerActive = lua_tonumber(L, -1) != 0;
+	} else {
+		lua_pushliteral(L, "RunTimer: missing integer (0=off,!0=on)");
+		lua_error(L);
+	}
 	return 0;
 }

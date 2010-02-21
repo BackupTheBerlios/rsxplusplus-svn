@@ -146,7 +146,7 @@
 #include <boost/noncopyable.hpp>
 #include <boost/regex.hpp>
 #include <boost/flyweight.hpp>
-typedef boost::flyweight<std::string> fw_string;
+typedef std::string fw_string;
 
 #if defined(_MSC_VER) || defined(_STLPORT_VERSION)
 

@@ -1,3 +1,7 @@
+** SVN 198
+ ** removed boost::flyweight - no real gain on that
+ ** [bcdc_lua] fixed win32 build
+
 ** SVN 197
  ** [bcdc_lua] timer & some error msg stuff
 

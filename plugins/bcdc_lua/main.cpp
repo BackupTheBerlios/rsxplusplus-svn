@@ -161,7 +161,7 @@ dcppPluginInformation* DCPP_CALL_CONV pluginInfo(unsigned long long coreSdkVersi
     return &info;
 }
 
-int onCoreLoad(int callReason, dcpp_ptr_t, dcpp_ptr_t) {
+int DCPP_CALL_CONV onCoreLoad(int callReason, dcpp_ptr_t, dcpp_ptr_t) {
 	if(callReason == DCPP_EVENT_CORE_LOAD) {
 		L = lua_open();
 		luaL_openlibs(L);
@@ -186,7 +186,7 @@ int onCoreLoad(int callReason, dcpp_ptr_t, dcpp_ptr_t) {
 	return DCPP_FALSE;
 }
 
-int onHubEvent(int callReason, dcpp_ptr_t p1, dcpp_ptr_t p2) {
+int DCPP_CALL_CONV onHubEvent(int callReason, dcpp_ptr_t p1, dcpp_ptr_t p2) {
 	switch(callReason) {
 		case DCPP_EVENT_HUB_CREATED: {
 			MakeCall((p2 ? "adch" : "nmdch"), "OnHubAdded", 0, p1);
@@ -216,7 +216,7 @@ int onHubEvent(int callReason, dcpp_ptr_t p1, dcpp_ptr_t p2) {
 	return DCPP_FALSE;
 }
 
-int onConnectionEvent(int callReason, dcpp_ptr_t p1, dcpp_ptr_t p2) {
+int DCPP_CALL_CONV onConnectionEvent(int callReason, dcpp_ptr_t p1, dcpp_ptr_t p2) {
 	switch(callReason) {
 		case DCPP_EVENT_CONNECTION_LINE: {
 			dcppConnectionLine* line = (dcppConnectionLine*)p1;
@@ -233,7 +233,7 @@ int onConnectionEvent(int callReason, dcpp_ptr_t p1, dcpp_ptr_t p2) {
 	return DCPP_FALSE;
 }
 
-int onTimer(int callReason, dcpp_ptr_t p1, dcpp_ptr_t p2) {
+int DCPP_CALL_CONV onTimer(int callReason, dcpp_ptr_t p1, dcpp_ptr_t p2) {
 	if(callReason == DCPP_EVENT_TIMER_TICK_SECOND && LuaManager::timerActive) {
 		MakeCall("dcpp", "OnTimer");
 	}

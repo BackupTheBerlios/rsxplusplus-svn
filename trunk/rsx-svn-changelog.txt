@@ -1,3 +1,6 @@
+** SVN 199
+ ** [bcdc_lua] removed sdk files - always get it from /client/sdk directory
+
 ** SVN 198
  ** removed boost::flyweight - no real gain on that
  ** [bcdc_lua] fixed win32 build

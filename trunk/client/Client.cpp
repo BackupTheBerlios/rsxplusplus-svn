@@ -443,7 +443,7 @@ bool Client::plugChatMessage(const ChatMessage& cm) {
 	m.message = cm.text.c_str();
 	m.thirdPerson = cm.thirdPerson ? 1 : 0;
 	m.timestamp = cm.timestamp;
-	int p = PluginsManager::getInstance()->getSpeaker().speak(DCPP_EVENT_HUB, DCPP_EVENT_HUB_CHAT_MESSAGE, reinterpret_cast<dcpp_ptr_t>(&m), getType() == ADC ? 1 : 0);
+	int p = PluginsManager::getInstance()->getSpeaker().speak(DCPP_EVENT_HUB, DCPP_EVENT_HUB_CHAT_MESSAGE, reinterpret_cast<dcpp_ptr_t>(&m), (dcpp_ptr_t)hubUrl.c_str());
 	return p == DCPP_TRUE;
 }
 
@@ -455,7 +455,7 @@ bool Client::plugHubLine(const char* line, size_t len, bool incoming) {
 	m.length = len;
 	m.incoming = incoming ? 1 : 0;
 
-	int p = PluginsManager::getInstance()->getSpeaker().speak(DCPP_EVENT_HUB, DCPP_EVENT_HUB_LINE, reinterpret_cast<dcpp_ptr_t>(&m), getType() == ADC ? 1 : 0);
+	int p = PluginsManager::getInstance()->getSpeaker().speak(DCPP_EVENT_HUB, DCPP_EVENT_HUB_LINE, reinterpret_cast<dcpp_ptr_t>(&m), (dcpp_ptr_t)hubUrl.c_str());
 	return p == DCPP_TRUE;
 }
 

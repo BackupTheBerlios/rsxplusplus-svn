@@ -1,3 +1,7 @@
+** SVN 201 25/02/10
+ ** [sdk] in more hub events second param is hub url - might be usefull
+ ** [bcdc_lua] fixes to fit previous hub_event_* changes
+
 ** SVN 200 25/02/10
  ** [bcdc_lua] hub added/removed triggered on connecting/disconnect state (fixes bug on reconnect)
  ** [sdk] triggered DCPP_EVENT_HUB_CONNECTING

@@ -189,17 +189,23 @@ int DCPP_CALL_CONV onCoreLoad(int callReason, dcpp_ptr_t, dcpp_ptr_t) {
 int DCPP_CALL_CONV onHubEvent(int callReason, dcpp_ptr_t p1, dcpp_ptr_t p2) {
 	switch(callReason) {
 		case DCPP_EVENT_HUB_CONNECTING: {
-			MakeCall((p2 ? "adch" : "nmdch"), "OnHubAdded", 0, p1);
+			const char* url = (const char*)p2;
+			bool isAdc = strncmp(url, "adc://", 6) == 0 || strncmp(url, "adcs://", 7) == 0;
+			MakeCall((isAdc ? "adch" : "nmdch"), "OnHubAdded", 0, p1);
 			break;
 		}
 		case DCPP_EVENT_HUB_DISCONNECTED: {
-			MakeCall((p2 ? "adch" : "nmdch"), "OnHubRemoved", 0, p1);
+			const char* url = (const char*)p2;
+			bool isAdc = strncmp(url, "adc://", 6) == 0 || strncmp(url, "adcs://", 7) == 0;
+			MakeCall((isAdc ? "adch" : "nmdch"), "OnHubRemoved", 0, p1);
 			break;
 		}
 		case DCPP_EVENT_HUB_LINE: {
 			dcppHubLine* line = (dcppHubLine*)p1;
 			if(line && line->incoming) {
-				MakeCall((p2 ? "adch" : "nmdch"), "DataArrival", 1, line->hubPtr, line->line);
+				const char* url = (const char*)p2;
+				bool isAdc = strncmp(url, "adc://", 6) == 0 || strncmp(url, "adcs://", 7) == 0;
+				MakeCall((isAdc ? "adch" : "nmdch"), "DataArrival", 1, line->hubPtr, line->line);
 				return GetLuaBool() ? DCPP_TRUE : DCPP_FALSE;
 			}
 			break;

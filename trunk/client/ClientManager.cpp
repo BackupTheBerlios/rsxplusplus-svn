@@ -670,7 +670,7 @@ string ClientManager::getMyNick(const string& hubUrl) const {
 }
 	
 void ClientManager::on(Connected, const Client* c) throw() {
-	PluginsManager::getInstance()->getSpeaker().speak(DCPP_EVENT_HUB, DCPP_EVENT_HUB_CONNECTED, (dcpp_ptr_t)c, 0); //RSX++
+	PluginsManager::getInstance()->getSpeaker().speak(DCPP_EVENT_HUB, DCPP_EVENT_HUB_CONNECTED, (dcpp_ptr_t)c, (dcpp_ptr_t)c->getHubUrl().c_str()); //RSX++
 	fire(ClientManagerListener::ClientConnected(), c);
 }
 
@@ -690,7 +690,7 @@ void ClientManager::on(HubUpdated, const Client* c) throw() {
 }
 
 void ClientManager::on(Failed, const Client* client, const string& error) throw() {
-	PluginsManager::getInstance()->getSpeaker().speak(DCPP_EVENT_HUB, DCPP_EVENT_HUB_DISCONNECTED, (dcpp_ptr_t)client, (dcpp_ptr_t)error.c_str()); //RSX++
+	PluginsManager::getInstance()->getSpeaker().speak(DCPP_EVENT_HUB, DCPP_EVENT_HUB_DISCONNECTED, (dcpp_ptr_t)client, (dcpp_ptr_t)client->getHubUrl().c_str()); //RSX++
 	fire(ClientManagerListener::ClientDisconnected(), client);
 }
 
@@ -728,7 +728,10 @@ void ClientManager::fileListDisconnected(const UserPtr& p) {
 		OnlineIterC i = onlineUsers.find(const_cast<CID*>(&p->getCID()));
 		if(i == onlineUsers.end()) return;
 		OnlineUser* ou = i->second;
-	
+
+		if(ou->getClientBase().getType() == ClientBase::DHT)
+			return;
+
 		int fileListDisconnects = Util::toInt(ou->getIdentity().get("FD")) + 1;
 		ou->getIdentity().set("FD", Util::toString(fileListDisconnects));
 
@@ -769,7 +772,9 @@ void ClientManager::connectionTimeout(const UserPtr& p) {
 		if(i == onlineUsers.end()) return;
 		OnlineUser* ou = i->second;
 
-	
+		if(ou->getClientBase().getType() == ClientBase::DHT)
+			return;
+
 		int connectionTimeouts = Util::toInt(ou->getIdentity().get("TO")) + 1;
 		ou->getIdentity().set("TO", Util::toString(connectionTimeouts));
 	
@@ -818,6 +823,9 @@ void ClientManager::checkCheating(const UserPtr& p, DirectoryListing* dl) {
 		OnlineIterC i = onlineUsers.find(const_cast<CID*>(&p->getCID()));
 		if(i == onlineUsers.end()) return;
 		ou = i->second;
+
+		if(ou->getClientBase().getType() == ClientBase::DHT)
+			return;
 
 		int64_t statedSize = ou->getIdentity().getBytesShared();
 		int64_t realSize = dl->getTotalSize();
@@ -954,6 +962,10 @@ void ClientManager::kickFromAutosearch(const UserPtr& p, int action, const strin
 		OnlineIterC i = onlineUsers.find(const_cast<CID*>(&p->getCID()));
 		if(i == onlineUsers.end()) return;
 		ou = i->second;
+
+		if(ou->getClientBase().getType() == ClientBase::DHT)
+			return;
+
 		int noOfFiles = Util::toInt(ou->getIdentity().get("A7")) + 1;
 
 		ou->getIdentity().set("A1", file);
@@ -979,6 +991,9 @@ void ClientManager::addCheckToQueue(const UserPtr& p, bool filelist) {
 		OnlineIterC i = onlineUsers.find(const_cast<CID*>(&p->getCID()));
 		if(i == onlineUsers.end()) return;
 		ou = i->second;
+
+		if(ou->getClientBase().getType() == ClientBase::DHT)
+			return;
 
 		if(ou->isCheckable() && ou->getClient().isOp()) {
 			if(!ou->getChecked(filelist)) {
@@ -1036,6 +1051,9 @@ void ClientManager::setCheating(const UserPtr& p, const string& _ccResponse, con
 		
 		ou = i->second;
 
+		if(ou->getClientBase().getType() == ClientBase::DHT)
+			return;
+
 		if(!_ccResponse.empty()) {
 			ou->setTestSURComplete();
 			ou->getIdentity().set("TS", _ccResponse);
@@ -1065,6 +1083,9 @@ void ClientManager::setListSize(const UserPtr& p, int64_t aFileLength, bool adc)
 		if(i == onlineUsers.end()) return;
 		ou = i->second;
 
+		if(ou->getClientBase().getType() == ClientBase::DHT)
+			return;
+
 		ou->getIdentity().set("LS", Util::toString(aFileLength));
 
 		if(ou->getIdentity().getBytesShared() > 0) {
@@ -1091,7 +1112,6 @@ void ClientManager::setListSize(const UserPtr& p, int64_t aFileLength, bool adc)
 }
 //END
 int ClientManager::getMode(const string& aHubUrl) const {
-	
 	if(aHubUrl.empty()) 
 		return SETTING(INCOMING_CONNECTIONS);
 
@@ -1139,6 +1159,10 @@ void ClientManager::setGenerator(const UserPtr& p, const string& aGenerator, con
 		OnlineIterC i = onlineUsers.find(const_cast<CID*>(&p->getCID()));
 		if(i == onlineUsers.end()) return;
 		OnlineUser* ou = i->second;
+
+		if(ou->getClientBase().getType() == ClientBase::DHT)
+			return;
+
 		ou->getIdentity().set("GE", aGenerator);
 		ou->getIdentity().set("FI", aCID);
 		ou->getIdentity().set("FB", aBase);
@@ -1166,6 +1190,9 @@ void ClientManager::reportUser(const HintedUser& user) {
 		OnlineUser* u = findOnlineUser(user.user->getCID(), user.hint, priv);
 		if(!u) return;
 
+		if(u->getClientBase().getType() == ClientBase::DHT)
+			return;
+
 		nick = u->getIdentity().getNick();
 		report = u->getIdentity().getReport();
 		c = &u->getClient();
@@ -1180,6 +1207,10 @@ void ClientManager::cleanUser(const HintedUser& user) {
 		OnlineUser* ou = findOnlineUser(user.user->getCID(), user.hint, priv);
 		if(!ou)
 			return;
+
+		if(ou->getClientBase().getType() == ClientBase::DHT)
+			return;
+
 		ou->getIdentity().cleanUser();
 		ou->getClient().updated(ou);
 	}
@@ -1193,6 +1224,10 @@ bool ClientManager::getSharingHub(const HintedUser& user) {
 		OnlineUser* ou = findOnlineUser(user.user->getCID(), user.hint, priv);
 		if(!ou)
 			return false;
+
+		if(ou->getClientBase().getType() == ClientBase::DHT)
+			return false;
+
 		c = &ou->getClient();
 	}
 	return c ? c->getHideShare() : false;
@@ -1207,6 +1242,10 @@ void ClientManager::checkSlots(const HintedUser& user, int slots) {
 		OnlineUser* ou = findOnlineUser(user.user->getCID(), user.hint, priv);
 		if(!ou)
 			return;
+
+		if(ou->getClientBase().getType() == ClientBase::DHT)
+			return;
+
 		c = &ou->getClient();
 		if(ou->getIdentity().get("SC").empty())
 			report = ou->getIdentity().checkSlotsCount(*ou, slots);
@@ -1223,6 +1262,9 @@ void ClientManager::multiHubKick(const UserPtr& p, const string& aRaw) {
 		OnlineIterC i = onlineUsers.find(const_cast<CID*>(&p->getCID()));
 		if(i == onlineUsers.end()) return;
 		OnlineUser* ou = i->second;
+
+		if(ou->getClientBase().getType() == ClientBase::DHT)
+			return;
 
 		for(OnlineMap::const_iterator j = onlineUsers.begin(); j != onlineUsers.end(); j++) {
 			if(j->second->getUser()->isSet(User::DHT)) continue;

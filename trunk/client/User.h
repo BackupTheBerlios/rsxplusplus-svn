@@ -207,7 +207,7 @@ public:
 	GETSET(UserPtr, user, User);
 	GETSET(uint64_t, loggedIn, LoggedIn); //RSX++
 private:
-	typedef std::tr1::unordered_map<short, fw_string> InfMap;
+	typedef std::tr1::unordered_map<short, std::string> InfMap;
 	typedef InfMap::const_iterator InfIter;
 	InfMap info;
 

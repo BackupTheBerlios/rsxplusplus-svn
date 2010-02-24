@@ -46,8 +46,8 @@ namespace dht
 
 	struct UDPKey
 	{
-		fw_string	ip;
-		CID			key;
+		string	ip;
+		CID		key;
 	};
 
 	struct Node :

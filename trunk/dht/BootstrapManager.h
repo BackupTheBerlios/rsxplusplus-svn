@@ -47,7 +47,7 @@ namespace dht
 		
 		struct BootstrapNode
 		{
-			fw_string	ip;
+			string		ip;
 			uint16_t	udpPort;
 			CID			cid;
 			UDPKey		udpKey;

@@ -1,3 +1,10 @@
+** SVN 200 25/02/10
+ ** [bcdc_lua] hub added/removed triggered on connecting/disconnect state (fixes bug on reconnect)
+ ** [sdk] triggered DCPP_EVENT_HUB_CONNECTING
+ ** [sdk] in DCPP_EVENT_HUB_CONNECTING/CONNECTED/DISCONNECTED second param is hub url
+ ** cleanup
+ ** fixed some dht-related crashes
+
 ** SVN 199
  ** [bcdc_lua] removed sdk files - always get it from /client/sdk directory
 

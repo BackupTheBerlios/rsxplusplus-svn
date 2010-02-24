@@ -188,11 +188,11 @@ int DCPP_CALL_CONV onCoreLoad(int callReason, dcpp_ptr_t, dcpp_ptr_t) {
 
 int DCPP_CALL_CONV onHubEvent(int callReason, dcpp_ptr_t p1, dcpp_ptr_t p2) {
 	switch(callReason) {
-		case DCPP_EVENT_HUB_CREATED: {
+		case DCPP_EVENT_HUB_CONNECTING: {
 			MakeCall((p2 ? "adch" : "nmdch"), "OnHubAdded", 0, p1);
 			break;
 		}
-		case DCPP_EVENT_HUB_DESTROYED: {
+		case DCPP_EVENT_HUB_DISCONNECTED: {
 			MakeCall((p2 ? "adch" : "nmdch"), "OnHubRemoved", 0, p1);
 			break;
 		}

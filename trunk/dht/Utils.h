@@ -61,7 +61,7 @@ private:
 	
 	struct OutPacket
 	{
-		fw_string	ip;
+		string		ip;
 		uint64_t	time;
 		uint32_t	cmd;
 	};

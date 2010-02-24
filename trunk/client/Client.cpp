@@ -167,6 +167,8 @@ void Client::connect() {
 
 	state = STATE_CONNECTING;
 
+	PluginsManager::getInstance()->getSpeaker().speak(DCPP_EVENT_HUB, DCPP_EVENT_HUB_CONNECTING, (dcpp_ptr_t)this, (dcpp_ptr_t)hubUrl.c_str()); //RSX++
+
 	try {
 		sock = BufferedSocket::getSocket(separator);
 		sock->addListener(this);

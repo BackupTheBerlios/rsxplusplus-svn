@@ -145,8 +145,6 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/noncopyable.hpp>
 #include <boost/regex.hpp>
-#include <boost/flyweight.hpp>
-typedef std::string fw_string;
 
 #if defined(_MSC_VER) || defined(_STLPORT_VERSION)
 

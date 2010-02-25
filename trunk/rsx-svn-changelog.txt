@@ -1,3 +1,7 @@
+** SVN 202 25/02/10
+ ** changed some status bar info
+ ** [bcdc_lua] added scripts from bcdc
+
 ** SVN 201 25/02/10
  ** [sdk] in more hub events second param is hub url - might be usefull
  ** [bcdc_lua] fixes to fit previous hub_event_* changes

@@ -1118,7 +1118,7 @@ void DirectoryListingFrame::runUserCommand(UserCommand& uc) {
 	int sel = -1;
 	while((sel = ctrlList.GetNextItem(sel, LVNI_SELECTED)) != -1) {
 		const ItemInfo* ii = ctrlList.getItemData(sel);
-		if(uc.getType() == UserCommand::TYPE_RAW_ONCE) {
+		if(uc.once()) {
 			if(nicks.find(dl->getUser()) != nicks.end())
 				continue;
 			nicks.insert(dl->getUser());
@@ -1147,7 +1147,7 @@ void DirectoryListingFrame::runUserCommand(UserCommand& uc) {
 
 		StringMap tmp = ucParams;
 		UserPtr tmpPtr = dl->getUser();
-		ClientManager::getInstance()->userCommand(dl->getUser(), uc, tmp, true);
+		ClientManager::getInstance()->userCommand(dl->getHintedUser(), uc, tmp, true);
 	}
 }
 
@@ -1283,5 +1283,5 @@ LRESULT DirectoryListingFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM /*
 
 /**
  * @file
- * $Id: DirectoryListingFrm.cpp 477 2010-01-29 08:59:43Z bigmuscle $
+ * $Id: DirectoryListingFrm.cpp 486 2010-02-27 16:44:26Z bigmuscle $
  */

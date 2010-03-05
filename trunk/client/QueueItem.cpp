@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2010 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -249,7 +249,7 @@ Segment QueueItem::getNextSegment(int64_t  blockSize, int64_t wantedSize, int64_
 				continue;
 
 			// current chunk must be running at least for 2 seconds
-			if(d->getStart() == 0 || GET_TIME() - d->getStart() < 2000) 
+			if(d->getStart() == 0 || GET_TICK() - d->getStart() < 2000) 
 				continue;
 
 			// current chunk mustn't be finished in next 10 seconds

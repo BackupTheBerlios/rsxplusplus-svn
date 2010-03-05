@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2009 Big Muscle
+ * Copyright (C) 2009-2010 Big Muscle
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -47,6 +47,16 @@ namespace dcpp
 		 * We must handle this a little bit differently than downloads, because of that stupidity in OpenSSL
 		 */		
 		int write(Socket* sock, void* buffer, size_t& len);
+
+		/*
+		 * Returns current download limit.
+		 */
+		int64_t getDownloadLimit() const;
+
+		/*
+		 * Returns current download limit.
+		 */
+		int64_t getUploadLimit() const;
 		
 	private:
 		

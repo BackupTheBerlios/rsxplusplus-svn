@@ -109,12 +109,16 @@ public:
 						cur.AppendMenu(MF_SEPARATOR);
 						m++;
 					}
-				} else if(uc.getType() == UserCommand::TYPE_RAW || uc.getType() == UserCommand::TYPE_RAW_ONCE) {
+				} else if(uc.isRaw() || uc.isChat()) {
 					cur = BOOLSETTING(UC_SUBMENU) ? subMenu.m_hMenu : menu.m_hMenu;
-					StringTokenizer<tstring> t(Text::toT(uc.getName()), _T('\\'));
-					for(TStringIter i = t.getTokens().begin(); i != t.getTokens().end(); ++i) {
+					tstring name = Text::toT(uc.getName());
+					Util::replace(_T("//"), _T("\t"), name);
+					StringTokenizer<tstring> t(name, _T('/'));
+					for(TStringList::const_iterator i = t.getTokens().begin(), iend = t.getTokens().end(); i != iend; ++i) {
+						name = *i;
+						Util::replace(_T("\t"), _T("/"), name);
 						if(i+1 == t.getTokens().end()) {
-							cur.AppendMenu(MF_STRING, IDC_USER_COMMAND+n, i->c_str());
+							cur.AppendMenu(MF_STRING, IDC_USER_COMMAND + n, name.c_str());
 							m++;
 						} else {
 							bool found = false;
@@ -123,7 +127,7 @@ public:
 							for(int k = 0; k < cur.GetMenuItemCount(); k++) {
 								if(cur.GetMenuState(k, MF_BYPOSITION) & MF_POPUP) {
 									cur.GetMenuString(k, buf, 1024, MF_BYPOSITION);
-									if(stricmp(buf, i->c_str()) == 0) {
+									if(stricmp(buf, name.c_str()) == 0) {
 										found = true;
 										cur = (HMENU)cur.GetSubMenu(k);
 									}
@@ -131,13 +135,11 @@ public:
 							}
 							if(!found) {
 								HMENU m = CreatePopupMenu();
-								cur.AppendMenu(MF_POPUP, (UINT_PTR)m, i->c_str());
+								cur.AppendMenu(MF_POPUP, (UINT_PTR)m, name.c_str());
 								cur = m;
 							}
 						}
 					}
-				} else {
-					dcasserta(0);
 				}
 				n++;
 			}
@@ -156,5 +158,5 @@ private:
 
 /**
  * @file
- * $Id: UCHandler.h 399 2008-07-06 19:48:02Z BigMuscle $
+ * $Id: UCHandler.h 482 2010-02-13 10:49:30Z bigmuscle $
  */

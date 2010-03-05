@@ -108,7 +108,7 @@ public:
 	};
 	//RSX++
 	LRESULT onCreate(UINT /*msg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled) {
-		SetWindowTheme(m_hWnd, _T("explorer"), 0);
+		WinUtil::setListViewExplorerStyle(m_hWnd);
 		bHandled = FALSE;
 		return FALSE;
 	}
@@ -627,7 +627,7 @@ private:
 	}	
 };
 
-// Copyright (C) 2005-2009 Big Muscle, StrongDC++
+// Copyright (C) 2005-2010 Big Muscle, StrongDC++
 template<class T, int ctrlId, class K, class hashFunc, class equalKey>
 class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId> 
 {
@@ -1005,5 +1005,5 @@ const vector<T*> TypedTreeListViewCtrl<T, ctrlId, K, hashFunc, equalKey>::emptyV
 
 /**
  * @file
- * $Id: TypedListViewCtrl.h 453 2009-08-04 15:46:31Z BigMuscle $
+ * $Id: TypedListViewCtrl.h 482 2010-02-13 10:49:30Z bigmuscle $
  */

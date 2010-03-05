@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2010 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -52,5 +52,5 @@ void Thread::start() throw(ThreadException) {
 
 /**
  * @file
- * $Id: Thread.cpp 434 2009-03-29 11:09:33Z BigMuscle $
+ * $Id: Thread.cpp 482 2010-02-13 10:49:30Z bigmuscle $
  */

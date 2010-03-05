@@ -496,7 +496,10 @@ public:
 	static bool shutDown(int action);
 	static int getFirstSelectedIndex(CListViewCtrl& list);
 	static int setButtonPressed(int nID, bool bPressed = true);
+
+	static string getReport(const Identity& identity, HWND hwnd);
 	//RSX++
+	static bool setExplorerTheme(HWND wnd);
 	static void setListViewExplorerStyle(HWND hListView);
 	static void flashWindow();
 	static tstring toYesNo(bool value);
@@ -513,5 +516,5 @@ private:
 
 /**
  * @file
- * $Id: WinUtil.h 471 2010-01-09 23:17:42Z bigmuscle $
+ * $Id: WinUtil.h 482 2010-02-13 10:49:30Z bigmuscle $
  */

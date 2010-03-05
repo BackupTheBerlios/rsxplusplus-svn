@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2010 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -2265,5 +2265,5 @@ string QueueManager::addFileListCheck(const HintedUser& aUser) throw(QueueExcept
 
 /**
  * @file
- * $Id: QueueManager.cpp 479 2010-02-02 15:50:33Z bigmuscle $
+ * $Id: QueueManager.cpp 482 2010-02-13 10:49:30Z bigmuscle $
  */

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2010 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,6 +27,7 @@
 #include "User.h"
 #include "Socket.h"
 #include "DirectoryListing.h"
+#include "FavoriteManager.h"
 
 #include "ClientManagerListener.h"
 //RSX++
@@ -44,11 +45,11 @@ class ClientManager : public Speaker<ClientManagerListener>,
 public:
 	//RSX++
 	void openHub(const string& url) {
-		fire(ClientManagerListener::ClientOpen(), url);
+		//fire(ClientManagerListener::ClientOpen(), url);
 	}
 
 	void closeHub(const string& url) {
-		fire(ClientManagerListener::ClientClose(), url);
+		//fire(ClientManagerListener::ClientClose(), url);
 	}
 	//END
 
@@ -116,13 +117,6 @@ public:
 			//END
 		}
 	}
-	
-	void reportUser(const HintedUser& user);
-	//RSX++
-	void cleanUser(const HintedUser& user);
-	bool getSharingHub(const HintedUser& user);
-	void checkSlots(const HintedUser& user, int slots);
-	//END
 
 	bool isOp(const UserPtr& aUser, const string& aHubUrl) const;
 	bool isStealth(const string& aHubUrl) const;
@@ -138,9 +132,7 @@ public:
 	void send(AdcCommand& c, const CID& to);
 	void connect(const HintedUser& user, const string& token);
 	void privateMessage(const HintedUser& user, const string& msg, bool thirdPerson);
-
-	void userCommand(const UserPtr& p, const UserCommand& uc, StringMap& params, bool compatibility);
-	void sendRawCommand(const UserPtr& user, const string& aRaw, bool checkProtection = false);
+	void userCommand(const HintedUser& user, const UserCommand& uc, StringMap& params, bool compatibility);
 
 	int getMode(const string& aHubUrl) const;
 	bool isActive(const string& aHubUrl = Util::emptyString) const { return getMode(aHubUrl) != SettingsManager::INCOMING_FIREWALL_PASSIVE; }
@@ -148,13 +140,7 @@ public:
 	void lock() throw() { cs.lock(); }
 	void unlock() throw() { cs.unlock(); }
 
-	//RSX++
-	void sendAction(const UserPtr& p, const int aAction);
-	void sendAction(OnlineUser& ou, const int aAction);
-	void kickFromAutosearch(const UserPtr& p, int action, const string& cheat, const string& file, const string& size, const string& tth, bool display = false);
-	void multiHubKick(const UserPtr& p, const string& aRaw);
-	tstring getHubsLoadInfo() const;
-	//END
+	tstring getHubsLoadInfo() const; //RSX++
 
 	const Client::List& getClients() const { return clients; }
 
@@ -162,32 +148,15 @@ public:
 	const CID& getMyPID();
 	
 	// fake detection methods
-	void setListLength(const UserPtr& p, const string& listLen);
-	void setListSize(const UserPtr& p, int64_t aFileLength, bool adc);
-	void fileListDisconnected(const UserPtr& p);
-	void connectionTimeout(const UserPtr& p);
-	void checkCheating(const UserPtr& p, DirectoryListing* dl);
-	void setCheating(const UserPtr& p, const string& _ccResponse, const string& _cheatString, int _actionId, bool _displayCheat,
-		bool _badClient, bool _badFileList, bool _clientCheckComplete, bool _fileListCheckComplete);
-	//RSX++
-	void addCheckToQueue(const UserPtr& p, bool filelist);
-	//END
+	#include "CheatManager.h"
 
-	// NMDC functions only!!!
-	void setPkLock(const UserPtr& p, const string& aPk, const string& aLock);
-	void setSupports(const UserPtr& p, const string& aSupports);
-	
-	void setGenerator(const UserPtr& p, const string& aGenerator, const string& aCID, const string& aBase);
-	void setUnknownCommand(const UserPtr& p, const string& aUnknownCommand);
-
+	OnlineUserPtr findDHTNode(const CID& cid) const;
 private:
-	//RSX++
-	bool compareUsers(const OnlineUser& ou1, const OnlineUser& ou2) const;
-	//END
+
 	typedef unordered_map<CID*, UserPtr> UserMap;
 	typedef UserMap::iterator UserIter;
 
-	typedef unordered_map<CID*, string> NickMap;
+	typedef unordered_map<CID*, std::string> NickMap;
 
 	typedef unordered_multimap<CID*, OnlineUser*> OnlineMap;
 	typedef OnlineMap::iterator OnlineIter;
@@ -249,5 +218,5 @@ private:
 
 /**
  * @file
- * $Id: ClientManager.h 473 2010-01-12 23:17:33Z bigmuscle $
+ * $Id: ClientManager.h 482 2010-02-13 10:49:30Z bigmuscle $
  */

@@ -19,6 +19,8 @@
 #ifndef DCPLUSPLUS_DCPP_HUBENTRY_H_
 #define DCPLUSPLUS_DCPP_HUBENTRY_H_
 
+#include "rsxppSettingsManager.h" //RSX++
+
 namespace dcpp {
 
 class HubEntry {

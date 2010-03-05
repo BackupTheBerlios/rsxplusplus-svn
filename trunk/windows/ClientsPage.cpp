@@ -278,5 +278,5 @@ LRESULT ClientsPage::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled
 // iDC++
 /**
  * @file
- * $Id: ClientsPage.cpp 413 2008-07-30 09:32:53Z BigMuscle $
+ * $Id: ClientsPage.cpp 477 2010-01-29 08:59:43Z bigmuscle $
  */

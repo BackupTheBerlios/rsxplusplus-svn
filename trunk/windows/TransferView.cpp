@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2010 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -538,7 +538,7 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 				} else {
 					color = GetBkColor(cd->nmcd.hdc);
 					SetBkColor(cd->nmcd.hdc, color);
-				}				
+				}		
 			} else {
 				color = WinUtil::bgColor;
 				SetBkColor(cd->nmcd.hdc, WinUtil::bgColor);
@@ -1457,5 +1457,5 @@ void TransferView::on(QueueManagerListener::Removed, const QueueItem* qi) throw(
 
 /**
  * @file
- * $Id: TransferView.cpp 476 2010-01-25 21:43:12Z bigmuscle $
+ * $Id: TransferView.cpp 482 2010-02-13 10:49:30Z bigmuscle $
  */

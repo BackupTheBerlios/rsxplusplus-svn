@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2010 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -188,16 +188,17 @@ int SSLSocket::checkSSL(int ret) throw(SocketException) {
 			default:
 				{
 					ssl.reset();
+					// @todo replace 80 with MAX_ERROR_SZ or whatever's appropriate for yaSSL in some nice way...
+					char errbuf[80];
 
-					char buf[80];
-					int error = ERR_get_error();
 					/* TODO: better message for SSL_ERROR_SYSCALL
 					 * If the error queue is empty (i.e. ERR_get_error() returns 0), ret can be used to find out more about the error: 
 					 * If ret == 0, an EOF was observed that violates the protocol. If ret == -1, the underlying BIO reported an I/O error 
 					 * (for socket I/O on Unix systems, consult errno for details).
 					 */
-					sprintf(buf, "%s %d: %s\n", CSTRING(SSL_ERROR), err, (error == 0) ? CSTRING(CONNECTION_CLOSED) : ERR_reason_error_string(error));
-					throw SocketException(buf);
+					int error = ERR_get_error();
+					sprintf(errbuf, "%s %d: %s\n", CSTRING(SSL_ERROR), err, (error == 0) ? CSTRING(CONNECTION_CLOSED) : ERR_reason_error_string(error));
+					throw SSLSocketException(errbuf);
 				}
 		}
 	}

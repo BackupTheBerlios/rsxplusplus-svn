@@ -31,7 +31,6 @@
 
 #include "../client/Client.h"
 #include "../client/SearchManager.h"
-#include "../client/Thread.h"
 #include "../client/ClientManagerListener.h"
 #include "../client/FavoriteManager.h"
 #include "../client/QueueManager.h"
@@ -624,6 +623,6 @@ private:
 
 /**
  * @file
- * $Id: SearchFrm.h 466 2009-11-13 18:47:25Z BigMuscle $
+ * $Id: SearchFrm.h 473 2010-01-12 23:17:33Z bigmuscle $
  */
 

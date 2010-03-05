@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2010 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -80,7 +80,7 @@ public:
 	size_t getBlockSize(const TTHValue& root);
 
 	void addTree(const string& aFileName, uint32_t aTimeStamp, const TigerTree& tt) {
-		hashDone(aFileName, aTimeStamp, tt, -1);
+		hashDone(aFileName, aTimeStamp, tt, -1, -1);
 	}
 	void addTree(const TigerTree& tree) { Lock l(cs); store.addTree(tree); }
 
@@ -238,11 +238,13 @@ private:
 	/** Single node tree where node = root, no storage in HashData.dat */
 	static const int64_t SMALL_TREE = -1;
 
-	void hashDone(const string& aFileName, uint64_t aTimeStamp, const TigerTree& tth, int64_t speed);
+	void hashDone(const string& aFileName, uint64_t aTimeStamp, const TigerTree& tth, int64_t speed, int64_t size);
+
 	void doRebuild() {
 		Lock l(cs);
 		store.rebuild();
 	}
+
 	void on(TimerManagerListener::Minute, uint64_t) throw() {
 		Lock l(cs);
 		store.save();
@@ -255,5 +257,5 @@ private:
 
 /**
  * @file
- * $Id: HashManager.h 473 2010-01-12 23:17:33Z bigmuscle $
+ * $Id: HashManager.h 482 2010-02-13 10:49:30Z bigmuscle $
  */

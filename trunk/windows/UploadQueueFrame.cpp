@@ -51,7 +51,7 @@ LRESULT UploadQueueFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lP
 		TVS_HASBUTTONS | TVS_LINESATROOT | TVS_HASLINES | TVS_SHOWSELALWAYS | TVS_DISABLEDRAGDROP | TVS_TRACKSELECT,
 		 WS_EX_CLIENTEDGE, IDC_DIRECTORIES);
 
-	SetWindowTheme(ctrlQueued.m_hWnd, L"explorer", NULL);
+	WinUtil::setListViewExplorerStyle(m_hWnd);
 	ctrlQueued.SetImageList(WinUtil::fileImages, TVSIL_NORMAL);
 	ctrlList.SetImageList(WinUtil::fileImages, LVSIL_SMALL);
 

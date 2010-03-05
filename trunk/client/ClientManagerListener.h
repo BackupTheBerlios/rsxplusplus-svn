@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2010 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,8 +35,6 @@ public:
 	typedef X<4> ClientConnected;
 	typedef X<5> ClientUpdated;
 	typedef X<6> ClientDisconnected;
-	typedef X<7> ClientOpen; //RSX++
-	typedef X<8> ClientClose; //RSX++
 
 	/** User online in at least one hub */
 	virtual void on(UserConnected, const UserPtr&) throw() { }
@@ -47,8 +45,6 @@ public:
 	virtual void on(ClientConnected, const Client*) throw() { }
 	virtual void on(ClientUpdated, const Client*) throw() { }
 	virtual void on(ClientDisconnected, const Client*) throw() { }
-	virtual void on(ClientOpen, const std::string&) throw() { } //RSX++
-	virtual void on(ClientClose, const std::string&) throw() { } //RSX++
 };
 
 } // namespace dcpp
@@ -57,5 +53,5 @@ public:
 
 /**
  * @file
- * $Id: ClientManagerListener.h 434 2009-03-29 11:09:33Z BigMuscle $
+ * $Id: ClientManagerListener.h 482 2010-02-13 10:49:30Z bigmuscle $
  */

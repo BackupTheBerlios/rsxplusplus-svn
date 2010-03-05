@@ -49,7 +49,7 @@ void CommandQueue::execCommand(const CommandItem& item) throw() {
 	if(item.lua) {
 		//ScriptManager::getInstance()->onRaw(item.name, item.cmd, clientPtr);
 	} else {
-		clientPtr->sendUserCmd(item.cmd);
+		clientPtr->send(item.cmd);
 	}
 }
 
@@ -67,7 +67,7 @@ void CommandQueue::addCommand(const OnlineUser& ou, int actionId) {
 					if(i->getEnabled() && !(i->getRaw().empty())) {
 						if(FavoriteManager::getInstance()->getEnabledRaw(hub, actionId, i->getId())) {
 							StringMap params;
-							const UserCommand uc = UserCommand(0, 0, 0, 0, "", i->getRaw(), "");
+							const UserCommand uc = UserCommand(0, 0, 0, 0, "", i->getRaw(), "", "");
 							ou.getIdentity().getParams(params, "user", true);
 							clientPtr->getHubIdentity().getParams(params, "hub", false);
 							clientPtr->getMyIdentity().getParams(params, "my", true);

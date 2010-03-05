@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2010 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -66,7 +66,7 @@ public:
 	virtual void connect(const OnlineUser& user, const string& token) = 0;
 	virtual void hubMessage(const string& aMessage, bool thirdPerson = false) = 0;
 	virtual void privateMessage(const OnlineUserPtr& user, const string& aMessage, bool thirdPerson = false) = 0;
-	virtual void sendUserCmd(const string& aUserCmd) = 0;
+	virtual void sendUserCmd(const UserCommand& command, const StringMap& params) = 0;
 
 	uint64_t search(int aSizeMode, int64_t aSize, int aFileType, const string& aString, const string& aToken, void* owner);
 	void cancelSearch(void* aOwner) { searchQueue.cancelSearch(aOwner); }
@@ -147,6 +147,9 @@ public:
 
 	void cheatMessage(const string& msg) {
 		fire(ClientListener::CheatMessage(), this, msg);
+	}
+	void reportUser(const Identity& i) {
+		fire(ClientListener::UserReport(), this, i);
 	}
 	
 	void reconnect();
@@ -285,5 +288,5 @@ private:
 
 /**
  * @file
- * $Id: Client.h 476 2010-01-25 21:43:12Z bigmuscle $
+ * $Id: Client.h 482 2010-02-13 10:49:30Z bigmuscle $
  */

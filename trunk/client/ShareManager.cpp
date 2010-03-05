@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2010 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -786,9 +786,6 @@ ShareManager::Directory::Ptr ShareManager::buildTree(const string& aName, const 
 
 		//RSX++ //Share skiplist
 		if(Wildcard::patternMatch(name, RSXPP_SETTING(SKIPLIST_SHARE), ';')) {
-			/*string msg = boost::str(boost::format("User has choosen not to share file: %1% (Size: %2% B, Directory: %3%)")
-				% name % File::getSize(name) % aName);
-			LogManager::getInstance()->message(msg);*/
 			continue;
 		}
 		//END
@@ -1732,5 +1729,5 @@ int64_t ShareManager::removeExcludeFolder(const string &path, bool returnSize /*
 
 /**
  * @file
- * $Id: ShareManager.cpp 476 2010-01-25 21:43:12Z bigmuscle $
+ * $Id: ShareManager.cpp 482 2010-02-13 10:49:30Z bigmuscle $
  */

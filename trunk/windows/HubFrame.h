@@ -469,6 +469,7 @@ private:
 	void on(SearchFlood, const Client*, const string&) throw();
 	void on(CheatMessage, const Client*, const string&) throw();	
 	void on(HubTopic, const Client*, const string&) throw();
+	void on(UserReport, const Client*, const Identity&) throw();
 	void on(AddClientLine, const Client*, const string&, int) throw(); //RSX++
 
 	void speak(Tasks s) { tasks.add(static_cast<uint8_t>(s), 0); PostMessage(WM_SPEAKER); }
@@ -482,5 +483,5 @@ private:
 
 /**
  * @file
- * $Id: HubFrame.h 463 2009-10-01 16:30:22Z BigMuscle $
+ * $Id: HubFrame.h 482 2010-02-13 10:49:30Z bigmuscle $
  */

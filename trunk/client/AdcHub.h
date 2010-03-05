@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2010 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,7 +38,7 @@ public:
 	
 	void hubMessage(const string& aMessage, bool thirdPerson = false);
 	void privateMessage(const OnlineUserPtr& user, const string& aMessage, bool thirdPerson = false);
-	void sendUserCmd(const string& aUserCmd) { send(aUserCmd); }
+	void sendUserCmd(const UserCommand& command, const StringMap& params);
 	void search(int aSizeMode, int64_t aSize, int aFileType, const string& aString, const string& aToken);
 	void password(const string& pwd);
 	void info(bool alwaysSend);
@@ -50,7 +50,6 @@ public:
 	void send(const AdcCommand& cmd);
 
 	string getMySID() { return AdcCommand::fromSID(sid); }
-
 private:
 	friend class ClientManager;
 	friend class CommandHandler<AdcHub>;
@@ -167,5 +166,5 @@ private:
 
 /**
  * @file
- * $Id: AdcHub.h 479 2010-02-02 15:50:33Z bigmuscle $
+ * $Id: AdcHub.h 482 2010-02-13 10:49:30Z bigmuscle $
  */

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2010 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -210,57 +210,69 @@ string Identity::setCheat(const Client& c, const string& aCheatDescription, bool
 	return Util::emptyString;
 }
 //END
-string Identity::getReport() const {
-	if(!user.get() || user->isSet(User::DHT)) return Util::emptyString;
+map<string, string> Identity::getReport() const {
+	map<string, string> reportSet;
 
-	string report = "\n *** User Info:";
-	report += "\n-]> Description:		" +			getDescription();
-	report += "\n-]> Email:			" +				getEmail();
-	report += "\n-]> Connection:		" +			getConnection();
-	report += "\n-]> User CID:		" +				isEmpty(getUser()->getCID().toBase32());
-	if(!getUser()->isSet(User::NMDC) && getUser() != ClientManager::getInstance()->getMe()) {
-		report += "\n-]> User SID:		" +			getSIDString() + " (" + get("SI") + ")";
+	string sid = getSIDString();
+
+	{
+		FastLock l(cs);
+		for(InfIter i = info.begin(); i != info.end(); ++i) {
+			string name = string((char*)(&i->first), 2);
+			string value = i->second;
+
+#define TAG(x,y) (x + (y << 8))
+			
+			// TODO: translate known tags and format values to something more readable
+			switch(i->first) {
+				case TAG('A','W'): name = "Away mode"; break;
+				case TAG('B','O'): name = "Bot"; break;
+				case TAG('C','L'): name = "Client name"; break;
+				case TAG('C','M'): name = "Comment"; break;
+				case TAG('C','O'): name = "Connection"; break;
+				case TAG('C','S'): name = "Cheat description"; break;
+				case TAG('C','T'): name = "Client type"; break;
+				case TAG('D','E'): name = "Description"; break;
+				case TAG('D','S'): name = "Download speed"; value = Util::formatBytes(value) + "/s"; break;
+				case TAG('E','M'): name = "E-mail"; break;
+				case TAG('F','C'): name = "Fake Check status"; break;
+				case TAG('F','D'): name = "Filelist disconnects"; break;
+				case TAG('G','E'): name = "Filelist generator"; break;
+				case TAG('H','N'): name = "Hubs Normal"; break;
+				case TAG('H','O'): name = "Hubs OP"; break;
+				case TAG('H','R'): name = "Hubs Registered"; break;
+				case TAG('I','4'): name = "IPv4 Address"; value += " (" + Socket::getRemoteHost(value) + ")"; break;
+				case TAG('I','6'): name = "IPv6 Address"; value += " (" + Socket::getRemoteHost(value) + ")"; break;
+				case TAG('I','D'): name = "Client ID"; break;
+				case TAG('K','P'): name = "KeyPrint"; break;
+				case TAG('L','O'): name = "NMDC Lock"; break;
+				case TAG('N','I'): name = "Nick"; break;
+				case TAG('O','P'): name = "Operator"; break;
+				case TAG('P','K'): name = "NMDC Pk"; break;
+				case TAG('R','S'): name = "Shared bytes - real"; value = Text::fromT(Util::formatExactSize(Util::toInt64(value))); break;
+				case TAG('S','F'): name = "Shared files"; break;
+				case TAG('S','I'): name = "Session ID"; value = sid; break;
+				case TAG('S','L'): name = "Slots"; break;
+				case TAG('S','S'): name = "Shared bytes - reported"; value = Text::fromT(Util::formatExactSize(Util::toInt64(value))); break;
+				case TAG('S','T'): name = "NMDC Status"; value = Util::formatStatus(Util::toInt(value)); break;
+				case TAG('S','U'): name = "Supports"; break;
+				case TAG('T','A'): name = "Tag"; break;
+				case TAG('T','O'): name = "Timeouts"; break;
+				case TAG('U','4'): name = "IPv4 UDP port"; break;
+				case TAG('U','6'): name = "IPv6 UDP port"; break;
+				case TAG('U','S'): name = "Upload speed"; value = Util::formatBytes(value) + "/s"; break;
+				case TAG('V','E'): name = "Client version"; break;
+				case TAG('W','O'): name = ""; break;	// for GUI purposes
+				default: name += " (unknown)";
+
+			}
+
+			if(!name.empty())
+				reportSet.insert(make_pair(name, value));
+		}
 	}
-	report += "\n-]> IP:			" +				getIp() + (getIp().empty() ? Util::emptyString : (" (" + Util::getIpCountry(getIp()) + ")"));
-	report += "\n-]> Host:			" +				isEmpty(get("HT"));
-	report += "\n-]> ISP:			" +				getISP();
-	if(!get("SL").empty())
-		report += "\n-]> Slots:			" +			(get("SL")) + (get("SC").empty() ? Util::emptyString : " (" + get("SC") + ")");
-	else
-		report += "\n-]> Slots:			N/A";
-	report += "\n-]> Logged in:		" +				get("LT") + " (" + Text::fromT(Util::formatSeconds((GET_TICK() - loggedIn) / 1000)) + ')';
 
-	report += "\n\n *** Client Info:";
-	report += "\n-]> Client:			" +			(getClientType().empty() ? static_cast<const string>("N/A") : getClientType() + "\t[Check Time:" + Util::formatTime("%d-%m %H:%M:%S", Util::toInt64(get("TC"))) + ']');
-	report += "\n-]> User Info Type:		" +		isEmpty(get("MT"));
-	report += "\n-]> Lock:			" +				isEmpty(get("LO"));
-	report += "\n-]> Pk:			" +				isEmpty(get("PK"));
-	report += "\n-]> Tag:			" +				isEmpty(getTag());
-	report += "\n-]> Supports:		" +				isEmpty(get("SU"));
-	report += "\n-]> Status:		" +				Util::formatStatus(getStatus());
-	report += "\n-]> TestSUR:		" +				isEmpty(get("TS"));
-	report += "\n-]> Disconnects:		" +			isEmpty(get("FD"));
-	report += "\n-]> Timeouts:		" +				isEmpty(get("TO"));
-	report += "\n-]> Commands:		" +				isEmpty(get("UC"));
-	report += "\n-]> Cheat status:		" +			isEmpty(get("CS"));
-	report += "\n-]> Comment:		" +				isEmpty(get("CM"));
-
-	report += "\n\n *** FileList\\Share Info";
-	report += "\n-]> XML Generator:		" +			isEmpty(get("FG"));
-	report += "\n-]> FileList CID:		" +			isEmpty(get("FI"));
-	report += "\n-]> FileList Base:		" +			isEmpty(get("FB"));
-
-	int64_t listSize = Util::toInt64(get("LS")), listLen = Util::toInt64(get("LL"));
-	report += "\n-]> Filelist size:		" +			((listSize != -1) ? (string)(Util::formatBytes(listSize) + "  (" + Text::fromT(Util::formatExactSize(listSize)) + " )") : "N/A");
-	
-	report += "\n-]> ListLen:		" +				(listLen != -1 ? (string)(Util::formatBytes(listLen) + "  (" + Text::fromT(Util::formatExactSize(listLen)) + " )") : "N/A");
-	report += "\n-]> Stated Share:		" +			Util::formatBytes(getBytesShared()) + "  (" + Text::fromT(Util::formatExactSize(getBytesShared())) + " )";
-
-	int64_t realBytes =  (!get("RS").empty()) ?	Util::toInt64(get("RS")) : -1;
-	report += "\n-]> Real Share:		" +			((realBytes > -1) ? (string)(Util::formatBytes(realBytes) + "  (" + Text::fromT(Util::formatExactSize(realBytes)) + " )\t[Check Time:" + Util::formatTime("%d-%m %H:%M", Util::toInt64(getFileListChecked())) + ']') : "N/A");
-	report += "\n-]> Shared files:		" +			isEmpty(get("SF"));
-
-	return report;
+	return reportSet;
 }
 
 string Identity::updateClientType(OnlineUser& ou) {
@@ -295,7 +307,7 @@ string Identity::updateClientType(OnlineUser& ou) {
 	StringMap params;
 	getDetectionParams(params); // get identity fields and escape them, then get the rest and leave as-is
 	const DetectionManager::DetectionItems& profiles = DetectionManager::getInstance()->getProfiles(params);
-
+   
 	for(DetectionManager::DetectionItems::const_iterator i = profiles.begin(); i != profiles.end(); ++i) {
 		const DetectionEntry& entry = *i;
 		if(!entry.isEnabled)
@@ -392,20 +404,20 @@ void Identity::getDetectionParams(StringMap& p) {
 	// convert all special chars to make regex happy
 	for(StringMap::iterator i = p.begin(); i != p.end(); ++i) {
 		// looks really bad... but do the job
-		Util::replace(i->second, "\\", "\\\\"); // this one must be first
-		Util::replace(i->second, "[", "\\[");
-		Util::replace(i->second, "]", "\\]");
-		Util::replace(i->second, "^", "\\^");
-		Util::replace(i->second, "$", "\\$");
-		Util::replace(i->second, ".", "\\.");
-		Util::replace(i->second, "|", "\\|");
-		Util::replace(i->second, "?", "\\?");
-		Util::replace(i->second, "*", "\\*");
-		Util::replace(i->second, "+", "\\+");
-		Util::replace(i->second, "(", "\\(");
-		Util::replace(i->second, ")", "\\)");
-		Util::replace(i->second, "{", "\\{");
-		Util::replace(i->second, "}", "\\}");
+		Util::replace("\\", "\\\\", i->second); // this one must be first
+		Util::replace("[", "\\[", i->second);
+		Util::replace("]", "\\]", i->second);
+		Util::replace("^", "\\^", i->second);
+		Util::replace("$", "\\$", i->second);
+		Util::replace(".", "\\.", i->second);
+		Util::replace("|", "\\|", i->second);
+		Util::replace("?", "\\?", i->second);
+		Util::replace("*", "\\*", i->second);
+		Util::replace("+", "\\+", i->second);
+		Util::replace("(", "\\(", i->second);
+		Util::replace(")", "\\)", i->second);
+		Util::replace("{", "\\{", i->second);
+		Util::replace("}", "\\}", i->second);
 	}
 }
 
@@ -472,10 +484,6 @@ string Identity::myInfoDetect(OnlineUser& ou) {
 		return report;
 	}
 	return Util::emptyString;
-}
-//RSX++
-bool User::isFavorite() {
-	return FavoriteManager::getInstance()->isFavoriteUser(this);
 }
 //RSX++ //Protected users
 bool Identity::isProtectedUser(const Client& c, bool OpBotHubCheck) const {
@@ -847,7 +855,7 @@ tstring OnlineUser::getText(uint8_t col) const {
 		case COLUMN_EXACT_SHARED: return Util::formatExactSize(identity.getBytesShared());
 		case COLUMN_DESCRIPTION: return Text::toT(identity.getDescription());
 		case COLUMN_TAG: return Text::toT(identity.getTag());
-		case COLUMN_CONNECTION: return Text::toT(identity.getConnection());
+		case COLUMN_CONNECTION: return identity.get("US").empty() ? Text::toT(identity.getConnection()) : (Text::toT(Util::formatBytes(identity.get("US"))) + _T("/s"));
 		case COLUMN_IP: {
 			string ip(identity.getIp());
 			if(!ip.empty()) {
@@ -920,5 +928,5 @@ bool OnlineUser::update(int sortCol, const tstring& oldText) {
 
 /**
  * @file
- * $Id: User.cpp 453 2009-08-04 15:46:31Z BigMuscle $
+ * $Id: User.cpp 484 2010-02-26 22:01:25Z bigmuscle $
  */

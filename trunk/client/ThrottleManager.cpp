@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2009 Big Muscle
+ * Copyright (C) 2009-2010 Big Muscle
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -66,7 +66,7 @@ namespace dcpp
 
 		if(downTokens > 0)
 		{
-			size_t slice = (SETTING(MAX_DOWNLOAD_SPEED_LIMIT) * 1024) / downs;
+			size_t slice = getDownloadLimit() / downs;
 			size_t readSize = min(slice, min(len, static_cast<size_t>(downTokens)));
 				
 			// read from socket
@@ -102,7 +102,7 @@ namespace dcpp
 		
 		if(upTokens > 0)
 		{
-			size_t slice = (SETTING(MAX_UPLOAD_SPEED_LIMIT) * 1024) / ups;
+			size_t slice = getUploadLimit() / ups;
 			len = min(slice, min(len, static_cast<size_t>(upTokens)));
 			upTokens -= len;
 
@@ -122,24 +122,44 @@ namespace dcpp
 		return 0;	// from BufferedSocket: -1 = failed, 0 = retry
 	}
 	
+	/*
+	 * Returns current download limit.
+	 */
+	int64_t ThrottleManager::getDownloadLimit() const
+	{
+		return downLimit;
+	}
+
+	/*
+	 * Returns current upload limit.
+	 */
+	int64_t ThrottleManager::getUploadLimit() const
+	{
+		return upLimit;
+	}
+
 	// TimerManagerListener
 	void ThrottleManager::on(TimerManagerListener::Second, uint64_t /*aTick*/) throw()
 	{
 		if(!BOOLSETTING(THROTTLE_ENABLE))
+		{
+			downLimit = 0;
+			upLimit = 0;
 			return;
+		}
 			
-		downLimit	= SETTING(MAX_DOWNLOAD_SPEED_LIMIT);
-		upLimit		= SETTING(MAX_UPLOAD_SPEED_LIMIT);
+		downLimit	= SETTING(MAX_DOWNLOAD_SPEED_LIMIT) * 1024;
+		upLimit		= SETTING(MAX_UPLOAD_SPEED_LIMIT) * 1024;
 		
 		// limiter restrictions: up_limit >= 5 * slots + 4, up_limit >= 7 * down_limit
-		if(upLimit < MIN_UPLOAD_SPEED_LIMIT)
+		if(SETTING(MAX_UPLOAD_SPEED_LIMIT) < MIN_UPLOAD_SPEED_LIMIT)
 		{
 			SettingsManager::getInstance()->set(SettingsManager::MAX_UPLOAD_SPEED_LIMIT, MIN_UPLOAD_SPEED_LIMIT);
 		}
 			
-		if((downLimit > MAX_LIMIT_RATIO * upLimit) || (downLimit == 0))
+		if((SETTING(MAX_DOWNLOAD_SPEED_LIMIT) > MAX_LIMIT_RATIO * SETTING(MAX_UPLOAD_SPEED_LIMIT) ) || (SETTING(MAX_DOWNLOAD_SPEED_LIMIT) == 0))
 		{
-			SettingsManager::getInstance()->set(SettingsManager::MAX_DOWNLOAD_SPEED_LIMIT, MAX_LIMIT_RATIO * upLimit);
+			SettingsManager::getInstance()->set(SettingsManager::MAX_DOWNLOAD_SPEED_LIMIT, MAX_LIMIT_RATIO * SETTING(MAX_UPLOAD_SPEED_LIMIT) );
 		}
 
 		if(SETTING(MAX_UPLOAD_SPEED_LIMIT_TIME) < MIN_UPLOAD_SPEED_LIMIT)
@@ -164,8 +184,8 @@ namespace dcpp
 				(SETTING(BANDWIDTH_LIMIT_START) > SETTING(BANDWIDTH_LIMIT_END) &&
 				(currentHour >= SETTING(BANDWIDTH_LIMIT_START) || currentHour < SETTING(BANDWIDTH_LIMIT_END))))
 			{
-				downLimit	= SETTING(MAX_UPLOAD_SPEED_LIMIT_TIME);
-				upLimit		= SETTING(MAX_DOWNLOAD_SPEED_LIMIT_TIME);
+				downLimit	= SETTING(MAX_DOWNLOAD_SPEED_LIMIT_TIME) * 1024;
+				upLimit		= SETTING(MAX_UPLOAD_SPEED_LIMIT_TIME) * 1024;
 			}
 		}
 		
@@ -173,14 +193,14 @@ namespace dcpp
 		if(downLimit > 0)
 		{
 			boost::lock_guard<boost::mutex> lock(downMutex);
-			downTokens = downLimit * 1024;
+			downTokens = downLimit;
 			downCond.notify_all();
 		}
 			
 		if(upLimit > 0)
 		{
 			boost::lock_guard<boost::mutex> lock(upMutex);
-			upTokens = upLimit * 1024;
+			upTokens = upLimit;
 			upCond.notify_all();
 		}
 	}

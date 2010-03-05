@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2010 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,10 +28,9 @@
 #include "Singleton.h"
 #include "ClientManagerListener.h"
 #include "FavoriteManagerListener.h"
-#include "ClientManager.h"
 #include "HubEntry.h"
 #include "FavHubGroup.h"
-#include "rsxppSettingsManager.h"
+#include "rsxppSettingsManager.h" //RSX++
 
 namespace dcpp {
 //RSX++
@@ -292,7 +291,7 @@ public:
 	//END
 
 // User Commands
-	UserCommand addUserCommand(int type, int ctx, Flags::MaskType flags, const string& name, const string& command, const string& hub);
+	UserCommand addUserCommand(int type, int ctx, Flags::MaskType flags, const string& name, const string& command, const string& to, const string& hub);
 	bool getUserCommand(int cid, UserCommand& uc);
 	int findUserCommand(const string& aName, const string& aUrl);
 	bool moveUserCommand(int cid, int pos);
@@ -402,5 +401,5 @@ private:
 
 /**
  * @file
- * $Id: FavoriteManager.h 473 2010-01-12 23:17:33Z bigmuscle $
+ * $Id: FavoriteManager.h 482 2010-02-13 10:49:30Z bigmuscle $
  */

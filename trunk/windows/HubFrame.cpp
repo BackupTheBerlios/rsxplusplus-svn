@@ -184,12 +184,15 @@ LRESULT HubFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 		WinUtil::splitTokens(columnSizes, SETTING(HUBFRAME_WIDTHS), OnlineUser::COLUMN_LAST);                           
 	}
     	
-	for(uint8_t j=0; j<OnlineUser::COLUMN_LAST; j++) {
+	for(uint8_t j = 0; j < OnlineUser::COLUMN_LAST; ++j) {
 		int fmt = (j == OnlineUser::COLUMN_SHARED || j == OnlineUser::COLUMN_EXACT_SHARED || j == OnlineUser::COLUMN_SLOTS) ? LVCFMT_RIGHT : LVCFMT_LEFT;
 		ctrlUsers.InsertColumn(j, CTSTRING_I(columnNames[j]), fmt, columnSizes[j], j);
+		ctrlFilterSel.AddString(CTSTRING_I(columnNames[j]));
 	}
 	
 	ctrlUsers.setColumnOrderArray(OnlineUser::COLUMN_LAST, columnIndexes);
+	ctrlFilterSel.AddString(CTSTRING(ANY));
+	ctrlFilterSel.SetCurSel(0);
 
 	if(fhe) {
 		ctrlUsers.setVisible(fhe->getHeaderVisible());
@@ -216,12 +219,6 @@ LRESULT HubFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 
 	showJoins = BOOLSETTING(SHOW_JOINS);
 	favShowJoins = BOOLSETTING(FAV_SHOW_JOINS);
-
-	for(int j=0; j<OnlineUser::COLUMN_LAST; j++) {
-		ctrlFilterSel.AddString(CTSTRING_I(columnNames[j]));
-	}
-	ctrlFilterSel.AddString(CTSTRING(ANY));
-	ctrlFilterSel.SetCurSel(0);
 
 	bHandled = FALSE;
 	client->connect();
@@ -1262,7 +1259,7 @@ void HubFrame::runUserCommand(::UserCommand& uc) {
 
 	if(tabMenuShown) {
 		client->escapeParams(ucParams);
-		client->sendUserCmd(Util::formatParams(uc.getCommand(), ucParams, false));
+		client->sendUserCmd(uc, ucParams);
 	} else {
 		int sel = -1;
 		while((sel = ctrlUsers.GetNextItem(sel, LVNI_SELECTED)) != -1) {
@@ -1271,7 +1268,7 @@ void HubFrame::runUserCommand(::UserCommand& uc) {
 				StringMap tmp = ucParams;
 				u->getIdentity().getParams(tmp, "user", true);
 				client->escapeParams(tmp);
-				client->sendUserCmd(Util::formatParams(uc.getCommand(), tmp, false));
+				client->sendUserCmd(uc, tmp);
 			}
 		}
 	}
@@ -2270,6 +2267,12 @@ LRESULT HubFrame::onEditClearAll(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWnd
 	ctrlClient.SetWindowText(Util::emptyStringT.c_str());
 	return 0;
 }
+	
+void HubFrame::on(UserReport, const Client*, const Identity& i) throw()
+{
+	string report = WinUtil::getReport(i, ctrlClient.m_hWnd);
+	speak(CHEATING_USER, report);
+}
 //RSX++ //Filters
 bool HubFrame::getFilters(const Identity& i, const tstring& msg) {
 	if(RSXPP_BOOLSETTING(USE_CHAT_FILTER) && client->getUseFilter()) {
@@ -2330,5 +2333,5 @@ void HubFrame::displayCheat(const tstring& aMessage) {
 
 /**
  * @file
- * $Id: HubFrame.cpp 477 2010-01-29 08:59:43Z bigmuscle $
+ * $Id: HubFrame.cpp 486 2010-02-27 16:44:26Z bigmuscle $
  */

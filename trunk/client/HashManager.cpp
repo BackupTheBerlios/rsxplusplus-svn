@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2010 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -64,7 +64,7 @@ size_t HashManager::getBlockSize(const TTHValue& root) {
 	return store.getBlockSize(root);
 }
 
-void HashManager::hashDone(const string& aFileName, uint64_t aTimeStamp, const TigerTree& tth, int64_t speed) {
+void HashManager::hashDone(const string& aFileName, uint64_t aTimeStamp, const TigerTree& tth, int64_t speed, int64_t size) {
 	try {
 		Lock l(cs);
 		store.addFile(aFileName, aTimeStamp, tth, true);
@@ -808,7 +808,7 @@ int HashManager::Hasher::run() {
 				if(end > start) {
 					speed = size * _LL(1000) / (end - start);
 				}
-				HashManager::getInstance()->hashDone(fname, timestamp, *tth, speed);
+				HashManager::getInstance()->hashDone(fname, timestamp, *tth, speed, size);
 			} catch(const FileException& e) {
 				LogManager::getInstance()->message(STRING(ERROR_HASHING) + " " + fname + ": " + e.getError());
 			}
@@ -861,5 +861,5 @@ bool HashManager::isHashingPaused() const {
 
 /**
  * @file
- * $Id: HashManager.cpp 469 2009-12-29 21:13:40Z bigmuscle $
+ * $Id: HashManager.cpp 482 2010-02-13 10:49:30Z bigmuscle $
  */

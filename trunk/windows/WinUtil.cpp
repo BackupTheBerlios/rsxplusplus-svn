@@ -878,6 +878,12 @@ bool WinUtil::getUCParams(HWND parent, const UserCommand& uc, StringMap& sm) thr
 			dlg.title = Text::toT(uc.getName());
 			dlg.description = Text::toT(name);
 			dlg.line = Text::toT(sm["line:" + name]);
+
+			if(uc.adc()) {
+				Util::replace(_T("\\\\"), _T("\\"), dlg.description);
+				Util::replace(_T("\\s"), _T(" "), dlg.description);
+			}
+
 			if(dlg.DoModal(parent) == IDOK) {
 				sm["line:" + name] = Text::fromT(dlg.line);
 				done[name] = Text::fromT(dlg.line);
@@ -899,6 +905,12 @@ bool WinUtil::getUCParams(HWND parent, const UserCommand& uc, StringMap& sm) thr
 			KickDlg dlg;
 			dlg.title = Text::toT(uc.getName());
 			dlg.description = Text::toT(name);
+
+			if(uc.adc()) {
+				Util::replace(_T("\\\\"), _T("\\"), dlg.description);
+				Util::replace(_T("\\s"), _T(" "), dlg.description);
+			}
+
 			if(dlg.DoModal(parent) == IDOK) {
 				sm["kickline:" + name] = Text::fromT(dlg.line);
 				done[name] = Text::fromT(dlg.line);
@@ -1867,14 +1879,45 @@ void WinUtil::saveReBarSettings(HWND bar) {
 	
 	SettingsManager::getInstance()->set(SettingsManager::TOOLBAR_SETTINGS, toolbarSettings);
 }
+
+string WinUtil::getReport(const Identity& identity, HWND hwnd)
+{
+	map<string, string> reportMap = identity.getReport();
+
+	string report = "*** Info on " + identity.getNick() + " ***" + "\n";
+
+	for(map<string, string>::const_iterator i = reportMap.begin(); i != reportMap.end(); ++i) {
+		int width = getTextWidth(Text::toT(i->first + ":"), hwnd);
+		string tabs = (width < 70) ? "\t\t\t" : (width < 135 ? "\t\t" : "\t");
+
+		report += "\n" + i->first + ":" + tabs + i->second;// + " >>> " + Util::toString(width);
+	}
+
+	return report + "\n";
+}
 //RSX++
+bool WinUtil::setExplorerTheme(HWND wnd) {
+	if((WinUtil::getOsMajor() >= 5 && WinUtil::getOsMinor() >= 1) //WinXP & WinSvr2003
+		|| (WinUtil::getOsMajor() >= 6)) //Vista & Win7
+	{
+	
+		typedef HRESULT (CALLBACK* LPFUNC)(HWND, LPCWSTR, LPCWSTR);
+		HMODULE uxdll = LoadLibrary(_T("uxtheme"));
+		if(uxdll) {
+			LPFUNC _SetWindowTheme = (LPFUNC)GetProcAddress(uxdll, "SetWindowTheme");
+			if(_SetWindowTheme) {
+				_SetWindowTheme(wnd, _T("explorer"), 0);
+				return true;
+			}
+			FreeLibrary(uxdll);
+		}
+	}
+	return false;
+}
+
 void WinUtil::setListViewExplorerStyle(HWND hListView) {
-	typedef HRESULT (CALLBACK* LPFUNC)(HWND, LPCWSTR, LPCWSTR);
 	ListView_SetExtendedListViewStyle(hListView, ListView_GetExtendedListViewStyle(hListView) | LVS_EX_DOUBLEBUFFER);
-	HMODULE uxdll = LoadLibrary(_T("uxtheme"));
-	LPFUNC _SetWindowTheme = (LPFUNC)GetProcAddress(uxdll, "SetWindowTheme");
-	_SetWindowTheme(hListView, _T("explorer"), NULL);
-	FreeLibrary(uxdll);
+	setExplorerTheme(hListView);
 }
 //RSX++ //flash window
 void WinUtil::flashWindow() {

@@ -1560,5 +1560,5 @@ void QueueFrame::on(QueueManagerListener::RecheckDone, const string& target) thr
 	
 /**
  * @file
- * $Id: QueueFrame.cpp 479 2010-02-02 15:50:33Z bigmuscle $
+ * $Id: QueueFrame.cpp 486 2010-02-27 16:44:26Z bigmuscle $
  */

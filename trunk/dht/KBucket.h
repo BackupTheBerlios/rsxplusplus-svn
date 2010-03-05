@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009 Big Muscle, http://strongdc.sf.net
+ * Copyright (C) 2009-2010 Big Muscle, http://strongdc.sf.net
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -62,6 +62,9 @@ namespace dht
 		uint8_t getType() const { return type; }
 		bool isIpVerified() const { return ipVerified; }
 		
+		bool isOnline() const { return online; }
+		void setOnline(bool _online) { online = _online; }
+		
 		void setAlive();
 		void setIpVerified(bool verified) { ipVerified = verified; }
 		void setTimeout(uint64_t now = GET_TICK());
@@ -80,6 +83,7 @@ namespace dht
 		uint64_t	expires;
 		uint8_t		type;
 		bool		ipVerified;
+		bool		online;	// getUser()->isOnline() returns true when node is online in any hub, we need info when he is online in DHT
 	};
 		
 	class KBucket

@@ -230,8 +230,7 @@ void ChatCtrl::AppendText(const Identity& i, const tstring& sMyNick, const tstri
 	//RSX++ // Highlights
 	tstring sMsgLower = Text::toLower(sMsg);
 	lSelBegin = lSelEnd;
-	//lSelEnd = lSelBegin + sMsgLower.size();
-	//SetSel(lSelBegin, lSelEnd);
+
 	if(client && useHL) {
 		if(client->getUseHL() && RSXPP_BOOLSETTING(USE_HIGHLIGHT)) {
 			tstring textToMatch = Util::emptyStringT;
@@ -427,151 +426,7 @@ void ChatCtrl::FormatEmoticonsAndLinks(const tstring& sMsg, const tstring& sMsgL
 	}
 
 }
-/*
-void ChatCtrl::AppendTextOnly(const tstring& sMyNick, const TCHAR* sText, CHARFORMAT2& cf, bool isMyMessage, const tstring& sAuthor, bool useHL = true) {
-	// Insert text at the end
-	long lSelEnd = GetTextLengthEx(GTL_NUMCHARS);
-	long lSelBegin = lSelEnd;
-	SetSel(lSelBegin, lSelEnd);
-	ReplaceSel(sText, false);
 
-	// Set text format
-	tstring sMsgLower = sText;
-	std::transform(sMsgLower.begin(), sMsgLower.end(), sMsgLower.begin(), _totlower);
-
-	lSelEnd = GetTextLengthEx(GTL_NUMCHARS);
-	SetSel(lSelBegin, lSelEnd);
-	SetSelectionCharFormat(isMyMessage ? WinUtil::m_ChatTextMyOwn : cf);
-	
-	// Zvyrazneni vsech URL a nastaveni "klikatelnosti"
-	for(size_t i = 0; i < (sizeof(Links) / sizeof(Links[0])); i++) {
-		size_t linkStart = sMsgLower.find(Links[i]);
-		bool isMagnet = _tcscmp(Links[i], _T("magnet:?")) == 0;
-		while(linkStart != tstring::npos) {
-			size_t linkEnd = linkStart + _tcslen(Links[i]);
-			
-			try {
-				boost::match_results<tstring::const_iterator> result;
-				//RSX++ //workaround for msvc std lib problems
-				tstring::const_iterator start = sMsgLower.begin();
-				tstring::const_iterator end = sMsgLower.end();
-
-				// TODO: complete regexp for URLs
-				boost::wregex reg;
-				if(isMagnet) // magnet links have totally indeferent structure than classic URL // -/?%&=~#'\\w\\.\\+\\*\\(\\)
-					reg =       _T("^(\\w)+=[:\\w]+(&(\\w)+=[\\S]*)*[^\\s<>.,;!(){}\"']+");
-				else
-					reg = _T("^([@\\w-]+(\\.)*)+(:[\\d]+)?(/[\\S]*)*[^\\s<>.,;!(){}\"']+");
-					
-				if(boost::regex_search(start + linkEnd, end, result, reg, boost::match_default)) {
-					dcassert(!result.empty());
-
-					linkEnd += result.length(0);
-					SetSel(lSelBegin + linkStart, lSelBegin + linkEnd);
-					SetSelectionCharFormat(WinUtil::m_TextStyleURL);
-				}
-			} catch(...) {
-			}
-			
-			linkStart = sMsgLower.find(Links[i], linkEnd);			
-		}
-	}
-
-	// Zvyrazneni vsech vyskytu vlastniho nicku
-	long lMyNickStart = -1, lMyNickEnd = -1;
-	size_t lSearchFrom = 0;	
-	tstring sNick = sMyNick.c_str();
-	std::transform(sNick.begin(), sNick.end(), sNick.begin(), _totlower);
-
-	bool found = false;
-	while((lMyNickStart = (long)sMsgLower.find(sNick, lSearchFrom)) != tstring::npos) {
-		lMyNickEnd = lMyNickStart + (long)sNick.size();
-		SetSel(lSelBegin + lMyNickStart, lSelBegin + lMyNickEnd);
-		SetSelectionCharFormat(WinUtil::m_TextStyleMyNick);
-		lSearchFrom = lMyNickEnd;
-		found = true;
-	}
-	
-	if(found) {
-		if(	!SETTING(CHATNAMEFILE).empty() && !BOOLSETTING(SOUNDS_DISABLED) &&
-			!sAuthor.empty() && (stricmp(sAuthor.c_str(), sNick) != 0)) {
-				::PlaySound(Text::toT(SETTING(CHATNAMEFILE)).c_str(), NULL, SND_FILENAME | SND_ASYNC);	 	
-        }	
-	}
-
-	// Zvyrazneni vsech vyskytu nicku Favorite useru
-	FavoriteManager::FavoriteMap ul = FavoriteManager::getInstance()->getFavoriteUsers();
-	for(FavoriteManager::FavoriteMap::const_iterator i = ul.begin(); i != ul.end(); ++i) {
-		const FavoriteUser& pUser = i->second;
-
-		lSearchFrom = 0;
-		sNick = Text::toT(pUser.getNick()).c_str();
-		std::transform(sNick.begin(), sNick.end(), sNick.begin(), _totlower);
-
-		while((lMyNickStart = (long)sMsgLower.find(sNick, lSearchFrom)) != tstring::npos) {
-			lMyNickEnd = lMyNickStart + (long)sNick.size();
-			SetSel(lSelBegin + lMyNickStart, lSelBegin + lMyNickEnd);
-			SetSelectionCharFormat(WinUtil::m_TextStyleFavUsers);
-			lSearchFrom = lMyNickEnd;
-		}
-	}
-
-	//RSX++ // Highlights
-	if(client && useHL) {
-		if(client->getUseHL() && RSXPP_BOOLSETTING(USE_HIGHLIGHT)) {
-			// decrease number of string allocs
-			tstring textToMatch = Util::emptyStringT;
-			bool matched = false;
-			CHARFORMAT2 hlcf;
-
-			const HighLight::List& hll = FavoriteManager::getInstance()->getHLs();
-			for(HighLight::List::const_iterator i = hll.begin(); i != hll.end(); ++i) {
-				textToMatch = Text::toT((*i)->getHstring());
-				try {
-					const boost::wregex reg(Text::toT((*i)->getHstring()));
-
-					memzero(&hlcf, sizeof(CHARFORMAT2));
-					hlcf.cbSize = sizeof(hlcf);
-					hlcf.dwMask = CFM_BACKCOLOR | CFM_COLOR | CFM_BOLD | CFM_ITALIC | CFM_UNDERLINE | CFM_STRIKEOUT;
-					hlcf.crBackColor = (*i)->getHasBgColor() ? (*i)->getBackColor() : SETTING(TEXT_GENERAL_BACK_COLOR);
-					hlcf.crTextColor = (*i)->getHasFontColor() ? (*i)->getFontColor() : SETTING(TEXT_GENERAL_FORE_COLOR);
-					if((*i)->getBoldFont())
-						hlcf.dwEffects |= CFE_BOLD;
-					if((*i)->getItalicFont())
-						hlcf.dwEffects |= CFE_ITALIC;
-					if((*i)->getUnderlineFont())
-						hlcf.dwEffects |= CFM_UNDERLINE;
-					if((*i)->getStrikeoutFont())
-						 hlcf.dwEffects |= CFM_STRIKEOUT;
-
-					boost::wsregex_iterator iter(sMsgLower.begin(), sMsgLower.end(), reg);
-					boost::wsregex_iterator enditer;
-					for(; iter != enditer; ++iter) {
-						SetSel(lSelBegin + iter->position(), lSelBegin + iter->position() + iter->length());
-						SetSelectionCharFormat(hlcf);
-						struct hlAction curAction = {
-							sMsgLower.substr(iter->position(), iter->length()),
-							(*i)->getDisplayPopup(), 
-							(*i)->getFlashWindow(), 
-							(*i)->getPlaySound(), 
-							(*i)->getSoundFilePath()
-						};
-						actions.push_back(curAction);
-						matched = true;
-					}
-				} catch(...) {
-					//...
-				}
-			}
-			//avoid spam, show popup after scan all msg
-			if(matched) {
-				handleActions(sAuthor);
-			}
-		}
-	}
-	//END
-}
-*/
 bool ChatCtrl::HitNick(const POINT& p, tstring& sNick, int& iBegin, int& iEnd) {
 	if(client == NULL) return false;
 	
@@ -1097,9 +952,17 @@ LRESULT ChatCtrl::onCopyUserInfo(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*
 
 LRESULT ChatCtrl::onReport(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
 	const OnlineUserPtr ou = client->findUser(Text::fromT(sSelectedUser));
-	if(ou)
-		client->cheatMessage("*** Info on " + ou->getIdentity().getNick() + " ***" + "\r\n" + ou->getIdentity().getReport() + "\r\n");
 
+	if(ou) {
+		CHARFORMAT2 cf;
+		memzero(&cf, sizeof(CHARFORMAT2));
+		cf.cbSize = sizeof(cf);
+		cf.dwMask = CFM_BACKCOLOR | CFM_COLOR | CFM_BOLD;
+		cf.crBackColor = SETTING(BACKGROUND_COLOR);
+		cf.crTextColor = SETTING(ERROR_COLOR);
+
+		AppendText(Identity(NULL, 0), Text::toT(client->getCurrentNick()), Text::toT("[" + Util::getShortTimeString() + "] "), Text::toT(WinUtil::getReport(ou->getIdentity(), m_hWnd)) + _T('\n'), cf, false);
+	}
 	return 0;
 }
 
@@ -1181,7 +1044,7 @@ void ChatCtrl::runUserCommand(UserCommand& uc) {
 		StringMap tmp = ucParams;
 		ou->getIdentity().getParams(tmp, "user", true);
 		client->escapeParams(tmp);
-		client->sendUserCmd(Util::formatParams(uc.getCommand(), tmp, false));
+		client->sendUserCmd(uc, tmp);
 	}
 }
 

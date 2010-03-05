@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2010 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,7 +45,7 @@ public:
 
 	void hubMessage(const string& aMessage, bool /*thirdPerson*/ = false);
 	void privateMessage(const OnlineUserPtr& aUser, const string& aMessage, bool /*thirdPerson*/ = false);
-	void sendUserCmd(const string& aUserCmd) throw() { send(fromUtf8(aUserCmd)); }
+	void sendUserCmd(const UserCommand& command, const StringMap& params);
 	void search(int aSizeType, int64_t aSize, int aFileType, const string& aString, const string& aToken);
 	void password(const string& aPass) { send("$MyPass " + fromUtf8(aPass) + "|"); }
 	void info(bool force) { myInfo(force); }
@@ -122,6 +122,7 @@ private:
 	string toUtf8(const string& str) const { return Text::toUtf8(str, *getEncoding()); }
 	string fromUtf8(const string& str) const { return Text::fromUtf8(str, *getEncoding()); }
 
+	void privateMessage(const string& nick, const string& aMessage, bool thirdPerson);
 	void validateNick(const string& aNick) { send("$ValidateNick " + fromUtf8(aNick) + "|"); }
 	void key(const string& aKey) { send("$Key " + aKey + "|"); }
 	void version() { send("$Version 1,0091|"); }
@@ -151,5 +152,5 @@ private:
 
 /**
  * @file
- * $Id: nmdchub.h 473 2010-01-12 23:17:33Z bigmuscle $
+ * $Id: nmdchub.h 482 2010-02-13 10:49:30Z bigmuscle $
  */

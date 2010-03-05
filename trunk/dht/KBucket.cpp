@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009 Big Muscle, http://strongdc.sf.net
+ * Copyright (C) 2009-2010 Big Muscle, http://strongdc.sf.net
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,12 +37,12 @@ namespace dht
 
 	void DHTClient::privateMessage(const OnlineUserPtr& user, const string& aMessage, bool thirdPerson) 
 	{ 
-		DHT::getInstance()->privateMessage(*user.get(), aMessage, thirdPerson); 
+		DHT::getInstance()->privateMessage(user, aMessage, thirdPerson); 
 	}
 
 	// Set all new nodes' type to 3 to avoid spreading dead nodes..
 	Node::Node(const UserPtr& u) : 
-		OnlineUser(u, dht::client, 0), created(GET_TICK()), type(3), expires(0), ipVerified(false)
+		OnlineUser(u, dht::client, 0), created(GET_TICK()), type(3), expires(0), ipVerified(false), online(false)
 	{
 	}
 
@@ -102,7 +102,7 @@ namespace dht
 		for(NodeList::iterator it = nodes.begin(); it != nodes.end(); ++it)
 		{
 			Node::Ptr& node = *it;
-			if(node->getUser()->isOnline())
+			if(node->isOnline())
 			{
 				ClientManager::getInstance()->putOffline(node.get());
 				node->dec();
@@ -119,50 +119,67 @@ namespace dht
 	{
 		if(u->isSet(User::DHT)) // is this user already known in DHT?
 		{
+			Node::Ptr node = NULL;
+
+			// no online node found, try get from routing table
 			for(NodeList::iterator it = nodes.begin(); it != nodes.end(); ++it)
 			{
-				Node::Ptr node = *it;
-				if(u->getCID() == node->getUser()->getCID())
+				if(u->getCID() == (*it)->getUser()->getCID())
 				{
-				// node is already here, move it to the end
-					if(update)
-					{	
-						string oldIp	= node->getIdentity().getIp();
-						string oldPort	= node->getIdentity().getUdpPort();
-						if(ip != oldIp || static_cast<uint16_t>(Util::toInt(oldPort)) != port)
-						{
-							node->setIpVerified(false);
-							
-							 // TODO: don't allow update when new IP already exists for different node
-
-							// erase old IP and remember new one
-							ipMap.erase(oldIp + ":" + oldPort);
-							ipMap.insert(ip + ":" + Util::toString(port));
-						}
-							
-						if(!node->isIpVerified())
-							node->setIpVerified(isUdpKeyValid);
-
-						node->setAlive();
-						node->getIdentity().setIp(ip);
-						node->getIdentity().setUdpPort(Util::toString(port));
-					}
-
+					node = *it;
+					
+					// put node at the end of the list
 					nodes.erase(it);
 					nodes.push_back(node);
-					
-					DHT::getInstance()->setDirty();
-					return node;
+					break;
 				}
 			}
+
+			if(node == NULL && u->isOnline())
+			{
+				// try to get node from ClientManager (user can be online but not in our routing table)
+				// this fixes the bug with DHT node online twice
+				node = (Node*)ClientManager::getInstance()->findDHTNode(u->getCID()).get();
+			}
+
+			if(node != NULL)
+			{
+				// fine, node found, update it and return it
+				if(update)
+				{	
+					string oldIp	= node->getIdentity().getIp();
+					string oldPort	= node->getIdentity().getUdpPort();
+					if(ip != oldIp || static_cast<uint16_t>(Util::toInt(oldPort)) != port)
+					{
+						node->setIpVerified(false);
+						
+						 // TODO: don't allow update when new IP already exists for different node
+
+						// erase old IP and remember new one
+						ipMap.erase(oldIp + ":" + oldPort);
+						ipMap.insert(ip + ":" + Util::toString(port));
+					}
+						
+					if(!node->isIpVerified())
+						node->setIpVerified(isUdpKeyValid);
+
+					node->setAlive();
+					node->getIdentity().setIp(ip);
+					node->getIdentity().setUdpPort(Util::toString(port));
+				
+					DHT::getInstance()->setDirty();
+				}
+
+				return node;
+			}
 		}
+
 		u->setFlag(User::DHT);
+
 		Node::Ptr node(new Node(u));
 		node->getIdentity().setIp(ip);
 		node->getIdentity().setUdpPort(Util::toString(port));
 		node->setIpVerified(isUdpKeyValid);
-
-		//u->setFlag(User::DHT);
 		return node;
 	}
 
@@ -249,15 +266,16 @@ namespace dht
 				if(node->unique(2))
 				{
 					// node is dead, remove it
-					if(node->getUser()->isOnline())
+					string ip	= node->getIdentity().getIp();
+					string port = node->getIdentity().getUdpPort();
+					ipMap.erase(ip + ":" + port);
+
+					if(node->isOnline())
 					{
 						ClientManager::getInstance()->putOffline(node.get());
 						node->dec();
 					}
-					
-					string ip	= node->getIdentity().getIp();
-					string port = node->getIdentity().getUdpPort();
-					ipMap.erase(ip + ":" + port);
+
 					i = nodes.erase(i);
 					dirty = true;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2010 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -181,5 +181,5 @@ namespace dcpp {
 
 /**
  * @file
- * $Id: stdinc.h 476 2010-01-25 21:43:12Z bigmuscle $
+ * $Id: stdinc.h 482 2010-02-13 10:49:30Z bigmuscle $
  */

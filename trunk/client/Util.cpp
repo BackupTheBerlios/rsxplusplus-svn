@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2010 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -103,100 +103,6 @@ static string getDownloadsPath(const string& def) {
 	return def + "Downloads\\";
 }
 
-bool nlfound = false;
-BOOL CALLBACK GetWOkna(HWND handle, LPARAM) {
-	TCHAR buf[256];
-	buf[0] = NULL;
-	if (!handle) {
-		nlfound = false;
-		return TRUE;// Not a window
-	}
-	SendMessageTimeout(handle, WM_GETTEXT, 255, (LPARAM)buf, SMTO_ABORTIFHUNG | SMTO_BLOCK, 100, NULL);
-	buf[255] = NULL;
-
-	if(buf[0] != NULL) {
-		if(_tcsnicmp(buf, _T("NetLimiter"), 10) == 0/* || _tcsnicmp(buf, _T("DU Super Controler"), 18) == 0*/) {
-			nlfound = true;
-			return false;
-		}
-	}
-
-	nlfound = false;
-	return true;
-}
-
-int Util::getNetLimiterLimit() {
-	int NetLimiter_UploadLimit = -1;
-	int NetLimiter_UploadOn = 0;
-
-	if(GetModuleHandle(_T("nl_lsp.dll")) == 0) return -1;
-
-	try {
-		TCHAR AppData[256];
-		GetEnvironmentVariable(_T("APPDATA"), AppData, 255);
-
-		File f(Text::fromT(AppData) + "\\LockTime\\NetLimiter\\history\\apphist.dat", File::RW, File::OPEN);
-
-		const size_t BUF_SIZE = 800;
-
-		TCHAR appName[MAX_PATH+1];
-		DWORD x = GetModuleFileName(NULL, appName, MAX_PATH);
-		string cesta = Text::fromT(tstring(appName, x)) + "/";
-
-		char buf[BUF_SIZE];
-		size_t len;
-		char* w2 = _strdup(cesta.c_str());
-
-		for(;;) {
-			size_t n = BUF_SIZE;
-			len = f.read(buf, n);
-			string txt = Util::emptyString;
-			for(uint32_t i = 0; i < len; ++i) {
-				if (buf[i]== 0) 
-				txt += "/"; else
-				txt += buf[i];
-			}
-			char* w1 = _strdup(txt.c_str());
-
-			if(::strstr(_strupr(w1),_strupr(w2)) != NULL) {
-				char limit_hex[256];
-				snprintf(limit_hex, sizeof(limit_hex), "0x%X%X", uint8_t(buf[6]), uint8_t(buf[5]));
-
-				NetLimiter_UploadLimit = 0;
-				sscanf(limit_hex, "%x", &NetLimiter_UploadLimit);
-				NetLimiter_UploadLimit /= 4;
-
-				NetLimiter_UploadOn = uint8_t(txt[16]);
-				buf[255] = 0;
-
-				if(NetLimiter_UploadOn == 1) {
-					EnumWindows(GetWOkna,NULL);
-					if(!nlfound) {
-						NetLimiter_UploadLimit = -1;
-						NetLimiter_UploadOn = 0;
-					}
-				} else {
-					NetLimiter_UploadLimit = -1;
-					NetLimiter_UploadOn = 0;
-				}
-				delete w1;
-				break;
-			}
-
-			delete w1;
-
-			if(len < BUF_SIZE)
-				break;
-		}
-	
-		f.close();
-		delete w2;
-	} catch(...) {
-	}
-
-	return NetLimiter_UploadLimit;
-}
-
 #endif
 
 void Util::initialize() {
@@ -259,6 +165,7 @@ void Util::initialize() {
 	paths[PATH_USER_LOCAL] = paths[PATH_USER_CONFIG];
 
 	// @todo paths[PATH_RESOURCES] = <replace from sconscript?>;
+	// @todo paths[PATH_LOCALE] = <replace from sconscript?>;
 
 	paths[PATH_DOWNLOADS] = home + "/Downloads/";
 #endif
@@ -324,7 +231,7 @@ void Util::migrate(const string& file) {
 	}
 
 	string fname = getFileName(file);
-	string old = paths[PATH_GLOBAL_CONFIG] + fname;
+	string old = paths[PATH_GLOBAL_CONFIG] + "Settings\\" + fname;
 	if(File::getSize(old) == -1) {
 		return;
 	}
@@ -808,7 +715,7 @@ string Util::encodeURI(const string& aString, bool reverse) {
  * date/time and then finally written to the log file. If the parameter is not present at all,
  * it is removed from the string completely...
  */
-string Util::formatParams(const string& msg, StringMap& params, bool filter, const time_t t) {
+string Util::formatParams(const string& msg, const StringMap& params, bool filter, const time_t t) {
 	string result = msg;
 
 	string::size_type i, j, k;
@@ -818,7 +725,7 @@ string Util::formatParams(const string& msg, StringMap& params, bool filter, con
 			break;
 		}
 		string name = result.substr(j + 2, k - j - 2);
-		StringMapIter smi = params.find(name);
+		StringMap::const_iterator smi = params.find(name);
 		if(smi == params.end()) {
 			result.erase(j, k-j + 1);
 			i = j;
@@ -886,7 +793,7 @@ string fixedftime(const string& format, struct tm* t) {
 	return ret;
 }
 
-string Util::formatRegExp(const string& msg, StringMap& params) {
+string Util::formatRegExp(const string& msg, const StringMap& params) {
 	string result = msg;
 	string::size_type i, j, k;
 	i = 0;
@@ -895,7 +802,7 @@ string Util::formatRegExp(const string& msg, StringMap& params) {
 			break;
 		}
 		string name = result.substr(j + 2, k - j - 2);
-		StringMapIter smi = params.find(name);
+		StringMap::const_iterator smi = params.find(name);
 		if(smi != params.end()) {
 			result.replace(j, k-j + 1, smi->second);
 			i = j + smi->second.size();
@@ -1190,18 +1097,10 @@ string Util::formatStatus(int iStatus) {
 	
 	return (status.empty() ? "Unknown " : status) + "(" + toString(iStatus) + ")";
 }
-
-void Util::replace(string& aString, const string& findStr, const string& replaceStr) {
-   string::size_type offset = 0;
-   while((offset = aString.find(findStr, offset)) != string::npos) {
-      aString.replace(offset, findStr.length(), replaceStr);
-      offset += replaceStr.length();
-   }
-}
 	
 } // namespace dcpp
 
 /**
  * @file
- * $Id: Util.cpp 476 2010-01-25 21:43:12Z bigmuscle $
+ * $Id: Util.cpp 483 2010-02-20 22:00:01Z bigmuscle $
  */

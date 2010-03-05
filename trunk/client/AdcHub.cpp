@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2010 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,6 +34,7 @@
 #include "ResourceManager.h"
 #include "LogManager.h"
 #include "UploadManager.h"
+#include "ThrottleManager.h"
 
 namespace dcpp {
 
@@ -191,9 +192,6 @@ void AdcHub::handle(AdcCommand::INF, AdcCommand& c) throw() {
 		u->getUser()->setFlag(User::TLS);
 	}
 
-	if(!u->getIdentity().get("US").empty()) {
-		u->getIdentity().setConnection(Util::formatBytes(u->getIdentity().get("US")) + "/s");
-	}
 	//RSX++ // $MyINFO check
 	if(getCheckedAtConnect() && getCheckMyInfo()) {
 		string report = u->getIdentity().myInfoDetect(*u);
@@ -361,25 +359,12 @@ void AdcHub::handle(AdcCommand::CTM, AdcCommand& c) throw() {
 	OnlineUser* u = findUser(c.getFrom());
 	if(!u || u->getUser() == ClientManager::getInstance()->getMe())
 		return;
-	if(c.getParameters().size() < 2)
+	if(c.getParameters().size() < 3)
 		return;
 
 	const string& protocol = c.getParam(0);
 	const string& port = c.getParam(1);
-
-	string token;
-	if(c.getParameters().size() == 3) {
-		const string& tok = c.getParam(2);
-
-		// 0.699 put TO before the token, keep this bug fix for a while
-		if(tok.compare(0, 2, "TO") == 0) {
-			token = tok.substr(2);
-		} else {
-			token = tok;
-		}
-	} else {
-		// <= 0.703 would send an empty token for passive connections when replying to RCM
-	}
+	const string& token = c.getParam(2);
 
 	bool secure = false;
 	if(protocol == CLIENT_PROTOCOL) {
@@ -408,14 +393,7 @@ void AdcHub::handle(AdcCommand::RCM, AdcCommand& c) throw() {
 		return;
 
 	const string& protocol = c.getParam(0);
-	const string& tok = c.getParam(1);
-	string token;
-	// 0.699 sent a token with "TO" prefix
-	if(tok.compare(0, 2, "TO") == 0) {
-		token = tok.substr(2);
-	} else {
-		token = tok;
-	}
+	const string& token = c.getParam(1);
 
 	bool secure;
 	if(protocol == CLIENT_PROTOCOL) {
@@ -439,7 +417,7 @@ void AdcHub::handle(AdcCommand::RCM, AdcCommand& c) throw() {
 	// If they respond with their own, symmetric, RNT command, both
 	// clients call ConnectionManager::adcConnect.
 	send(AdcCommand(AdcCommand::CMD_NAT, u->getIdentity().getSID(), AdcCommand::TYPE_DIRECT).
-		addParam(protocol).addParam(Util::toString(sock->getLocalPort())).addParam(tok));
+		addParam(protocol).addParam(Util::toString(sock->getLocalPort())).addParam(token));
 	return;
 }
 
@@ -671,7 +649,7 @@ void AdcHub::handle(AdcCommand::NAT, AdcCommand& c) throw() {
 void AdcHub::handle(AdcCommand::RNT, AdcCommand& c) throw() {
 	// Sent request for NAT traversal cooperation, which
 	// was acknowledged (with requisite local port information).
-	// If not, that's fine, it just won't work.
+
 	if(!BOOLSETTING(ALLOW_NAT_TRAVERSAL))
 		return;
 
@@ -754,6 +732,28 @@ void AdcHub::privateMessage(const OnlineUserPtr& user, const string& aMessage, b
 		c.addParam("ME", "1");
 	c.addParam("PM", getMySID());
 	send(c);
+}
+
+void AdcHub::sendUserCmd(const UserCommand& command, const StringMap& params) {
+	if(state != STATE_NORMAL)
+		return;
+	string cmd = Util::formatParams(command.getCommand(), params, false);
+	if(command.isChat()) {
+		if(command.getTo().empty()) {
+			hubMessage(cmd);
+		} else {
+			const string& to = command.getTo();
+			Lock l(cs);
+			for(SIDMap::const_iterator i = users.begin(); i != users.end(); ++i) {
+				if(i->second->getIdentity().getNick() == to) {
+					privateMessage(i->second, cmd);
+					return;
+				}
+			}
+		}
+	} else {
+		send(cmd);
+	}
 }
 
 void AdcHub::search(int aSizeMode, int64_t aSize, int aFileType, const string& aString, const string& aToken) {
@@ -849,20 +849,22 @@ void AdcHub::info(bool /*alwaysSend*/) {
 	addParam(lastInfoMap, c, "HN", Util::toString(counts.normal));
 	addParam(lastInfoMap, c, "HR", Util::toString(counts.registered));
 	addParam(lastInfoMap, c, "HO", Util::toString(counts.op));
+
 	addParam(lastInfoMap, c, "VE", "RSX++ " VERSIONSTRING);
-
-	if (SETTING(THROTTLE_ENABLE) && SETTING(MAX_UPLOAD_SPEED_LIMIT) != 0) {
-		addParam(lastInfoMap, c, "US", Util::toString(SETTING(MAX_UPLOAD_SPEED_LIMIT)*1024));
-	} else {
-		addParam(lastInfoMap, c, "US", Util::toString((long)(Util::toDouble(SETTING(UPLOAD_SPEED))*1024*1024/8)));
-	}
-
 	addParam(lastInfoMap, c, "AW", Util::getAway() ? "1" : Util::emptyString);
 	
-	if(SETTING(THROTTLE_ENABLE) && SETTING(MAX_DOWNLOAD_SPEED_LIMIT) != 0) {
-		addParam(lastInfoMap, c, "DS", Util::toString((SETTING(MAX_DOWNLOAD_SPEED_LIMIT)*1024)));
+	int limit = BOOLSETTING(THROTTLE_ENABLE) ? ThrottleManager::getInstance()->getDownloadLimit() : 0;
+	if (limit > 0) {
+		addParam(lastInfoMap, c, "DS", Util::toString(limit));
 	} else {
 		addParam(lastInfoMap, c, "DS", Util::emptyString);
+	}
+
+	limit = BOOLSETTING(THROTTLE_ENABLE) ? ThrottleManager::getInstance()->getUploadLimit() : 0;
+	if (limit > 0) {
+		addParam(lastInfoMap, c, "US", Util::toString(limit));
+	} else {
+		addParam(lastInfoMap, c, "US", Util::toString((long)(Util::toDouble(SETTING(UPLOAD_SPEED))*1024*1024/8)));
 	}
 
 	string su;
@@ -988,5 +990,5 @@ void AdcHub::on(Second s, uint64_t aTick) throw() {
 
 /**
  * @file
- * $Id: AdcHub.cpp 479 2010-02-02 15:50:33Z bigmuscle $
+ * $Id: AdcHub.cpp 483 2010-02-20 22:00:01Z bigmuscle $
  */

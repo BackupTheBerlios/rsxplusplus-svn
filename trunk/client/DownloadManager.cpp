@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2010 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -389,7 +389,7 @@ void DownloadManager::endData(UserConnection* aSource) {
 	if(d->getType() != Transfer::TYPE_FILE)
 		fire(DownloadManagerListener::Complete(), d, d->getType() == Transfer::TYPE_TREE);
 
-	QueueManager::getInstance()->putDownload(d, true, false);	
+	QueueManager::getInstance()->putDownload(d, true, false);
 	checkDownloads(aSource);
 }
 
@@ -445,6 +445,8 @@ void DownloadManager::failDownload(UserConnection* aSource, const string& reason
 			removeConnection(aSource);
 			return;
 		}
+
+		// TODO: update client type here
 
 		QueueManager::getInstance()->putDownload(d, false);
 	}
@@ -591,5 +593,5 @@ void DownloadManager::fileNotAvailable(UserConnection* aSource) {
 
 /**
  * @file
- * $Id: DownloadManager.cpp 469 2009-12-29 21:13:40Z bigmuscle $
+ * $Id: DownloadManager.cpp 482 2010-02-13 10:49:30Z bigmuscle $
  */

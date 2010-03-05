@@ -251,5 +251,5 @@ private:
 
 /**
  * @file
- * $Id: PrivateFrame.h 473 2010-01-12 23:17:33Z bigmuscle $
+ * $Id: PrivateFrame.h 482 2010-02-13 10:49:30Z bigmuscle $
  */

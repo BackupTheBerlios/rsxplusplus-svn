@@ -102,5 +102,5 @@ private:
 
 /**
  * @file
- * $Id: AboutDlg.h 470 2010-01-02 23:23:39Z bigmuscle $
+ * $Id: AboutDlg.h 480 2010-02-07 14:38:33Z bigmuscle $
  */

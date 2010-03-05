@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2010 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -76,5 +76,5 @@ struct equal_to<dcpp::HashValue<T>*> {
 
 /**
 * @file
-* $Id: HashValue.h 450 2009-07-05 15:02:34Z BigMuscle $
+* $Id: HashValue.h 482 2010-02-13 10:49:30Z bigmuscle $
 */

@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2010 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -405,7 +405,9 @@ dcpp_ptr_t Client::clientCallFunc(const char* type, dcpp_ptr_t p1, dcpp_ptr_t p2
 				c->hubMessage(reinterpret_cast<const char*>(p2), p3 != 0 ? true : false);
 				return DCPP_TRUE;
 			} else if(strncmp(cmd, "SendUserCommand", 15) == 0) {
-				c->sendUserCmd(reinterpret_cast<const char*>(p2));
+#pragma message("@todo: fixme")
+				c->send(reinterpret_cast<const char*>(p2));
+				//c->sendUserCmd(reinterpret_cast<const char*>(p2));
 				return DCPP_TRUE;
 			} else if(strncmp(cmd, "LineWrite", 9) == 0) {
 				c->send(reinterpret_cast<const char*>(p2), static_cast<size_t>(p3), true);
@@ -470,5 +472,5 @@ bool Client::plugChatSendLine(const std::string& line) {
 
 /**
  * @file
- * $Id: Client.cpp 463 2009-10-01 16:30:22Z BigMuscle $
+ * $Id: Client.cpp 482 2010-02-13 10:49:30Z bigmuscle $
  */

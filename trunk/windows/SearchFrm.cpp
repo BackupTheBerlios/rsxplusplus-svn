@@ -990,7 +990,7 @@ void SearchFrame::runUserCommand(UserCommand& uc) {
 		if(!sr->getUser()->isOnline())
 			continue;
 
-		if(uc.getType() == UserCommand::TYPE_RAW_ONCE) {
+		if(uc.once()) {
 			if(users.find(sr->getUser()->getCID()) != users.end())
 				continue;
 			users.insert(sr->getUser()->getCID());
@@ -1010,7 +1010,7 @@ void SearchFrame::runUserCommand(UserCommand& uc) {
 		ucParams["tth"] = ucParams["fileTR"];
 
 		StringMap tmp = ucParams;
-		ClientManager::getInstance()->userCommand(sr->getUser(), uc, tmp, true);
+		ClientManager::getInstance()->userCommand(HintedUser(sr->getUser(), sr->getHubURL()), uc, tmp, true);
 	}
 }
 
@@ -1692,5 +1692,5 @@ void SearchFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/) throw() 
 
 /**
  * @file
- * $Id: SearchFrm.cpp 477 2010-01-29 08:59:43Z bigmuscle $
+ * $Id: SearchFrm.cpp 481 2010-02-11 12:31:20Z bigmuscle $
  */

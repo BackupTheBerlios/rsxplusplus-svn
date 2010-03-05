@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2010 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,6 +36,8 @@
 #include "DebugManager.h"
 #include "QueueManager.h"
 #include "ZUtils.h"
+
+#include "ThrottleManager.h"
 
 namespace dcpp {
 
@@ -171,6 +173,7 @@ void NmdcHub::updateFromTag(Identity& id, const string& tag) {
 	StringTokenizer<string> tok(tag, ',');
 	string::size_type j;
 	size_t slots = 1;
+	id.set("US", Util::emptyString);
 	for(StringIter i = tok.getTokens().begin(); i != tok.getTokens().end(); ++i) {
 		if(i->length() < 2)
 			continue;
@@ -197,6 +200,7 @@ void NmdcHub::updateFromTag(Identity& id, const string& tag) {
 			}
 		} else if((j = i->find("L:")) != string::npos) {
 			i->erase(i->begin() + j, i->begin() + j + 2);
+			id.set("US", Util::toString(Util::toInt(*i) * 1024));
 		}
 	}
 	/// @todo Think about this
@@ -285,15 +289,11 @@ void NmdcHub::onLine(const string& aLine) throw() {
 		
 		string seeker = param.substr(i, j-i);
 
-		bool bPassive = (seeker.compare(0, 4, "Hub:") == 0);
+		bool isPassive = (seeker.compare(0, 4, "Hub:") == 0);
 		bool meActive = isActive();
 
-		// We don't wan't to answer passive searches if we're in passive mode...
-		if((bPassive == true) && !meActive) {
-			return;
-		}
 		// Filter own searches
-		if(meActive && bPassive == false) {
+		if(meActive && isPassive == false) {
 			if(seeker == (getLocalIp() + ":" + Util::toString(SearchManager::getInstance()->getPort()))) {
 				return;
 			}
@@ -325,7 +325,7 @@ void NmdcHub::onLine(const string& aLine) throw() {
 
 			if(count > 7) {
 			    if(isOp()) {
-					if(bPassive)
+					if(isPassive)
 						fire(ClientListener::SearchFlood(), this, seeker.substr(4));
 					else
 						fire(ClientListener::SearchFlood(), this, seeker + " " + STRING(NICK_UNKNOWN));
@@ -358,7 +358,7 @@ void NmdcHub::onLine(const string& aLine) throw() {
 		string terms = unescape(param.substr(i));
 
 		if(terms.size() > 0) {
-			if(seeker.compare(0, 4, "Hub:") == 0) {
+			if(isPassive) {
 				OnlineUserPtr u = findUser(seeker.substr(4));
 
 				if(u == NULL) {
@@ -369,9 +369,14 @@ void NmdcHub::onLine(const string& aLine) throw() {
 					u->getUser()->setFlag(User::PASSIVE);
 					updated(u);
 				}
+
+				// ignore if we or remote client don't support NAT traversal in passive mode
+				// although many NMDC hubs won't send us passive if we're in passive too, so just in case...
+				if(!meActive && (!u->getUser()->isSet(User::NAT_TRAVERSAL) || !BOOLSETTING(ALLOW_NAT_TRAVERSAL)))
+					return;
 			}
 
-			fire(ClientListener::NmdcSearch(), this, seeker, a, Util::toInt64(size), type, terms, bPassive);
+			fire(ClientListener::NmdcSearch(), this, seeker, a, Util::toInt64(size), type, terms, isPassive);
 		}
 	} else if(cmd == "MyINFO") {
 		string::size_type i, j;
@@ -425,10 +430,17 @@ void NmdcHub::onLine(const string& aLine) throw() {
 		u.getIdentity().setConnection(connection);
 		u.getIdentity().setStatus(Util::toString(param[j-1]));
 		
+		
 		if(u.getIdentity().getStatus() & Identity::TLS) {
 			u.getUser()->setFlag(User::TLS);
 		} else {
 			u.getUser()->unsetFlag(User::TLS);
+		}
+
+		if(u.getIdentity().getStatus() & Identity::NAT) {
+			u.getUser()->setFlag(User::NAT_TRAVERSAL);
+		} else {
+			u.getUser()->unsetFlag(User::NAT_TRAVERSAL);
 		}
 
 		i = j + 1;
@@ -654,6 +666,9 @@ void NmdcHub::onLine(const string& aLine) throw() {
 			if(j == string::npos)
 				return;
 			string name = unescape(param.substr(i, j-i));
+			// NMDC uses '\' as a separator but both ADC and our internal representation use '/'
+			Util::replace("/", "//", name);
+			Util::replace("\\", "/", name);
 			i = j+1;
 			string command = unescape(param.substr(i, param.length() - i));
 			fire(ClientListener::HubUserCommand(), this, type, ctx, name, command);
@@ -946,16 +961,21 @@ void NmdcHub::myInfo(bool alwaysSend) {
 	else 
 		modeChar = 'P';
 	
-	char tag[256];
+	string uploadSpeed;
+	int upLimit = BOOLSETTING(THROTTLE_ENABLE) ? ThrottleManager::getInstance()->getUploadLimit() : 0;
+	if (upLimit > 0) {
+		uploadSpeed = Util::toString((double)upLimit / 1024) + " KiB/s";
+	} else {
+		uploadSpeed = SETTING(UPLOAD_SPEED);
+	}
+
 	string dc;
 	string version = DCVERSIONSTRING;
-	int NetLimit = Util::getNetLimiterLimit();
-	string connection = (NetLimit > -1) ? "NetLimiter [" + Util::toString(NetLimit) + " kB/s]" : SETTING(UPLOAD_SPEED);
 
 	if (getStealth()) {
-		dc = "<++";
+		dc = "++";
 	} else {
-		dc = "<RSX++";
+		dc = "RSX++";
 		version = VERSIONSTRING;
 
 		if(Util::getAway()) {
@@ -977,22 +997,16 @@ void NmdcHub::myInfo(bool alwaysSend) {
 		StatusMode |= Identity::TLS;
 	}	
 
-	if (BOOLSETTING(THROTTLE_ENABLE) && SETTING(MAX_UPLOAD_SPEED_LIMIT) != 0) {
-		snprintf(tag, sizeof(tag), "%s %s V:%s,M:%c,H:%s,S:%d,L:%d>", extVer.c_str(), dc.c_str(), version.c_str(), modeChar, getCounts().c_str(), UploadManager::getInstance()->getSlots(), SETTING(MAX_UPLOAD_SPEED_LIMIT));
-	} else {
-		snprintf(tag, sizeof(tag), "%s %s V:%s,M:%c,H:%s,S:%d>", extVer.c_str(), dc.c_str(), version.c_str(), modeChar, getCounts().c_str(), UploadManager::getInstance()->getSlots());
-	}
-
 	char myInfo[256];
-	snprintf(myInfo, sizeof(myInfo), "$MyINFO $ALL %s %s%s$ $%s%c$%s$", fromUtf8(getCurrentNick()).c_str(),
-		fromUtf8(escape(getCurrentDescription())).c_str(), tag, connection.c_str(), StatusMode, 
-		fromUtf8(escape(getCurrentEmail())).c_str());
-	int64_t newBytesShared = getHideShare() ? (int64_t)0 : ShareManager::getInstance()->getShareSize(); 	//RSX++ //Hide Share
+	snprintf(myInfo, sizeof(myInfo), "$MyINFO $ALL %s %s%s<%s V:%s,M:%c,H:%s,S:%d>$ $%s%c$%s$", fromUtf8(getCurrentNick()).c_str(),
+		fromUtf8(escape(getCurrentDescription())).c_str(), extVer.c_str(), dc.c_str(), version.c_str(), modeChar, getCounts().c_str(), 
+		UploadManager::getInstance()->getSlots(), uploadSpeed.c_str(), StatusMode, fromUtf8(escape(getCurrentEmail())).c_str());
+
+	int64_t newBytesShared = ShareManager::getInstance()->getShareSize();
 	if (strcmp(myInfo, lastMyInfo.c_str()) != 0 || alwaysSend || (newBytesShared != lastBytesShared && lastUpdate + 15*60*1000 < GET_TICK())) {
-		snprintf(tag, sizeof(tag), "%s%lld$|", myInfo, newBytesShared);
-		
 		dcdebug("MyInfo %s...\n", getMyNick().c_str());		
-		send(tag);
+		send(string(myInfo) + Util::toString(newBytesShared) + "$|");
+		
 		lastMyInfo = myInfo;
 		lastBytesShared = newBytesShared;
 		lastUpdate = GET_TICK();
@@ -1065,15 +1079,33 @@ string NmdcHub::validateMessage(string tmp, bool reverse) {
 	return tmp;
 }
 
+void NmdcHub::privateMessage(const string& nick, const string& message, bool thirdPerson) {
+	send("$To: " + fromUtf8(nick) + " From: " + fromUtf8(getMyNick()) + " $" + fromUtf8(escape("<" + getMyNick() + "> " + (thirdPerson ? "/me " + message : message))) + "|");
+}
+
 void NmdcHub::privateMessage(const OnlineUserPtr& aUser, const string& aMessage, bool thirdPerson) {
 	checkstate();
 
-	send("$To: " + fromUtf8(aUser->getIdentity().getNick()) + " From: " + fromUtf8(getMyNick()) + " $" + fromUtf8(escape("<" + getMyNick() + "> " + (thirdPerson ? "/me " + aMessage : aMessage))) + "|");
+	privateMessage(aUser->getIdentity().getNick(), aMessage, thirdPerson);
 	// Emulate a returning message...
 	OnlineUserPtr ou = findUser(getMyNick());
 	if(ou) {
 		ChatMessage message = { aMessage, ou, aUser, ou };
 		fire(ClientListener::Message(), this, message);
+	}
+}
+
+void NmdcHub::sendUserCmd(const UserCommand& command, const StringMap& params) {
+	checkstate();
+	string cmd = Util::formatParams(command.getCommand(), params, false);
+	if(command.isChat()) {
+		if(command.getTo().empty()) {
+			hubMessage(cmd);
+		} else {
+			privateMessage(command.getTo(), cmd, false);
+		}
+	} else {
+		send(fromUtf8(cmd));
 	}
 }
 
@@ -1122,5 +1154,5 @@ void NmdcHub::on(Second, uint64_t aTick) throw() {
 
 /**
  * @file
- * $Id: nmdchub.cpp 477 2010-01-29 08:59:43Z bigmuscle $
+ * $Id: nmdchub.cpp 483 2010-02-20 22:00:01Z bigmuscle $
  */

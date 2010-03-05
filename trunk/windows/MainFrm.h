@@ -58,7 +58,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		private TimerManagerListener, private QueueManagerListener,
 		private LogManagerListener, private WebServerListener,
 		//RSX++
-		private UpdateManagerListener, private ClientManagerListener
+		private UpdateManagerListener
 		//END
 {
 public:
@@ -520,10 +520,7 @@ private:
 	std::auto_ptr<UPnP> pUPnP;
 
 	//RSX++
-	// UpdateManagerListener
 	void on(UpdateManagerListener::VersionUpdated, const VersionInfo::Client&, const VersionInfo::Profiles&) throw();
-	void on(ClientManagerListener::ClientOpen, const std::string&) throw();
-	void on(ClientManagerListener::ClientClose, const std::string&) throw();
 	//END
 };
 

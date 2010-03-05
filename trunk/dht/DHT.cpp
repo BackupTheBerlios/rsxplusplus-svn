@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009 Big Muscle, http://strongdc.sf.net
+ * Copyright (C) 2009-2010 Big Muscle, http://strongdc.sf.net
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,6 +27,7 @@
 #include "Utils.h"
 
 #include "../client/AdcCommand.h"
+#include "../client/ChatMessage.h"
 #include "../client/CID.h"
 #include "../client/ClientManager.h"
 #include "../client/CryptoManager.h"
@@ -97,8 +98,7 @@ namespace dht
 		{
 			saveData();
 
-			delete bucket;
-			bucket = NULL;
+			lastPacket = 0;
 
 			ConnectionManager::deleteInstance();		
 			TaskManager::deleteInstance();
@@ -106,7 +106,8 @@ namespace dht
 			SearchManager::deleteInstance();
 			BootstrapManager::deleteInstance();
 
-			lastPacket = 0;
+			delete bucket;
+			bucket = NULL;
 		}
 	}
 
@@ -232,7 +233,7 @@ namespace dht
 	bool DHT::addNode(const Node::Ptr& node, bool makeOnline)
 	{
 		bool isAcceptable = true;
-		if(!node->getUser()->isOnline())
+		if(!node->isOnline())
 		{
 			{
 				Lock l(cs);
@@ -243,6 +244,7 @@ namespace dht
 			{
 				// put him online so we can make a connection with him
 				node->inc();
+				node->setOnline(true);
 				ClientManager::getInstance()->putOnline(node.get());
 			}
 		}
@@ -337,7 +339,7 @@ namespace dht
 	/*
 	 * Sends private message to online node 
 	 */
-	void DHT::privateMessage(const OnlineUser& /*ou*/, const string& /*aMessage*/, bool /*thirdPerson*/)
+	void DHT::privateMessage(const OnlineUserPtr& ou, const string& /*aMessage*/, bool /*thirdPerson*/)
 	{
 		//AdcCommand cmd(AdcCommand::CMD_MSG, AdcCommand::TYPE_UDP);
 		//cmd.addParam(aMessage);
@@ -677,6 +679,9 @@ namespace dht
 				while(xml.findChild("Node") && n-- > 0)
 				{
 					CID cid = CID(xml.getChildAttrib("CID"));
+
+					if(cid.isZero())
+						continue;
 
 					// don't bother with myself
 					if(ClientManager::getInstance()->getMe()->getCID() == cid)

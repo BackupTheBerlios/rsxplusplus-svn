@@ -347,9 +347,11 @@ void PrivateFrame::onEnter()
 				params["myCID"] = ClientManager::getInstance()->getMe()->getCID().toBase32();
 				WinUtil::openFile(Text::toT(Util::validateFileName(SETTING(LOG_DIRECTORY) + Util::formatParams(SETTING(LOG_FILE_PRIVATE_CHAT), params, false))));
 			} else if(stricmp(s.c_str(), _T("stats")) == 0) {
-				addLine(Text::toT(WinUtil::generateStats()), WinUtil::m_ChatTextMyOwn);
-			} else if(stricmp(s.c_str(), _T("pstats")) == 0) {
-				sendMessage(Text::toT(WinUtil::generateStats()));
+				tstring stats = Text::toT(WinUtil::generateStats());
+				if(stricmp(param.c_str(), _T("send")) == 0)
+					sendMessage(stats);
+				else
+					addLine(stats, WinUtil::m_ChatTextMyOwn);
 			} else if(stricmp(s.c_str(), _T("help")) == 0) {
 				addLine(_T("*** ") + WinUtil::commands + _T(", /getlist, /clear, /grant, /close, /favorite, /winamp"), WinUtil::m_ChatTextSystem);
 			} else {
@@ -358,7 +360,7 @@ void PrivateFrame::onEnter()
 						if (BOOLSETTING(SEND_UNKNOWN_COMMANDS)) {
 							sendMessage(tstring(m));
 						} else {
-							addClientLine(TSTRING(UNKNOWN_COMMAND) + m);
+							addClientLine(TSTRING(UNKNOWN_COMMAND) + _T(" ") + m);
 						}
 					}
 				} else {
@@ -848,5 +850,5 @@ string PrivateFrame::getCustomAway(const Identity& from) const {
 
 /**
  * @file
- * $Id: PrivateFrame.cpp 476 2010-01-25 21:43:12Z bigmuscle $
+ * $Id: PrivateFrame.cpp 482 2010-02-13 10:49:30Z bigmuscle $
  */

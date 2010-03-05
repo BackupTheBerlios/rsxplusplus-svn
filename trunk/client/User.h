@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2010 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,15 +45,16 @@ public:
 		PASSIVE					= 0x04,
 		NMDC					= 0x08,
 		BOT						= 0x10,
-		TLS						= 0x20,	//< Client supports TLS
-		OLD_CLIENT				= 0x40, //< Can't download - old client
-		NO_ADC_1_0_PROTOCOL		=  0x80,	//< Doesn't support "ADC/1.0" (dc++ <=0.703)
+		TLS						= 0x20,		//< Client supports TLS
+		OLD_CLIENT				= 0x40,		//< Can't download - old client
+		NO_ADC_1_0_PROTOCOL		= 0x80,		//< Doesn't support "ADC/1.0" (dc++ <=0.703)
 		NO_ADCS_0_10_PROTOCOL	= 0x100,	//< Doesn't support "ADCS/0.10"
 		DHT						= 0x200,
+		NAT_TRAVERSAL			= 0x400,	//< Client supports NAT Traversal
 		//RSX++
-		PROTECTED 				= 0x400,	//< User protected
-		IGNORED					= 0x800,	//< User ignored
-		MUTED					= 0x1000 // performance trick
+		PROTECTED 				= 0x800,	//< User protected
+		IGNORED					= 0x1000,	//< User ignored
+		MUTED					= 0x2000 	//< performance trick
 		//END
 	};
 
@@ -70,14 +71,14 @@ public:
 
 	bool isOnline() const { return isSet(ONLINE); }
 	bool isNMDC() const { return isSet(NMDC); }
-	bool isFavorite();
-
+	//RSX++
 	inline bool getSoundActive() {
 		return isSet(MUTED) == false;
 	}
 	inline void setSoundActive(bool active) {
 		active ? unsetFlag(MUTED) : setFlag(MUTED);
 	}
+	//END
 private:
 	CID cid;
 };
@@ -119,6 +120,14 @@ public:
 		FIREBALL	= 0x08,
 		TLS			= 0x10,
 		NAT			= 0x20
+	};
+
+	enum FakeFlags {
+		NOT_CHECKED		= 0x01,
+		CLIENT_CHECKED	= 0x02,
+		LIST_CHECKED	= 0x04,
+		BAD_CLIENT		= 0x08,
+		BAD_LIST		= 0x10
 	};
 	
 	Identity() { resetCounters(); }
@@ -182,7 +191,7 @@ public:
 	
 	bool isClientType(ClientType ct) const;
 
-	string getReport() const;
+	map<string, string> getReport() const;
 	void getParams(StringMap& map, const string& prefix, bool compatibility, bool dth = false) const;
 
 	//RSX++
@@ -356,5 +365,5 @@ private:
 
 /**
  * @file
- * $Id: User.h 466 2009-11-13 18:47:25Z BigMuscle $
+ * $Id: User.h 484 2010-02-26 22:01:25Z bigmuscle $
  */

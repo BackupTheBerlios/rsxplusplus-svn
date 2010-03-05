@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2010 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -134,7 +134,7 @@ void BufferedSocket::threadConnect(const string& aAddr, uint16_t aPort, uint16_t
 			}
 	
 			bool connSucceeded;
-			while(!(connSucceeded = sock->waitConnected(POLL_TIMEOUT)) && endTime >= GET_TICK()) {
+			while((connSucceeded = sock->waitConnected(POLL_TIMEOUT)) == false && endTime >= GET_TICK()) {
 				if(disconnecting) return;
 			}
 	
@@ -142,8 +142,9 @@ void BufferedSocket::threadConnect(const string& aAddr, uint16_t aPort, uint16_t
 				fire(BufferedSocketListener::Connected());
 				return;
 			}
-		}
-		catch (const SocketException&) {
+		} catch (const SSLSocketException&) {
+			throw;
+		} catch (const SocketException&) {
 			if (natRole == NAT_NONE)
 				throw;
 			Thread::sleep(SHORT_TIMEOUT);
@@ -515,5 +516,5 @@ void BufferedSocket::addTask(Tasks task, TaskData* data) {
 
 /**
  * @file
- * $Id: BufferedSocket.cpp 479 2010-02-02 15:50:33Z bigmuscle $
+ * $Id: BufferedSocket.cpp 486 2010-02-27 16:44:26Z bigmuscle $
  */

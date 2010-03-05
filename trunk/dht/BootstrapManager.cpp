@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009 Big Muscle, http://strongdc.sf.net
+ * Copyright (C) 2009-2010 Big Muscle, http://strongdc.sf.net
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -123,12 +123,7 @@ namespace dht
 	
 	void BootstrapManager::addBootstrapNode(const string& ip, uint16_t udpPort, const CID& targetCID, const UDPKey& udpKey)
 	{
-		//BootstrapNode node = { ip, udpPort, targetCID, udpKey };
-		BootstrapNode node;
-		node.cid = targetCID;
-		node.udpKey = udpKey;
-		node.udpPort = udpPort;
-		node.ip = ip;
+		BootstrapNode node = { ip, udpPort, targetCID, udpKey };
 		bootstrapNodes.push_back(node);
 	}
 	

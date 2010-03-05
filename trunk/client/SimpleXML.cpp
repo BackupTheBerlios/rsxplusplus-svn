@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2010 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -204,5 +204,5 @@ void SimpleXML::fromXML(const string& aXML) throw(SimpleXMLException) {
 
 /**
  * @file
- * $Id: SimpleXML.cpp 468 2009-12-23 14:01:30Z bigmuscle $
+ * $Id: SimpleXML.cpp 482 2010-02-13 10:49:30Z bigmuscle $
  */

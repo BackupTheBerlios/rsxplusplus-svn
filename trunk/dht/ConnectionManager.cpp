@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009 Big Muscle, http://strongdc.sf.net
+ * Copyright (C) 2009-2010 Big Muscle, http://strongdc.sf.net
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -47,7 +47,7 @@ namespace dht
 	void ConnectionManager::connect(const Node::Ptr& node, const string& token, bool secure)
 	{
 		// don't allow connection if we didn't proceed a handshake
-		if(!node->getUser()->isOnline())
+		if(!node->isOnline())
 		{
 			// do handshake at first
 			DHT::getInstance()->info(node->getIdentity().getIp(), static_cast<uint16_t>(Util::toInt(node->getIdentity().getUdpPort())), 
@@ -79,7 +79,7 @@ namespace dht
 	void ConnectionManager::connectToMe(const Node::Ptr& node, const AdcCommand& cmd)
 	{
 		// don't allow connection if we didn't proceed a handshake
-		if(!node->getUser()->isOnline())
+		if(!node->isOnline())
 		{
 			// do handshake at first
 			DHT::getInstance()->info(node->getIdentity().getIp(), static_cast<uint16_t>(Util::toInt(node->getIdentity().getUdpPort())),
@@ -128,7 +128,7 @@ namespace dht
 	void ConnectionManager::revConnectToMe(const Node::Ptr& node, const AdcCommand& cmd)
 	{
 		// don't allow connection if we didn't proceed a handshake
-		//if(!node->getUser()->isOnline())
+		//if(!node->isOnline())
 		//	return;
 
 		// this is valid for active-passive connections only

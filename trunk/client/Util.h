@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2010 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -199,6 +199,19 @@ public:
 		return (j != wstring::npos) ? path.substr(j+1, i-j-1) : path;
 	}
 
+	template<typename string_t>
+	static void replace(const string_t& search, const string_t& replacement, string_t& str) {
+		typename string_t::size_type i = 0;
+		while((i = str.find(search, i)) != string_t::npos) {
+			str.replace(i, search.size(), replacement);
+			i += replacement.size();
+		}
+	}
+	template<typename string_t>
+	static inline void replace(const typename string_t::value_type* search, const typename string_t::value_type* replacement, string_t& str) {
+		replace(string_t(search), string_t(replacement), str);
+	}
+
 	static void decodeUrl(const string& aUrl, string& aServer, uint16_t& aPort, string& aFile) { bool isSecure; decodeUrl(aUrl, aServer, aPort, aFile, isSecure); }
 	static void decodeUrl(const string& aUrl, string& aServer, uint16_t& aPort, string& aFile, bool& isSecure);
 	static string validateFileName(string aFile);
@@ -227,9 +240,9 @@ public:
 		return buf;
 	}
 
-	static string formatParams(const string& msg, StringMap& params, bool filter, const time_t t = time(NULL));
+	static string formatParams(const string& msg, const StringMap& params, bool filter, const time_t t = time(NULL));
 	static string formatTime(const string &msg, const time_t t);
-	static string formatRegExp(const string& msg, StringMap& params);
+	static string formatRegExp(const string& msg, const StringMap& params);
 
 	static inline int64_t roundDown(int64_t size, int64_t blockSize) {
 		return ((size + blockSize / 2) / blockSize) * blockSize;
@@ -414,8 +427,7 @@ public:
 	 */
 	static string::size_type findSubString(const string& aString, const string& aSubString, string::size_type start = 0) throw();
 	static wstring::size_type findSubString(const wstring& aString, const wstring& aSubString, wstring::size_type start = 0) throw();
-	
-	static void replace(string& aString, const string& findStr, const string& replaceStr);
+
 	
 	static string getIpCountry (const string& IP);
 
@@ -432,8 +444,6 @@ public:
 	static uint32_t rand(uint32_t high) { return rand() % high; }
 	static uint32_t rand(uint32_t low, uint32_t high) { return rand(high-low) + low; }
 	static double randd() { return ((double)rand()) / ((double)0xffffffff); }
-
-	static int getNetLimiterLimit();
 
 private:
 	/** In local mode, all config and temp files are kept in the same dir as the executable */
@@ -541,5 +551,5 @@ struct noCaseStringLess {
 
 /**
  * @file
- * $Id: Util.h 476 2010-01-25 21:43:12Z bigmuscle $
+ * $Id: Util.h 483 2010-02-20 22:00:01Z bigmuscle $
  */

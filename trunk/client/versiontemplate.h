@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2001-2007 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2010 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,17 +20,17 @@
 #define VERSIONSTRING "1.20"
 #define VERSIONFLOAT 1.20
 
-#define DCVERSIONSTRING "0.75"
-#define DCVERSIONFLOAT 0.75
+#define DCVERSIONSTRING "0.760"
+#define DCVERSIONFLOAT 0.760
 
-#define SVNVERSION "svn470"
+#define SVNVERSION "svn487"
 
 #define SVN_REVISION $WCREV$
 
-#define RSXPP_SITE "http://rsxplusplus.sf.net/"
-#define RSXPP_TRAC "http://sourceforge.net/apps/trac/rsxplusplus/"
-#define RSXPP_FORUM "http://sourceforge.net/apps/phpbb/rsxplusplus/"
-#define RSXPP_DONATE "http://rsxplusplus.sf.net/donate.html"
-#define VERSION_URL "http://rsxplusplus.sf.net/version.xml"
+#define RSXPP_SITE		"http://rsxplusplus.sf.net/"
+#define RSXPP_TRAC		"http://sourceforge.net/apps/trac/rsxplusplus/"
+#define RSXPP_FORUM		"http://sourceforge.net/apps/phpbb/rsxplusplus/"
+#define RSXPP_DONATE	"http://rsxplusplus.sf.net/donate.html"
+#define VERSION_URL		"http://rsxplusplus.sf.net/version.xml"
 
 /* Update the .rc file as well... */

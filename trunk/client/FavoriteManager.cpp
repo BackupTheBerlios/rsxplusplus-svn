@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2001-2009 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2010 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -80,10 +80,10 @@ FavoriteManager::~FavoriteManager() throw() {
 	//END
 }
 
-UserCommand FavoriteManager::addUserCommand(int type, int ctx, Flags::MaskType flags, const string& name, const string& command, const string& hub) {
+UserCommand FavoriteManager::addUserCommand(int type, int ctx, Flags::MaskType flags, const string& name, const string& command, const string& to, const string& hub) {
 	// No dupes, add it...
 	Lock l(cs);
-	userCommands.push_back(UserCommand(lastId++, type, ctx, flags, name, command, hub));
+	userCommands.push_back(UserCommand(lastId++, type, ctx, flags, name, command, to, hub));
 	UserCommand& uc = userCommands.back();
 	if(!uc.isSet(UserCommand::FLAG_NOSAVE)) 
 		save();
@@ -486,6 +486,7 @@ void FavoriteManager::save() {
 				xml.addChildAttrib("Context", i->getCtx());
 				xml.addChildAttrib("Name", i->getName());
 				xml.addChildAttrib("Command", i->getCommand());
+				xml.addChildAttrib("To", i->getTo());
 				xml.addChildAttrib("Hub", i->getHub());
 			}
 		}
@@ -803,8 +804,8 @@ void FavoriteManager::load(SimpleXML& aXml) {
 	if(aXml.findChild("UserCommands")) {
 		aXml.stepIn();
 		while(aXml.findChild("UserCommand")) {
-			addUserCommand(aXml.getIntChildAttrib("Type"), aXml.getIntChildAttrib("Context"),
-				0, aXml.getChildAttrib("Name"), aXml.getChildAttrib("Command"), aXml.getChildAttrib("Hub"));
+			addUserCommand(aXml.getIntChildAttrib("Type"), aXml.getIntChildAttrib("Context"), 0, aXml.getChildAttrib("Name"),
+				aXml.getChildAttrib("Command"), aXml.getChildAttrib("To"), aXml.getChildAttrib("Hub"));
 		}
 		aXml.stepOut();
 	}
@@ -1036,7 +1037,7 @@ UserCommand::List FavoriteManager::getUserCommands(int ctx, const StringList& hu
 					lst.push_back(*i);
 					break;
 				}
-			} else if(!hubAdc && !commandAdc) {
+			} else if((!hubAdc && !commandAdc) || uc.isChat()) {
 				if((uc.getHub().length() == 0) || 
 					(uc.getHub() == "op" && isOp[j]) ||
 					(uc.getHub() == hub) )
@@ -1255,5 +1256,5 @@ string FavoriteManager::getAwayMessage(const string& aServer) {
 
 /**
  * @file
- * $Id: FavoriteManager.cpp 471 2010-01-09 23:17:42Z bigmuscle $
+ * $Id: FavoriteManager.cpp 482 2010-02-13 10:49:30Z bigmuscle $
  */

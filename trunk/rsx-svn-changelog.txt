@@ -1,3 +1,9 @@
+** SVN 204 06/03/10
+ ** macro for proper window title
+ ** proper version of sdc in about dlg
+ ** attempt to fix odd crash with winamp_spam
+ ** fixed stats display
+
 ** SVN 203 05/03/10
  ** sdc svn merge
  ** updated openssl

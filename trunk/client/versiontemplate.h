@@ -33,4 +33,24 @@
 #define RSXPP_DONATE	"http://rsxplusplus.sf.net/donate.html"
 #define VERSION_URL		"http://rsxplusplus.sf.net/version.xml"
 
+#ifdef _WIN32
+# ifdef _WIN64
+#  define CONFIGURATION_NAME "x86-64"
+# else
+#  define CONFUGURATION_NAME "x86-32"
+# endif
+#endif
+
+#ifdef SVNBUILD
+# define COMPLETEVERSIONSTRING _T(APPNAME) _T(" ") _T(VERSIONSTRING) _T(" ") _T(CONFIGURATION_NAME) _T(" [SVN:") _T(BOOST_STRINGIZE(SVN_REVISION)) _T(" / ") _T(DCVERSIONSTRING) _T(" / ") _T(SVNVERSION) _T("]")
+#elif _DEBUG
+# define COMPLETEVERSIONSTRING _T(APPNAME) _T(" ") _T(VERSIONSTRING) _T(" ") _T(CONFIGURATION_NAME) _T(" [DEBUG SVN:") _T(BOOST_STRINGIZE(SVN_REVISION)) _T(" / ") _T(DCVERSIONSTRING) _T(" / ") _T(SVNVERSION) _T("]")
+#else
+# define COMPLETEVERSIONSTRING _T(APPNAME) _T(" ") _T(VERSIONSTRING) _T(" ") _T(CONFIGURATION_NAME)
+#endif
+
+#ifdef CONFUGURATION_NAME
+#undef CONFUGURATION_NAME
+#endif
+
 /* Update the .rc file as well... */

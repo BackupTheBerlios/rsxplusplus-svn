@@ -52,7 +52,6 @@ public:
 	static bool				compareLower(const tstring& firstStr, const tstring& secondStr);
 	static int				CalcContrastColor(int crBg);
 	static bool				isIpInRange(const string& aIp, const string& aRange);
-	static tstring			getWndTitle();
 
 	//simple function from cplusplus.com with changes ;)
 	template<int len>

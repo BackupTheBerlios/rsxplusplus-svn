@@ -184,7 +184,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 
 	// Set window name
 
-	SetWindowText(RsxUtil::getWndTitle().c_str());
+	SetWindowText(COMPLETEVERSIONSTRING);
 	UpdateManager::getInstance()->addListener(this); //RSX++
 
 	// Load images

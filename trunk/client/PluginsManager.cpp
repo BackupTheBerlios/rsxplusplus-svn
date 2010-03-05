@@ -163,7 +163,8 @@ dcpp_ptr_t PluginsManager::dcppBuffer_strcpy(const string& str, dcppBuffer* buf)
 	dcpp_ptr_t len = buf->size;
 	if(str.size() < len)
 		len = str.size();
-	memcpy(buf->buf, &str[0], len);
+	if(len > 0)
+		memcpy(buf->buf, &str[0], len);
 	return len;
 }
 
@@ -207,7 +208,8 @@ dcpp_ptr_t PluginsManager::coreCallFunc(const char* type, dcpp_ptr_t p1, dcpp_pt
 			size_t len = buf->size;
 			if(s.size()*sizeof(wchar_t) < len)
 				len = s.size()*sizeof(wchar_t);
-			memcpy(buf->buf, &s[0], len);
+			if(len > 0)
+				memcpy(buf->buf, &s[0], len);
 			return len;
 		} else if(strncmp(type+6, "Utf8ToAcp", 9) == 0) {
 			const char* str = reinterpret_cast<const char*>(p1);

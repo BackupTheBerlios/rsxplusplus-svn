@@ -295,19 +295,4 @@ int RsxUtil::CalcContrastColor(int crBg) {
 		return crBg ^ 0xFFFFFF;
 }
 
-#ifdef _WIN64
-#define CONFIGURATION_TYPE "x86-64"
-#else
-#define CONFIGURATION_TYPE "x86-32"
-#endif
-
-tstring RsxUtil::getWndTitle() {
-#ifdef SVNBUILD
-	return _T(APPNAME) _T(" ") _T(VERSIONSTRING) _T(" ") _T(CONFIGURATION_TYPE) _T(" [SVN:") _T(BOOST_STRINGIZE(SVN_REVISION)) _T(" / ") _T(DCVERSIONSTRING) _T(" / ") _T(SVNVERSION) _T("]");
-#elif _DEBUG
-	return _T(APPNAME) _T(" ") _T(VERSIONSTRING) _T(" ") _T(CONFIGURATION_TYPE) _T(" DEBUG [SVN:") _T(BOOST_STRINGIZE(SVN_REVISION)) _T(" / ") _T(DCVERSIONSTRING) _T(" / ") _T(SVNVERSION) _T("]");
-#else
-	return _T(APPNAME) _T(" ") _T(VERSIONSTRING) _T(" ") _T(CONFIGURATION_TYPE);
-#endif
-}
 }; // namespace dcpp

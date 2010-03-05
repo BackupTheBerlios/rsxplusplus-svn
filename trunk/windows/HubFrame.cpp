@@ -410,7 +410,11 @@ void HubFrame::onEnter() {
 					}
 				}
 			} else if(stricmp(cmd.c_str(), _T("stats")) == 0) {
-				addLine(Text::toT(WinUtil::generateStats()));
+				string stats = WinUtil::generateStats();
+				if(stricmp(param.c_str(), _T("send")) == 0)
+					client->hubMessage(stats);
+				else
+					addLine(Text::toT(stats));
 			//RSX++
 			} else if(stricmp(cmd.c_str(), _T("pstats")) == 0) {
 				client->hubMessage(WinUtil::generateStats());

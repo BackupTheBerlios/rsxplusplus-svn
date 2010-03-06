@@ -49,8 +49,4 @@
 # define COMPLETEVERSIONSTRING _T(APPNAME) _T(" ") _T(VERSIONSTRING) _T(" ") _T(CONFIGURATION_NAME)
 #endif
 
-#ifdef CONFUGURATION_NAME
-#undef CONFUGURATION_NAME
-#endif
-
 /* Update the .rc file as well... */

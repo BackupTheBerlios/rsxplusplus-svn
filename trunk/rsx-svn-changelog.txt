@@ -1,3 +1,6 @@
+** SVN 205 06/03/10
+ ** fix build
+
 ** SVN 204 06/03/10
  ** macro for proper window title
  ** proper version of sdc in about dlg

@@ -62,7 +62,7 @@ DownloadManager::~DownloadManager() throw() {
 
 void DownloadManager::on(TimerManagerListener::Second, uint64_t aTick) throw() {
 	typedef vector<pair<string, UserPtr> > TargetList;
-	typedef vector<pair<uint64_t, UserPtr> > SlowChecks; //RSX++
+	typedef vector<pair<double, UserPtr> > SlowChecks; //RSX++
 
 	TargetList dropTargets;
 	SlowChecks slowdl; //RSX++
@@ -121,7 +121,7 @@ void DownloadManager::on(TimerManagerListener::Second, uint64_t aTick) throw() {
 	}
 	//RSX++
 	for(SlowChecks::iterator j = slowdl.begin(); j != slowdl.end(); ++j) {
-		string cheat = str(boost::format("Too low download speed (%1%/s)") % Util::formatBytes(j->first));
+		string cheat = str(boost::format("Too low download speed (%1%/s)") % Util::formatBytes(static_cast<uint64_t>(j->first)));
 		ClientManager::getInstance()->setCheating(j->second, "", cheat, RSXPP_SETTING(SDL_RAW), RSXPP_BOOLSETTING(SHOW_SDL_RAW), false, true, false, true);						
 	}
 	//END

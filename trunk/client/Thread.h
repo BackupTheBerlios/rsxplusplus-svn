@@ -27,7 +27,9 @@
 
 #include "Exception.h"
 
+#pragma warning(push, 3) //RSX++ lower the warning level to ignore some annoying warnings on 32-bit build
 #include <boost/thread.hpp>
+#pragma warning(pop)
 
 namespace dcpp {
 

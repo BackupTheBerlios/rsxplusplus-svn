@@ -1,3 +1,7 @@
+** SVN 206 07/03/10
+ ** fixed warnings on win32 build
+ ** fixed WIN32 build (fcuked typo!)
+
 ** SVN 205 06/03/10
  ** fix build
 

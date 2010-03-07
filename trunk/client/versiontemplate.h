@@ -37,7 +37,7 @@
 # ifdef _WIN64
 #  define CONFIGURATION_NAME "x86-64"
 # else
-#  define CONFUGURATION_NAME "x86-32"
+#  define CONFIGURATION_NAME "x86-32"
 # endif
 #endif
 

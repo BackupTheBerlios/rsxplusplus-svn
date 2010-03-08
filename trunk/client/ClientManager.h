@@ -32,6 +32,8 @@
 #include "ClientManagerListener.h"
 //RSX++
 #include "../rsx/IpManager.h"
+#include <boost/function.hpp>
+#include <boost/bind.hpp>
 //END
 
 namespace dcpp {
@@ -44,12 +46,19 @@ class ClientManager : public Speaker<ClientManagerListener>,
 {
 public:
 	//RSX++
+	typedef boost::function<void(const std::string&)> HubFrameFunc;
+
+	HubFrameFunc openFrame;
+	HubFrameFunc closeFrame;
+
 	void openHub(const string& url) {
-		//fire(ClientManagerListener::ClientOpen(), url);
+		if(openFrame)
+			openFrame(url);
 	}
 
 	void closeHub(const string& url) {
-		//fire(ClientManagerListener::ClientClose(), url);
+		if(closeFrame)
+			closeFrame(url);
 	}
 	//END
 

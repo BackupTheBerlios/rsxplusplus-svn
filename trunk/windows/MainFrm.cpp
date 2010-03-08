@@ -82,6 +82,10 @@ MainFrame::MainFrame() : trayMessage(0), maximized(false), lastUpload(-1), lastU
 { 
 		memzero(statusSizes, sizeof(statusSizes));
 		anyMF = this;
+		//RSX++
+		ClientManager::getInstance()->openFrame = boost::bind(&MainFrame::openHub, this, _1);
+		ClientManager::getInstance()->closeFrame = boost::bind(&MainFrame::closeHub, this, _1);
+		//END
 }
 
 MainFrame::~MainFrame() {
@@ -1662,14 +1666,14 @@ void MainFrame::setDefPrioMenu() {
 		default:							prioMenu.SetMenuDefaultItem(IDC_CHANGE_PRIO_NORMAL);	break;
 	}
 }
-/*
-void MainFrame::on(ClientManagerListener::ClientOpen, const std::string& hubUrl) throw() {
-	HubFrame::openWindow(Text::toT(hubUrl));
+
+void MainFrame::openHub(const std::string& url) {
+	HubFrame::openWindow(Text::toT(url));
 }
 
-void MainFrame::on(ClientManagerListener::ClientClose, const std::string& hubUrl) throw() {
-	HubFrame::closeHub(Text::toT(hubUrl));
-}*/
+void MainFrame::closeHub(const std::string& url) {
+	HubFrame::closeHub(Text::toT(url));
+}
 //END
 /**
  * @file

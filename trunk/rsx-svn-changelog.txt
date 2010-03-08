@@ -1,3 +1,8 @@
+** SVN 207 08/03/10
+ ** fixed moveFile problem with TestSUR
+ ** some post-sdc-merge fixes
+ ** [sdk] implemented method to open hub with visible frame
+
 ** SVN 206 07/03/10
  ** fixed warnings on win32 build
  ** fixed WIN32 build (fcuked typo!)

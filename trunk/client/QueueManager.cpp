@@ -106,12 +106,14 @@ QueueItem* QueueManager::FileQueue::add(const string& aTarget, int64_t aSize,
 		//END
 	}
 
-	qi->setTempTarget(aTempTarget);
-	if(!Util::fileExists(aTempTarget) && Util::fileExists(aTempTarget + ".antifrag")) {
-		// load old antifrag file
-		File::renameFile(aTempTarget + ".antifrag", qi->getTempTarget());
-    }
-	        	
+	if(!qi->isSet(QueueItem::FLAG_TESTSUR)) {
+		qi->setTempTarget(aTempTarget);
+		if(!Util::fileExists(aTempTarget) && Util::fileExists(aTempTarget + ".antifrag")) {
+			// load old antifrag file
+			File::renameFile(aTempTarget + ".antifrag", qi->getTempTarget());
+		}
+	}
+
 	dcassert(find(aTarget) == NULL);
 	add(qi);
 	return qi;
@@ -1375,6 +1377,7 @@ void QueueManager::putDownload(Download* aDownload, bool finished, bool reportFi
 							}
 						
 							// Check if we need to move the file
+							if(!q->isSet(QueueItem::FLAG_TESTSUR)) //RSX++ temp fix
 							if( !aDownload->getTempTarget().empty() && (stricmp(aDownload->getPath().c_str(), aDownload->getTempTarget().c_str()) != 0) ) {
 								moveFile(aDownload->getTempTarget(), aDownload->getPath());
 							}

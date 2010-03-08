@@ -383,7 +383,10 @@ public:
 	CImageList largeImages, largeImagesHot;
 	int run();
 	
-
+	//RSX++
+	void openHub(const std::string& url);
+	void closeHub(const std::string& url);
+	//END
 private:
 	NOTIFYICONDATA normalicon;
 	NOTIFYICONDATA pmicon;

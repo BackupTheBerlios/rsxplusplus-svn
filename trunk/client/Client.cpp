@@ -358,10 +358,16 @@ dcpp_ptr_t Client::clientCallFunc(const char* type, dcpp_ptr_t p1, dcpp_ptr_t p2
 	if(strncmp(type, "Hub/", 4) == 0) {
 		const char* cmd = type+4;
 		if(strncmp(cmd, "Open", 4) == 0) {
-			ClientManager::getInstance()->openHub(reinterpret_cast<const char*>(p1));
+			if(p1)
+				ClientManager::getInstance()->openHub(reinterpret_cast<const char*>(p2));
+			else
+				return (dcpp_ptr_t)ClientManager::getInstance()->getClient(reinterpret_cast<const char*>(p2));
 			return DCPP_TRUE;
 		} else if(strncmp(cmd, "Close", 5) == 0) {
-			ClientManager::getInstance()->closeHub(reinterpret_cast<const char*>(p1));
+			if(p1)
+				ClientManager::getInstance()->closeHub(reinterpret_cast<const char*>(p2));
+			else
+				ClientManager::getInstance()->putClient(reinterpret_cast<Client*>(p2));
 			return DCPP_TRUE;
 		} else if(strncmp(cmd, "FormatChatMessage", 17) == 0) {
 			ChatMessage cm;

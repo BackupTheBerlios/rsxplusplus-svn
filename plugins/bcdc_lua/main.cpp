@@ -194,10 +194,12 @@ int DCPP_CALL_CONV onHubEvent(int callReason, dcpp_ptr_t p1, dcpp_ptr_t p2) {
 			MakeCall((isAdc ? "adch" : "nmdch"), "OnHubAdded", 0, p1);
 			break;
 		}
+		case DCPP_EVENT_HUB_DESTROYED:
 		case DCPP_EVENT_HUB_DISCONNECTED: {
 			const char* url = (const char*)p2;
 			bool isAdc = strncmp(url, "adc://", 6) == 0 || strncmp(url, "adcs://", 7) == 0;
 			MakeCall((isAdc ? "adch" : "nmdch"), "OnHubRemoved", 0, p1);
+			lua_gc(L, LUA_GCCOLLECT, 0);
 			break;
 		}
 		case DCPP_EVENT_HUB_LINE: {

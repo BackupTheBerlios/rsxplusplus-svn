@@ -474,7 +474,7 @@ private:
 	tstring lastTTHdir;
 	bool oldshutdown;
 
-	bool tabsontop;
+	int tabPos;
 	bool closing;
 
 	int lastUpload;
@@ -531,5 +531,5 @@ private:
 
 /**
  * @file
- * $Id: MainFrm.h 470 2010-01-02 23:23:39Z bigmuscle $
+ * $Id: MainFrm.h 493 2010-03-28 16:59:43Z bigmuscle $
  */

@@ -160,6 +160,7 @@ public:
 	#include "CheatManager.h"
 
 	OnlineUserPtr findDHTNode(const CID& cid) const;
+
 private:
 
 	typedef unordered_map<CID*, UserPtr> UserMap;

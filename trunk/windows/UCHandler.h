@@ -24,7 +24,6 @@
 #endif // _MSC_VER > 1000
 
 #include "../client/FavoriteManager.h"
-#include "../client/StringTokenizer.h"
 #include "../client/ClientManager.h"
 
 template<class T>
@@ -96,8 +95,7 @@ public:
 				menu.AppendMenu(MF_POPUP, (UINT)(HMENU)subMenu, CTSTRING(SETTINGS_USER_COMMANDS));
 			}
 			
-			CMenuHandle cur = BOOLSETTING(UC_SUBMENU) ? subMenu.m_hMenu : menu.m_hMenu; 
-			extraItems = 1;
+			CMenuHandle cur = BOOLSETTING(UC_SUBMENU) ? subMenu.m_hMenu : menu.m_hMenu;	
 
 			for(UserCommand::List::iterator ui = userCommands.begin(); ui != userCommands.end(); ++ui) {
 				UserCommand& uc = *ui;
@@ -111,13 +109,9 @@ public:
 					}
 				} else if(uc.isRaw() || uc.isChat()) {
 					cur = BOOLSETTING(UC_SUBMENU) ? subMenu.m_hMenu : menu.m_hMenu;
-					tstring name = Text::toT(uc.getName());
-					Util::replace(_T("//"), _T("\t"), name);
-					StringTokenizer<tstring> t(name, _T('/'));
-					for(TStringList::const_iterator i = t.getTokens().begin(), iend = t.getTokens().end(); i != iend; ++i) {
-						name = *i;
-						Util::replace(_T("\t"), _T("/"), name);
-						if(i+1 == t.getTokens().end()) {
+					for(StringList::const_iterator i = uc.getDisplayName().begin(), iend = uc.getDisplayName().end(); i != iend; ++i) {
+						tstring name = Text::toT(*i);
+						if(i + 1 == iend) {
 							cur.AppendMenu(MF_STRING, IDC_USER_COMMAND + n, name.c_str());
 							m++;
 						} else {
@@ -158,5 +152,5 @@ private:
 
 /**
  * @file
- * $Id: UCHandler.h 482 2010-02-13 10:49:30Z bigmuscle $
+ * $Id: UCHandler.h 492 2010-03-26 14:31:56Z bigmuscle $
  */

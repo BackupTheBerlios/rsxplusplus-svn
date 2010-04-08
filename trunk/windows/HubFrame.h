@@ -120,6 +120,8 @@ public:
 		//END
 		COMMAND_ID_HANDLER(IDC_COPY_HUBNAME, onCopyHubInfo)
 		COMMAND_ID_HANDLER(IDC_COPY_HUBADDRESS, onCopyHubInfo)
+		COMMAND_ID_HANDLER(IDC_IGNORE, onIgnore)
+		COMMAND_ID_HANDLER(IDC_UNIGNORE, onUnignore)
 		CHAIN_COMMANDS(ucBase)
 		CHAIN_COMMANDS(uibBase)
 		CHAIN_MSG_MAP(baseClass)
@@ -256,6 +258,26 @@ public:
 
 	LRESULT onItemChanged(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/) {
 		updateStatusBar();
+		return 0;
+	}
+
+	LRESULT onIgnore(UINT /*uMsg*/, WPARAM /*wParam*/, HWND /*lParam*/, BOOL& /*bHandled*/) {
+		int i=-1;
+		if(client->isConnected()) {
+			while( (i = ctrlUsers.GetNextItem(i, LVNI_SELECTED)) != -1) {
+				FavoriteManager::getInstance()->addIgnoredUser(((OnlineUser*)ctrlUsers.getItemData(i))->getUser()->getCID());
+			}
+		}
+		return 0;
+	}
+
+	LRESULT onUnignore(UINT /*uMsg*/, WPARAM /*wParam*/, HWND /*lParam*/, BOOL& /*bHandled*/) {
+		int i=-1;
+		if(client->isConnected()) {
+			while( (i = ctrlUsers.GetNextItem(i, LVNI_SELECTED)) != -1) {
+				FavoriteManager::getInstance()->removeIgnoredUser(((OnlineUser*)ctrlUsers.getItemData(i))->getUser()->getCID());
+			}
+		}
 		return 0;
 	}
 
@@ -483,5 +505,5 @@ private:
 
 /**
  * @file
- * $Id: HubFrame.h 482 2010-02-13 10:49:30Z bigmuscle $
+ * $Id: HubFrame.h 492 2010-03-26 14:31:56Z bigmuscle $
  */

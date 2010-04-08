@@ -423,9 +423,13 @@ void Identity::getDetectionParams(StringMap& p) {
 
 string Identity::getPkVersion() const {
 	string pk = get("PK");
-	if(pk.find("DCPLUSPLUS") != string::npos && pk.find("ABCABC") != string::npos) {
-		return pk.substr(10, pk.length() - 16);
-	}
+
+	string::const_iterator begin = pk.begin();
+	string::const_iterator end = pk.end();
+	boost::match_results<string::const_iterator> result;
+	boost::regex reg("[0-9]+\\.[0-9]+", boost::regex_constants::icase);
+	if(boost::regex_search(begin, end, result, reg, boost::match_default))
+		return result.str();
 	return Util::emptyString;
 }
 
@@ -928,5 +932,5 @@ bool OnlineUser::update(int sortCol, const tstring& oldText) {
 
 /**
  * @file
- * $Id: User.cpp 484 2010-02-26 22:01:25Z bigmuscle $
+ * $Id: User.cpp 492 2010-03-26 14:31:56Z bigmuscle $
  */

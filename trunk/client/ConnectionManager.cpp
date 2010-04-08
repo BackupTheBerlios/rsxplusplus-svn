@@ -849,5 +849,5 @@ void ConnectionManager::on(UserConnectionListener::Supports, UserConnection* con
 
 /**
  * @file
- * $Id: ConnectionManager.cpp 478 2010-02-01 18:42:24Z bigmuscle $
+ * $Id: ConnectionManager.cpp 482 2010-02-13 10:49:30Z bigmuscle $
  */

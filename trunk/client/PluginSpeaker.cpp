@@ -73,12 +73,12 @@ bool PluginSpeaker::isSpeaker(const std::string& type) {
 	return sp.find(type) != sp.end();
 }
 
-bool PluginSpeaker::addListener(const std::string& type, const dcppListenerFunc& fn) {
+bool PluginSpeaker::addListener(const std::string& type, const dcppListenerFunc& fn, void* userData) {
 	Lock l(speakerCs);
 	Speakers::iterator i = sp.find(type);
 	if(i != sp.end()) {
 		Listeners& l = i->second;
-		l.push_back(fn);
+		l.push_back(make_pair(fn, userData));
 		return true;
 	}
 	return false;
@@ -89,10 +89,11 @@ bool PluginSpeaker::removeListener(const std::string& type, const dcppListenerFu
 	Speakers::iterator i = sp.find(type);
 	if(i != sp.end()) {
 		Listeners& l = i->second;
-		Listeners::iterator j = std::find(l.begin(), l.end(), fn);
-		if(j != l.end()) {
-			l.erase(j);
-			return true;
+		for(Listeners::iterator j = l.begin(); j != l.end(); ++j) {
+			if(j->first == fn) {
+				l.erase(j);
+				return true;
+			}
 		}
 	}
 	return false;
@@ -106,10 +107,10 @@ int PluginSpeaker::speak(const std::string& type, int callReason, dcpp_ptr_t par
 		const Listeners& l = i->second;
 		int tmp;
 		for(Listeners::const_iterator j = l.begin(); j != l.end(); ++j) {
-			const dcppListenerFunc& fn = *j;
-			if(!fn)
+			const std::pair<dcppListenerFunc, void*>& fn = *j;
+			if(!fn.first)
 				continue;
-			tmp = fn(callReason, param1, param2);
+			tmp = fn.first(callReason, param1, param2, fn.second);
 			if(tmp != DCPP_FALSE)
 				returnCode = tmp;
 		}

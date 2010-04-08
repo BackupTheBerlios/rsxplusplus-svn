@@ -128,13 +128,15 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const {
 					online++;
 			}
 
-			if(isWaiting()) {
-				TCHAR buf[64];
+			if(isFinished()) {
+				return TSTRING(DOWNLOAD_FINISHED_IDLE);
+			} else if(isWaiting()) {
 				if(online > 0) {
 					size_t size = QueueManager::getInstance()->getSourcesCount(qi);
 					if(size == 1) {
 						return TSTRING(WAITING_USER_ONLINE);
 					} else {
+						TCHAR buf[64];
 						_stprintf(buf, CTSTRING(WAITING_USERS_ONLINE), online, size);
 						return buf;
 					}
@@ -151,16 +153,17 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const {
 					} else if(size == 4) {
 						return TSTRING(ALL_4_USERS_OFFLINE);
 					} else {
+						TCHAR buf[64];
 						_stprintf(buf, CTSTRING(ALL_USERS_OFFLINE), size);
 						return buf;
 					}
 				}
 			} else {
-				TCHAR buf[64];
 				size_t size = QueueManager::getInstance()->getSourcesCount(qi);
 				if(size == 1) {
 					return TSTRING(USER_ONLINE);
 				} else {
+					TCHAR buf[64];
 					_stprintf(buf, CTSTRING(USERS_ONLINE), online, size);
 					return buf;
 				}
@@ -1560,5 +1563,5 @@ void QueueFrame::on(QueueManagerListener::RecheckDone, const string& target) thr
 	
 /**
  * @file
- * $Id: QueueFrame.cpp 486 2010-02-27 16:44:26Z bigmuscle $
+ * $Id: QueueFrame.cpp 489 2010-03-14 12:24:07Z bigmuscle $
  */

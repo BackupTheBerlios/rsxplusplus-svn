@@ -87,8 +87,8 @@ private:
 		return PluginsManager::getInstance()->getSpeaker().isSpeaker(string(type)) ? DCPP_TRUE : DCPP_FALSE;
 	}
 
-	static int DCPP_CALL_CONV addListener(const char* type, dcppListenerFunc fn) {
-		return PluginsManager::getInstance()->getSpeaker().addListener(string(type), fn) ? DCPP_TRUE : DCPP_FALSE;
+	static int DCPP_CALL_CONV addListener(const char* type, dcppListenerFunc fn, void* userData) {
+		return PluginsManager::getInstance()->getSpeaker().addListener(string(type), fn, userData) ? DCPP_TRUE : DCPP_FALSE;
 	}
 
 	static int DCPP_CALL_CONV removeListener(const char* type, dcppListenerFunc fn) {

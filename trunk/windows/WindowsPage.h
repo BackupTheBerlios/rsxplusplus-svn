@@ -53,7 +53,6 @@ protected:
 	static Item items[];
 	static ListItem listItems[];
 	static ListItem optionItems[];
-	static ListItem confirmItems[];
 
 	TCHAR* title;
 };
@@ -62,5 +61,5 @@ protected:
 
 /**
  * @file
- * $Id: WindowsPage.h 308 2007-07-13 18:57:02Z bigmuscle $
+ * $Id: WindowsPage.h 493 2010-03-28 16:59:43Z bigmuscle $
  */

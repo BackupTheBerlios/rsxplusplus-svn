@@ -2025,6 +2025,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\client\UserCommand.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\client\UserConnection.cpp"
 				>
 			</File>
@@ -2718,11 +2722,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\client\sdk\user.h"
+				RelativePath=".\client\User.h"
 				>
 			</File>
 			<File
-				RelativePath=".\client\User.h"
+				RelativePath=".\client\sdk\user.h"
 				>
 			</File>
 			<File

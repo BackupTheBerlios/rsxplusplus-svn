@@ -89,6 +89,7 @@ public:
 		};
 		typedef vector<Ptr> List;
 		typedef List::const_iterator Iter;
+
 		typedef unordered_set<TTHValue> TTHSet;
 		
 		List directories;
@@ -196,5 +197,5 @@ inline bool operator==(DirectoryListing::File::Ptr a, const string& b) { return 
 
 /**
  * @file
- * $Id: DirectoryListing.h 468 2009-12-23 14:01:30Z bigmuscle $
+ * $Id: DirectoryListing.h 491 2010-03-20 11:32:35Z bigmuscle $
  */

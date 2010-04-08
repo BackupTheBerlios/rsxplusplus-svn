@@ -411,7 +411,7 @@ void FavoriteHubsFrame::fillList()
 	// sort groups
 	TStringList groups(getSortedGroups());
 	
-	for(int i = 0; i < groups.size(); ++i) {
+	for(size_t i = 0; i < groups.size(); ++i) {
 		// insert groups
 		LVGROUP lg = {0};
 		lg.cbSize = sizeof(lg);
@@ -574,5 +574,5 @@ LRESULT FavoriteHubsFrame::onColumnClickHublist(int /*idCtrl*/, LPNMHDR pnmh, BO
 
 /**
  * @file
- * $Id: FavoritesFrm.cpp 485 2010-02-27 11:22:12Z bigmuscle $
+ * $Id: FavoritesFrm.cpp 495 2010-04-02 14:08:11Z bigmuscle $
  */

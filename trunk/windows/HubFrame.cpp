@@ -379,6 +379,12 @@ void HubFrame::onEnter() {
 				addStatus(_T("Queue saved."), WinUtil::m_ChatTextSystem );
 			} else if(stricmp(cmd.c_str(), _T("whois")) == 0) {
 				WinUtil::openLink(_T("http://www.ripe.net/perl/whois?form_type=simple&full_query_string=&searchtext=") + Text::toT(Util::encodeURI(Text::fromT(param))));
+			} else if(stricmp(cmd.c_str(), _T("ignorelist"))==0) {
+				tstring ignorelist = _T("Ignored users:");
+				unordered_set<CID> ignoredUsers = FavoriteManager::getInstance()->getIgnoredUsers();
+				for(unordered_set<CID>::const_iterator i = ignoredUsers.begin(); i != ignoredUsers.end(); ++i)
+					ignorelist += _T(" ") + Text::toT(ClientManager::getInstance()->getNicks(*i, client->getHubUrl())[0]);
+				addLine(ignorelist, WinUtil::m_ChatTextSystem);
 			} else if(stricmp(cmd.c_str(), _T("log")) == 0) {
 				StringMap params;
 				params["hubNI"] = client->getHubName();
@@ -390,7 +396,7 @@ void HubFrame::onEnter() {
 					WinUtil::openFile(Text::toT(Util::validateFileName(SETTING(LOG_DIRECTORY) + Util::formatParams(SETTING(LOG_FILE_STATUS), params, false))));
 				}
 			} else if(stricmp(cmd.c_str(), _T("help")) == 0) {
-				addLine(_T("*** ") + WinUtil::commands + _T(", /smallfilesize #, /extraslots #, /savequeue, /join <hub-ip>, /clear, /ts, /showjoins, /favshowjoins, /close, /userlist, /connection, /favorite, /pm <user> [message], /getlist <user>, /winamp, /whois [IP], /removefavorite"), WinUtil::m_ChatTextSystem);
+				addLine(_T("*** ") + WinUtil::commands + _T(", /smallfilesize #, /extraslots #, /savequeue, /join <hub-ip>, /clear, /ts, /showjoins, /favshowjoins, /close, /userlist, /connection, /favorite, /pm <user> [message], /getlist <user>, /winamp, /whois [IP], /ignorelist, /removefavorite"), WinUtil::m_ChatTextSystem);
 			} else if(stricmp(cmd.c_str(), _T("pm")) == 0) {
 				string::size_type j = param.find(_T(' '));
 				if(j != string::npos) {
@@ -687,8 +693,10 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 			}
 		} else if(i->first == ADD_CHAT_LINE) {
     		const MessageTask& msg = *static_cast<MessageTask*>(i->second);
-			if(msg.from.getUser().get() && getFilters(msg.from, Text::toT(msg.str))) { //RSX++ //Filters; anyone knows better place? i dont...
-				addLine(msg.from, Text::toT(msg.str), WinUtil::m_ChatTextGeneral);
+			if(!msg.from.getUser() || (!FavoriteManager::getInstance()->isIgnoredUser(msg.from.getUser()->getCID()))) {
+				//RSX++
+				if(getFilters(msg.from, Text::toT(msg.str)))
+					addLine(msg.from, Text::toT(msg.str), WinUtil::m_ChatTextGeneral);
         	}
 		} else if(i->first == ADD_STATUS_LINE) {
 			const StatusTask& status = *static_cast<StatusTask*>(i->second);
@@ -753,7 +761,7 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 		} else if(i->first == PRIVATE_MESSAGE) {
 			const MessageTask& pm = *static_cast<MessageTask*>(i->second);
 			tstring nick = Text::toT(pm.from.getNick());
-			if(pm.from.getUser().get()) { //@todo think about it....
+			if(!pm.from.getUser() || (!FavoriteManager::getInstance()->isIgnoredUser(pm.from.getUser()->getCID()))) {
 				bool myPM = pm.replyTo == ClientManager::getInstance()->getMe();
 				const UserPtr& user = myPM ? pm.to : pm.replyTo;
 				//RSX++ //PM spam detection
@@ -1161,7 +1169,7 @@ LRESULT HubFrame::onTabContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lPar
 	copyHubMenu.AppendMenu(MF_STRING, IDC_COPY_HUBADDRESS, CTSTRING(HUB_ADDRESS));
 
 	tabMenu.CreatePopupMenu();
-	tabMenu.InsertSeparatorFirst(Text::toT(client->getHubName().empty() ? (client->getHubName().size() > 50 ? client->getHubName().substr(0, 50) : client->getHubName()) : client->getHubUrl()));	
+	tabMenu.InsertSeparatorFirst(Text::toT(!client->getHubName().empty() ? (client->getHubName().size() > 50 ? (client->getHubName().substr(0, 50) + "...") : client->getHubName()) : client->getHubUrl()));	
 	if(BOOLSETTING(LOG_MAIN_CHAT)) {
 		tabMenu.AppendMenu(MF_STRING, IDC_OPEN_HUB_LOG, CTSTRING(OPEN_HUB_LOG));
 		tabMenu.AppendMenu(MF_SEPARATOR);
@@ -2014,6 +2022,16 @@ bool HubFrame::PreparePopupMenu(CWindow *pCtrl, OMenu& menu ) {
 		menu.AppendMenu(MF_STRING, IDC_PUBLIC_MESSAGE, CTSTRING(SEND_PUBLIC_MESSAGE));
 		appendUserItems(menu, client->getHubUrl());
 		menu.AppendMenu(MF_SEPARATOR);
+
+		if(count == 1) {
+			const OnlineUserPtr ou = ctrlUsers.getItemData(ctrlUsers.GetNextItem(-1, LVNI_SELECTED));
+			if(!FavoriteManager::getInstance()->isIgnoredUser(ou->getUser()->getCID())) {
+				menu.AppendMenu(MF_STRING, IDC_IGNORE, CTSTRING(IGNORE_USER));
+			} else {    
+				menu.AppendMenu(MF_STRING, IDC_UNIGNORE, CTSTRING(UNIGNORE_USER));
+			}
+			menu.AppendMenu(MF_SEPARATOR);
+		}
 	}
 	
 	menu.AppendMenu(MF_POPUP, (UINT)(HMENU)copyMenu, CTSTRING(COPY));
@@ -2202,6 +2220,8 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
 				cd->clrText = SETTING(FAVORITE_COLOR);
 			} else if (UploadManager::getInstance()->hasReservedSlot(ui->getUser())) {
 				cd->clrText = SETTING(RESERVED_SLOT_COLOR);
+			} else if (FavoriteManager::getInstance()->isIgnoredUser(ui->getUser()->getCID())) {
+				cd->clrText = SETTING(IGNORED_COLOR);
 			} else if(ui->getIdentity().getStatus() & Identity::FIREBALL) {
 				cd->clrText = SETTING(FIREBALL_COLOR);
 			} else if(ui->getIdentity().getStatus() & Identity::SERVER) {
@@ -2228,6 +2248,70 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
 			}
 			return CDRF_NEWFONT | CDRF_NOTIFYSUBITEMDRAW;
 		}
+
+	case CDDS_SUBITEM | CDDS_ITEMPREPAINT: {
+		if(BOOLSETTING(GET_USER_COUNTRY) && (ctrlUsers.findColumn(cd->iSubItem) == OnlineUser::COLUMN_IP)) {
+			CRect rc;
+			OnlineUser* ou = (OnlineUser*)cd->nmcd.lItemlParam;
+			ctrlUsers.GetSubItemRect((int)cd->nmcd.dwItemSpec, cd->iSubItem, LVIR_BOUNDS, rc);
+
+			if((WinUtil::getOsMajor() >= 5 && WinUtil::getOsMinor() >= 1) //WinXP & WinSvr2003
+				|| (WinUtil::getOsMajor() >= 6)) //Vista & Win7
+			{
+				SetTextColor(cd->nmcd.hdc, cd->clrText);
+				DrawThemeBackground(GetWindowTheme(ctrlUsers.m_hWnd), cd->nmcd.hdc, LVP_LISTITEM, 3, &rc, &rc );
+			} else {
+				COLORREF color;
+				if(ctrlUsers.GetItemState((int)cd->nmcd.dwItemSpec, LVIS_SELECTED) & LVIS_SELECTED) {
+					if(ctrlUsers.m_hWnd == ::GetFocus()) {
+						color = GetSysColor(COLOR_HIGHLIGHT);
+						SetBkColor(cd->nmcd.hdc, GetSysColor(COLOR_HIGHLIGHT));
+						SetTextColor(cd->nmcd.hdc, GetSysColor(COLOR_HIGHLIGHTTEXT));
+					} else {
+						color = GetBkColor(cd->nmcd.hdc);
+						SetBkColor(cd->nmcd.hdc, color);
+					}				
+				} else {
+					color = WinUtil::bgColor;
+					SetBkColor(cd->nmcd.hdc, WinUtil::bgColor);
+					SetTextColor(cd->nmcd.hdc, cd->clrText);
+				}
+				HGDIOBJ oldpen = ::SelectObject(cd->nmcd.hdc, CreatePen(PS_SOLID, 0, color));
+				HGDIOBJ oldbr = ::SelectObject(cd->nmcd.hdc, CreateSolidBrush(color));
+				Rectangle(cd->nmcd.hdc,rc.left, rc.top, rc.right, rc.bottom);
+
+				DeleteObject(::SelectObject(cd->nmcd.hdc, oldpen));
+				DeleteObject(::SelectObject(cd->nmcd.hdc, oldbr));
+			}
+
+			TCHAR buf[256];
+			ctrlUsers.GetItemText((int)cd->nmcd.dwItemSpec, cd->iSubItem, buf, 255);
+			buf[255] = 0;
+			if(_tcslen(buf) > 0) {
+				rc.left += 2;
+				LONG top = rc.top + (rc.Height() - 15)/2;
+				if((top - rc.top) < 2)
+					top = rc.top + 1;
+
+				POINT p = { rc.left, top };
+
+				string ip = ou->getIdentity().getIp();
+				uint8_t flagIndex = 0;
+				if (!ip.empty()) {
+					// Only attempt to grab a country mapping if we actually have an IP address
+					string tmpCountry = Util::getIpCountry(ip);
+					if(!tmpCountry.empty()) {
+						flagIndex = WinUtil::getFlagIndex(tmpCountry.c_str());
+					}
+				}
+
+				WinUtil::flagImages.Draw(cd->nmcd.hdc, flagIndex, p, LVSIL_SMALL);
+				top = rc.top + (rc.Height() - WinUtil::getTextHeight(cd->nmcd.hdc) - 1)/2;
+				::ExtTextOut(cd->nmcd.hdc, rc.left + 30, top + 1, ETO_CLIPPED, rc, buf, _tcslen(buf), NULL);
+				return CDRF_SKIPDEFAULT;
+			}
+		}		
+	}
 
 	default:
 		return CDRF_DODEFAULT;
@@ -2337,5 +2421,5 @@ void HubFrame::displayCheat(const tstring& aMessage) {
 
 /**
  * @file
- * $Id: HubFrame.cpp 486 2010-02-27 16:44:26Z bigmuscle $
+ * $Id: HubFrame.cpp 492 2010-03-26 14:31:56Z bigmuscle $
  */

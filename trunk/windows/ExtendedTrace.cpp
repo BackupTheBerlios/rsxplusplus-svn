@@ -383,7 +383,11 @@ void StackTrace( HANDLE hThread, LPCTSTR lpszMessage, File& f, DWORD64 eip, DWOR
 		for( ULONG index = 0; index < 100; index++ ) 
 		{
 			bResult = StackWalk(
+#ifdef _M_AMD64
+				IMAGE_FILE_MACHINE_AMD64,
+#else
 				IMAGE_FILE_MACHINE_I386,
+#endif
 				hProcess,
 				hThread,
 				&callStack,
@@ -416,5 +420,5 @@ void StackTrace( HANDLE hThread, LPCTSTR lpszMessage, File& f, DWORD64 eip, DWOR
 
 /**
 * @file
-* $Id: ExtendedTrace.cpp 461 2009-09-09 09:07:21Z BigMuscle $
+* $Id: ExtendedTrace.cpp 491 2010-03-20 11:32:35Z bigmuscle $
 */

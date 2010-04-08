@@ -61,7 +61,6 @@ PropPage::ListItem AppearancePage::listItems[] = {
 	{ SettingsManager::CZCHARS_DISABLE, ResourceManager::SETSTRONGDC_CZCHARS_DISABLE },
 	{ SettingsManager::USE_OLD_SHARING_UI, ResourceManager::SETTINGS_USE_OLD_SHARING_UI },
 	{ SettingsManager::SUPPRESS_MAIN_CHAT, ResourceManager::SETTINGS_ADVANCED_SUPPRESS_MAIN_CHAT },
-	{ SettingsManager::TABS_ON_TOP, ResourceManager::TABS_ON_TOP },
 	{ SettingsManager::UC_SUBMENU, ResourceManager::UC_SUBMENU },	
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
@@ -116,5 +115,5 @@ LRESULT AppearancePage::onClickedHelp(WORD /* wNotifyCode */, WORD /*wID*/, HWND
 
 /**
  * @file
- * $Id: AppearancePage.cpp 463 2009-10-01 16:30:22Z BigMuscle $
+ * $Id: AppearancePage.cpp 493 2010-03-28 16:59:43Z bigmuscle $
  */

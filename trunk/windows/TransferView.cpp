@@ -528,31 +528,35 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 			ItemInfo* ii = (ItemInfo*)cd->nmcd.lItemlParam;
 			CRect rc;
 			ctrlTransfers.GetSubItemRect((int)cd->nmcd.dwItemSpec, cd->iSubItem, LVIR_BOUNDS, rc);
-			/* should this be enabled for XP?
-			COLORREF color;
-			if(ctrlTransfers.GetItemState((int)cd->nmcd.dwItemSpec, LVIS_SELECTED) & LVIS_SELECTED) {
-				if(ctrlTransfers.m_hWnd == ::GetFocus()) {
-					color = GetSysColor(COLOR_HIGHLIGHT);
-					SetBkColor(cd->nmcd.hdc, GetSysColor(COLOR_HIGHLIGHT));
-					SetTextColor(cd->nmcd.hdc, GetSysColor(COLOR_HIGHLIGHTTEXT));
-				} else {
-					color = GetBkColor(cd->nmcd.hdc);
-					SetBkColor(cd->nmcd.hdc, color);
-				}		
-			} else {
-				color = WinUtil::bgColor;
-				SetBkColor(cd->nmcd.hdc, WinUtil::bgColor);
+
+			if((WinUtil::getOsMajor() >= 5 && WinUtil::getOsMinor() >= 1) //WinXP & WinSvr2003
+				|| (WinUtil::getOsMajor() >= 6)) //Vista & Win7
+			{
 				SetTextColor(cd->nmcd.hdc, WinUtil::textColor);
+				DrawThemeBackground(GetWindowTheme(ctrlTransfers.m_hWnd), cd->nmcd.hdc, LVP_LISTITEM, 3, &rc, &rc );
+			} else {
+				COLORREF color;
+				if(ctrlTransfers.GetItemState((int)cd->nmcd.dwItemSpec, LVIS_SELECTED) & LVIS_SELECTED) {
+					if(ctrlTransfers.m_hWnd == ::GetFocus()) {
+						color = GetSysColor(COLOR_HIGHLIGHT);
+						SetBkColor(cd->nmcd.hdc, GetSysColor(COLOR_HIGHLIGHT));
+						SetTextColor(cd->nmcd.hdc, GetSysColor(COLOR_HIGHLIGHTTEXT));
+					} else {
+						color = GetBkColor(cd->nmcd.hdc);
+						SetBkColor(cd->nmcd.hdc, color);
+					}		
+				} else {
+					color = WinUtil::bgColor;
+					SetBkColor(cd->nmcd.hdc, WinUtil::bgColor);
+					SetTextColor(cd->nmcd.hdc, WinUtil::textColor);
+				}
+				HGDIOBJ oldpen = ::SelectObject(cd->nmcd.hdc, CreatePen(PS_SOLID,0, color));
+				HGDIOBJ oldbr = ::SelectObject(cd->nmcd.hdc, CreateSolidBrush(color));
+				Rectangle(cd->nmcd.hdc,rc.left, rc.top, rc.right, rc.bottom);
+
+				DeleteObject(::SelectObject(cd->nmcd.hdc, oldpen));
+				DeleteObject(::SelectObject(cd->nmcd.hdc, oldbr));
 			}
-			HGDIOBJ oldpen = ::SelectObject(cd->nmcd.hdc, CreatePen(PS_SOLID,0, color));
-			HGDIOBJ oldbr = ::SelectObject(cd->nmcd.hdc, CreateSolidBrush(color));
-			Rectangle(cd->nmcd.hdc,rc.left, rc.top, rc.right, rc.bottom);
-
-			DeleteObject(::SelectObject(cd->nmcd.hdc, oldpen));
-			DeleteObject(::SelectObject(cd->nmcd.hdc, oldbr));*/
-
-			SetTextColor(cd->nmcd.hdc, WinUtil::textColor);
-			DrawThemeBackground(GetWindowTheme(ctrlTransfers.m_hWnd), cd->nmcd.hdc, LVP_LISTITEM, 3, &rc, &rc );
 
 			TCHAR buf[256];
 			ctrlTransfers.GetItemText((int)cd->nmcd.dwItemSpec, cd->iSubItem, buf, 255);
@@ -709,7 +713,7 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 					if(ui->type == Transfer::TYPE_FILE || ui->type == Transfer::TYPE_TREE)
 					{
 						/* parent item must be updated with correct info about whole file */
-						if(ui->status == ItemInfo::STATUS_RUNNING && parent->hits == -1)
+						if(ui->status == ItemInfo::STATUS_RUNNING && parent->status == ItemInfo::STATUS_RUNNING && parent->hits == -1)
 						{
 							ui->updateMask &= ~UpdateInfo::MASK_POS;
 							ui->updateMask &= ~UpdateInfo::MASK_ACTUAL;
@@ -1457,5 +1461,5 @@ void TransferView::on(QueueManagerListener::Removed, const QueueItem* qi) throw(
 
 /**
  * @file
- * $Id: TransferView.cpp 482 2010-02-13 10:49:30Z bigmuscle $
+ * $Id: TransferView.cpp 493 2010-03-28 16:59:43Z bigmuscle $
  */

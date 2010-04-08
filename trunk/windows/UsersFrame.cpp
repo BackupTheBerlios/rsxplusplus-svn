@@ -91,7 +91,7 @@ LRESULT UsersFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, B
 		
 		tstring x;
 		if (ctrlUsers.GetSelectedCount() == 1) {
-			x = Text::toT(ClientManager::getInstance()->getNicks(ctrlUsers.getItemData(WinUtil::getFirstSelectedIndex(ctrlUsers))->user->getCID(), Util::emptyString)[0]);
+			x = ctrlUsers.getItemData(WinUtil::getFirstSelectedIndex(ctrlUsers))->columns[COLUMN_NICK];
 		} else {
 			x = _T("");
 		}
@@ -302,5 +302,5 @@ void UsersFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/) throw() {
 
 /**
  * @file
- * $Id: UsersFrame.cpp 477 2010-01-29 08:59:43Z bigmuscle $
+ * $Id: UsersFrame.cpp 489 2010-03-14 12:24:07Z bigmuscle $
  */

@@ -75,7 +75,7 @@ MainFrame* MainFrame::anyMF = NULL;
 
 MainFrame::MainFrame() : trayMessage(0), maximized(false), lastUpload(-1), lastUpdate(0), 
 	lastUp(0), lastDown(0), oldshutdown(false), stopperThread(NULL), 
-	closing(false), awaybyminimize(false), missedAutoConnect(false), lastTTHdir(Util::emptyStringT), tabsontop(false),
+	closing(false), awaybyminimize(false), missedAutoConnect(false), lastTTHdir(Util::emptyStringT), tabPos(1),
 	bTrayIcon(false), bAppMinimized(false), bIsPM(false), m_bDisableAutoComplete(false),
 	QuickSearchBoxContainer(WC_COMBOBOX, this, QUICK_SEARCH_MAP), QuickSearchEditContainer(WC_EDIT ,this, QUICK_SEARCH_MAP),
 	shutdownMng(0) //RSX++
@@ -157,6 +157,7 @@ LRESULT MainFrame::onMatchAll(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl
 }
 
 LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled) {
+
 	TimerManager::getInstance()->addListener(this);
 	QueueManager::getInstance()->addListener(this);
 	LogManager::getInstance()->addListener(this);
@@ -187,7 +188,6 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	TimerManager::getInstance()->start();
 
 	// Set window name
-
 	SetWindowText(COMPLETEVERSIONSTRING);
 	UpdateManager::getInstance()->addListener(this); //RSX++
 
@@ -292,7 +292,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 
 	ctrlTab.Create(m_hWnd, rcDefault);
 	WinUtil::tabCtrl = &ctrlTab;
-	tabsontop = BOOLSETTING(TABS_ON_TOP);
+	tabPos = SETTING(TABS_POS);
 
 	transferView.Create(m_hWnd);
 
@@ -902,8 +902,9 @@ LRESULT MainFrame::OnFileSettings(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 			ctrlToolbar.CheckButton(IDC_SHUTDOWN, false);
 	
 		updateTray(BOOLSETTING(MINIMIZE_TRAY));
-		if(tabsontop != BOOLSETTING(TABS_ON_TOP)) {
-			tabsontop = BOOLSETTING(TABS_ON_TOP);
+		if(tabPos != SETTING(TABS_POS)) {
+			tabPos = SETTING(TABS_POS);
+			ctrlTab.updateTabs();
 			UpdateLayout();
 		}
 
@@ -1241,18 +1242,26 @@ void MainFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 		ctrlLastLines.SetMaxTipWidth(w[0]);
 	}
 	CRect rc = rect;
-	if(tabsontop == false)
-		rc.top = rc.bottom - ctrlTab.getHeight();
-	else
+	CRect rc2 = rect;
+
+	if(tabPos == 0) {
 		rc.bottom = rc.top + ctrlTab.getHeight();
+		rc2.top = rc.bottom;
+	} else if(tabPos == 1) {
+		rc.top = rc.bottom - ctrlTab.getHeight();
+		rc2.bottom = rc.top;
+	} else if(tabPos == 2) {
+		rc.left = 0;
+		rc.right = 150;
+		rc2.left = rc.right;
+	} else if(tabPos == 3) {
+		rc.left = rc.right - 150;
+		rc2.right = rc.left;
+	}
+	
 	if(ctrlTab.IsWindow())
 		ctrlTab.MoveWindow(rc);
-	
-	CRect rc2 = rect;
-	if(tabsontop == false)
-		rc2.bottom = rc.top;
-	else
-		rc2.top = rc.bottom;
+
 	SetSplitterRect(rc2);
 }
 

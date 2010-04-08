@@ -374,6 +374,7 @@ void DownloadManager::endData(UserConnection* aSource) {
 		try {
 			d->getFile()->flush();
 		} catch(const FileException& e) {
+			d->resetPos();
 			failDownload(aSource, e.getError());
 			return;
 		}
@@ -593,5 +594,5 @@ void DownloadManager::fileNotAvailable(UserConnection* aSource) {
 
 /**
  * @file
- * $Id: DownloadManager.cpp 482 2010-02-13 10:49:30Z bigmuscle $
+ * $Id: DownloadManager.cpp 493 2010-03-28 16:59:43Z bigmuscle $
  */

@@ -301,7 +301,7 @@ private:
 	StringList notShared;
 	bool loadCache() throw();
 	DirList::const_iterator getByVirtual(const string& virtualName) const throw();
-	
+	pair<Directory::Ptr, string> splitVirtual(const string& virtualPath) const throw(ShareException);
 	string findRealRoot(const string& virtualRoot, const string& virtualLeaf) const throw(ShareException);
 
 	Directory::Ptr getDirectory(const string& fname);
@@ -335,5 +335,5 @@ private:
 
 /**
  * @file
- * $Id: ShareManager.h 482 2010-02-13 10:49:30Z bigmuscle $
+ * $Id: ShareManager.h 491 2010-03-20 11:32:35Z bigmuscle $
  */

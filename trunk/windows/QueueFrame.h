@@ -248,6 +248,7 @@ private:
 
 		QueueItem::Priority getPriority() const { return qi->getPriority(); }
 		bool isWaiting() const { return qi->isWaiting(); }
+		bool isFinished() const { return qi->isFinished(); }
 
 		bool getAutoPriority() const { return qi->getAutoPriority(); }
 
@@ -382,5 +383,5 @@ private:
 
 /**
  * @file
- * $Id: QueueFrame.h 479 2010-02-02 15:50:33Z bigmuscle $
+ * $Id: QueueFrame.h 489 2010-03-14 12:24:07Z bigmuscle $
  */

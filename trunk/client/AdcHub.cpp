@@ -872,20 +872,29 @@ void AdcHub::info(bool /*alwaysSend*/) {
 		su += ADCS_FEATURE + ",";
 	}
 
-	if(!getFavIp().empty()) {
-		addParam(lastInfoMap, c, "I4", getFavIp());
-	} else if(BOOLSETTING(NO_IP_OVERRIDE) && !SETTING(EXTERNAL_IP).empty()) {
-		addParam(lastInfoMap, c, "I4", Socket::resolve(SETTING(EXTERNAL_IP)));
-	} else {
-		addParam(lastInfoMap, c, "I4", "0.0.0.0");
+	if(isActive() || BOOLSETTING(ALLOW_NAT_TRAVERSAL))
+	{
+		if(!getFavIp().empty()) {
+			addParam(lastInfoMap, c, "I4", getFavIp());
+		} else if(BOOLSETTING(NO_IP_OVERRIDE) && !SETTING(EXTERNAL_IP).empty()) {
+			addParam(lastInfoMap, c, "I4", Socket::resolve(SETTING(EXTERNAL_IP)));
+		} else {
+			addParam(lastInfoMap, c, "I4", "0.0.0.0");
+		}
 	}
-	addParam(lastInfoMap, c, "U4", Util::toString(SearchManager::getInstance()->getPort()));
 
 	if(isActive()) {
+		addParam(lastInfoMap, c, "U4", Util::toString(SearchManager::getInstance()->getPort()));
+
 		su += TCP4_FEATURE + ",";
 		su += UDP4_FEATURE + ",";
-	} else if(BOOLSETTING(ALLOW_NAT_TRAVERSAL)) {
-		su += NAT0_FEATURE + ",";
+	} else {
+		if(BOOLSETTING(ALLOW_NAT_TRAVERSAL)) {
+			su += NAT0_FEATURE + ",";
+		} else {
+			addParam(lastInfoMap, c, "I4", "");
+		}
+		addParam(lastInfoMap, c, "U4", "");
 	}
 
 	if(!su.empty()) {
@@ -990,5 +999,5 @@ void AdcHub::on(Second s, uint64_t aTick) throw() {
 
 /**
  * @file
- * $Id: AdcHub.cpp 483 2010-02-20 22:00:01Z bigmuscle $
+ * $Id: AdcHub.cpp 492 2010-03-26 14:31:56Z bigmuscle $
  */

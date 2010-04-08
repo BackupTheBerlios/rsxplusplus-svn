@@ -114,6 +114,12 @@ QueueItem* QueueManager::FileQueue::add(const string& aTarget, int64_t aSize,
 		}
 	}
 
+	qi->setTempTarget(aTempTarget);
+	if(!Util::fileExists(aTempTarget) && Util::fileExists(aTempTarget + ".antifrag")) {
+		// load old antifrag file
+		File::renameFile(aTempTarget + ".antifrag", qi->getTempTarget());
+    }
+	        	
 	dcassert(find(aTarget) == NULL);
 	add(qi);
 	return qi;
@@ -1173,10 +1179,15 @@ void QueueManager::setFile(Download* d) {
 			// ok, we got a fast slot, so it's possible to disconnect original user now
 			for(DownloadList::const_iterator i = qi->getDownloads().begin(); i != qi->getDownloads().end(); ++i) {
 				if((*i) != d && (*i)->getSegment().contains(d->getSegment())) {
+
+					// overlapping has no sense if segment is going to finish
+					if((*i)->getSecondsLeft() < 10)
+						break;					
+
 					found = true;
 
 					// disconnect slow chunk
-					(*i)->getUserConnection().disconnect(true);
+					(*i)->getUserConnection().disconnect();
 					break;
 				}
 			}
@@ -1374,6 +1385,12 @@ void QueueManager::putDownload(Download* aDownload, bool finished, bool reportFi
 							if(aDownload->getType() == Transfer::TYPE_FILE) {
 								// For partial-share, abort upload first to move file correctly
 								UploadManager::getInstance()->abortUpload(q->getTempTarget());
+
+								// Disconnect all possible overlapped downloads
+								for(DownloadList::const_iterator i = q->getDownloads().begin(); i != q->getDownloads().end(); ++i) {
+									if(*i != aDownload)
+										(*i)->getUserConnection().disconnect();
+								}
 							}
 						
 							// Check if we need to move the file
@@ -2268,5 +2285,5 @@ string QueueManager::addFileListCheck(const HintedUser& aUser) throw(QueueExcept
 
 /**
  * @file
- * $Id: QueueManager.cpp 482 2010-02-13 10:49:30Z bigmuscle $
+ * $Id: QueueManager.cpp 491 2010-03-20 11:32:35Z bigmuscle $
  */

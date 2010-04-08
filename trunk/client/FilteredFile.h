@@ -138,8 +138,6 @@ public:
 				if(len > 0) {
 					throw Exception("Garbage data after end of stream");
 				}
-				// we shouldn't mark this stream as flushed because it's not true
-				//flushed = true;
 				return written;
 			}
 		}
@@ -216,5 +214,5 @@ private:
 
 /**
 * @file
-* $Id: FilteredFile.h 482 2010-02-13 10:49:30Z bigmuscle $
+* $Id: FilteredFile.h 493 2010-03-28 16:59:43Z bigmuscle $
 */

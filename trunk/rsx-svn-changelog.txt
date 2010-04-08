@@ -1,3 +1,7 @@
+** SVN 209 08/04/10
+ ** [sdk] added user data to listener function
+ ** strongdc++ 2.41 merge
+
 ** SVN 208 18/03/10
  ** [bcdc_lua] fixed removing hub from list (didn't trigger when hub was closed - not disconnected)
 

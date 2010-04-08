@@ -33,7 +33,7 @@ public:
 	bool removeSpeaker(const std::string& type);
 	bool isSpeaker(const std::string& type);
 
-	bool addListener(const std::string& type, const dcppListenerFunc& fn);
+	bool addListener(const std::string& type, const dcppListenerFunc& fn, void* userData);
 	bool removeListener(const std::string& type, const dcppListenerFunc& fn);
 
 	int speak(const std::string& type, int callReason, dcpp_ptr_t param1, dcpp_ptr_t param2);
@@ -46,7 +46,7 @@ public:
 	}
 private:
 	typedef std::list<dcppCallFunc> Callers;
-	typedef std::list<dcppListenerFunc> Listeners;
+	typedef std::list<std::pair<dcppListenerFunc, void*> > Listeners;
 	typedef unordered_map<std::string, Listeners> Speakers;
 
 	CriticalSection speakerCs, callerCs;

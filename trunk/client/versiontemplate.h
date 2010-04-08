@@ -23,7 +23,7 @@
 #define DCVERSIONSTRING "0.760"
 #define DCVERSIONFLOAT 0.760
 
-#define SVNVERSION "svn487"
+#define SVNVERSION "svn495"
 
 #define SVN_REVISION $WCREV$
 

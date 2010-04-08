@@ -45,7 +45,7 @@ public:
 	END_MSG_MAP()
 
 	LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
-		SetDlgItemText(IDC_VERSION, _T("RSX++ v") _T(VERSIONSTRING) _T(" (c) Copyright 2007-2010 adrian_007\nBased on: StrongDC++ 2.40 (c) Copyright 2001-2010 Big Muscle\n"));
+		SetDlgItemText(IDC_VERSION, _T("RSX++ v") _T(VERSIONSTRING) _T(" (c) Copyright 2007-2010 adrian_007\nBased on: StrongDC++ 2.41 (c) Copyright 2001-2010 Big Muscle\n"));
 		CEdit ctrlThanks(GetDlgItem(IDC_THANKS));
 		ctrlThanks.FmtLines(TRUE);
 		ctrlThanks.AppendText(thanks, TRUE);

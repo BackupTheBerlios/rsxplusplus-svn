@@ -70,7 +70,7 @@ typedef struct {
 } dcppPluginInformation;
 
 // function type to listen for events
-typedef int (DCPP_CALL_CONV *dcppListenerFunc)(int, dcpp_ptr_t, dcpp_ptr_t);
+typedef int (DCPP_CALL_CONV *dcppListenerFunc)(int, dcpp_ptr_t, dcpp_ptr_t, void*);
 // function type to add own caller (extend call function in dcppFunctions)
 typedef dcpp_ptr_t (DCPP_CALL_CONV *dcppCallFunc)(const char*, dcpp_ptr_t, dcpp_ptr_t, dcpp_ptr_t, int*);
 
@@ -85,7 +85,7 @@ typedef struct {
 	int			(DCPP_CALL_CONV *isSpeaker)			(const char*);
 	int			(DCPP_CALL_CONV *fireSpeaker)		(const char*, int, dcpp_ptr_t, dcpp_ptr_t);
 
-	int			(DCPP_CALL_CONV *addListener)		(const char*, dcppListenerFunc);
+	int			(DCPP_CALL_CONV *addListener)		(const char*, dcppListenerFunc, void*);
 	int			(DCPP_CALL_CONV *removeListener)	(const char*, dcppListenerFunc);
 } dcppFunctions;
 

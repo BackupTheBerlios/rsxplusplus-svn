@@ -875,7 +875,7 @@ bool WinUtil::getUCParams(HWND parent, const UserCommand& uc, StringMap& sm) thr
 		string name = uc.getCommand().substr(i, j-i);
 		if(done.find(name) == done.end()) {
 			LineDlg dlg;
-			dlg.title = Text::toT(uc.getName());
+			dlg.title = Text::toT(Util::toString(" > ", uc.getDisplayName()));
 			dlg.description = Text::toT(name);
 			dlg.line = Text::toT(sm["line:" + name]);
 
@@ -903,7 +903,7 @@ bool WinUtil::getUCParams(HWND parent, const UserCommand& uc, StringMap& sm) thr
 		string name = uc.getCommand().substr(i, j-i);
 		if(done.find(name) == done.end()) {
 			KickDlg dlg;
-			dlg.title = Text::toT(uc.getName());
+			dlg.title = Text::toT(Util::toString(" > ", uc.getDisplayName()));
 			dlg.description = Text::toT(name);
 
 			if(uc.adc()) {
@@ -1980,5 +1980,5 @@ tstring WinUtil::getWindowText(HWND _hwnd, int ctrlID) {
 //END
 /**
  * @file
- * $Id: WinUtil.cpp 473 2010-01-12 23:17:33Z bigmuscle $
+ * $Id: WinUtil.cpp 492 2010-03-26 14:31:56Z bigmuscle $
  */

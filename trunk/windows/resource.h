@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
-// Used by w:\Visual Studio Projects\rsxplusplus\trunk\RSXPlusPlus.rc
+// Used by W:\Visual Studio Projects\rsxplusplus\trunk\RSXPlusPlus.rc
 //
 #define IDD_ABOUTBOX                    100
 #define IDC_FILETYPES                   101
@@ -777,8 +777,10 @@
 #define IDC_NAME_STATIC                 1324
 #define IDC_BW_BOTH                     1325
 #define IDC_FH_RAW                      1325
+#define IDC_TABSTEXT                    1325
 #define IDC_SETTINGS_NOMINALBW          1326
 #define IDC_HIDE_SHARE                  1326
+#define IDC_TABSCOMBO                   1326
 #define IDC_HELP_TRANSLATIONS           1327
 #define IDC_FAV_EMAIL                   1327
 #define IDC_PG_ENABLE                   1327

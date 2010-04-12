@@ -161,7 +161,7 @@ dcppPluginInformation* DCPP_CALL_CONV pluginInfo(unsigned long long coreSdkVersi
     return &info;
 }
 
-int DCPP_CALL_CONV onCoreLoad(int callReason, dcpp_ptr_t, dcpp_ptr_t) {
+int DCPP_CALL_CONV onCoreLoad(int callReason, dcpp_ptr_t, dcpp_ptr_t, void*) {
 	if(callReason == DCPP_EVENT_CORE_LOAD) {
 		L = lua_open();
 		luaL_openlibs(L);
@@ -186,7 +186,7 @@ int DCPP_CALL_CONV onCoreLoad(int callReason, dcpp_ptr_t, dcpp_ptr_t) {
 	return DCPP_FALSE;
 }
 
-int DCPP_CALL_CONV onHubEvent(int callReason, dcpp_ptr_t p1, dcpp_ptr_t p2) {
+int DCPP_CALL_CONV onHubEvent(int callReason, dcpp_ptr_t p1, dcpp_ptr_t p2, void*) {
 	switch(callReason) {
 		case DCPP_EVENT_HUB_CONNECTING: {
 			const char* url = (const char*)p2;
@@ -224,7 +224,7 @@ int DCPP_CALL_CONV onHubEvent(int callReason, dcpp_ptr_t p1, dcpp_ptr_t p2) {
 	return DCPP_FALSE;
 }
 
-int DCPP_CALL_CONV onConnectionEvent(int callReason, dcpp_ptr_t p1, dcpp_ptr_t p2) {
+int DCPP_CALL_CONV onConnectionEvent(int callReason, dcpp_ptr_t p1, dcpp_ptr_t p2, void*) {
 	switch(callReason) {
 		case DCPP_EVENT_CONNECTION_LINE: {
 			dcppConnectionLine* line = (dcppConnectionLine*)p1;
@@ -241,7 +241,7 @@ int DCPP_CALL_CONV onConnectionEvent(int callReason, dcpp_ptr_t p1, dcpp_ptr_t p
 	return DCPP_FALSE;
 }
 
-int DCPP_CALL_CONV onTimer(int callReason, dcpp_ptr_t p1, dcpp_ptr_t p2) {
+int DCPP_CALL_CONV onTimer(int callReason, dcpp_ptr_t p1, dcpp_ptr_t p2, void*) {
 	if(callReason == DCPP_EVENT_TIMER_TICK_SECOND && LuaManager::timerActive) {
 		MakeCall("dcpp", "OnTimer");
 	}
@@ -250,10 +250,10 @@ int DCPP_CALL_CONV onTimer(int callReason, dcpp_ptr_t p1, dcpp_ptr_t p2) {
 
 int DCPP_CALL_CONV pluginLoad(dcppFunctions* pF) {
 	LuaManager::dcppLib = pF;
-	LuaManager::dcppLib->addListener(DCPP_EVENT_CORE, onCoreLoad);
-	LuaManager::dcppLib->addListener(DCPP_EVENT_HUB, onHubEvent);
-	LuaManager::dcppLib->addListener(DCPP_EVENT_CONNECTION, onConnectionEvent);
-	LuaManager::dcppLib->addListener(DCPP_EVENT_TIMER, onTimer);
+	LuaManager::dcppLib->addListener(DCPP_EVENT_CORE, onCoreLoad, 0);
+	LuaManager::dcppLib->addListener(DCPP_EVENT_HUB, onHubEvent, 0);
+	LuaManager::dcppLib->addListener(DCPP_EVENT_CONNECTION, onConnectionEvent, 0);
+	LuaManager::dcppLib->addListener(DCPP_EVENT_TIMER, onTimer, 0);
 
 	return 0;
 }

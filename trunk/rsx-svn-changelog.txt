@@ -1,3 +1,8 @@
+** SVN 210 12/04/10
+ ** [winamp_spam] updated to new sdk
+ ** [winamp_spam] converted to visual studio 2008
+ ** [bcdc_lua] updated to new sdk
+
 ** SVN 209 08/04/10
  ** [sdk] added user data to listener function
  ** strongdc++ 2.41 merge

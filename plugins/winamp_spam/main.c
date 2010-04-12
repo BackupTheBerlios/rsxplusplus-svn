@@ -84,7 +84,7 @@ void formatSeconds(int aSec, char* buf) {
 //%[length]
 //%[userParam]
 
-int DCPP_CALL_CONV sendSpam(int callReason, dcpp_ptr_t lParam, dcpp_ptr_t wParam) {
+int DCPP_CALL_CONV sendSpam(int callReason, dcpp_ptr_t lParam, dcpp_ptr_t wParam, void* userData) {
     if(callReason == DCPP_EVNET_HUB_CHAT_SEND_LINE) {
         const char* msg = (const char*)wParam;
         if(strncmp(msg, "/winamp", 7) == 0 || strncmp(msg, "/w", 2) == 0) {
@@ -240,7 +240,7 @@ dcppPluginInformation* DCPP_CALL_CONV pluginInfo(unsigned long long coreSdkVersi
 
 int DCPP_CALL_CONV pluginLoad(dcppFunctions* pF) {
 	f = pF;
-	f->addListener(DCPP_EVENT_HUB, sendSpam);
+	f->addListener(DCPP_EVENT_HUB, sendSpam, NULL);
 	f->call(DCPP_CALL_CORE_SETTING_PLUG_SET, (dcpp_ptr_t)(char*)"winamp.fmt", (dcpp_ptr_t)(char*)"/me is listening to  %[title] (%[elapsed]/%[length])", 0);
 	return 0;
 }

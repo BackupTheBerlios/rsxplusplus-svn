@@ -1,6 +1,6 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 9.00
-# Visual Studio 2005
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "winamp_spam", "winamp_spam.vcproj", "{BDB4A000-2899-4E8D-8797-F9AB7B08A50B}"
 EndProject
 Global

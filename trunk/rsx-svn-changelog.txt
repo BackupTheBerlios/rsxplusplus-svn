@@ -1,4 +1,4 @@
-** SVN 211 14/04/10
+** SVN 211-212 14/04/10
  ** [sdk] added core settings getter/setter
  ** [sdk] changed platform dependent dcpp_ptr_t to unsigned long long for x64 & x86
  ** [sdk] added call to send udp packet in utils

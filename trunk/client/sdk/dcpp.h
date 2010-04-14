@@ -130,5 +130,5 @@ typedef struct _dcppLL {
 
 /**
  * @file
- * $Id: dcpp.h 117 2009-04-11 21:44:24Z adrian_007 $
+ * $Id$
  */

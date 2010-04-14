@@ -2722,11 +2722,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\client\User.h"
+				RelativePath=".\client\sdk\user.h"
 				>
 			</File>
 			<File
-				RelativePath=".\client\sdk\user.h"
+				RelativePath=".\client\User.h"
 				>
 			</File>
 			<File

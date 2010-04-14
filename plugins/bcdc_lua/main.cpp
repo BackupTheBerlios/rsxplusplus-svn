@@ -50,7 +50,7 @@ static void callalert (lua_State *L, int status) {
 			strcat(message, "LUA ERROR: ");
 			strncat(message, msg, len - 12);
 
-			LuaManager::dcppLib->call(DCPP_CALL_UTILS_LOG_MESSAGE, (dcpp_ptr_t)message, 0, 0);
+			LuaManager::dcppLib->call(DCPP_CALL_UTILS_LOG_MESSAGE, (dcpp_param)message, 0, 0);
 			lua_pop(L, 2);  /* remove error message and _ALERT */
 		}
 	}
@@ -102,7 +102,7 @@ static bool MakeCallRaw(const char* table, const char* method, int args = 0, int
 		} else {
 			strcat(message, " (unknown)");
 		}
-		LuaManager::dcppLib->call(DCPP_CALL_UTILS_LOG_MESSAGE, (dcpp_ptr_t)message, 0, 0);
+		LuaManager::dcppLib->call(DCPP_CALL_UTILS_LOG_MESSAGE, (dcpp_param)message, 0, 0);
 		lua_pop(L, 1);
 	} else {
 		lua_settop(L, 0);
@@ -161,7 +161,7 @@ dcppPluginInformation* DCPP_CALL_CONV pluginInfo(unsigned long long coreSdkVersi
     return &info;
 }
 
-int DCPP_CALL_CONV onCoreLoad(int callReason, dcpp_ptr_t, dcpp_ptr_t, void*) {
+int DCPP_CALL_CONV onCoreLoad(int callReason, dcpp_param, dcpp_param, void*) {
 	if(callReason == DCPP_EVENT_CORE_LOAD) {
 		L = lua_open();
 		luaL_openlibs(L);
@@ -175,18 +175,26 @@ int DCPP_CALL_CONV onCoreLoad(int callReason, dcpp_ptr_t, dcpp_ptr_t, void*) {
 		buf.size = MAX_PATH;
 		memset(buf.buf, 0, buf.size+1);
 
-		size_t len = LuaManager::dcppLib->call(DCPP_CALL_UTILS_GET_PATH, DCPP_UTILS_PATH_GLOBAL_CONFIG, (dcpp_ptr_t)&buf, 0);
-
+		size_t len;
+		
+		len = LuaManager::dcppLib->call(DCPP_CALL_UTILS_GET_PATH, DCPP_UTILS_PATH_RESOURCES, (dcpp_param)&buf, 0);
 		memcpy(LuaManager::appPath, buf.buf, len);
+		memcpy(LuaManager::tempBuffer, buf.buf, len);
+		strcat(LuaManager::tempBuffer, "scripts\\startup.lua");
+		memset(buf.buf, 0, buf.size);
 
-		strcat(buf.buf, "scripts\\startup.lua");
-		lua_dofile(L, buf.buf);
+		len = LuaManager::dcppLib->call(DCPP_CALL_UTILS_GET_PATH, DCPP_UTILS_PATH_USER_CONFIG, (dcpp_param)&buf, 0);
+		memcpy(LuaManager::configPath, buf.buf, len);
+
+		lua_dofile(L, LuaManager::tempBuffer);
+
+		memset(LuaManager::tempBuffer, 0, TEMPBUF_SIZE);
 		delete[] buf.buf;
 	}
 	return DCPP_FALSE;
 }
 
-int DCPP_CALL_CONV onHubEvent(int callReason, dcpp_ptr_t p1, dcpp_ptr_t p2, void*) {
+int DCPP_CALL_CONV onHubEvent(int callReason, dcpp_param p1, dcpp_param p2, void*) {
 	switch(callReason) {
 		case DCPP_EVENT_HUB_CONNECTING: {
 			const char* url = (const char*)p2;
@@ -224,7 +232,7 @@ int DCPP_CALL_CONV onHubEvent(int callReason, dcpp_ptr_t p1, dcpp_ptr_t p2, void
 	return DCPP_FALSE;
 }
 
-int DCPP_CALL_CONV onConnectionEvent(int callReason, dcpp_ptr_t p1, dcpp_ptr_t p2, void*) {
+int DCPP_CALL_CONV onConnectionEvent(int callReason, dcpp_param p1, dcpp_param p2, void*) {
 	switch(callReason) {
 		case DCPP_EVENT_CONNECTION_LINE: {
 			dcppConnectionLine* line = (dcppConnectionLine*)p1;
@@ -241,7 +249,7 @@ int DCPP_CALL_CONV onConnectionEvent(int callReason, dcpp_ptr_t p1, dcpp_ptr_t p
 	return DCPP_FALSE;
 }
 
-int DCPP_CALL_CONV onTimer(int callReason, dcpp_ptr_t p1, dcpp_ptr_t p2, void*) {
+int DCPP_CALL_CONV onTimer(int callReason, dcpp_param p1, dcpp_param p2, void*) {
 	if(callReason == DCPP_EVENT_TIMER_TICK_SECOND && LuaManager::timerActive) {
 		MakeCall("dcpp", "OnTimer");
 	}

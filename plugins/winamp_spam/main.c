@@ -84,7 +84,7 @@ void formatSeconds(int aSec, char* buf) {
 //%[length]
 //%[userParam]
 
-int DCPP_CALL_CONV sendSpam(int callReason, dcpp_ptr_t lParam, dcpp_ptr_t wParam, void* userData) {
+int DCPP_CALL_CONV sendSpam(int callReason, dcpp_param lParam, dcpp_param wParam, void* userData) {
     if(callReason == DCPP_EVNET_HUB_CHAT_SEND_LINE) {
         const char* msg = (const char*)wParam;
         if(strncmp(msg, "/winamp", 7) == 0 || strncmp(msg, "/w", 2) == 0) {
@@ -174,7 +174,7 @@ int DCPP_CALL_CONV sendSpam(int callReason, dcpp_ptr_t lParam, dcpp_ptr_t wParam
 					tmpBuf.size = 2048 * sizeof(wchar_t);
                     tmpBuf.buf = malloc(tmpBuf.size + 1);
 					memset(tmpBuf.buf, 0, tmpBuf.size + 1);
-                    size = f->call(DCPP_CALL_UTILS_WIDE_TO_UTF8, (dcpp_ptr_t)wtmp, (dcpp_ptr_t)&tmpBuf, 0);
+                    size = f->call(DCPP_CALL_UTILS_WIDE_TO_UTF8, (dcpp_param)wtmp, (dcpp_param)&tmpBuf, 0);
 					memset(tmp, 0, sizeof(tmp));
                     strncpy(tmp, tmpBuf.buf, size);
 					free(tmpBuf.buf);
@@ -209,24 +209,24 @@ int DCPP_CALL_CONV sendSpam(int callReason, dcpp_ptr_t lParam, dcpp_ptr_t wParam
 						dcppBuffer tbuf;
 						tbuf.buf = format;
 						tbuf.size = 2047;
-						f->call(DCPP_CALL_CORE_SETTING_PLUG_GET, (dcpp_ptr_t)(char*)"winamp.fmt", (dcpp_ptr_t)&tbuf, 0);
+						f->call(DCPP_CALL_CORE_SETTING_PLUG_GET, (dcpp_param)(char*)"winamp.fmt", (dcpp_param)&tbuf, 0);
 					}
 					buf.size = 4096;
 					buf.buf = (char*)malloc(buf.size + 1);
 					memset(buf.buf, 0, buf.size + 1);
 
-					f->call(DCPP_CALL_UTILS_FORMAT_PARAMS, (dcpp_ptr_t)params, (dcpp_ptr_t)format, (dcpp_ptr_t)&buf);
+					f->call(DCPP_CALL_UTILS_FORMAT_PARAMS, (dcpp_param)params, (dcpp_param)format, (dcpp_param)&buf);
 					thirdPerson = strncmp(format, "/me ", 4) == 0;
 					if(thirdPerson)
 						buf.buf += 4;
-					f->call(DCPP_CALL_HUB_SEND_CHAT_MESSAGE, lParam, (dcpp_ptr_t)buf.buf, thirdPerson);
+					f->call(DCPP_CALL_HUB_SEND_CHAT_MESSAGE, lParam, (dcpp_param)buf.buf, thirdPerson);
 					if(thirdPerson)
 						buf.buf -= 4;
 					free(buf.buf);
 					freeMap(&params);
 				}
             } else {
-                f->call(DCPP_CALL_HUB_CHAT_WINDOW_WRITE, lParam, (dcpp_ptr_t)(char*)"Supported version of Winamp is not running!", 6);
+                f->call(DCPP_CALL_HUB_CHAT_WINDOW_WRITE, lParam, (dcpp_param)(char*)"Supported version of Winamp is not running!", 6);
             }
             return DCPP_TRUE;
         }
@@ -241,7 +241,7 @@ dcppPluginInformation* DCPP_CALL_CONV pluginInfo(unsigned long long coreSdkVersi
 int DCPP_CALL_CONV pluginLoad(dcppFunctions* pF) {
 	f = pF;
 	f->addListener(DCPP_EVENT_HUB, sendSpam, NULL);
-	f->call(DCPP_CALL_CORE_SETTING_PLUG_SET, (dcpp_ptr_t)(char*)"winamp.fmt", (dcpp_ptr_t)(char*)"/me is listening to  %[title] (%[elapsed]/%[length])", 0);
+	f->call(DCPP_CALL_CORE_SETTING_PLUG_SET, (dcpp_param)(char*)"winamp.fmt", (dcpp_param)(char*)"/me is listening to  %[title] (%[elapsed]/%[length])", 0);
 	return 0;
 }
 

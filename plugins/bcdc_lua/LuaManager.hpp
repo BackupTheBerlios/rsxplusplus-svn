@@ -21,9 +21,13 @@
 
 #include "lua/src/lunar.h"
 
+#define TEMPBUF_SIZE 1024*8
+
 struct LuaManager {
 	static dcppFunctions* dcppLib;
 	static char appPath[MAX_PATH];
+	static char configPath[MAX_PATH];
+	static char tempBuffer[TEMPBUF_SIZE];
 	static bool timerActive;
 
 	static const char className[];
@@ -38,13 +42,19 @@ struct LuaManager {
 	int GetClientIp(lua_State* L);
 	int SendUDPPacket(lua_State* L);
 	int InjectHubMessage(lua_State* L);
+	int FindWindow(lua_State* L);
+	int PostMessage(lua_State* L);
 	int DropUserConnection(lua_State* L);
 
 	int CreateClient(lua_State* L);
 	int DeleteClient(lua_State* L);
+
 	int RunTimer(lua_State* L);
+
 	int GetSetting(lua_State* L);
 	int GetAppPath(lua_State* L);
+	int GetConfigPath(lua_State* L);
+
 	int ToUtf8(lua_State* L);
 	int FromUtf8(lua_State* L);
 

@@ -34,6 +34,8 @@
 namespace dcpp {
 
 PluginsManager::PluginsManager() : dcpp_func(new dcppFunctions) {
+	udp.create(Socket::TYPE_UDP);
+
 	memzero(dcpp_func, sizeof(dcppFunctions));
 
 	dcpp_func->call = &PluginsManager::callFunc;
@@ -157,10 +159,10 @@ void PluginsManager::close() {
 	plugins.clear();
 }
 
-dcpp_ptr_t PluginsManager::dcppBuffer_strcpy(const string& str, dcppBuffer* buf) {
+dcpp_param PluginsManager::dcppBuffer_strcpy(const string& str, dcppBuffer* buf) {
 	if(!buf || buf->buf == 0 || buf->size == 0)
 		return 0;
-	dcpp_ptr_t len = buf->size;
+	dcpp_param len = buf->size;
 	if(str.size() < len)
 		len = str.size();
 	if(len > 0)
@@ -168,7 +170,7 @@ dcpp_ptr_t PluginsManager::dcppBuffer_strcpy(const string& str, dcppBuffer* buf)
 	return len;
 }
 
-dcpp_ptr_t PluginsManager::coreCallFunc(const char* type, dcpp_ptr_t p1, dcpp_ptr_t p2, dcpp_ptr_t p3, int* handled) {
+dcpp_param PluginsManager::coreCallFunc(const char* type, dcpp_param p1, dcpp_param p2, dcpp_param p3, int* handled) {
 	*handled = DCPP_TRUE;
 	if(strncmp(type, "Core/", 5) == 0) {
 		if(strncmp(type+5, "Setting/", 8) == 0) {
@@ -182,7 +184,44 @@ dcpp_ptr_t PluginsManager::coreCallFunc(const char* type, dcpp_ptr_t p1, dcpp_pt
 					return DCPP_TRUE;
 				}
 			} else if(strncmp(type+13, "dcpp/", 5) == 0) {
-
+				int settingType, key;
+				key = SettingsManager::getInstance()->findKey(reinterpret_cast<const char*>(p1), settingType);
+				if(strncmp(type+18, "Get", 3) == 0) {
+					switch(settingType) {
+						case 1: {
+							*reinterpret_cast<dcpp_param*>(p2) = static_cast<dcpp_param>(SettingsManager::getInstance()->get((SettingsManager::IntSetting)key));
+							break;
+						}
+						case 2: {
+							*reinterpret_cast<dcpp_param*>(p2) = static_cast<dcpp_param>(SettingsManager::getInstance()->get((SettingsManager::Int64Setting)key));
+							break;
+						}
+						case 3: {
+							*reinterpret_cast<dcpp_param*>(p2) = reinterpret_cast<dcpp_param>(SettingsManager::getInstance()->get((SettingsManager::StrSetting)key).c_str());
+							break;
+						}
+					}
+					return (dcpp_param)settingType;
+				} else if(strncmp(type+18, "Set", 3) == 0) {
+					switch(settingType) {
+						case 1: {
+							SettingsManager::getInstance()->set((SettingsManager::IntSetting)key, static_cast<int>(p2));
+							break;
+						}
+						case 2: {
+							SettingsManager::getInstance()->set((SettingsManager::Int64Setting)key, static_cast<int64_t>(p2));
+							break;
+						}
+						case 3: {
+							SettingsManager::getInstance()->set((SettingsManager::StrSetting)key, reinterpret_cast<const char*>(p2));
+							break;
+						}
+					}
+					return DCPP_TRUE;
+				} else if(strncmp(type+18, "Type", 4) == 0) {
+					return (dcpp_param)settingType;
+				}
+				return DCPP_FALSE;
 			}
 		}
 	} else if(strncmp(type, "Utils/", 6) == 0) {
@@ -280,6 +319,20 @@ dcpp_ptr_t PluginsManager::coreCallFunc(const char* type, dcpp_ptr_t p1, dcpp_pt
 				return dcppBuffer_strcpy(path, buf);
 			}
 			return DCPP_FALSE;
+		} else if(strncmp(type+6, "SendUDP", 7) == 0) {
+			string ipPort(reinterpret_cast<const char*>(p1));
+			string::size_type i = ipPort.find(":");
+			if(i != string::npos) {
+				string ip = ipPort.substr(0, i);
+				uint16_t port = static_cast<uint16_t>(Util::toInt(ipPort.substr(i+1)));
+				try {
+					PluginsManager::getInstance()->udp.writeTo(ip, port, reinterpret_cast<const void*>(p2), static_cast<int>(p3));
+					return DCPP_TRUE;
+				} catch(const SocketException&) {
+					// damnit!
+				}
+			}
+			return DCPP_FALSE;
 		}
 	}
 	*handled = DCPP_FALSE;
@@ -287,11 +340,11 @@ dcpp_ptr_t PluginsManager::coreCallFunc(const char* type, dcpp_ptr_t p1, dcpp_pt
 }
 
 void PluginsManager::on(TimerManagerListener::Second, uint64_t tick) throw() {
-	getSpeaker().speak(DCPP_EVENT_TIMER, DCPP_EVENT_TIMER_TICK_SECOND, (dcpp_ptr_t)&tick, 0);
+	getSpeaker().speak(DCPP_EVENT_TIMER, DCPP_EVENT_TIMER_TICK_SECOND, (dcpp_param)&tick, 0);
 }
 
 void PluginsManager::on(TimerManagerListener::Minute, uint64_t tick) throw() {
-	getSpeaker().speak(DCPP_EVENT_TIMER, DCPP_EVENT_TIMER_TICK_MINUTE, (dcpp_ptr_t)&tick, 0);
+	getSpeaker().speak(DCPP_EVENT_TIMER, DCPP_EVENT_TIMER_TICK_MINUTE, (dcpp_param)&tick, 0);
 }
 
 } // namespace dcpp

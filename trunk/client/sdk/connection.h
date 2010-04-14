@@ -41,9 +41,9 @@ typedef struct {
 } dcppConnectionInfo;
 
 typedef struct {
-	dcpp_ptr_t		connectionPtr;
+	dcpp_param		connectionPtr;
 
-	dcpp_ptr_t		length;
+	dcpp_param		length;
 	uint16_t		flags;
 	const char*		line;
 } dcppConnectionLine;

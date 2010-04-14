@@ -1,3 +1,11 @@
+** SVN 211 14/04/10
+ ** [sdk] added core settings getter/setter
+ ** [sdk] changed platform dependent dcpp_ptr_t to unsigned long long for x64 & x86
+ ** [sdk] added call to send udp packet in utils
+ ** [bcdc_lua] most stuff implemented + GetConfigPath method
+
+** WARNING ** recompile plugins
+
 ** SVN 210 12/04/10
  ** [winamp_spam] updated to new sdk
  ** [winamp_spam] converted to visual studio 2008

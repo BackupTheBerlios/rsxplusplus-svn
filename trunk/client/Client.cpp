@@ -167,7 +167,7 @@ void Client::connect() {
 
 	state = STATE_CONNECTING;
 
-	PluginsManager::getInstance()->getSpeaker().speak(DCPP_EVENT_HUB, DCPP_EVENT_HUB_CONNECTING, (dcpp_ptr_t)this, (dcpp_ptr_t)hubUrl.c_str()); //RSX++
+	PluginsManager::getInstance()->getSpeaker().speak(DCPP_EVENT_HUB, DCPP_EVENT_HUB_CONNECTING, (dcpp_param)this, (dcpp_param)hubUrl.c_str()); //RSX++
 
 	try {
 		sock = BufferedSocket::getSocket(separator);
@@ -353,21 +353,21 @@ bool Client::isActionActive(const int aAction) const {
 	return hub ? FavoriteManager::getInstance()->getEnabledAction(hub, aAction) : true;
 }
 
-dcpp_ptr_t Client::clientCallFunc(const char* type, dcpp_ptr_t p1, dcpp_ptr_t p2, dcpp_ptr_t p3, int* handled) {
+dcpp_param Client::clientCallFunc(const char* type, dcpp_param p1, dcpp_param p2, dcpp_param p3, int* handled) {
 	*handled = DCPP_TRUE;
 	if(strncmp(type, "Hub/", 4) == 0) {
 		const char* cmd = type+4;
 		if(strncmp(cmd, "Open", 4) == 0) {
-			if(p1)
-				ClientManager::getInstance()->openHub(reinterpret_cast<const char*>(p2));
+			if(p2)
+				ClientManager::getInstance()->openHub(reinterpret_cast<const char*>(p1));
 			else
-				return (dcpp_ptr_t)ClientManager::getInstance()->getClient(reinterpret_cast<const char*>(p2));
+				return (dcpp_param)ClientManager::getInstance()->getClient(reinterpret_cast<const char*>(p1));
 			return DCPP_TRUE;
 		} else if(strncmp(cmd, "Close", 5) == 0) {
-			if(p1)
-				ClientManager::getInstance()->closeHub(reinterpret_cast<const char*>(p2));
+			if(p2)
+				ClientManager::getInstance()->closeHub(reinterpret_cast<const char*>(p1));
 			else
-				ClientManager::getInstance()->putClient(reinterpret_cast<Client*>(p2));
+				ClientManager::getInstance()->putClient(reinterpret_cast<Client*>(p1));
 			return DCPP_TRUE;
 		} else if(strncmp(cmd, "FormatChatMessage", 17) == 0) {
 			ChatMessage cm;
@@ -402,7 +402,7 @@ dcpp_ptr_t Client::clientCallFunc(const char* type, dcpp_ptr_t p1, dcpp_ptr_t p2
 					x = (char*)cmd+13;
 				}
 				if(strncmp(x, "Get", 3) == 0) {
-					return (dcpp_ptr_t)id->get(reinterpret_cast<const char*>(p2)).c_str();
+					return (dcpp_param)id->get(reinterpret_cast<const char*>(p2)).c_str();
 				} else if(strncmp(x, "Set", 3) == 0) {
 					id->set(reinterpret_cast<const char*>(p2), reinterpret_cast<const char*>(p3));
 					return DCPP_TRUE;
@@ -444,31 +444,31 @@ dcpp_ptr_t Client::clientCallFunc(const char* type, dcpp_ptr_t p1, dcpp_ptr_t p2
 bool Client::plugChatMessage(const ChatMessage& cm) {
 	dcppChatMessage m;
 	memzero(&m, sizeof(m));
-	m.from = reinterpret_cast<dcpp_ptr_t>(cm.from.get());
-	m.to = reinterpret_cast<dcpp_ptr_t>(cm.to.get());
-	m.hubPtr = reinterpret_cast<dcpp_ptr_t>(this);
-	m.replyTo = reinterpret_cast<dcpp_ptr_t>(cm.replyTo.get());
+	m.from = reinterpret_cast<dcpp_param>(cm.from.get());
+	m.to = reinterpret_cast<dcpp_param>(cm.to.get());
+	m.hubPtr = reinterpret_cast<dcpp_param>(this);
+	m.replyTo = reinterpret_cast<dcpp_param>(cm.replyTo.get());
 	m.message = cm.text.c_str();
 	m.thirdPerson = cm.thirdPerson ? 1 : 0;
 	m.timestamp = cm.timestamp;
-	int p = PluginsManager::getInstance()->getSpeaker().speak(DCPP_EVENT_HUB, DCPP_EVENT_HUB_CHAT_MESSAGE, reinterpret_cast<dcpp_ptr_t>(&m), (dcpp_ptr_t)hubUrl.c_str());
+	int p = PluginsManager::getInstance()->getSpeaker().speak(DCPP_EVENT_HUB, DCPP_EVENT_HUB_CHAT_MESSAGE, reinterpret_cast<dcpp_param>(&m), (dcpp_param)hubUrl.c_str());
 	return p == DCPP_TRUE;
 }
 
 bool Client::plugHubLine(const char* line, size_t len, bool incoming) {
 	dcppHubLine m;
 	memzero(&m, sizeof(m));
-	m.hubPtr = reinterpret_cast<dcpp_ptr_t>(this);
+	m.hubPtr = reinterpret_cast<dcpp_param>(this);
 	m.line = line;
 	m.length = len;
 	m.incoming = incoming ? 1 : 0;
 
-	int p = PluginsManager::getInstance()->getSpeaker().speak(DCPP_EVENT_HUB, DCPP_EVENT_HUB_LINE, reinterpret_cast<dcpp_ptr_t>(&m), (dcpp_ptr_t)hubUrl.c_str());
+	int p = PluginsManager::getInstance()->getSpeaker().speak(DCPP_EVENT_HUB, DCPP_EVENT_HUB_LINE, reinterpret_cast<dcpp_param>(&m), (dcpp_param)hubUrl.c_str());
 	return p == DCPP_TRUE;
 }
 
 bool Client::plugChatSendLine(const std::string& line) {
-	int p = PluginsManager::getInstance()->getSpeaker().speak(DCPP_EVENT_HUB, DCPP_EVNET_HUB_CHAT_SEND_LINE, reinterpret_cast<dcpp_ptr_t>(this), reinterpret_cast<dcpp_ptr_t>(line.c_str()));
+	int p = PluginsManager::getInstance()->getSpeaker().speak(DCPP_EVENT_HUB, DCPP_EVNET_HUB_CHAT_SEND_LINE, reinterpret_cast<dcpp_param>(this), reinterpret_cast<dcpp_param>(line.c_str()));
 	return p == DCPP_TRUE;
 }
 

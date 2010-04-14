@@ -99,7 +99,7 @@ bool PluginSpeaker::removeListener(const std::string& type, const dcppListenerFu
 	return false;
 }
 
-int PluginSpeaker::speak(const std::string& type, int callReason, dcpp_ptr_t param1, dcpp_ptr_t param2) {
+int PluginSpeaker::speak(const std::string& type, int callReason, dcpp_param param1, dcpp_param param2) {
 	int returnCode = DCPP_FALSE;
 	Lock l(speakerCs);
 	Speakers::const_iterator i = sp.find(type);
@@ -118,8 +118,8 @@ int PluginSpeaker::speak(const std::string& type, int callReason, dcpp_ptr_t par
 	return returnCode;
 }
 
-dcpp_ptr_t PluginSpeaker::call(const char* type, dcpp_ptr_t p1, dcpp_ptr_t p2, dcpp_ptr_t p3) {
-	dcpp_ptr_t tmp;
+dcpp_param PluginSpeaker::call(const char* type, dcpp_param p1, dcpp_param p2, dcpp_param p3) {
+	dcpp_param tmp;
 	int handled;
 	Lock l(callerCs);
 	for(Callers::const_iterator i = cp.begin(); i != cp.end(); ++i) {

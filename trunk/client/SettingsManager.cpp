@@ -736,6 +736,32 @@ void SettingsManager::save(string const& aFileName) {
 		// ...
 	}
 }
+//RSX++
+int SettingsManager::findKey(const string& name, int& type) {
+	int i;
+	type = 0;
+
+	for(i = INT_FIRST; i < INT_LAST; i++) {
+		if(stricmp(settingTags[i], name) == 0) {
+			type = 1;
+			return i;
+		}
+	}
+	for(i = INT64_FIRST; i < INT64_LAST; i++) {
+		if(stricmp(settingTags[i], name) == 0) {
+			type = 2;
+			return i;
+		}
+	}
+	for(i = STR_FIRST; i < STR_LAST; i++) {
+		if(stricmp(settingTags[i], name) == 0) {
+			type = 3;
+			return i;
+		}
+	}
+	return -1;
+}
+//END
 
 } // namespace dcpp
 

@@ -277,7 +277,7 @@ void UserConnection::updateChunkSize(int64_t leafSize, int64_t lastChunk, uint64
 	chunkSize = targetSize;
 }
 //RSX++
-dcpp_ptr_t UserConnection::ucCallFunc(const char* type, dcpp_ptr_t p1, dcpp_ptr_t p2, dcpp_ptr_t p3, int* handled) {
+dcpp_param UserConnection::ucCallFunc(const char* type, dcpp_param p1, dcpp_param p2, dcpp_param p3, int* handled) {
 	*handled = DCPP_TRUE;
 	if(strncmp(type, "UserConnection/", 15) == 0) {
 		const char* cmd = type + 15;
@@ -294,7 +294,7 @@ dcpp_ptr_t UserConnection::ucCallFunc(const char* type, dcpp_ptr_t p1, dcpp_ptr_
 			uc->setFlag(static_cast<uint16_t>(p2));
 			return DCPP_TRUE;
 		} else if(strncmp(cmd, "GetFlags", 8) == 0) {
-			return static_cast<dcpp_ptr_t>(uc->getFlags());
+			return static_cast<dcpp_param>(uc->getFlags());
 		} else if(strncmp(cmd, "GetInfo", 7) == 0) {
 			dcppConnectionInfo* ci = reinterpret_cast<dcppConnectionInfo*>(p2);
 			if(!ci) return DCPP_FALSE;
@@ -314,12 +314,12 @@ dcpp_ptr_t UserConnection::ucCallFunc(const char* type, dcpp_ptr_t p1, dcpp_ptr_
 bool UserConnection::plugLine(const std::string& line, bool incoming) {
 	dcppConnectionLine m;
 	memzero(&m, sizeof(m));
-	m.connectionPtr = reinterpret_cast<dcpp_ptr_t>(this);
+	m.connectionPtr = reinterpret_cast<dcpp_param>(this);
 	m.length = line.length();
 	m.line = line.c_str();
 	m.flags = getFlags();
 
-	int p = PluginsManager::getInstance()->getSpeaker().speak(DCPP_EVENT_CONNECTION, DCPP_EVENT_CONNECTION_LINE, reinterpret_cast<dcpp_ptr_t>(&m), incoming ? 1 : 0);
+	int p = PluginsManager::getInstance()->getSpeaker().speak(DCPP_EVENT_CONNECTION, DCPP_EVENT_CONNECTION_LINE, reinterpret_cast<dcpp_param>(&m), incoming ? 1 : 0);
 	return p == DCPP_TRUE;
 
 }

@@ -224,7 +224,7 @@ private:
 	friend struct DeleteFunction;
 	//RSX++
 	friend class PluginsManager;
-	static dcpp_ptr_t DCPP_CALL_CONV ucCallFunc(const char* type, dcpp_ptr_t p1, dcpp_ptr_t p2, dcpp_ptr_t p3, int* handled);
+	static dcpp_param DCPP_CALL_CONV ucCallFunc(const char* type, dcpp_param p1, dcpp_param p2, dcpp_param p3, int* handled);
 	bool plugLine(const std::string& line, bool incoming);
 	//END
 

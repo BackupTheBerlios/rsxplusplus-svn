@@ -25,7 +25,7 @@ void ClientManager::sendRawCommand(const UserPtr& user, const string& aRaw, bool
 void ClientManager::setListLength(const UserPtr& p, const string& listLen) {
 	Lock l(cs);
 	OnlineIterC i = onlineUsers.find(const_cast<CID*>(&p->getCID()));
-	if(i != onlineUsers.end()) {
+	if(i != onlineUsers.end() && i->second->getClientBase().type != ClientBase::DHT) {
 		i->second->getIdentity().set("LL", listLen);
 	}
 }
@@ -356,7 +356,7 @@ void ClientManager::reportUser(const HintedUser& user) {
 	{
 		Lock l(cs);
 		OnlineUser* ou = findOnlineUser(user.user->getCID(), user.hint, priv);
-		if(!ou) return;
+		if(!ou || ou->getClientBase().getType() == ClientBase::DHT) return;
 
 		ou->getClient().reportUser(ou->getIdentity());
 	}

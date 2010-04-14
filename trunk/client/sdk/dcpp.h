@@ -37,12 +37,7 @@ typedef unsigned __int64 uint64_t;
 #include <stdint.h>
 #endif // _MSC_VER
 
-// pointer type for x86/x64
-#ifdef _WIN64
-typedef uint64_t dcpp_ptr_t;
-#else
-typedef uint32_t dcpp_ptr_t;
-#endif // _WIN64
+typedef uint64_t dcpp_param;
 
 #define MAKE_VER(n1, n2, n3, n4) (((uint64_t)n1 & 0xFFFF) << 48 | ((uint64_t)n2 & 0xFFFF) << 32 | ((uint64_t)n3 & 0xFFFF) << 16 | ((uint64_t)n4 & 0xFFFF))
 #define VER_MAJOR(v)	(uint32_t)(((uint64_t)v & 0xFFFF000000000000) >> 48)
@@ -70,12 +65,12 @@ typedef struct {
 } dcppPluginInformation;
 
 // function type to listen for events
-typedef int (DCPP_CALL_CONV *dcppListenerFunc)(int, dcpp_ptr_t, dcpp_ptr_t, void*);
+typedef int (DCPP_CALL_CONV *dcppListenerFunc)(int, dcpp_param, dcpp_param, void*);
 // function type to add own caller (extend call function in dcppFunctions)
-typedef dcpp_ptr_t (DCPP_CALL_CONV *dcppCallFunc)(const char*, dcpp_ptr_t, dcpp_ptr_t, dcpp_ptr_t, int*);
+typedef dcpp_param (DCPP_CALL_CONV *dcppCallFunc)(const char*, dcpp_param, dcpp_param, dcpp_param, int*);
 
 typedef struct {
-	dcpp_ptr_t	(DCPP_CALL_CONV *call)				(const char* type, dcpp_ptr_t, dcpp_ptr_t, dcpp_ptr_t);
+	dcpp_param	(DCPP_CALL_CONV *call)				(const char* type, dcpp_param, dcpp_param, dcpp_param);
 
 	int			(DCPP_CALL_CONV *addCaller)			(dcppCallFunc);
 	int			(DCPP_CALL_CONV *removeCaller)		(dcppCallFunc);
@@ -83,7 +78,7 @@ typedef struct {
 	int			(DCPP_CALL_CONV *addSpeaker)		(const char*);
 	int			(DCPP_CALL_CONV *removeSpeaker)		(const char*);
 	int			(DCPP_CALL_CONV *isSpeaker)			(const char*);
-	int			(DCPP_CALL_CONV *fireSpeaker)		(const char*, int, dcpp_ptr_t, dcpp_ptr_t);
+	int			(DCPP_CALL_CONV *fireSpeaker)		(const char*, int, dcpp_param, dcpp_param);
 
 	int			(DCPP_CALL_CONV *addListener)		(const char*, dcppListenerFunc, void*);
 	int			(DCPP_CALL_CONV *removeListener)	(const char*, dcppListenerFunc);
@@ -116,10 +111,16 @@ typedef struct _dcppLL {
 #define DCPP_EVENT_CORE_SETTINGS_SAVE	2
 
 // Core Calls
-#define DCPP_CALL_CORE_SETTING_PLUG_GET		"Core/Setting/Plug/Get"
-#define DCPP_CALL_CORE_SETTING_PLUG_SET		"Core/Setting/Plug/Set"
-//#define DCPP_CALL_CORE_SETTING_DCPP_GET		"Core/Setting/dcpp/Get"
-//#define DCPP_CALL_CORE_SETTING_DCPP_SET		"Core/Setting/dcpp/Set"
+#define DCPP_CALL_CORE_SETTING_PLUG_GET			"Core/Setting/Plug/Get"
+#define DCPP_CALL_CORE_SETTING_PLUG_SET			"Core/Setting/Plug/Set"
+
+#define DCPP_CALL_CORE_SETTING_DCPP_GET			"Core/Setting/dcpp/Get"
+#define DCPP_CALL_CORE_SETTING_DCPP_SET			"Core/Setting/dcpp/Set"
+#define DCPP_CALL_CORE_SETTING_DCPP_GET_TYPE	"Core/Setting/dcpp/Type"
+
+#define DCPP_SETTINGS_TYPE_INT			1
+#define DCPP_SETTINGS_TYPE_INT64		2
+#define DCPP_SETTINGS_TYPE_STRING		3
 
 #ifdef __cplusplus
 } // extern "C"

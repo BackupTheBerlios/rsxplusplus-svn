@@ -273,6 +273,9 @@ public:
 	void load(const string& aFileName);
 	void save(const string& aFileName);
 
+	//RSX++
+	int findKey(const string& name, int& type);
+	//END
 private:
 	friend class Singleton<SettingsManager>;
 	SettingsManager();

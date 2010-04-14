@@ -49,17 +49,17 @@
 #define DCPP_CALL_HUB_SET_HUB_FIELD(x)		"Hub/Identity/Hub/Set/" x
 #define DCPP_CALL_HUB_SET_MY_FIELD(x)		"Hub/Identity/My/Set/" x
 
-//params: dcpp_ptr_t hubPtr, const char* msg, bool thirdPerson
+//params: dcpp_param hubPtr, const char* msg, bool thirdPerson
 #define DCPP_CALL_HUB_SEND_CHAT_MESSAGE		"Hub/SendChatMessage"
-//params: dcpp_ptr_t hubPtr, const char* cmd
+//params: dcpp_param hubPtr, const char* cmd
 #define DCPP_CALL_HUB_SEND_USER_COMMAND		"Hub/SendUserCommand"
-//params: dcpp_ptr_t hubPtr, const char* line, size_t len
+//params: dcpp_param hubPtr, const char* line, size_t len
 #define DCPP_CALL_HUB_LINE_WRITE			"Hub/LineWrite"
-//params: dcpp_ptr_t hubPtr, const char* msg, int format
+//params: dcpp_param hubPtr, const char* msg, int format
 #define DCPP_CALL_HUB_CHAT_WINDOW_WRITE		"Hub/ChatWindowWrite"
 //params: dcppChatMessage*, dcppBuffer*
 #define DCPP_CALL_HUB_FORMAT_CHAT_MESSAGE	"Hub/FormatChatMessage"
-//params: dcpp_ptr_t hubPtr, const char* line
+//params: dcpp_param hubPtr, const char* line
 #define DCPP_CALL_HUB_DISPATCH_LINE			"Hub/DispatchLine"
 #define DCPP_CALL_HUB_GET_HUB_INFO			"Hub/GetHubInfo"
 
@@ -73,20 +73,20 @@ typedef struct {
 } dcppHubInfo;
 
 typedef struct {
-	dcpp_ptr_t hubPtr;
+	dcpp_param hubPtr;
 
-	dcpp_ptr_t from;
-	dcpp_ptr_t to;
-	dcpp_ptr_t replyTo;
+	dcpp_param from;
+	dcpp_param to;
+	dcpp_param replyTo;
 	uint64_t timestamp;
 	const char* message;
 	uint8_t thirdPerson;
 } dcppChatMessage;
 
 typedef struct {
-	dcpp_ptr_t hubPtr;
+	dcpp_param hubPtr;
 
-	dcpp_ptr_t length;
+	dcpp_param length;
 	const char* line;
 	int8_t incoming;
 } dcppHubLine;

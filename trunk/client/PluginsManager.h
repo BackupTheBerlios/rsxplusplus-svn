@@ -23,6 +23,7 @@
 #include "TimerManager.h"
 #include "PluginSpeaker.hpp"
 #include "Thread.h"
+#include "Socket.h"
 
 #include "sdk/dcpp.h"
 
@@ -47,7 +48,7 @@ public:
 
 	PluginSpeaker& getSpeaker() { return speaker; }
 
-	static dcpp_ptr_t dcppBuffer_strcpy(const string& str, dcppBuffer* buf);
+	static dcpp_param dcppBuffer_strcpy(const string& str, dcppBuffer* buf);
 private:
 	typedef std::list<Plugin*> Plugins;
 
@@ -58,10 +59,12 @@ private:
 	PluginSpeaker speaker;
 	Plugins plugins;
 
-	static dcpp_ptr_t DCPP_CALL_CONV coreCallFunc(const char* type, dcpp_ptr_t p1, dcpp_ptr_t p2, dcpp_ptr_t p3, int* handled);
+	Socket udp;
+
+	static dcpp_param DCPP_CALL_CONV coreCallFunc(const char* type, dcpp_param p1, dcpp_param p2, dcpp_param p3, int* handled);
 
 	// functions to manage caller/speaker/listener system
-	static dcpp_ptr_t DCPP_CALL_CONV callFunc(const char* type, dcpp_ptr_t p1, dcpp_ptr_t p2, dcpp_ptr_t p3) {
+	static dcpp_param DCPP_CALL_CONV callFunc(const char* type, dcpp_param p1, dcpp_param p2, dcpp_param p3) {
 		return PluginsManager::getInstance()->getSpeaker().call(type, p1, p2, p3);
 	}
 
@@ -71,7 +74,7 @@ private:
 	static int DCPP_CALL_CONV removeCaller(dcppCallFunc fn) {
 		return PluginsManager::getInstance()->getSpeaker().removeCaller(fn) ? DCPP_TRUE : DCPP_FALSE;
 	}
-	static dcpp_ptr_t DCPP_CALL_CONV call(const char* type, dcpp_ptr_t p1, dcpp_ptr_t p2, dcpp_ptr_t p3) {
+	static dcpp_param DCPP_CALL_CONV call(const char* type, dcpp_param p1, dcpp_param p2, dcpp_param p3) {
 		return PluginsManager::getInstance()->getSpeaker().call(type, p1, p2, p3);
 	}
 
@@ -95,7 +98,7 @@ private:
 		return PluginsManager::getInstance()->getSpeaker().removeListener(string(type), fn) ? DCPP_TRUE : DCPP_FALSE;
 	}
 
-	static int DCPP_CALL_CONV speak(const char* type, int callReason, dcpp_ptr_t param1, dcpp_ptr_t param2) {
+	static int DCPP_CALL_CONV speak(const char* type, int callReason, dcpp_param param1, dcpp_param param2) {
 		return PluginsManager::getInstance()->getSpeaker().speak(string(type), callReason, param1, param2);
 	}
 

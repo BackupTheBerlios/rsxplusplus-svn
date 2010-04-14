@@ -36,8 +36,8 @@ public:
 	bool addListener(const std::string& type, const dcppListenerFunc& fn, void* userData);
 	bool removeListener(const std::string& type, const dcppListenerFunc& fn);
 
-	int speak(const std::string& type, int callReason, dcpp_ptr_t param1, dcpp_ptr_t param2);
-	dcpp_ptr_t call(const char* type, dcpp_ptr_t p1, dcpp_ptr_t p2, dcpp_ptr_t p3);
+	int speak(const std::string& type, int callReason, dcpp_param param1, dcpp_param param2);
+	dcpp_param call(const char* type, dcpp_param p1, dcpp_param p2, dcpp_param p3);
 
 	void cleanup() {
 		sp.clear();

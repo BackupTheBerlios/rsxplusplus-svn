@@ -163,7 +163,7 @@ dcppPluginInformation* DCPP_CALL_CONV pluginInfo(unsigned long long coreSdkVersi
 
 int DCPP_CALL_CONV onCoreLoad(int callReason, dcpp_param, dcpp_param, void*) {
 	if(callReason == DCPP_EVENT_CORE_LOAD) {
-		L = lua_open();
+		L = luaL_newstate();
 		luaL_openlibs(L);
 
 		Lunar<LuaManager>::Register(L);

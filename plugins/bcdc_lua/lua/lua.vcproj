@@ -146,7 +146,7 @@
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="4"
-			CharacterSet="1"
+			CharacterSet="2"
 			WholeProgramOptimization="1"
 			>
 			<Tool
@@ -210,7 +210,7 @@
 			OutputDirectory="$(SolutionDir)$(PlatformName)\$(ConfigurationName)"
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="4"
-			CharacterSet="1"
+			CharacterSet="2"
 			WholeProgramOptimization="1"
 			>
 			<Tool
@@ -292,7 +292,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\lbitlib.c"
+				>
+			</File>
+			<File
 				RelativePath=".\src\lcode.c"
+				>
+			</File>
+			<File
+				RelativePath=".\src\lctype.c"
 				>
 			</File>
 			<File
@@ -388,6 +396,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\luac.c"
+				>
+			</File>
+			<File
 				RelativePath=".\src\lundump.c"
 				>
 			</File>
@@ -419,6 +431,10 @@
 			</File>
 			<File
 				RelativePath=".\src\lcode.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\lctype.h"
 				>
 			</File>
 			<File
@@ -479,6 +495,10 @@
 			</File>
 			<File
 				RelativePath=".\src\lua.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\lua.hpp"
 				>
 			</File>
 			<File

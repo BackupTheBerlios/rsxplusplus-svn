@@ -1,3 +1,6 @@
+** SVN 214 19/04/10
+ ** [bcdc_lua] Lua 5.2 (work2)
+
 ** SVN 213 19/04/10
  ** [sdk] fixed typo (thx Thor)
  ** zlib updated to 1.2.4

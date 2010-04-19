@@ -134,7 +134,8 @@ int LuaManager::GenerateDebugMessage(lua_State* L) {
 
 int LuaManager::SendUDPPacket(lua_State* L) {
 	if(lua_gettop(L) == 2 && lua_isstring(L, -2) && lua_isstring(L, -1)) {
-		LuaManager::dcppLib->call(DCPP_CALL_UTILS_SEND_UDP_PACKET, (dcpp_param)lua_tostring(L, -2), (dcpp_param)lua_tostring(L, -1), (dcpp_param)lua_strlen(L, -1));
+		const char* str = lua_tostring(L, -1);
+		LuaManager::dcppLib->call(DCPP_CALL_UTILS_SEND_UDP_PACKET, (dcpp_param)lua_tostring(L, -2), (dcpp_param)str, (dcpp_param)strlen(str));
 	}
 	return 0;
 }

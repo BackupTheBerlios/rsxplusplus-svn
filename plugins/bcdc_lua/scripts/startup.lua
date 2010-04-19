@@ -1144,13 +1144,13 @@ function nmdch.DataArrival( hub, msg )
 			h:setHubName( hubname )
 			return h:onHubName( hubname, msg )
 		elseif cmd == "OpList" then
-			for nick in string.gfind( string.sub( msg, 9 ), "[^$]+") do
+			for nick in string.gmatch( string.sub( msg, 9 ), "[^$]+") do
 				h:getUser( nick, 1 )
 			end
 			return nil
 		elseif cmd == "UserIP" then
 			local nick,ip
-			for combo in string.gfind( string.sub( msg, 9 ), "[^$]+") do
+			for combo in string.gmatch( string.sub( msg, 9 ), "[^$]+") do
 				ret,c,nick,ip = string.find( combo, "^(%S+) (%S+)$" )
 				if ret then
 					h:getUser( nick ):setIp( ip )
@@ -1160,7 +1160,7 @@ function nmdch.DataArrival( hub, msg )
 		elseif cmd == "UserCommand" then
 			h:hubUC( msg )
 		--elseif string.sub( msg, 1, 10 ) == "$NickList " then
-		--	for nick in string.gfind( string.sub( msg, 9, -1), "[^$]+") do
+		--	for nick in string.gmatch( string.sub( msg, 9, -1), "[^$]+") do
 		--		h:getUser( nick )
 		--	end
 		--	return nil

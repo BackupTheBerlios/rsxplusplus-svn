@@ -49,6 +49,7 @@ Lunar<LuaManager>::RegType LuaManager::methods[] = {
 	{ "DeleteClient",			&LuaManager::DeleteClient },
 	{ "RunTimer",				&LuaManager::RunTimer },
 	{ "GetSetting",				&LuaManager::GetSetting },
+	{ "SetSetting",				&LuaManager::SetSetting },
 	{ "ToUtf8",					&LuaManager::ToUtf8 },
 	{ "FromUtf8",				&LuaManager::FromUtf8 },
 	{ "GetAppPath",				&LuaManager::GetAppPath },
@@ -56,6 +57,14 @@ Lunar<LuaManager>::RegType LuaManager::methods[] = {
 	{ "DropUserConnection",		&LuaManager::DropUserConnection },
 	{ 0 }
 };
+
+void LuaManager::raiseBadArgumentError(lua_State* L, const char* funcName, int exceptedArgCount) {
+	luaL_error(L, "Bad argument count in '%s' call (%d excepted, got %d)", funcName, exceptedArgCount, lua_gettop(L));
+}
+
+void LuaManager::raiseBadArgumentTypeError(lua_State* L, const char* funcName, int arg, const char* exceptedType, int argStackPos) {
+	luaL_error(L,"Bad argument #%d in '%s' call (%s excepted, got %s)", arg, funcName, exceptedType, lua_typename(L, lua_type(L, argStackPos)));
+}
 
 int LuaManager::DeleteClient(lua_State* L) {
 	if(lua_gettop(L) == 1 && lua_islightuserdata(L, -1)) {
@@ -141,78 +150,166 @@ int LuaManager::DropUserConnection(lua_State* L) {
 }
 
 int LuaManager::GetSetting(lua_State* L) {
-	if(lua_gettop(L) == 1 && lua_isstring(L, -1)) {
-		const char* str = lua_tostring(L, -1);
-		dcpp_param value;
-		int type = (int)LuaManager::dcppLib->call(DCPP_CALL_CORE_SETTING_DCPP_GET, (dcpp_param)str, (dcpp_param)&value, 0);
-		switch(type) {
-			case DCPP_SETTINGS_TYPE_INT: {
-				lua_pushnumber(L, static_cast<int>(value));
-				return 1;
+	if(lua_gettop(L) != 2) {
+		raiseBadArgumentError(L, "GetSetting", 2);
+		return 0;
+	}
+	if(!lua_isstring(L, -2)) {
+		raiseBadArgumentTypeError(L, "GetSetting", 1, "string", -2);
+		return 0;
+	}
+
+	const char* key = lua_tostring(L, -2);
+	dcpp_param settingValue;
+	int type = (int)LuaManager::dcppLib->call(DCPP_CALL_CORE_SETTING_DCPP_GET, (dcpp_param)key, (dcpp_param)&settingValue, 0);
+
+	switch(type) {
+		case DCPP_SETTINGS_TYPE_INT: {
+			if(!lua_isnumber(L, -1)) {
+				raiseBadArgumentTypeError(L, "GetSetting", 2, "number (4b)", -1);
+				return 0;
 			}
-			case DCPP_SETTINGS_TYPE_INT64: {
-				lua_pushnumber(L, static_cast<lua_Number>(value));
-				return 1;
+			lua_pushnumber(L, static_cast<int>(settingValue));
+			return 1;
+		}
+		case DCPP_SETTINGS_TYPE_INT64: {
+			if(!lua_isnumber(L, -1)) {
+				raiseBadArgumentTypeError(L, "GetSetting", 2, "number (8b)", -1);
+				return 0;
 			}
-			case DCPP_SETTINGS_TYPE_STRING: {
-				lua_pushstring(L, reinterpret_cast<const char*>(value));
-				return 1;
+			lua_pushnumber(L, static_cast<lua_Number>(settingValue));
+			return 1;
+		}
+		case DCPP_SETTINGS_TYPE_STRING: {
+			if(!lua_isstring(L, -1)) {
+				raiseBadArgumentTypeError(L, "GetSetting", 2, "string", -1);
+				return 0;
 			}
+			lua_pushstring(L, reinterpret_cast<const char*>(settingValue));
+			return 1;
+		}
+		default: {
+			luaL_error(L,"Bad argument #1 to 'GetSetting' (the given setting doesn't exists)");
 		}
 	}
-	lua_pushliteral(L, "GetSetting: setting not found");
-	lua_error(L);
+	return 0;
+}
+
+int LuaManager::SetSetting(lua_State* L) {
+	if(lua_gettop(L) != 2) {
+		raiseBadArgumentError(L, "SetSetting", 2);
+		return 0;
+	}
+	if(!lua_isstring(L, -2)) {
+		raiseBadArgumentTypeError(L, "SetSetting", 1, "string", -2);
+		return 0;
+	}
+
+	const char* key = lua_tostring(L, -2);
+	int type = (int)LuaManager::dcppLib->call(DCPP_CALL_CORE_SETTING_DCPP_GET_TYPE, (dcpp_param)key, 0, 0);
+
+	switch(type) {
+		case DCPP_SETTINGS_TYPE_INT: {
+			if(!lua_isnumber(L, -1)) {
+				raiseBadArgumentTypeError(L, "SetSetting", 2, "number (4b)", -1);
+				return 0;
+			}
+			LuaManager::dcppLib->call(DCPP_CALL_CORE_SETTING_DCPP_SET,(dcpp_param)key,(dcpp_param)lua_tonumber(L, -1), 0);
+			return 1;
+		}
+		case DCPP_SETTINGS_TYPE_INT64: {
+			if(!lua_isnumber(L, -1)) {
+				raiseBadArgumentTypeError(L, "SetSetting", 2, "number (8b)", -1);
+				return 0;
+			}
+			LuaManager::dcppLib->call(DCPP_CALL_CORE_SETTING_DCPP_SET,(dcpp_param)key,(dcpp_param)lua_tonumber(L, -1), 0);
+			return 1;
+		}
+		case DCPP_SETTINGS_TYPE_STRING: {
+			if(!lua_isstring(L, -1)) {
+				raiseBadArgumentTypeError(L, "SetSetting", 2, "string", -1);
+				return 0;
+			}
+			LuaManager::dcppLib->call(DCPP_CALL_CORE_SETTING_DCPP_SET,(dcpp_param)key,(dcpp_param)lua_tostring(L, -1), 0);
+			return 1;
+		}
+		default: {
+			luaL_error(L,"Bad argument #1 to 'SetSetting' (the given setting doesn't exists)");
+		}
+	}
 	return 0;
 }
 
 int LuaManager::ToUtf8(lua_State* L) {
-	if(lua_gettop(L) == 1 && lua_isstring(L, -1)) {
-		const char* str = lua_tostring(L, -1);
-		dcppBuffer buf;
-		buf.size = (int)(2*strlen(str));
-		buf.buf = new char[buf.size];
-		memset(buf.buf, 0, buf.size);
-		LuaManager::dcppLib->call(DCPP_CALL_UTILS_ACP_TO_UTF8, (dcpp_param)str, (dcpp_param)&buf, 0);
-		lua_pushstring(L, buf.buf);
-		delete[] buf.buf;
-		return 1;
-	} else {
-		lua_pushliteral(L, "ToUtf8: string needed as argument");
-		lua_error(L);
+	if(lua_gettop(L) != 1) {
+		raiseBadArgumentError(L, "ToUtf8", 1);
+		return 0;
+	} else if(!lua_isstring(L, -1)) {
+		raiseBadArgumentTypeError(L, "ToUtf8", 1, "string", -1);
+		return 0;
 	}
-	return 0;
+
+	const char* str = lua_tostring(L, -1);
+	dcppBuffer buf;
+	buf.size = (int)(2*strlen(str));
+	buf.buf = new char[buf.size];
+	memset(buf.buf, 0, buf.size);
+	LuaManager::dcppLib->call(DCPP_CALL_UTILS_ACP_TO_UTF8, (dcpp_param)str, (dcpp_param)&buf, 0);
+	lua_pushstring(L, buf.buf);
+	delete[] buf.buf;
+	return 1;
 }
 
 int LuaManager::FromUtf8(lua_State* L) {
-	if(lua_gettop(L) == 1 && lua_isstring(L, -1)) {
-		const char* str = lua_tostring(L, -1);
-		dcppBuffer buf;
-		buf.size = (int)strlen(str);
-		buf.buf = new char[buf.size];
-		memset(buf.buf, 0, buf.size);
-		LuaManager::dcppLib->call(DCPP_CALL_UTILS_UTF8_TO_ACP, (dcpp_param)str, (dcpp_param)&buf, 0);
-		lua_pushstring(L, buf.buf);
-		delete[] buf.buf;
-		return 1;
-	} else {
-		lua_pushliteral(L, "FromUtf8: string needed as argument");
-		lua_error(L);
+	if(lua_gettop(L) != 1) {
+		raiseBadArgumentError(L, "FromUtf8", 1);
+		return 0;
+	} else if(!lua_isstring(L, -1)) {
+		raiseBadArgumentTypeError(L, "FromUtf8", 1, "string", -1);
+		return 0;
 	}
-	return 0;
+
+	const char* str = lua_tostring(L, -1);
+	dcppBuffer buf;
+	buf.size = (int)strlen(str);
+	buf.buf = new char[buf.size];
+	memset(buf.buf, 0, buf.size);
+	LuaManager::dcppLib->call(DCPP_CALL_UTILS_UTF8_TO_ACP, (dcpp_param)str, (dcpp_param)&buf, 0);
+	lua_pushstring(L, buf.buf);
+	delete[] buf.buf;
+	return 1;
 }
 
 int LuaManager::GetAppPath(lua_State* L) {
+	if(lua_gettop(L) != 0) {
+		raiseBadArgumentError(L, "GetAppPath", 0);
+		return 0;
+	}
+
 	lua_pushstring(L, LuaManager::appPath);
 	return 1;
 }
 
 int LuaManager::GetConfigPath(lua_State* L) {
+	if(lua_gettop(L) != 0) {
+		raiseBadArgumentError(L, "GetConfigPath", 0);
+		return 0;
+	}
+
 	lua_pushstring(L, LuaManager::configPath);
 	return 1;
 }
 
 int LuaManager::GetClientIp(lua_State* L) {
-	dcpp_param connection = (dcpp_param)lua_touserdata(L, 1);
+	if(lua_gettop(L) != 1) {
+		raiseBadArgumentError(L, "GetClientIp", 0);
+		return 0;
+	} else if(!lua_islightuserdata(L, -1)) {
+		raiseBadArgumentTypeError(L, "GetClientIp", 1, "userdata", -1);
+		return 0;
+	}
+
+	dcpp_param connection = (dcpp_param)lua_touserdata(L, -1);
 	if(connection > 0) {
 		dcppConnectionInfo nfo;
 		memset(&nfo, 0, sizeof(dcppConnectionInfo));
@@ -220,17 +317,24 @@ int LuaManager::GetClientIp(lua_State* L) {
 			lua_pushstring(L, nfo.ip);
 			return 1;
 		} else {
-			lua_pushliteral(L, "GetClientIp: can't find connection at given address");
+			luaL_error(L, "GetClientIp: can't find connection at given address");
 		}
 	} else {
-		lua_pushliteral(L, "GetClientIp: missing connection handle");
+		luaL_error(L, "GetClientIp: bad connection handle");
 	}
-	lua_error(L);
 	return 0;
 }
 
 int LuaManager::GetHubIpPort(lua_State* L) {
-	dcpp_param hub = (dcpp_param)lua_touserdata(L, 1);
+	if(lua_gettop(L) != 1) {
+		raiseBadArgumentError(L, "GetHubIpPort", 0);
+		return 0;
+	} else if(!lua_islightuserdata(L, -1)) {
+		raiseBadArgumentTypeError(L, "GetHubIpPort", 1, "userdata", -1);
+		return 0;
+	}
+
+	dcpp_param hub = (dcpp_param)lua_touserdata(L, -1);
 	if(hub > 0) {
 		dcppHubInfo nfo;
 		memset(&nfo, 0, sizeof(dcppHubInfo));
@@ -238,16 +342,23 @@ int LuaManager::GetHubIpPort(lua_State* L) {
 			lua_pushfstring(L, "%s:%d", nfo.ip, nfo.port);
 			return 1;
 		} else {
-			lua_pushliteral(L, "GetHubIpPort: core can't find hub at given address");
+			luaL_error(L, "GetHubIpPort: core can't find hub at given address");
 		}
 	} else {
-		lua_pushliteral(L, "GetHubIpPort: missing hub handle");
+		luaL_error(L, "GetHubIpPort: bad hub handle");
 	}
-	lua_error(L);
 	return 0;
 }
 
 int LuaManager::GetHubUrl(lua_State* L) {
+	if(lua_gettop(L) != 1) {
+		raiseBadArgumentError(L, "GetHubUrl", 0);
+		return 0;
+	} else if(!lua_islightuserdata(L, -1)) {
+		raiseBadArgumentTypeError(L, "GetHubUrl", 1, "userdata", -1);
+		return 0;
+	}
+
 	dcpp_param hub = (dcpp_param)lua_touserdata(L, 1);
 	if(hub > 0) {
 		dcppHubInfo nfo;
@@ -256,21 +367,23 @@ int LuaManager::GetHubUrl(lua_State* L) {
 			lua_pushstring(L, nfo.url);
 			return 1;
 		} else {
-			lua_pushliteral(L, "GetHubUrl: core can't find hub at given address");
+			luaL_error(L, "GetHubUrl: core can't find hub at given address");
 		}
 	} else {
-		lua_pushliteral(L, "GetHubUrl: missing hub handle");
+		luaL_error(L, "GetHubUrl: bad hub handle");
 	}
-	lua_error(L);
 	return 0;
 }
 
 int LuaManager::RunTimer(lua_State* L) {
-	if(lua_gettop(L) == 1 && lua_isnumber(L, -1)) {
-		LuaManager::timerActive = lua_tonumber(L, -1) != 0;
-	} else {
-		lua_pushliteral(L, "RunTimer: missing integer (0=off,!0=on)");
-		lua_error(L);
+	if(lua_gettop(L) != 1) {
+		raiseBadArgumentError(L, "RunTimer", 0);
+		return 0;
+	} else if(!lua_isnumber(L, -1)) {
+		raiseBadArgumentTypeError(L, "RunTimer", 1, "number (4b)", -1);
+		return 0;
 	}
+
+	LuaManager::timerActive = lua_tonumber(L, -1) != 0;
 	return 0;
 }

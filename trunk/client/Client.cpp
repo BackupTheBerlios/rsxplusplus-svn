@@ -468,7 +468,7 @@ bool Client::plugHubLine(const char* line, size_t len, bool incoming) {
 }
 
 bool Client::plugChatSendLine(const std::string& line) {
-	int p = PluginsManager::getInstance()->getSpeaker().speak(DCPP_EVENT_HUB, DCPP_EVNET_HUB_CHAT_SEND_LINE, reinterpret_cast<dcpp_param>(this), reinterpret_cast<dcpp_param>(line.c_str()));
+	int p = PluginsManager::getInstance()->getSpeaker().speak(DCPP_EVENT_HUB, DCPP_EVENT_HUB_CHAT_SEND_LINE, reinterpret_cast<dcpp_param>(this), reinterpret_cast<dcpp_param>(line.c_str()));
 	return p == DCPP_TRUE;
 }
 

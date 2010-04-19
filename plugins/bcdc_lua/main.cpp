@@ -177,13 +177,13 @@ int DCPP_CALL_CONV onCoreLoad(int callReason, dcpp_param, dcpp_param, void*) {
 
 		size_t len;
 		
-		len = LuaManager::dcppLib->call(DCPP_CALL_UTILS_GET_PATH, DCPP_UTILS_PATH_RESOURCES, (dcpp_param)&buf, 0);
+		len = (size_t)LuaManager::dcppLib->call(DCPP_CALL_UTILS_GET_PATH, DCPP_UTILS_PATH_RESOURCES, (dcpp_param)&buf, 0);
 		memcpy(LuaManager::appPath, buf.buf, len);
 		memcpy(LuaManager::tempBuffer, buf.buf, len);
 		strcat(LuaManager::tempBuffer, "scripts\\startup.lua");
 		memset(buf.buf, 0, buf.size);
 
-		len = LuaManager::dcppLib->call(DCPP_CALL_UTILS_GET_PATH, DCPP_UTILS_PATH_USER_CONFIG, (dcpp_param)&buf, 0);
+		len = (size_t)LuaManager::dcppLib->call(DCPP_CALL_UTILS_GET_PATH, DCPP_UTILS_PATH_USER_CONFIG, (dcpp_param)&buf, 0);
 		memcpy(LuaManager::configPath, buf.buf, len);
 
 		lua_dofile(L, LuaManager::tempBuffer);

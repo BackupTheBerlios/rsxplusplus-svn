@@ -1,3 +1,10 @@
+** SVN 213 19/04/10
+ ** [sdk] fixed typo (thx Thor)
+ ** zlib updated to 1.2.4
+ ** [bcdc_lua & winamp_spam] fixed warnings in Win32 build
+ ** [sdk] some twearking on get/set dcpp settings
+ ** [bcdc_lua] some nice error reporting from thor here and there (need to finish, but now i'm lazy)
+
 ** SVN 211-212 14/04/10
  ** [sdk] added core settings getter/setter
  ** [sdk] changed platform dependent dcpp_ptr_t to unsigned long long for x64 & x86

@@ -52,6 +52,7 @@ struct LuaManager {
 	int RunTimer(lua_State* L);
 
 	int GetSetting(lua_State* L);
+	int SetSetting(lua_State* L);
 	int GetAppPath(lua_State* L);
 	int GetConfigPath(lua_State* L);
 
@@ -59,6 +60,9 @@ struct LuaManager {
 	int FromUtf8(lua_State* L);
 
 	int not_implemented(lua_State*) { return 0; };
+
+	void raiseBadArgumentError(lua_State* L, const char* funcName, int exceptedArgCount);
+	void raiseBadArgumentTypeError(lua_State* L, const char* funcName, int arg, const char* exceptedType, int argStackPos);
 };
 
 #endif

@@ -226,7 +226,7 @@
 				ForceConformanceInForLoopScope="true"
 				RuntimeTypeInfo="false"
 				UsePrecompiledHeader="0"
-				WarningLevel="0"
+				WarningLevel="3"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="3"
 				CallingConvention="0"
@@ -312,7 +312,7 @@
 				ForceConformanceInForLoopScope="true"
 				RuntimeTypeInfo="false"
 				UsePrecompiledHeader="0"
-				WarningLevel="0"
+				WarningLevel="3"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="3"
 				CallingConvention="0"
@@ -557,7 +557,7 @@
 				ForceConformanceInForLoopScope="true"
 				RuntimeTypeInfo="false"
 				UsePrecompiledHeader="0"
-				WarningLevel="0"
+				WarningLevel="3"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="3"
 				CallingConvention="0"
@@ -643,7 +643,7 @@
 				ForceConformanceInForLoopScope="true"
 				RuntimeTypeInfo="false"
 				UsePrecompiledHeader="0"
-				WarningLevel="0"
+				WarningLevel="3"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="3"
 				CallingConvention="0"
@@ -705,6 +705,26 @@
 				>
 			</File>
 			<File
+				RelativePath=".\zlib\gzclose.c"
+				>
+			</File>
+			<File
+				RelativePath=".\zlib\gzlib.c"
+				>
+			</File>
+			<File
+				RelativePath=".\zlib\gzread.c"
+				>
+			</File>
+			<File
+				RelativePath=".\zlib\gzwrite.c"
+				>
+			</File>
+			<File
+				RelativePath=".\zlib\infback.c"
+				>
+			</File>
+			<File
 				RelativePath=".\zlib\inffast.c"
 				>
 			</File>
@@ -739,6 +759,10 @@
 			</File>
 			<File
 				RelativePath=".\zlib\deflate.h"
+				>
+			</File>
+			<File
+				RelativePath=".\zlib\gzguts.h"
 				>
 			</File>
 			<File

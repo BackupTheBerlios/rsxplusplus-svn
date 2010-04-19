@@ -174,7 +174,7 @@ int DCPP_CALL_CONV sendSpam(int callReason, dcpp_param lParam, dcpp_param wParam
 					tmpBuf.size = 2048 * sizeof(wchar_t);
                     tmpBuf.buf = malloc(tmpBuf.size + 1);
 					memset(tmpBuf.buf, 0, tmpBuf.size + 1);
-                    size = f->call(DCPP_CALL_UTILS_WIDE_TO_UTF8, (dcpp_param)wtmp, (dcpp_param)&tmpBuf, 0);
+                    size = (size_t)f->call(DCPP_CALL_UTILS_WIDE_TO_UTF8, (dcpp_param)wtmp, (dcpp_param)&tmpBuf, 0);
 					memset(tmp, 0, sizeof(tmp));
                     strncpy(tmp, tmpBuf.buf, size);
 					free(tmpBuf.buf);

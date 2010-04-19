@@ -31,7 +31,7 @@
 //this might be a main chat or private chat message
 #define DCPP_EVENT_HUB_CHAT_MESSAGE			7
 //this is outgoing chat message
-#define DCPP_EVNET_HUB_CHAT_SEND_LINE		8
+#define DCPP_EVENT_HUB_CHAT_SEND_LINE		8
 //raw protocol lines read/write from/to socket
 #define DCPP_EVENT_HUB_LINE					9
 

@@ -200,6 +200,9 @@ dcpp_param PluginsManager::coreCallFunc(const char* type, dcpp_param p1, dcpp_pa
 							*reinterpret_cast<dcpp_param*>(p2) = reinterpret_cast<dcpp_param>(SettingsManager::getInstance()->get((SettingsManager::StrSetting)key).c_str());
 							break;
 						}
+						default: {
+							return DCPP_SETTINGS_TYPE_NOT_FOUND;
+						}
 					}
 					return (dcpp_param)settingType;
 				} else if(strncmp(type+18, "Set", 3) == 0) {
@@ -215,6 +218,9 @@ dcpp_param PluginsManager::coreCallFunc(const char* type, dcpp_param p1, dcpp_pa
 						case 3: {
 							SettingsManager::getInstance()->set((SettingsManager::StrSetting)key, reinterpret_cast<const char*>(p2));
 							break;
+						}
+						default: {
+							return DCPP_SETTINGS_TYPE_NOT_FOUND;
 						}
 					}
 					return DCPP_TRUE;

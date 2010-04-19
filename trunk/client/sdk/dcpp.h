@@ -118,6 +118,7 @@ typedef struct _dcppLL {
 #define DCPP_CALL_CORE_SETTING_DCPP_SET			"Core/Setting/dcpp/Set"
 #define DCPP_CALL_CORE_SETTING_DCPP_GET_TYPE	"Core/Setting/dcpp/Type"
 
+#define DCPP_SETTINGS_TYPE_NOT_FOUND	0
 #define DCPP_SETTINGS_TYPE_INT			1
 #define DCPP_SETTINGS_TYPE_INT64		2
 #define DCPP_SETTINGS_TYPE_STRING		3

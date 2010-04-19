@@ -34,7 +34,7 @@
 #define DCPP_CALL_USER_GET_PARAMS		"User/GetParams"
 
 #define DCPP_EVENT_USER_CONNECTED		"User/Connected"
-#define DCPP_EVNET_USER_DISCONNECTED	"User/Disconnected"
+#define DCPP_EVENT_USER_DISCONNECTED	"User/Disconnected"
 
 #endif
 

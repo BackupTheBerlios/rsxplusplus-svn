@@ -200,11 +200,16 @@ void Client::on(Connected) throw() {
 	updateActivity(); 
 	ip = sock->getIp();
 	localIp = sock->getLocalIp();
+
+	PluginsManager::getInstance()->getSpeaker().speak(DCPP_EVENT_HUB, DCPP_EVENT_HUB_CONNECTED, (dcpp_param)this, (dcpp_param)hubUrl.c_str()); //RSX++
+
 	fire(ClientListener::Connected(), this);
 	state = STATE_PROTOCOL;
 }
 
 void Client::on(Failed, const string& aLine) throw() {
+	PluginsManager::getInstance()->getSpeaker().speak(DCPP_EVENT_HUB, DCPP_EVENT_HUB_DISCONNECTED, (dcpp_param)this, (dcpp_param)hubUrl.c_str()); //RSX++
+
 	state = STATE_DISCONNECTED;
 	FavoriteManager::getInstance()->removeUserCommand(getHubUrl());
 	sock->removeListener(this);
@@ -432,7 +437,8 @@ dcpp_param Client::clientCallFunc(const char* type, dcpp_param p1, dcpp_param p2
 				nfo->url = c->getHubUrl().c_str();
 				nfo->ip = c->getIp().c_str();
 				nfo->isAdc = c->getType() == ClientBase::ADC ? 1 : 0;
-				nfo->isSecured = c->isSecure() ? 1 : 0;
+				//@todo find a cause of access violation here at certain conditions...
+				//nfo->isSecured = c->isSecure() ? 1 : 0;
 				return DCPP_TRUE;
 			}
 		}

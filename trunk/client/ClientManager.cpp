@@ -693,7 +693,6 @@ OnlineUserPtr ClientManager::findDHTNode(const CID& cid) const
 }
 
 void ClientManager::on(Connected, const Client* c) throw() {
-	PluginsManager::getInstance()->getSpeaker().speak(DCPP_EVENT_HUB, DCPP_EVENT_HUB_CONNECTED, (dcpp_param)c, (dcpp_param)c->getHubUrl().c_str()); //RSX++
 	fire(ClientManagerListener::ClientConnected(), c);
 }
 
@@ -713,7 +712,6 @@ void ClientManager::on(HubUpdated, const Client* c) throw() {
 }
 
 void ClientManager::on(Failed, const Client* client, const string&) throw() {
-	PluginsManager::getInstance()->getSpeaker().speak(DCPP_EVENT_HUB, DCPP_EVENT_HUB_DISCONNECTED, (dcpp_param)client, (dcpp_param)client->getHubUrl().c_str()); //RSX++
 	fire(ClientManagerListener::ClientDisconnected(), client);
 }
 

@@ -23,6 +23,8 @@
 
 #define TEMPBUF_SIZE 1024*8
 
+extern int lua_dostring(const char* str);
+
 struct LuaManager {
 	static dcppFunctions* dcppLib;
 	static char appPath[MAX_PATH];
@@ -63,6 +65,9 @@ struct LuaManager {
 
 	void raiseBadArgumentError(lua_State* L, const char* funcName, int exceptedArgCount);
 	void raiseBadArgumentTypeError(lua_State* L, const char* funcName, int arg, const char* exceptedType, int argStackPos);
+	
+	static bool executeLuaCommand(const char* cmd);
+	static void parseLuaCommand(const char* cmd, char*& out);
 };
 
 #endif

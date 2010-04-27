@@ -416,7 +416,7 @@ dcpp_param Client::clientCallFunc(const char* type, dcpp_param p1, dcpp_param p2
 				c->hubMessage(reinterpret_cast<const char*>(p2), p3 != 0 ? true : false);
 				return DCPP_TRUE;
 			} else if(strncmp(cmd, "SendUserCommand", 15) == 0) {
-#pragma message("@todo: fixme")
+				//todo: fixme
 				c->send(reinterpret_cast<const char*>(p2));
 				//c->sendUserCmd(reinterpret_cast<const char*>(p2));
 				return DCPP_TRUE;

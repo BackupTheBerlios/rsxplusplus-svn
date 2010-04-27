@@ -31,6 +31,8 @@ char LuaManager::configPath[MAX_PATH] = { 0 };
 char LuaManager::tempBuffer[TEMPBUF_SIZE] = { 0 };
 bool LuaManager::timerActive = false;
 
+#define LOG(x) LuaManager::dcppLib->call(DCPP_CALL_UTILS_LOG_MESSAGE, (dcpp_param)x, 0, 0)
+
 const char LuaManager::className[] = "DC";
 Lunar<LuaManager>::RegType LuaManager::methods[] = {
 	{ "SendHubMessage",			&LuaManager::SendHubMessage },
@@ -66,6 +68,91 @@ void LuaManager::raiseBadArgumentTypeError(lua_State* L, const char* funcName, i
 	luaL_error(L,"Bad argument #%d in '%s' call (%s excepted, got %s)", arg, funcName, exceptedType, lua_typename(L, lua_type(L, argStackPos)));
 }
 
+void LuaManager::parseLuaCommand(const char* cmd, char*& copy) {
+	//LuaManager::dcppLib->call(DCPP_CALL_UTILS_LOG_MESSAGE, (dcpp_param)cmd, 0, 0);
+	size_t len;
+	//char* copy;
+	char* pch;
+	char* buffer;
+	char* end;
+
+	len = strlen(cmd);
+	copy = (char*)malloc(len+11);
+	memset(copy, 0, len+11);
+	memcpy(copy, cmd, len);
+	pch = copy;
+
+	while((pch = strstr(pch, "%[lua:")) != 0) {
+		memmove(pch+2, pch, strlen(pch));
+		memcpy(pch, "<LUACMD>", 8);
+
+		end = strstr(pch, "]");
+
+		if(end) {
+			buffer = pch;
+			while((pch = strstr(pch, "!%")) != 0 && pch < end) {
+				len = strlen(pch);
+				memmove(pch, pch+1, len-1);
+				pch[len-1] = 0;
+				--end;
+			}
+			pch = buffer;
+			while((pch = strstr(pch, "!{")) != 0 && pch < end) {
+				len = strlen(pch);
+				memmove(pch, pch+1, len-1);
+				pch[0] = '[';
+				pch[len-1] = 0;
+				--end;
+			}
+			pch = buffer;
+			while((pch = strstr(pch, "!}")) != 0 && pch < end) {
+				len = strlen(pch);
+				memmove(pch, pch+1, len-1);
+				pch[0] = ']';
+				pch[len-1] = 0;
+				--end;
+			}
+			pch = end;
+			memmove(pch+8, pch, strlen(pch));
+			memcpy(pch, "</LUACMD>", 9);
+			pch = end + 9;
+		}
+		len = strlen(copy);
+		copy = (char*)realloc(copy, len+10);
+		memset(copy+len, 0, 10);
+		LOG(copy);
+	}
+	//LuaManager::dcppLib->call(DCPP_CALL_UTILS_LOG_MESSAGE, (dcpp_param)copy, 0, 0);
+	//out = copy;
+}
+
+bool LuaManager::executeLuaCommand(const char* cmd) {
+	size_t len;
+	bool executed = false;
+	char* pch = (char*)cmd;
+	char* chunk;
+	char* end;
+
+	while((pch = (char*)strstr(pch, "<LUACMD>")) != 0) {
+		pch += 8;
+		end = strstr(pch, "</LUACMD>");
+
+		if(end) {
+			len = (size_t)(end-pch);
+			chunk = new char[len+1];
+			memset(chunk, 0, len+1);
+			memcpy(chunk, pch, len);
+
+			lua_dostring(chunk);
+
+			delete[] chunk;
+			pch = end + 9;
+			executed = true;
+		}
+	}
+	return executed;
+}
+
 int LuaManager::DeleteClient(lua_State* L) {
 	if(lua_gettop(L) == 1 && lua_islightuserdata(L, -1)) {
 		LuaManager::dcppLib->call(DCPP_CALL_HUB_CLOSE, (dcpp_param)lua_touserdata(L, -1), 0, 0);
@@ -84,8 +171,10 @@ int LuaManager::CreateClient(lua_State* L) {
 
 int LuaManager::InjectHubMessage(lua_State* L) {
 	if(lua_gettop(L) == 2 && lua_islightuserdata(L, -2) && lua_isstring(L, -1)) {
-		//@todo - convert lua params
-		LuaManager::dcppLib->call(DCPP_CALL_HUB_DISPATCH_LINE, (dcpp_param)lua_touserdata(L, -2), (dcpp_param)lua_tostring(L, -1), 0);
+		char* cmd;
+		LuaManager::parseLuaCommand(lua_tostring(L, -1), cmd);
+		LuaManager::dcppLib->call(DCPP_CALL_HUB_DISPATCH_LINE, (dcpp_param)lua_touserdata(L, -2), (dcpp_param)cmd, 0);
+		free(cmd);
 	}
 	return 0;
 }

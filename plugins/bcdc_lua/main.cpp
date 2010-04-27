@@ -25,16 +25,6 @@
 
 #include "LuaManager.hpp"
 
-dcppPluginInformation info = {
-	"BCDC++ LuaScripts",
-	"{338A05CC-B0A5-4533-9CF5-A7FD824AE6D2}",
-	"adrian_007",
-	"BCDC++ compatible " LUA_RELEASE " Interface",
-	"http://rsxplusplus.sf.net",
-	MAKE_VER(0, 0, 1, 0),
-	SDK_VERSION
-};
-
 static void callalert (lua_State *L, int status) {
 	if (status != 0) {
 		lua_getglobal(L, "_ALERT");
@@ -44,13 +34,15 @@ static void callalert (lua_State *L, int status) {
 		}
 		else {  /* no _ALERT function; print it on stderr */
 			const char* msg = lua_tostring(L, -2);
-			const int len = 1024*5;
-			char message[len];
-			memset(message, 0, len);
+			size_t len = strlen(msg);
+			char* message = new char[len+12];
+			memset(message, 0, len+12);
 			strcat(message, "LUA ERROR: ");
-			strncat(message, msg, len - 12);
+			strncat(message, msg, len);
 
 			LuaManager::dcppLib->call(DCPP_CALL_UTILS_LOG_MESSAGE, (dcpp_param)message, 0, 0);
+
+			delete[] message;
 			lua_pop(L, 2);  /* remove error message and _ALERT */
 		}
 	}
@@ -63,6 +55,8 @@ static int aux_do (lua_State *L, int status) {
   callalert(L, status);
   return status;
 }
+
+static lua_State* gL;
 
 LUALIB_API int lua_dofile (lua_State *L, const char *filename) {
   return aux_do(L, luaL_loadfile(L, filename));
@@ -77,19 +71,21 @@ LUALIB_API int lua_dostring (lua_State *L, const char *str) {
   return lua_dobuffer(L, str, strlen(str), str);
 }
 
-static lua_State* L = 0;
+extern int lua_dostring(const char* str) {
+	return lua_dostring(gL, str);
+}
 
 static bool MakeCallRaw(const char* table, const char* method, int args = 0, int ret = 0) throw() {
-	lua_getglobal(L, table);				// args + 1
-	lua_pushstring(L, method);				// args + 2
-	if (lua_istable(L, -2)) {
-		lua_gettable(L, -2);				// args + 2
-		lua_remove(L, -2);					// args + 1
-		lua_insert(L, 1);					// args + 1
-		if(lua_pcall(L, args, ret, 0) == 0) {
+	lua_getglobal(gL, table);				// args + 1
+	lua_pushstring(gL, method);				// args + 2
+	if (lua_istable(gL, -2)) {
+		lua_gettable(gL, -2);				// args + 2
+		lua_remove(gL, -2);					// args + 1
+		lua_insert(gL, 1);					// args + 1
+		if(lua_pcall(gL, args, ret, 0) == 0) {
 			return true;
 		}
-		const char* msg = lua_tostring(L, -1);
+		const char* msg = lua_tostring(gL, -1);
 		const char* cuteMsg = strstr(msg, "\\scripts\\");
 		if(cuteMsg)
 			msg = cuteMsg+9;
@@ -103,38 +99,38 @@ static bool MakeCallRaw(const char* table, const char* method, int args = 0, int
 			strcat(message, " (unknown)");
 		}
 		LuaManager::dcppLib->call(DCPP_CALL_UTILS_LOG_MESSAGE, (dcpp_param)message, 0, 0);
-		lua_pop(L, 1);
+		lua_pop(gL, 1);
 	} else {
-		lua_settop(L, 0);
+		lua_settop(gL, 0);
 	}
 	return false;
 }
 
 static bool GetLuaBool() {
 	bool ret = false;
-	if (lua_gettop(L) > 0) {
-		ret = !lua_isnil(L, -1);
-		lua_pop(L, 1);
+	if (lua_gettop(gL) > 0) {
+		ret = !lua_isnil(gL, -1);
+		lua_pop(gL, 1);
 	}
 	return ret;
 }
 
 inline void LuaPush(int i) { 
-	lua_pushnumber(L, i);
+	lua_pushnumber(gL, i);
 }
 
 inline void LuaPush(const char* s) { 
-	lua_pushstring(L, s); 
+	lua_pushstring(gL, s); 
 }
 
 template <typename T>
 inline void LuaPush(T* p) { 
-	lua_pushlightuserdata(L, (void*)p);
+	lua_pushlightuserdata(gL, (void*)p);
 }
 
 template <typename T>
 inline void LuaPush(T p) { 
-	lua_pushlightuserdata(L, (void*)p);
+	lua_pushlightuserdata(gL, (void*)p);
 }
 
 inline bool MakeCall(const char* table, const char* method, int ret = 0) {
@@ -156,6 +152,16 @@ inline bool MakeCall(const char* table, const char* method, int ret, const T& t,
 	return MakeCallRaw(table, method, 2, ret);
 }
 
+dcppPluginInformation info = {
+	"BCDC++ LuaScripts",
+	"{338A05CC-B0A5-4533-9CF5-A7FD824AE6D2}",
+	"adrian_007",
+	"BCDC++ compatible " LUA_RELEASE " Interface",
+	"http://rsxplusplus.sf.net",
+	MAKE_VER(0, 0, 1, 0),
+	SDK_VERSION
+};
+
 extern "C" {
 dcppPluginInformation* DCPP_CALL_CONV pluginInfo(unsigned long long coreSdkVersion, int svnRevision) {
     return &info;
@@ -163,12 +169,12 @@ dcppPluginInformation* DCPP_CALL_CONV pluginInfo(unsigned long long coreSdkVersi
 
 int DCPP_CALL_CONV onCoreLoad(int callReason, dcpp_param, dcpp_param, void*) {
 	if(callReason == DCPP_EVENT_CORE_LOAD) {
-		L = luaL_newstate();
-		luaL_openlibs(L);
+		gL = luaL_newstate();
+		luaL_openlibs(gL);
 
-		Lunar<LuaManager>::Register(L);
+		Lunar<LuaManager>::Register(gL);
 
-		lua_pop(L, lua_gettop(L));
+		lua_pop(gL, lua_gettop(gL));
 
 		dcppBuffer buf;
 		buf.buf = new char[MAX_PATH+1];
@@ -186,7 +192,7 @@ int DCPP_CALL_CONV onCoreLoad(int callReason, dcpp_param, dcpp_param, void*) {
 		len = (size_t)LuaManager::dcppLib->call(DCPP_CALL_UTILS_GET_PATH, DCPP_UTILS_PATH_USER_CONFIG, (dcpp_param)&buf, 0);
 		memcpy(LuaManager::configPath, buf.buf, len);
 
-		lua_dofile(L, LuaManager::tempBuffer);
+		lua_dofile(gL, LuaManager::tempBuffer);
 
 		memset(LuaManager::tempBuffer, 0, TEMPBUF_SIZE);
 		delete[] buf.buf;
@@ -207,16 +213,19 @@ int DCPP_CALL_CONV onHubEvent(int callReason, dcpp_param p1, dcpp_param p2, void
 			const char* url = (const char*)p2;
 			bool isAdc = strncmp(url, "adc://", 6) == 0 || strncmp(url, "adcs://", 7) == 0;
 			MakeCall((isAdc ? "adch" : "nmdch"), "OnHubRemoved", 0, p1);
-			lua_gc(L, LUA_GCCOLLECT, 0);
 			break;
 		}
 		case DCPP_EVENT_HUB_LINE: {
 			dcppHubLine* line = (dcppHubLine*)p1;
-			if(line && line->incoming) {
-				const char* url = (const char*)p2;
-				bool isAdc = strncmp(url, "adc://", 6) == 0 || strncmp(url, "adcs://", 7) == 0;
-				MakeCall((isAdc ? "adch" : "nmdch"), "DataArrival", 1, line->hubPtr, line->line);
-				return GetLuaBool() ? DCPP_TRUE : DCPP_FALSE;
+			if(line) {
+				if(line->incoming) {
+					const char* url = (const char*)p2;
+					bool isAdc = strncmp(url, "adc://", 6) == 0 || strncmp(url, "adcs://", 7) == 0;
+					MakeCall((isAdc ? "adch" : "nmdch"), "DataArrival", 1, line->hubPtr, line->line);
+					return GetLuaBool() ? DCPP_TRUE : DCPP_FALSE;
+				} else {
+					return LuaManager::executeLuaCommand(line->line) ? DCPP_TRUE : DCPP_FALSE;
+				}
 			}
 			break;
 		}
@@ -252,6 +261,9 @@ int DCPP_CALL_CONV onConnectionEvent(int callReason, dcpp_param p1, dcpp_param p
 int DCPP_CALL_CONV onTimer(int callReason, dcpp_param p1, dcpp_param p2, void*) {
 	if(callReason == DCPP_EVENT_TIMER_TICK_SECOND && LuaManager::timerActive) {
 		MakeCall("dcpp", "OnTimer");
+	} else if(callReason == DCPP_EVENT_TIMER_TICK_MINUTE) {
+		// collect every minute
+		lua_gc(gL, LUA_GCCOLLECT, 0);
 	}
 	return DCPP_FALSE;
 }
@@ -267,7 +279,7 @@ int DCPP_CALL_CONV pluginLoad(dcppFunctions* pF) {
 }
 
 int DCPP_CALL_CONV pluginUnload() {
-	lua_close(L);
+	lua_close(gL);
 
 	LuaManager::dcppLib->removeListener(DCPP_EVENT_CORE, onCoreLoad);
 	LuaManager::dcppLib->removeListener(DCPP_EVENT_HUB, onHubEvent);

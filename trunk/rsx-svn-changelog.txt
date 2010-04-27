@@ -1,3 +1,7 @@
+** SVN 216 27/04/10
+ ** [bcdc_lua] implemented missing methods (now ignore.lua works)
+ ** [bcdc_lua] garbage collector collects on every minute
+
 ** SVN 215 20/04/10
  ** indeed, it crashes on reconnect...
 

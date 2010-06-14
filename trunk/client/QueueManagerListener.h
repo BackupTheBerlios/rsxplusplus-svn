@@ -44,7 +44,7 @@ public:
 	typedef X<13> RecheckAlreadyFinished;
 	typedef X<14> RecheckDone;
 	
-	virtual void on(Added, const QueueItem*) throw() { }
+	virtual void on(Added, QueueItem*) throw() { }
 	virtual void on(Finished, const QueueItem*, const string&, const Download*) throw() { }
 	virtual void on(Removed, const QueueItem*) throw() { }
 	virtual void on(Moved, const QueueItem*, const string&) throw() { }
@@ -67,5 +67,5 @@ public:
 
 /**
  * @file
- * $Id: QueueManagerListener.h 482 2010-02-13 10:49:30Z bigmuscle $
+ * $Id: QueueManagerListener.h 498 2010-05-08 10:49:48Z bigmuscle $
  */

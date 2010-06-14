@@ -143,7 +143,7 @@ private:
 	void fillList();
 	void openSelected();
 
-	void on(FavoriteAdded, const FavoriteHubEntry* e)  throw() { StateKeeper keeper(ctrlHubs); fillList(); }
+	void on(FavoriteAdded, const FavoriteHubEntry* /*e*/)  throw() { StateKeeper keeper(ctrlHubs); fillList(); }
 	void on(FavoriteRemoved, const FavoriteHubEntry* e) throw() { ctrlHubs.DeleteItem(ctrlHubs.find((LPARAM)e)); }
 	void on(SettingsManagerListener::Save, SimpleXML& /*xml*/) throw();
 };
@@ -152,5 +152,5 @@ private:
 
 /**
  * @file
- * $Id: FavoritesFrm.h 481 2010-02-11 12:31:20Z bigmuscle $
+ * $Id: FavoritesFrm.h 498 2010-05-08 10:49:48Z bigmuscle $
  */

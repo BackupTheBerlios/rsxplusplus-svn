@@ -109,7 +109,7 @@ LONG __stdcall DCUnhandledExceptionFilter( LPEXCEPTION_POINTERS e )
 #ifndef _DEBUG
 #if _MSC_VER == 1200
 	__pfnDliFailureHook = FailHook;
-#elif _MSC_VER == 1300 || _MSC_VER == 1310 || _MSC_VER == 1400|| _MSC_VER == 1500
+#elif _MSC_VER == 1300 || _MSC_VER == 1310 || _MSC_VER == 1400 || _MSC_VER == 1500 || _MSC_VER == 1600
 	__pfnDliFailureHook2 = FailHook;
 #else
 #error Unknown Compiler version
@@ -543,5 +543,5 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 
 /**
  * @file
- * $Id: main.cpp 460 2009-09-08 10:57:07Z BigMuscle $
+ * $Id: main.cpp 498 2010-05-08 10:49:48Z bigmuscle $
  */

@@ -2438,6 +2438,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\client\sdk\rawCommand.h"
+				>
+			</File>
+			<File
 				RelativePath=".\client\RawManager.h"
 				>
 			</File>

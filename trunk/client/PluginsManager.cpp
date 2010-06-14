@@ -102,9 +102,9 @@ void PluginsManager::loadPlugin(Plugin*& p, HINSTANCE dll) throw(Exception) {
 		}
 	}
 
-	if(VER_MAJOR(nfo->sdkVersion) != VER_MAJOR(SDK_VERSION) || 
-		VER_MINOR(nfo->sdkVersion) != VER_MINOR(SDK_VERSION) ||
-		VER_REVISION(nfo->sdkVersion) != VER_REVISION(SDK_VERSION))
+	if(VER_MAJ(nfo->sdkVersion) != VER_MAJ(SDK_VERSION) || 
+		VER_MIN(nfo->sdkVersion) != VER_MIN(SDK_VERSION) ||
+		VER_REV(nfo->sdkVersion) != VER_REV(SDK_VERSION))
 		throw Exception("Plugin is compiled with old version of PluginSDK");
 
 	if(pLoad(dcpp_func) != DCPP_FALSE) {

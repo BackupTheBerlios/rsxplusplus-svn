@@ -16,27 +16,13 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef DCPP_SDK
-#define DCPP_SDK
+#ifndef DCPP_RAW_COMMAND_H
+#define DCPP_RAW_COMMAND_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#include "dcpp.h"
-#include "user.h"
-#include "hub.h"
-#include "connection.h"
-#include "timer.h"
-#include "utils.h"
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif
 
 /**
  * @file
- * $Id$
+ * $Id: rawCommand.h 213 2010-04-19 21:12:30Z adrian_007 $
  */

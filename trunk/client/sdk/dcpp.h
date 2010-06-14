@@ -19,10 +19,6 @@
 #ifndef DCPP_PLUGIN_SDK
 #define DCPP_PLUGIN_SDK
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #ifdef _MSC_VER
 typedef signed __int8 int8_t;
 typedef signed __int16 int16_t;
@@ -39,18 +35,19 @@ typedef unsigned __int64 uint64_t;
 
 typedef uint64_t dcpp_param;
 
-#define MAKE_VER(n1, n2, n3, n4) (((uint64_t)n1 & 0xFFFF) << 48 | ((uint64_t)n2 & 0xFFFF) << 32 | ((uint64_t)n3 & 0xFFFF) << 16 | ((uint64_t)n4 & 0xFFFF))
-#define VER_MAJOR(v)	(uint32_t)(((uint64_t)v & 0xFFFF000000000000) >> 48)
-#define VER_MINOR(v)	(uint32_t)(((uint64_t)v & 0x0000FFFF00000000) >> 32)
-#define VER_REVISION(v) (uint32_t)(((uint64_t)v & 0x00000000FFFF0000) >> 16)
-#define VER_BUILD(v)	(uint32_t)(((uint64_t)v & 0x000000000000FFFF))
+#define MAKE_VER(n1, n2, n3, n4)	(((uint64_t)n1 & 0xFFFF) << 48 | ((uint64_t)n2 & 0xFFFF) << 32 | ((uint64_t)n3 & 0xFFFF) << 16 | ((uint64_t)n4 & 0xFFFF))
+#define VER_MAJ(v)					(uint32_t)(((uint64_t)v & 0xFFFF000000000000) >> 48)
+#define VER_MIN(v)					(uint32_t)(((uint64_t)v & 0x0000FFFF00000000) >> 32)
+#define VER_REV(v)					(uint32_t)(((uint64_t)v & 0x00000000FFFF0000) >> 16)
+#define VER_BLD(v)					(uint32_t)(((uint64_t)v & 0x000000000000FFFF))
 
 // PluginSDK version (include in PluginInformation)
-#define SDK_VERSION MAKE_VER(2, 1, 0, 0)
+#define SDK_VERSION MAKE_VER(2, 1, 1, 0)
 
-// boolean logic
-#define DCPP_TRUE 1
-#define DCPP_FALSE 0
+#define DCPP_TRUE	1
+#define DCPP_FALSE	0
+#define DCPP_ERROR	((dcpp_param)-1);
+
 // default call convention
 #define DCPP_CALL_CONV __stdcall
 
@@ -87,7 +84,7 @@ typedef struct {
 // common structures to keep data / sets of data
 typedef struct {
 	char*				buf;
-	int					size;
+	uint64_t			size;
 } dcppBuffer;
 
 typedef struct _dcppLM {
@@ -104,7 +101,7 @@ typedef struct _dcppLL {
 //////////////////////////////////////////////////////////////////////////////////////
 // Core Event Speaker
 #define DCPP_EVENT_CORE "Core/"
-#define DCPP_CALL_CORE "Core/"
+#define DCPP_CALL_CORE	"Core/"
 // Core Events
 #define DCPP_EVENT_CORE_LOAD			0
 #define DCPP_EVENT_CORE_UNLOAD			1
@@ -122,10 +119,6 @@ typedef struct _dcppLL {
 #define DCPP_SETTINGS_TYPE_INT			1
 #define DCPP_SETTINGS_TYPE_INT64		2
 #define DCPP_SETTINGS_TYPE_STRING		3
-
-#ifdef __cplusplus
-} // extern "C"
-#endif
 
 #endif //DCPP_PLUGIN_SDK
 

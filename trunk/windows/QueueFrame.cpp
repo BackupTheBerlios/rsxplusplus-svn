@@ -58,7 +58,13 @@ LRESULT QueueFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 		TVS_HASBUTTONS | TVS_LINESATROOT | TVS_HASLINES | TVS_SHOWSELALWAYS | TVS_DISABLEDRAGDROP | TVS_TRACKSELECT, 
 		 WS_EX_CLIENTEDGE, IDC_DIRECTORIES);
 	
-	WinUtil::setListViewExplorerStyle(ctrlDirs.m_hWnd);
+	if(BOOLSETTING(USE_EXPLORER_THEME) &&
+		((WinUtil::getOsMajor() >= 5 && WinUtil::getOsMinor() >= 1) //WinXP & WinSvr2003
+		|| (WinUtil::getOsMajor() >= 6))) //Vista & Win7
+	{
+		SetWindowTheme(ctrlDirs.m_hWnd, L"explorer", NULL);
+	}
+
 	ctrlDirs.SetImageList(WinUtil::fileImages, TVSIL_NORMAL);
 	ctrlQueue.SetImageList(WinUtil::fileImages, LVSIL_SMALL);
 	
@@ -245,7 +251,7 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const {
 	}
 }
 
-void QueueFrame::on(QueueManagerListener::Added, const QueueItem* aQI) {
+void QueueFrame::on(QueueManagerListener::Added, QueueItem* aQI) {
 	QueueItemInfo* ii = new QueueItemInfo(aQI);
 
 	speak(ADD_ITEM,	new QueueItemInfoTask(ii));
@@ -304,6 +310,12 @@ HTREEITEM QueueFrame::addDirectory(const string& dir, bool isFileList /* = false
 	tvi.hInsertAfter = TVI_SORT;
 	tvi.item.mask = TVIF_IMAGE | TVIF_PARAM | TVIF_SELECTEDIMAGE | TVIF_TEXT;
 	tvi.item.iImage = tvi.item.iSelectedImage = WinUtil::getDirIconIndex();
+
+	if(BOOLSETTING(EXPAND_QUEUE)) {
+		tvi.itemex.mask |= TVIF_STATE;
+		tvi.itemex.state = TVIS_EXPANDED;
+		tvi.itemex.stateMask = TVIS_EXPANDED;
+	}
 	//RSX++
 	if(ts) {
 		dcassert(testsurRoot == NULL);
@@ -625,7 +637,7 @@ LRESULT QueueFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 
 void QueueFrame::removeSelected() {
 	if(!BOOLSETTING(CONFIRM_DELETE) || MessageBox(CTSTRING(REALLY_REMOVE), _T(APPNAME) _T(" ") _T(VERSIONSTRING), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2) == IDYES)
-	ctrlQueue.forEachSelected(&QueueItemInfo::remove);
+		ctrlQueue.forEachSelected(&QueueItemInfo::remove);
 }
 	
 void QueueFrame::removeSelectedDir() { 
@@ -1563,5 +1575,5 @@ void QueueFrame::on(QueueManagerListener::RecheckDone, const string& target) thr
 	
 /**
  * @file
- * $Id: QueueFrame.cpp 489 2010-03-14 12:24:07Z bigmuscle $
+ * $Id: QueueFrame.cpp 498 2010-05-08 10:49:48Z bigmuscle $
  */

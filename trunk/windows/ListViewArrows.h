@@ -21,6 +21,8 @@
 
 #include "WinUtil.h"
 
+#include <uxtheme.h>
+
 template<class T>
 class ListViewArrows {
 public:
@@ -162,7 +164,14 @@ public:
 		rebuildArrows();
 		T* pThis = (T*)this;
 		_Module.AddSettingChangeNotify(pThis->m_hWnd);
-		WinUtil::setListViewExplorerStyle(pThis->m_hWnd);
+
+		if(BOOLSETTING(USE_EXPLORER_THEME) &&
+			((WinUtil::getOsMajor() >= 5 && WinUtil::getOsMinor() >= 1) //WinXP & WinSvr2003
+			|| (WinUtil::getOsMajor() >= 6))) //Vista & Win7
+		{
+			SetWindowTheme(pThis->m_hWnd, L"explorer", NULL);
+		}
+
 		bHandled = FALSE;
 		return 0;
 	}
@@ -192,5 +201,5 @@ private:
 
 /**
  * @file
- * $Id: ListViewArrows.h 486 2010-02-27 16:44:26Z bigmuscle $
+ * $Id: ListViewArrows.h 498 2010-05-08 10:49:48Z bigmuscle $
  */

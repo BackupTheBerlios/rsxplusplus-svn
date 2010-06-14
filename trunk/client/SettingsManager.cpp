@@ -133,7 +133,7 @@ const string SettingsManager::settingTags[] =
 	"HighestPrioSize", "HighPrioSize", "NormalPrioSize", "LowPrioSize", "LowestPrio",
 	"FilterEnter", "SortFavUsersFirst", "ShowShellMenu", "SendBloom", "OverlapChunks", "ShowQuickSearch",
 	"UcSubMenu", "AutoSlots", "Coral", "UseDHT", "DHTPort", "UpdateIP", "KeepFinishedFiles",
-	"AllowNATTraversal",
+	"AllowNATTraversal", "UseExplorerTheme",
 	//RSX++
 	"FirewallRandPorts", "OdcStyleBumped", "StealthyIndicateSpeeds", "ProgressBarMode", "RawCmdLog",
 	"TopSpeed", "TopUpSpeed",
@@ -563,6 +563,7 @@ SettingsManager::SettingsManager()
 	setDefault(USE_DHT, true);
 	setDefault(UPDATE_IP, false);
 	setDefault(ALLOW_NAT_TRAVERSAL, true);
+	setDefault(USE_EXPLORER_THEME, true);
 	//RSX++
 	setDefault(TOP_SPEED, 100);
 	setDefault(TOP_UP_SPEED, 50);

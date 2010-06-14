@@ -1394,8 +1394,7 @@ void QueueManager::putDownload(Download* aDownload, bool finished, bool reportFi
 							}
 						
 							// Check if we need to move the file
-							if(!q->isSet(QueueItem::FLAG_TESTSUR)) //RSX++ temp fix
-							if( !aDownload->getTempTarget().empty() && (stricmp(aDownload->getPath().c_str(), aDownload->getTempTarget().c_str()) != 0) ) {
+							if( aDownload->getType() == Transfer::TYPE_FILE && !aDownload->getTempTarget().empty() && (stricmp(aDownload->getPath().c_str(), aDownload->getTempTarget().c_str()) != 0) ) {
 								moveFile(aDownload->getTempTarget(), aDownload->getPath());
 							}
 
@@ -1437,6 +1436,9 @@ void QueueManager::putDownload(Download* aDownload, bool finished, bool reportFi
 							downloaded -= downloaded % aDownload->getTigerTree().getBlockSize();
 
 							if(downloaded > 0) {
+								// since download is not finished, it should never happen that downloaded size is same segment size
+								dcassert(downloaded < aDownload->getSize());
+								
 								q->addSegment(Segment(aDownload->getStartPos(), downloaded));
 								setDirty();
 							}
@@ -2285,5 +2287,5 @@ string QueueManager::addFileListCheck(const HintedUser& aUser) throw(QueueExcept
 
 /**
  * @file
- * $Id: QueueManager.cpp 491 2010-03-20 11:32:35Z bigmuscle $
+ * $Id: QueueManager.cpp 499 2010-05-16 11:01:37Z bigmuscle $
  */

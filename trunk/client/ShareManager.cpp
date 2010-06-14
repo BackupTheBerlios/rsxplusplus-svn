@@ -710,7 +710,13 @@ ShareManager::Directory::Ptr ShareManager::buildTree(const string& aName, const 
 }
 
 bool ShareManager::checkHidden(const string& aName) const {
-	return (BOOLSETTING(SHARE_HIDDEN) || !FileFindIter(aName.substr(0, aName.size() - 1))->isHidden());
+	FileFindIter ff = FileFindIter(aName.substr(0, aName.size() - 1));
+
+	if (ff != FileFindIter()) {
+		return (BOOLSETTING(SHARE_HIDDEN) || !ff->isHidden());
+	}
+
+	return true;
 }
 
 void ShareManager::updateIndices(Directory& dir) {
@@ -1590,5 +1596,5 @@ int64_t ShareManager::removeExcludeFolder(const string &path, bool returnSize /*
 
 /**
  * @file
- * $Id: ShareManager.cpp 491 2010-03-20 11:32:35Z bigmuscle $
+ * $Id: ShareManager.cpp 499 2010-05-16 11:01:37Z bigmuscle $
  */

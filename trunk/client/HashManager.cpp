@@ -66,7 +66,7 @@ size_t HashManager::getBlockSize(const TTHValue& root) {
 	return store.getBlockSize(root);
 }
 
-void HashManager::hashDone(const string& aFileName, uint64_t aTimeStamp, const TigerTree& tth, int64_t speed, int64_t size) {
+void HashManager::hashDone(const string& aFileName, uint64_t aTimeStamp, const TigerTree& tth, int64_t speed, int64_t /*size*/) {
 	try {
 		Lock l(cs);
 		store.addFile(aFileName, aTimeStamp, tth, true);
@@ -899,5 +899,5 @@ bool HashManager::isHashingPaused() const {
 
 /**
  * @file
- * $Id: HashManager.cpp 490 2010-03-14 22:15:49Z bigmuscle $
+ * $Id: HashManager.cpp 498 2010-05-08 10:49:48Z bigmuscle $
  */

@@ -262,6 +262,12 @@ map<string, string> Identity::getReport() const {
 				case TAG('U','6'): name = "IPv6 UDP port"; break;
 				case TAG('U','S'): name = "Upload speed"; value = Util::formatBytes(value) + "/s"; break;
 				case TAG('V','E'): name = "Client version"; break;
+				case TAG('L','T'): name = "Login time"; break;
+				case TAG('M','T'): name = "UserInfo"; break;
+				case TAG('M','C'): name = "UserInfo count"; break;
+				case TAG('T','S'): name = "TestSUR"; break;
+				case TAG('A','H'): name = "All hubs count"; break;
+				case TAG('I', 'C'): name = ""; break;
 				case TAG('W','O'): name = ""; break;	// for GUI purposes
 				default: name += " (unknown)";
 

@@ -210,5 +210,5 @@ LRESULT UserListColours::onImageBrowse(WORD /*wNotifyCode*/, WORD /*wID*/, HWND 
 }
 /**
  * @file
- * $Id: userlistcolours.cpp 373 2008-02-06 17:23:49Z bigmuscle $
+ * $Id: userlistcolours.cpp 499 2010-05-16 11:01:37Z bigmuscle $
  */

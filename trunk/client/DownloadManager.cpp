@@ -337,6 +337,7 @@ void DownloadManager::on(UserConnectionListener::Data, UserConnection* aSource, 
 			aSource->setLineMode(0);
 		}
 	} catch(const Exception& e) {
+		d->resetPos(); // is there a better way than resetting the position?
 		failDownload(aSource, e.getError());
 	}
 }
@@ -594,5 +595,5 @@ void DownloadManager::fileNotAvailable(UserConnection* aSource) {
 
 /**
  * @file
- * $Id: DownloadManager.cpp 493 2010-03-28 16:59:43Z bigmuscle $
+ * $Id: DownloadManager.cpp 498 2010-05-08 10:49:48Z bigmuscle $
  */

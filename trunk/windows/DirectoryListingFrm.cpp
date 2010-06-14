@@ -115,7 +115,14 @@ LRESULT DirectoryListingFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 	statusContainer.SubclassWindow(ctrlStatus.m_hWnd);
 
 	ctrlTree.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | TVS_HASBUTTONS | TVS_LINESATROOT | TVS_HASLINES | TVS_SHOWSELALWAYS | TVS_DISABLEDRAGDROP | TVS_TRACKSELECT, WS_EX_CLIENTEDGE, IDC_DIRECTORIES);
-
+	
+	if(BOOLSETTING(USE_EXPLORER_THEME) &&
+		((WinUtil::getOsMajor() >= 5 && WinUtil::getOsMinor() >= 1) //WinXP & WinSvr2003
+		|| (WinUtil::getOsMajor() >= 6))) //Vista & Win7
+	{
+		SetWindowTheme(ctrlTree.m_hWnd, L"explorer", NULL);
+	}
+	
 	treeContainer.SubclassWindow(ctrlTree);
 	ctrlList.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_SHAREIMAGELISTS, WS_EX_CLIENTEDGE, IDC_FILES);
 	listContainer.SubclassWindow(ctrlList);
@@ -1283,5 +1290,5 @@ LRESULT DirectoryListingFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM /*
 
 /**
  * @file
- * $Id: DirectoryListingFrm.cpp 486 2010-02-27 16:44:26Z bigmuscle $
+ * $Id: DirectoryListingFrm.cpp 498 2010-05-08 10:49:48Z bigmuscle $
  */

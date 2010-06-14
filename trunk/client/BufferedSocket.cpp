@@ -177,6 +177,7 @@ void BufferedSocket::threadRead() throw(Exception) {
 		return;
 
 	int left = (mode == MODE_DATA) ? ThrottleManager::getInstance()->read(sock.get(), &inbuf[0], (int)inbuf.size()) : sock->read(&inbuf[0], (int)inbuf.size());
+
 	if(left == -1) {
 		// EWOULDBLOCK, no data received...
 		return;
@@ -516,5 +517,5 @@ void BufferedSocket::addTask(Tasks task, TaskData* data) {
 
 /**
  * @file
- * $Id: BufferedSocket.cpp 486 2010-02-27 16:44:26Z bigmuscle $
+ * $Id: BufferedSocket.cpp 498 2010-05-08 10:49:48Z bigmuscle $
  */

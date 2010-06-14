@@ -166,7 +166,7 @@ typedef StringMapIter TStringMapIter;
 
 inline int stricmp(const string& a, const string& b) { return _stricmp(a.c_str(), b.c_str()); }
 inline int strnicmp(const string& a, const string& b, size_t n) { return _strnicmp(a.c_str(), b.c_str(), n); }
-inline int stricmp(const wstring& a, const wstring& b) { return wcsicmp(a.c_str(), b.c_str()); }
+inline int stricmp(const wstring& a, const wstring& b) { return _wcsicmp(a.c_str(), b.c_str()); }
 inline int strnicmp(const wstring& a, const wstring& b, size_t n) { return _wcsnicmp(a.c_str(), b.c_str(), n); }
 
 extern void startup(void (*f)(void*, const tstring&), void* p);
@@ -178,5 +178,5 @@ extern void shutdown();
 
 /**
  * @file
- * $Id: DCPlusPlus.h 482 2010-02-13 10:49:30Z bigmuscle $
+ * $Id: DCPlusPlus.h 498 2010-05-08 10:49:48Z bigmuscle $
  */

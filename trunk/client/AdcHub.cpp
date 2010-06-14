@@ -836,7 +836,9 @@ void AdcHub::info(bool /*alwaysSend*/) {
 
 	AdcCommand c(AdcCommand::CMD_INF, AdcCommand::TYPE_BROADCAST);
 
-	updateCounts(false);
+	if (state == STATE_NORMAL) {
+		updateCounts(false);
+	}
 
 	addParam(lastInfoMap, c, "ID", ClientManager::getInstance()->getMyCID().toBase32());
 	addParam(lastInfoMap, c, "PD", ClientManager::getInstance()->getMyPID().toBase32());
@@ -885,7 +887,6 @@ void AdcHub::info(bool /*alwaysSend*/) {
 
 	if(isActive()) {
 		addParam(lastInfoMap, c, "U4", Util::toString(SearchManager::getInstance()->getPort()));
-
 		su += TCP4_FEATURE + ",";
 		su += UDP4_FEATURE + ",";
 	} else {
@@ -999,5 +1000,5 @@ void AdcHub::on(Second s, uint64_t aTick) throw() {
 
 /**
  * @file
- * $Id: AdcHub.cpp 492 2010-03-26 14:31:56Z bigmuscle $
+ * $Id: AdcHub.cpp 499 2010-05-16 11:01:37Z bigmuscle $
  */

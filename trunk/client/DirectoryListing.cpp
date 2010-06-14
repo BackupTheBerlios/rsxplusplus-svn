@@ -259,6 +259,10 @@ string DirectoryListing::getPath(const Directory* d) const {
 }
 
 void DirectoryListing::download(Directory* aDir, const string& aTarget, bool highPrio, QueueItem::Priority prio) {
+/* TODO
+	if(!aDir->getComplete())
+		QueueManager::getInstance()->addDirectory(
+*/	
 	string tmp;
 	string target = (aDir == getRoot()) ? aTarget : aTarget + aDir->getName() + PATH_SEPARATOR;
 	// First, recurse over the directories
@@ -425,5 +429,5 @@ DirectoryListing::Directory::List DirectoryListing::getForbiddenDirs() {
 
 /**
  * @file
- * $Id: DirectoryListing.cpp 482 2010-02-13 10:49:30Z bigmuscle $
+ * $Id: DirectoryListing.cpp 498 2010-05-08 10:49:48Z bigmuscle $
  */

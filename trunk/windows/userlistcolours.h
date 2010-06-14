@@ -66,5 +66,5 @@ protected:
 
 /**
  * @file
- * $Id: userlistcolours.h 308 2007-07-13 18:57:02Z bigmuscle $
+ * $Id: userlistcolours.h 499 2010-05-16 11:01:37Z bigmuscle $
  */

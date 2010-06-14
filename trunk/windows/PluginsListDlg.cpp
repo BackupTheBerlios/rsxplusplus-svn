@@ -44,7 +44,7 @@ LRESULT PluginsListDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
 		list.push_back(Text::toT((*i)->description ? (*i)->description : "N/A"));
 		list.push_back(Text::toT((*i)->author ? (*i)->author : "N/A"));
 		list.push_back(Text::toT((*i)->website ? (*i)->website : "N/A"));
-		swprintf(buf, 64, L"%d.%d.%d.%d", VER_MAJOR((*i)->version), VER_MINOR((*i)->version), VER_REVISION((*i)->version), VER_BUILD((*i)->version));
+		swprintf(buf, 64, L"%d.%d.%d.%d", VER_MAJ((*i)->version), VER_MIN((*i)->version), VER_REV((*i)->version), VER_BLD((*i)->version));
 		list.push_back(buf);
 		ctrlList.insert(list);
 		list.clear();

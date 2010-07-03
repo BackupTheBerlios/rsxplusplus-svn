@@ -19,7 +19,7 @@
 #ifndef LUA_MANAGER_HPP
 #define LUA_MANAGER_HPP
 
-#include "lua/src/lunar.h"
+#include "lua/src/luna.h"
 
 #define TEMPBUF_SIZE 1024*8
 
@@ -33,7 +33,7 @@ struct LuaManager {
 	static bool timerActive;
 
 	static const char className[];
-	static Lunar<LuaManager>::RegType methods[];
+	static Luna<LuaManager>::RegType Register[];
 
 	LuaManager(lua_State* /* L */) { }
 	int SendClientMessage(lua_State* L);

@@ -1,3 +1,10 @@
+** SVN 218 04/07/10
+ ** [bcdc_lua] merged with sdk changes
+ ** [bcdc_lua] changed Lunar to Luna (lighter)
+ ** [bcdc_lua] Lua 5.2.0 work3
+ ** [sdk] SEND_USER_COMMAND now use proper encoding
+ ** [winamp_spam] merged with sdk changes
+
 ** SVN 217 14/06/10
  ** [sdk] hub.h documentation...
  ** [sdk] code cleanup... breaks compatibility with previous sdks

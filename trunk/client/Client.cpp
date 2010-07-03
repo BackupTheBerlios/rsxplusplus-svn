@@ -417,7 +417,13 @@ dcpp_param Client::clientCallFunc(const char* type, dcpp_param p1, dcpp_param p2
 				return DCPP_TRUE;
 			} else if(strncmp(cmd, "SendUserCommand", 15) == 0) {
 				//todo: fixme
-				c->send(reinterpret_cast<const char*>(p2));
+				string message;
+				if(c->getType() == Client::ADC) {
+					message = Text::toUtf8(reinterpret_cast<const char*>(p2));
+				} else {
+					message = Text::fromUtf8(reinterpret_cast<const char*>(p2));
+				}
+				c->send(message);
 				//c->sendUserCmd(reinterpret_cast<const char*>(p2));
 				return DCPP_TRUE;
 			} else if(strncmp(cmd, "LineWrite", 9) == 0) {

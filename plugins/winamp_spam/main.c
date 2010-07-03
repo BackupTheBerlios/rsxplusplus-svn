@@ -85,7 +85,7 @@ void formatSeconds(int aSec, char* buf) {
 //%[userParam]
 
 int DCPP_CALL_CONV sendSpam(int callReason, dcpp_param lParam, dcpp_param wParam, void* userData) {
-    if(callReason == DCPP_EVNET_HUB_CHAT_SEND_LINE) {
+    if(callReason == DCPP_EVENT_HUB_CHAT_SEND_LINE) {
         const char* msg = (const char*)wParam;
         if(strncmp(msg, "/winamp", 7) == 0 || strncmp(msg, "/w", 2) == 0) {
             HWND wnd = FindWindowW(L"Winamp v1.x", NULL);

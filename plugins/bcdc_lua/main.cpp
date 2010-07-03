@@ -172,7 +172,7 @@ int DCPP_CALL_CONV onCoreLoad(int callReason, dcpp_param, dcpp_param, void*) {
 		gL = luaL_newstate();
 		luaL_openlibs(gL);
 
-		Lunar<LuaManager>::Register(gL);
+		Luna<LuaManager>::Register(gL);
 
 		lua_pop(gL, lua_gettop(gL));
 
@@ -229,7 +229,7 @@ int DCPP_CALL_CONV onHubEvent(int callReason, dcpp_param p1, dcpp_param p2, void
 			}
 			break;
 		}
-		case DCPP_EVNET_HUB_CHAT_SEND_LINE: {
+		case DCPP_EVENT_HUB_CHAT_SEND_LINE: {
 			MakeCall("dcpp", "OnCommandEnter", 1, p1, (const char*)p2);
 			return GetLuaBool() ? DCPP_TRUE : DCPP_FALSE;
 			break;

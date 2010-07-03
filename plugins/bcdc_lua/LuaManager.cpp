@@ -32,9 +32,10 @@ char LuaManager::tempBuffer[TEMPBUF_SIZE] = { 0 };
 bool LuaManager::timerActive = false;
 
 #define LOG(x) LuaManager::dcppLib->call(DCPP_CALL_UTILS_LOG_MESSAGE, (dcpp_param)x, 0, 0)
+#define LUA_ARGS_EQUAL(mL, x) (lua_gettop(mL) == x + 1)
 
 const char LuaManager::className[] = "DC";
-Lunar<LuaManager>::RegType LuaManager::methods[] = {
+Luna<LuaManager>::RegType LuaManager::Register[] = {
 	{ "SendHubMessage",			&LuaManager::SendHubMessage },
 	{ "SendClientMessage",		&LuaManager::SendClientMessage },
 	{ "SendUDP",				&LuaManager::SendUDPPacket },
@@ -61,7 +62,7 @@ Lunar<LuaManager>::RegType LuaManager::methods[] = {
 };
 
 void LuaManager::raiseBadArgumentError(lua_State* L, const char* funcName, int exceptedArgCount) {
-	luaL_error(L, "Bad argument count in '%s' call (%d excepted, got %d)", funcName, exceptedArgCount, lua_gettop(L));
+	luaL_error(L, "Bad argument count in '%s' call (%d excepted, got %d)", funcName, exceptedArgCount, lua_gettop(L)-1);
 }
 
 void LuaManager::raiseBadArgumentTypeError(lua_State* L, const char* funcName, int arg, const char* exceptedType, int argStackPos) {
@@ -69,9 +70,7 @@ void LuaManager::raiseBadArgumentTypeError(lua_State* L, const char* funcName, i
 }
 
 void LuaManager::parseLuaCommand(const char* cmd, char*& copy) {
-	//LuaManager::dcppLib->call(DCPP_CALL_UTILS_LOG_MESSAGE, (dcpp_param)cmd, 0, 0);
 	size_t len;
-	//char* copy;
 	char* pch;
 	char* buffer;
 	char* end;
@@ -122,8 +121,6 @@ void LuaManager::parseLuaCommand(const char* cmd, char*& copy) {
 		memset(copy+len, 0, 10);
 		LOG(copy);
 	}
-	//LuaManager::dcppLib->call(DCPP_CALL_UTILS_LOG_MESSAGE, (dcpp_param)copy, 0, 0);
-	//out = copy;
 }
 
 bool LuaManager::executeLuaCommand(const char* cmd) {
@@ -154,14 +151,14 @@ bool LuaManager::executeLuaCommand(const char* cmd) {
 }
 
 int LuaManager::DeleteClient(lua_State* L) {
-	if(lua_gettop(L) == 1 && lua_islightuserdata(L, -1)) {
+	if(LUA_ARGS_EQUAL(L, 1) && lua_islightuserdata(L, -1)) {
 		LuaManager::dcppLib->call(DCPP_CALL_HUB_CLOSE, (dcpp_param)lua_touserdata(L, -1), 0, 0);
 	}
 	return 0;
 }
 
 int LuaManager::CreateClient(lua_State* L) {
-	if(lua_gettop(L) == 2 && lua_isstring(L, -2) && lua_isstring(L, -1)) {
+	if(LUA_ARGS_EQUAL(L, 2) && lua_isstring(L, -2) && lua_isstring(L, -1)) {
 		dcpp_param hub = LuaManager::dcppLib->call(DCPP_CALL_HUB_OPEN, (dcpp_param)lua_tostring(L, -2), 0, 0);
 		lua_pushlightuserdata(L, (void*)hub);
 		return 1;
@@ -170,7 +167,7 @@ int LuaManager::CreateClient(lua_State* L) {
 }
 
 int LuaManager::InjectHubMessage(lua_State* L) {
-	if(lua_gettop(L) == 2 && lua_islightuserdata(L, -2) && lua_isstring(L, -1)) {
+	if(LUA_ARGS_EQUAL(L, 2) && lua_islightuserdata(L, -2) && lua_isstring(L, -1)) {
 		char* cmd;
 		LuaManager::parseLuaCommand(lua_tostring(L, -1), cmd);
 		LuaManager::dcppLib->call(DCPP_CALL_HUB_DISPATCH_LINE, (dcpp_param)lua_touserdata(L, -2), (dcpp_param)cmd, 0);
@@ -180,7 +177,7 @@ int LuaManager::InjectHubMessage(lua_State* L) {
 }
 
 int LuaManager::PostMessage(lua_State* L) {
-	if(lua_gettop(L) == 4 && lua_islightuserdata(L, -4) && lua_isnumber(L, -3) && lua_islightuserdata(L, -2) && lua_islightuserdata(L, -1)) {
+	if(LUA_ARGS_EQUAL(L, 4) && lua_islightuserdata(L, -4) && lua_isnumber(L, -3) && lua_islightuserdata(L, -2) && lua_islightuserdata(L, -1)) {
 		::SendMessage(
 			reinterpret_cast<HWND>(lua_touserdata(L, -4)), 
 			static_cast<UINT>(lua_tonumber(L, -3)),
@@ -191,7 +188,7 @@ int LuaManager::PostMessage(lua_State* L) {
 }
 
 int LuaManager::FindWindow(lua_State* L) {
-	if(lua_gettop(L) == 2 && lua_isstring(L, -2) && lua_isstring(L, -1)) {
+	if(LUA_ARGS_EQUAL(L, 2) && lua_isstring(L, -2) && lua_isstring(L, -1)) {
 		HWND hWindow = ::FindWindowA(lua_tostring(L, -2), lua_tostring(L, -1));
 		lua_pushlightuserdata(L, hWindow);
 		return 1;
@@ -200,14 +197,14 @@ int LuaManager::FindWindow(lua_State* L) {
 }
 
 int LuaManager::SendClientMessage(lua_State* L) {
-	if(lua_gettop(L) == 2 && lua_islightuserdata(L, -2) && lua_isstring(L, -1)) {
+	if(LUA_ARGS_EQUAL(L, 2) && lua_islightuserdata(L, -2) && lua_isstring(L, -1)) {
 		LuaManager::dcppLib->call(DCPP_CALL_CONNECTION_WRITE_LINE, (dcpp_param)lua_touserdata(L, -2), (dcpp_param)lua_tostring(L, -1), 0);
 	}
 	return 0;
 }
 
 int LuaManager::SendHubMessage(lua_State* L) {
-	if(lua_gettop(L) == 2 && lua_islightuserdata(L, -2) && lua_isstring(L, -1)) {
+	if(LUA_ARGS_EQUAL(L, 2) && lua_islightuserdata(L, -2) && lua_isstring(L, -1)) {
 		const char* msg = lua_tostring(L, -1);
 		LuaManager::dcppLib->call(DCPP_CALL_HUB_SEND_USER_COMMAND, (dcpp_param)lua_touserdata(L, -2), (dcpp_param)msg, 0);
 	}
@@ -215,14 +212,14 @@ int LuaManager::SendHubMessage(lua_State* L) {
 }
 
 int LuaManager::GenerateDebugMessage(lua_State* L) {
-	if(lua_gettop(L) == 1 && lua_isstring(L, -1)) {
+	if(LUA_ARGS_EQUAL(L, 1) && lua_isstring(L, -1)) {
 		dcppLib->call(DCPP_CALL_UTILS_LOG_MESSAGE, (dcpp_param)lua_tostring(L, -1), 0, 0);
 	}
 	return 0;
 }
 
 int LuaManager::SendUDPPacket(lua_State* L) {
-	if(lua_gettop(L) == 2 && lua_isstring(L, -2) && lua_isstring(L, -1)) {
+	if(LUA_ARGS_EQUAL(L, 2) && lua_isstring(L, -2) && lua_isstring(L, -1)) {
 		const char* str = lua_tostring(L, -1);
 		LuaManager::dcppLib->call(DCPP_CALL_UTILS_SEND_UDP_PACKET, (dcpp_param)lua_tostring(L, -2), (dcpp_param)str, (dcpp_param)strlen(str));
 	}
@@ -230,7 +227,7 @@ int LuaManager::SendUDPPacket(lua_State* L) {
 }
 
 int LuaManager::DropUserConnection(lua_State* L) {
-	if(lua_gettop(L) == 1 && lua_islightuserdata(L, -1)) {
+	if(LUA_ARGS_EQUAL(L, 1) && lua_islightuserdata(L, -1)) {
 		if(!LuaManager::dcppLib->call(DCPP_CALL_CONNECTION_DISCONNECT, (dcpp_param)lua_touserdata(L, -1), 0, 0)) {
 			lua_pushliteral(L, "DropUserConnection: can't find connection at given address");
 			lua_error(L);
@@ -240,7 +237,7 @@ int LuaManager::DropUserConnection(lua_State* L) {
 }
 
 int LuaManager::GetSetting(lua_State* L) {
-	if(lua_gettop(L) != 2) {
+	if(LUA_ARGS_EQUAL(L, 2) == false) {
 		raiseBadArgumentError(L, "GetSetting", 2);
 		return 0;
 	}
@@ -286,7 +283,7 @@ int LuaManager::GetSetting(lua_State* L) {
 }
 
 int LuaManager::SetSetting(lua_State* L) {
-	if(lua_gettop(L) != 2) {
+	if(LUA_ARGS_EQUAL(L, 2) == false) {
 		raiseBadArgumentError(L, "SetSetting", 2);
 		return 0;
 	}
@@ -331,7 +328,7 @@ int LuaManager::SetSetting(lua_State* L) {
 }
 
 int LuaManager::ToUtf8(lua_State* L) {
-	if(lua_gettop(L) != 1) {
+	if(LUA_ARGS_EQUAL(L, 1) == false) {
 		raiseBadArgumentError(L, "ToUtf8", 1);
 		return 0;
 	} else if(!lua_isstring(L, -1)) {
@@ -351,7 +348,7 @@ int LuaManager::ToUtf8(lua_State* L) {
 }
 
 int LuaManager::FromUtf8(lua_State* L) {
-	if(lua_gettop(L) != 1) {
+	if(LUA_ARGS_EQUAL(L, 1) == false) {
 		raiseBadArgumentError(L, "FromUtf8", 1);
 		return 0;
 	} else if(!lua_isstring(L, -1)) {
@@ -371,7 +368,7 @@ int LuaManager::FromUtf8(lua_State* L) {
 }
 
 int LuaManager::GetAppPath(lua_State* L) {
-	if(lua_gettop(L) != 0) {
+	if(LUA_ARGS_EQUAL(L, 0) == false) {
 		raiseBadArgumentError(L, "GetAppPath", 0);
 		return 0;
 	}
@@ -381,7 +378,7 @@ int LuaManager::GetAppPath(lua_State* L) {
 }
 
 int LuaManager::GetConfigPath(lua_State* L) {
-	if(lua_gettop(L) != 0) {
+	if(LUA_ARGS_EQUAL(L, 0) == false) {
 		raiseBadArgumentError(L, "GetConfigPath", 0);
 		return 0;
 	}
@@ -391,7 +388,7 @@ int LuaManager::GetConfigPath(lua_State* L) {
 }
 
 int LuaManager::GetClientIp(lua_State* L) {
-	if(lua_gettop(L) != 1) {
+	if(LUA_ARGS_EQUAL(L, 1) == false) {
 		raiseBadArgumentError(L, "GetClientIp", 0);
 		return 0;
 	} else if(!lua_islightuserdata(L, -1)) {
@@ -416,7 +413,7 @@ int LuaManager::GetClientIp(lua_State* L) {
 }
 
 int LuaManager::GetHubIpPort(lua_State* L) {
-	if(lua_gettop(L) != 1) {
+	if(LUA_ARGS_EQUAL(L, 1) == false) {
 		raiseBadArgumentError(L, "GetHubIpPort", 0);
 		return 0;
 	} else if(!lua_islightuserdata(L, -1)) {
@@ -441,7 +438,7 @@ int LuaManager::GetHubIpPort(lua_State* L) {
 }
 
 int LuaManager::GetHubUrl(lua_State* L) {
-	if(lua_gettop(L) != 1) {
+	if(LUA_ARGS_EQUAL(L, 1) == false) {
 		raiseBadArgumentError(L, "GetHubUrl", 0);
 		return 0;
 	} else if(!lua_islightuserdata(L, -1)) {
@@ -466,8 +463,8 @@ int LuaManager::GetHubUrl(lua_State* L) {
 }
 
 int LuaManager::RunTimer(lua_State* L) {
-	if(lua_gettop(L) != 1) {
-		raiseBadArgumentError(L, "RunTimer", 0);
+	if(LUA_ARGS_EQUAL(L, 1) == false) {
+		raiseBadArgumentError(L, "RunTimer", 1);
 		return 0;
 	} else if(!lua_isnumber(L, -1)) {
 		raiseBadArgumentTypeError(L, "RunTimer", 1, "number (4b)", -1);

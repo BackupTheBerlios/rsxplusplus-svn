@@ -453,7 +453,7 @@ dcpp_param Client::clientCallFunc(const char* type, dcpp_param p1, dcpp_param p2
 	return DCPP_FALSE;
 }
 
-bool Client::plugChatMessage(const ChatMessage& cm) {
+bool Client::plugChatMessage(const ChatMessage& cm, bool incoming /*= true*/) {
 	dcppChatMessage m;
 	memzero(&m, sizeof(m));
 	m.from = reinterpret_cast<dcpp_param>(cm.from.get());
@@ -463,6 +463,8 @@ bool Client::plugChatMessage(const ChatMessage& cm) {
 	m.message = cm.text.c_str();
 	m.thirdPerson = cm.thirdPerson ? 1 : 0;
 	m.timestamp = cm.timestamp;
+	m.incoming = incoming ? 1 : 0;
+
 	int p = PluginsManager::getInstance()->getSpeaker().speak(DCPP_EVENT_HUB, DCPP_EVENT_HUB_CHAT_MESSAGE, reinterpret_cast<dcpp_param>(&m), (dcpp_param)hubUrl.c_str());
 	return p == DCPP_TRUE;
 }

@@ -116,7 +116,7 @@ public:
 	void putDetectors() { stopMyINFOCheck(); stopChecking(); setCheckedAtConnect(false); }
 	bool isActionActive(const int aAction) const;
 
-	bool plugChatMessage(const ChatMessage& cm);
+	bool plugChatMessage(const ChatMessage& cm, bool incoming = true);
 	bool plugHubLine(const char* line, size_t len, bool incoming);
 	bool plugChatSendLine(const std::string& line);
 	//END

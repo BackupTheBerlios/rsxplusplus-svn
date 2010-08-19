@@ -36,6 +36,7 @@
 #include "../client/QueueManager.h"
 #include "../client/StringTokenizer.h"
 //RSX++
+#include "../client/ChatMessage.h"
 #include "../client/PluginsManager.h"
 //END
 
@@ -304,9 +305,18 @@ void PrivateFrame::onEnter()
 		}
 		currentCommand = Util::emptyStringT;
 
-#pragma message("\t\t\t@TODO: implement call for outgoing pm message")
-
-		bool dropMessage = false;//ctrlClient.getClient() && ctrlClient.getClient()->extOnPmOut(replyTo, Text::fromT(s)); //RSX++
+		//RSX++
+		bool dropMessage = false;
+		if(ctrlClient.getClient()) {
+			ChatMessage cm;
+			cm.text = Text::fromT(s);
+			cm.to = cm.replyTo = ctrlClient.getClient()->findUser(replyTo.user.get()->getCID());
+			cm.from = ctrlClient.getClient()->findUser(ctrlClient.getClient()->getMyNick());
+			cm.timestamp = time(0);
+			cm.thirdPerson = strncmp("/me ", cm.text.c_str(), 4) == 0;
+			dropMessage = ctrlClient.getClient()->plugChatMessage(cm, false);
+		}
+		//END
 
 		// Process special commands
 		if(s[0] == '/') {

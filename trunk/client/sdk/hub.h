@@ -159,6 +159,7 @@ typedef struct {
 	uint64_t		timestamp;
 	const char*		message;
 	uint8_t			thirdPerson;
+	int8_t			incoming;
 } dcppChatMessage;
 
 typedef struct {

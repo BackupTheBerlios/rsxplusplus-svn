@@ -28,6 +28,7 @@
 
 //RSX++
 #include "TimerManager.h"
+#include "sdk/dcpp.h"
 //END
 
 namespace dcpp {
@@ -352,11 +353,14 @@ public:
 	GETSET(Identity, identity, Identity);
 private:
 	friend class NmdcHub;
+	friend class PluginsManager; //RSX++
 
 	OnlineUser(const OnlineUser&);
 	OnlineUser& operator=(const OnlineUser&);
 
 	ClientBase& client;
+
+	static dcpp_param DCPP_CALL_CONV userCallFunc(const char* type, dcpp_param p1, dcpp_param p2, dcpp_param p3, int* handled);
 };
 
 } // namespace dcpp

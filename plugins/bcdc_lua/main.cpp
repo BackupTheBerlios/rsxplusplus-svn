@@ -152,6 +152,15 @@ inline bool MakeCall(const char* table, const char* method, int ret, const T& t,
 	return MakeCallRaw(table, method, 2, ret);
 }
 
+template <typename T, typename T2, typename T3>
+inline bool MakeCall(const char* table, const char* method, int ret, const T& t, const T2& t2, const T3& t3) throw() {
+	//Lock l(cs);
+	LuaPush(t);
+	LuaPush(t2);
+	LuaPush(t3);
+	return MakeCallRaw(table, method, 2, ret);
+}
+
 dcppPluginInformation info = {
 	"BCDC++ LuaScripts",
 	"{338A05CC-B0A5-4533-9CF5-A7FD824AE6D2}",
@@ -179,7 +188,7 @@ int DCPP_CALL_CONV onCoreLoad(int callReason, dcpp_param, dcpp_param, void*) {
 		dcppBuffer buf;
 		buf.buf = new char[MAX_PATH+1];
 		buf.size = MAX_PATH;
-		memset(buf.buf, 0, buf.size+1);
+		memset(buf.buf, 0, (size_t)buf.size+1);
 
 		size_t len;
 		
@@ -187,7 +196,7 @@ int DCPP_CALL_CONV onCoreLoad(int callReason, dcpp_param, dcpp_param, void*) {
 		memcpy(LuaManager::appPath, buf.buf, len);
 		memcpy(LuaManager::tempBuffer, buf.buf, len);
 		strcat(LuaManager::tempBuffer, "scripts\\startup.lua");
-		memset(buf.buf, 0, buf.size);
+		memset(buf.buf, 0, (size_t)buf.size);
 
 		len = (size_t)LuaManager::dcppLib->call(DCPP_CALL_UTILS_GET_PATH, DCPP_UTILS_PATH_USER_CONFIG, (dcpp_param)&buf, 0);
 		memcpy(LuaManager::configPath, buf.buf, len);
@@ -233,6 +242,22 @@ int DCPP_CALL_CONV onHubEvent(int callReason, dcpp_param p1, dcpp_param p2, void
 			MakeCall("dcpp", "OnCommandEnter", 1, p1, (const char*)p2);
 			return GetLuaBool() ? DCPP_TRUE : DCPP_FALSE;
 			break;
+		}
+		case DCPP_EVENT_HUB_CHAT_MESSAGE: {
+			dcppChatMessage* cm = (dcppChatMessage*)p1;
+			if(!cm || !cm->replyTo) return DCPP_FALSE;
+			//bool isAdc = strncmp(url, "adc://", 6) == 0 || strncmp(url, "adcs://", 7) == 0;
+			dcppBuffer buf = { 0 };
+			buf.buf = new char[40];
+			buf.size = 40;
+			memset(buf.buf, 0, (size_t)buf.size);
+
+			LuaManager::dcppLib->call(DCPP_CALL_USER_GET_CID, cm->replyTo, (dcpp_param)&buf, 0);
+
+			MakeCall("dcpp", cm->incoming ? "OnPrivateMessageIn" : "OnPrivateMessageOut", 1, (const char*)buf.buf, cm->message);
+
+			delete buf.buf;
+			return GetLuaBool() ? DCPP_TRUE : DCPP_FALSE;
 		}
 		default: {
 			break;

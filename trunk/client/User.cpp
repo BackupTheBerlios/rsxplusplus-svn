@@ -36,6 +36,7 @@
 #include "../rsx/IpManager.h"
 #include "../rsx/Wildcards.h"
 #include "../rsx/RsxUtil.h"
+#include "PluginsManager.h"
 //END
 
 namespace dcpp {
@@ -932,6 +933,53 @@ bool OnlineUser::update(int sortCol, const tstring& oldText) {
 	}
 
 	return needsSort;
+}
+//RSX++
+dcpp_param OnlineUser::userCallFunc(const char* type, dcpp_param p1, dcpp_param p2, dcpp_param p3, int* handled) {
+	*handled = DCPP_TRUE;
+	if(strncmp(type, "User/", 5) == 0) {
+		const char* cmd = type+5;
+		OnlineUser* ou = reinterpret_cast<OnlineUser*>(p1);
+		if(ou) {
+			if(strncmp(cmd, "Identity/", 9) == 0) {
+				Identity& i = ou->getIdentity();
+
+				if(strncmp(cmd+9, "Get/", 4) == 0) {
+					dcppBuffer* buf = reinterpret_cast<dcppBuffer*>(p3);
+					if(!buf) return DCPP_FALSE;
+					string value = i.get(reinterpret_cast<const char*>(p2));
+					return PluginsManager::dcppBuffer_strcpy(value, buf);
+				} else if(strncmp(cmd+9, "Set/", 4) == 0) {
+					i.set(reinterpret_cast<const char*>(p2), reinterpret_cast<const char*>(p3));
+					return DCPP_TRUE;
+				}
+				return DCPP_FALSE;
+			} else if(strncmp(cmd, "GetHubObject", 12) == 0) {
+				if(p2) {
+					*reinterpret_cast<dcpp_param*>(p2) = reinterpret_cast<dcpp_param>(&ou->getClient());
+					return DCPP_TRUE;
+				}
+				return DCPP_FALSE;
+			} else if(strncmp(cmd, "GetCID", 6) == 0) {
+				dcppBuffer* buf = reinterpret_cast<dcppBuffer*>(p2);
+				if(!buf) return DCPP_FALSE;
+				if(p3) {
+					if(buf->size >= CID::SIZE) {
+						memcpy(buf->buf, ou->getUser()->getCID().data(), CID::SIZE);
+						return DCPP_TRUE;
+					}
+					return DCPP_FALSE;
+				} else {
+					std::string cid = ou->getUser()->getCID().toBase32();
+					return PluginsManager::dcppBuffer_strcpy(cid, buf);
+				}
+			} else if(strncmp(cmd, "GetParams", 9) == 0) {
+				//TODO
+			}
+		}
+	}
+	*handled = DCPP_FALSE;
+	return DCPP_FALSE;
 }
 
 } // namespace dcpp

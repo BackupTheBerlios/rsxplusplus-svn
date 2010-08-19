@@ -32,6 +32,7 @@
 #define DCPP_CALL_USER_SET_FIELD(x)		"User/Identity/Set/" x
 #define DCPP_CALL_USER_GET_HUB_OBJECT	"User/GetHubObject"
 #define DCPP_CALL_USER_GET_PARAMS		"User/GetParams"
+#define DCPP_CALL_USER_GET_CID			"User/GetCID"
 
 #define DCPP_EVENT_USER_CONNECTED		"User/Connected"
 #define DCPP_EVENT_USER_DISCONNECTED	"User/Disconnected"

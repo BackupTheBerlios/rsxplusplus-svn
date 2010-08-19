@@ -1,3 +1,8 @@
+** SVN 219 20/08/10
+ ** [sdk] implemented basic user calls
+ ** [sdk] added private message speaker
+ ** [bcdc_lua] new events dcpp.OnPrivateMessageIn & dcpp.OnPrivateMessageOut (arguments: cid, text)
+
 ** SVN 218 04/07/10
  ** [bcdc_lua] merged with sdk changes
  ** [bcdc_lua] changed Lunar to Luna (lighter)

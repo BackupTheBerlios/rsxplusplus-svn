@@ -300,6 +300,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\lcorolib.c"
+				>
+			</File>
+			<File
 				RelativePath=".\src\lctype.c"
 				>
 			</File>

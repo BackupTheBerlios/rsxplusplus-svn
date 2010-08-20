@@ -1,3 +1,6 @@
+** SVN 220 20/08/10
+ ** [bcdc_lua] Lua 5.2work4
+
 ** SVN 219 20/08/10
  ** [sdk] implemented basic user calls
  ** [sdk] added private message speaker

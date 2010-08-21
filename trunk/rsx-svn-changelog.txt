@@ -1,3 +1,6 @@
+** SVN 221 21/08/10
+ ** zlib updated to 1.2.5
+
 ** SVN 220 20/08/10
  ** [bcdc_lua] Lua 5.2work4
 

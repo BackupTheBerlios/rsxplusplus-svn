@@ -1293,106 +1293,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\rsx\HTTPDownloadItem.cpp"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PrecompiledHeaderThrough="../client/stdinc.h"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|x64"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PrecompiledHeaderThrough="../client/stdinc.h"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PrecompiledHeaderThrough="../client/stdinc.h"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|x64"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PrecompiledHeaderThrough="../client/stdinc.h"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="SvnRelease|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PrecompiledHeaderThrough="../client/stdinc.h"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="SvnRelease|x64"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PrecompiledHeaderThrough="../client/stdinc.h"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug_STLPort|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PrecompiledHeaderThrough="../client/stdinc.h"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug_STLPort|x64"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PrecompiledHeaderThrough="../client/stdinc.h"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release_STLPort|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PrecompiledHeaderThrough="../client/stdinc.h"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release_STLPort|x64"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PrecompiledHeaderThrough="../client/stdinc.h"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="SvnRelease_STLPort|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PrecompiledHeaderThrough="../client/stdinc.h"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="SvnRelease_STLPort|x64"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PrecompiledHeaderThrough="../client/stdinc.h"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
 				RelativePath=".\rsx\HTTPDownloadManager.cpp"
 				>
 				<FileConfiguration
@@ -2354,10 +2254,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\rsx\HTTPDownloadItem.h"
-				>
-			</File>
-			<File
 				RelativePath=".\rsx\HTTPDownloadManager.h"
 				>
 			</File>
@@ -2726,11 +2622,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\client\sdk\user.h"
+				RelativePath=".\client\User.h"
 				>
 			</File>
 			<File
-				RelativePath=".\client\User.h"
+				RelativePath=".\client\sdk\user.h"
 				>
 			</File>
 			<File

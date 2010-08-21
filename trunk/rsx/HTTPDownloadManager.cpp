@@ -23,34 +23,65 @@
 
 namespace dcpp {
 
-bool HTTPDownloadManager::addRequest(const HTTPDownloadItem::CallBack& callBack, const string& aUrl, bool useCoral /*= true*/) {
-	Lock l(cs);
-	HTTPDownloadItem* item = new HTTPDownloadItem(callBack);
-	Requests::const_iterator i = std::find(requests.begin(), requests.end(), item);
-	if(i != requests.end()) {
-		delete item;
-		item = NULL;
-		return false;
+HTTPDownloadManager::HTTPDownloadManager() : c(new HttpConnection), idle(true) {
+	TimerManager::getInstance()->addListener(this);
+	c->addListener(this);
+}
+
+HTTPDownloadManager::~HTTPDownloadManager() {
+	TimerManager::getInstance()->removeListener(this);
+	if(c) {
+		c->removeListener(this);
+		delete c;
+		c = 0;
 	}
-	requests.push_back(item);
-	item->startDownload(aUrl, useCoral);
+}
+
+bool HTTPDownloadManager::addRequest(const CallBack& callBack, const string& aUrl, bool useCoral /*= true*/) {
+	Lock l(cs);
+	for(ItemsQueue::const_iterator i = queue.begin(); i != queue.end(); ++i) {
+		if(i->url == aUrl)
+			return false;
+	}
+
+	Item item = { callBack, aUrl, useCoral };
+	queue.push_back(item);
 	return true;
 }
 
 void HTTPDownloadManager::on(TimerManagerListener::Second, uint64_t) throw() {
 	Lock l(cs);
-	for(Requests::iterator i = requests.begin(); i != requests.end();) {
-		if((*i)->idle()) {
-			HTTPDownloadItem* aItem = *i;
-			i = requests.erase(i);
-			if(aItem) {
-				delete aItem;
-				aItem = NULL;
-			}
-		} else {
-			++i;
+	if(!queue.empty() && idle) {
+		Item& i = queue.front();
+		downBuf.clear();
+
+		if(i.coral) {
+			c->setCoralizeState(HttpConnection::CST_NOCORALIZE);
 		}
+
+		idle = false;
+		c->downloadFile(i.url);
 	}
+}
+
+void HTTPDownloadManager::on(HttpConnectionListener::Complete, HttpConnection*, const string&, bool) throw() {
+	Lock l(cs);
+	Item& i = queue.front();
+	if(!i.cb.empty()) {
+		i.cb(downBuf, false);
+	}
+	queue.pop_front();
+	idle = true;
+}
+
+void HTTPDownloadManager::on(HttpConnectionListener::Failed, HttpConnection*, const string& aLine) throw() {
+	Lock l(cs);
+	Item& i = queue.front();
+	if(!i.cb.empty()) {
+		i.cb(downBuf, true);
+	}
+	queue.pop_front();
+	idle = true;
 }
 
 } // namespace dcpp

@@ -21,28 +21,41 @@
 
 #include "../client/Singleton.h"
 #include "../client/TimerManager.h"
-
-#include "HTTPDownloadItem.h"
+#include "../client/HttpConnection.h"
 
 namespace dcpp {
 
-class HTTPDownloadManager : public Singleton<HTTPDownloadManager>, private TimerManagerListener {
+class HTTPDownloadManager : public Singleton<HTTPDownloadManager>, private TimerManagerListener, private HttpConnectionListener {
 public:
-	HTTPDownloadManager() {
-		TimerManager::getInstance()->addListener(this);
-	}
-	~HTTPDownloadManager() {
-		TimerManager::getInstance()->removeListener(this);
+	typedef boost::function<void(string, bool)> CallBack;
+
+	HTTPDownloadManager();
+	~HTTPDownloadManager();
+
+	bool addRequest(const CallBack& callBack, const string& aUrl, bool useCoral = true);
+private:
+	struct Item {
+		CallBack cb;
+		string url;
+		bool coral;
+	};
+
+	typedef std::deque<Item> ItemsQueue;
+
+	void on(HttpConnectionListener::Complete, HttpConnection*, const string&, bool) throw();
+	void on(HttpConnectionListener::Failed, HttpConnection*, const string& aLine) throw();
+	void on(HttpConnectionListener::Data, HttpConnection*, const uint8_t* buf, size_t len) throw() {
+		downBuf.append((char*)buf, len);
 	}
 
-	bool addRequest(const HTTPDownloadItem::CallBack& callBack, const string& aUrl, bool useCoral = true);
-private:
-	typedef vector<HTTPDownloadItem*> Requests;
+	CriticalSection cs;
+	ItemsQueue queue;
+
+	HttpConnection* c;
+	bool idle;
+	string downBuf;
 
 	void on(TimerManagerListener::Second, uint64_t) throw();
-
-	Requests requests;
-	CriticalSection cs;
 };
 } // namespace dcpp
 

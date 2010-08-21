@@ -1,3 +1,8 @@
+** SVN 222 xx/08/10
+ ** use queue for http downloads
+ ** fixed http download
+ ** use one HttpConnection for all http dowloads
+
 ** SVN 221 21/08/10
  ** zlib updated to 1.2.5
 

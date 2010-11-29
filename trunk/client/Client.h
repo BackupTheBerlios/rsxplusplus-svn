@@ -31,7 +31,8 @@
 //RSX++
 #include "rsxppSettingsManager.h"
 #include "CommandQueue.h"
-#include "sdk/dcpp.h"
+#include "sdk/interfaces/Hub.hpp"
+#include "ChatMessage.h"
 //END
 namespace dcpp {
 
@@ -55,7 +56,9 @@ public:
 };
 
 /** Yes, this should probably be called a Hub */
-class Client : public ClientBase, public Speaker<ClientListener>, public BufferedSocketListener, protected TimerManagerListener {
+class Client : public ClientBase, public Speaker<ClientListener>, public BufferedSocketListener, protected TimerManagerListener,
+	public interfaces::Hub
+{
 public:
 	typedef unordered_map<string*, Client*, noCaseStringHash, noCaseStringEq> List;
 	typedef List::const_iterator Iter;
@@ -82,6 +85,7 @@ public:
 	virtual string escape(string const& str) const { return str; }
 
 	bool isConnected() const { return state != STATE_DISCONNECTED; }
+	bool isReady() const { return state != STATE_CONNECTING && state != STATE_DISCONNECTED; }
 	bool isSecure() const;
 	bool isTrusted() const;
 	std::string getCipherName() const;
@@ -115,11 +119,8 @@ public:
 	void sendActionCommand(const OnlineUser& ou, int actionId);
 	void putDetectors() { stopMyINFOCheck(); stopChecking(); setCheckedAtConnect(false); }
 	bool isActionActive(const int aAction) const;
-
-	bool plugChatMessage(const ChatMessage& cm, bool incoming = true);
-	bool plugHubLine(const char* line, size_t len, bool incoming);
-	bool plugChatSendLine(const std::string& line);
 	//END
+
 	static int getTotalCounts() {
 		return counts.normal + counts.registered + counts.op;
 	}
@@ -206,6 +207,36 @@ public:
 	GETSET(bool, stealth, Stealth);
 
 	mutable CriticalSection cs; //RSX++
+
+	//RSX++
+	template<bool incoming>
+	bool handleChatMessage(ChatMessage& cm) {
+		bool handled = false;
+		Lock l(plugins.cs);
+		for(ProxyListener::Listeners::iterator i = plugins.ls.begin(); i != plugins.ls.end(); ++i) {
+			if(incoming) {
+				(*i)->onHub_IncomingMessage(static_cast<interfaces::Hub*>(this), static_cast<interfaces::ChatMessage*>(&cm), handled);
+			} else {
+				(*i)->onHub_OutgoingMessage(static_cast<interfaces::Hub*>(this), static_cast<interfaces::ChatMessage*>(&cm), handled);
+			}
+		}
+		return handled;
+	}
+
+	template<bool incoming>
+	bool handleHubLine(const char* line) {
+		bool handled = false;
+		Lock l(plugins.cs);
+		for(ProxyListener::Listeners::iterator i = plugins.ls.begin(); i != plugins.ls.end(); ++i) {
+			if(incoming) {
+				(*i)->onHub_IncomingCommand(static_cast<interfaces::Hub*>(this), line, handled);
+			} else {
+				(*i)->onHub_OutgoingCommand(static_cast<interfaces::Hub*>(this), line, handled);
+			}
+		}
+		return handled;
+	}
+	//END
 protected:
 	friend class ClientManager;
 	Client(const string& hubURL, char separator, bool secure_);
@@ -257,7 +288,6 @@ protected:
 	size_t userCount; //RSX++
 private:
 	//RSX++
-	static dcpp_param DCPP_CALL_CONV clientCallFunc(const char* type, dcpp_param p1, dcpp_param p2, dcpp_param p3, int* handled);
 	CommandQueue cmdQueue;
 	string currentDescription;
 	//END
@@ -280,6 +310,125 @@ private:
 	uint16_t port;
 	char separator;
 	bool secure;
+
+	//RSX++
+	void sendMessage(const char* msg, bool thirdPerson = false) {
+		hubMessage(msg, thirdPerson);
+	}
+	void sendPrivateMessage(interfaces::OnlineUser* u, const char* msg, bool thirdPerson) {
+		OnlineUser* ou = dynamic_cast<OnlineUser*>(u);
+		if(ou) {
+			privateMessage(ou, msg, thirdPerson);
+		}
+	}
+	void sendData(const void* data, size_t len) {
+		send(static_cast<const char*>(data), len);
+	}
+	const char* getHubAddress() { return address.c_str(); }
+	const char* getHubURL() { return hubUrl.c_str(); }
+	const char* getHubIP() { return ip.c_str(); }
+	//const char* getLocalIP() = 0;
+
+	bool isAccountRegistered() const { return this->getRegistered(); }
+	const char* getAccountNick() { return currentNick.c_str(); }
+	const char* getAccountPassword() { return currentDescription.c_str(); }
+
+	interfaces::Identity* getAccountIdentity() { return static_cast<interfaces::Identity*>(&myIdentity); }
+	interfaces::Identity* getIdentity() { return static_cast<interfaces::Identity*>(&hubIdentity); }
+
+	void mutex(bool lock) {
+		if(lock)
+			cs.lock();
+		else
+			cs.unlock();
+	}
+
+	class ProxyListener : public ClientListener {
+	public:
+		void addListener(interfaces::HubListener* listener) {
+			Lock l(cs);
+			for(Listeners::iterator i = ls.begin(); i != ls.end(); ++i) {
+				if(*i == listener)
+					return;
+			}
+			ls.push_back(listener);
+		}
+
+		void remListener(interfaces::HubListener* listener) {
+			Lock l(cs);
+			for(Listeners::iterator i = ls.begin(); i != ls.end(); ++i) {
+				if(*i == listener) {
+					ls.erase(i);
+					break;
+				}
+			}
+		}
+
+	private:
+		friend class Client;
+
+		typedef std::deque<interfaces::HubListener*> Listeners;
+		Listeners ls;
+		CriticalSection cs;
+
+		void on(ClientListener::Connecting, const Client* c) throw() {
+			Lock l(cs);
+			for(Listeners::iterator i = ls.begin(); i != ls.end(); ++i)
+				(*i)->onHub_Connecting(const_cast<Client*>(c));
+		}
+		void on(ClientListener::Connected, const Client* c) throw() { 
+			Lock l(cs);
+			for(Listeners::iterator i = ls.begin(); i != ls.end(); ++i)
+				(*i)->onHub_Connected(const_cast<Client*>(c));
+		}
+		void on(ClientListener::UserUpdated, const Client* c, const OnlineUserPtr& u) throw() { 
+			Lock l(cs);
+			for(Listeners::iterator i = ls.begin(); i != ls.end(); ++i)
+				(*i)->onHub_UserUpdated(const_cast<Client*>(c), u.get());
+		}
+		void on(ClientListener::UsersUpdated, const Client* c, const OnlineUserList& ul) throw() { 
+		
+		}
+		void on(ClientListener::UserRemoved, const Client* c, const OnlineUserPtr& u) throw() { 
+			Lock l(cs);
+			for(Listeners::iterator i = ls.begin(); i != ls.end(); ++i)
+				(*i)->onHub_UserRemoved(const_cast<Client*>(c), u.get());
+		}
+		void on(ClientListener::Redirect, const Client* c, const string& s) throw() { 
+			Lock l(cs);
+			for(Listeners::iterator i = ls.begin(); i != ls.end(); ++i)
+				(*i)->onHub_Redirect(const_cast<Client*>(c), s.c_str());
+		}
+		void on(ClientListener::Failed, const Client* c, const string& s) throw() { 
+			Lock l(cs);
+			for(Listeners::iterator i = ls.begin(); i != ls.end(); ++i)
+				(*i)->onHub_Failed(const_cast<Client*>(c), s.c_str());
+		}
+		void on(ClientListener::HubUpdated, const Client* c) throw() { 
+			Lock l(cs);
+			for(Listeners::iterator i = ls.begin(); i != ls.end(); ++i)
+				(*i)->onHub_HubUpdated(const_cast<Client*>(c));
+		}
+		void on(HubFull, const Client* c) throw() { 
+			Lock l(cs);
+			for(Listeners::iterator i = ls.begin(); i != ls.end(); ++i)
+				(*i)->onHub_HubFull(const_cast<Client*>(c));
+		}
+		void on(NickTaken, const Client* c) throw() { 
+			Lock l(cs);
+			for(Listeners::iterator i = ls.begin(); i != ls.end(); ++i)
+				(*i)->onHub_AccountNickTaken(const_cast<Client*>(c));
+		}
+	}plugins;
+
+	void addEventListener(interfaces::HubListener* listener) {
+		plugins.addListener(listener);
+	}
+
+	void remEventListener(interfaces::HubListener* listener) {
+		plugins.remListener(listener);
+	}
+	//END
 };
 
 } // namespace dcpp

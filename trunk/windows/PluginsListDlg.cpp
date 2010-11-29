@@ -35,11 +35,11 @@ LRESULT PluginsListDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
 	ctrlList.InsertColumn(4, _T("Version"), LVCFMT_LEFT, rc.Width() / 5 - 50, 0);
 	ctrlList.SetExtendedListViewStyle(/*LVS_EX_CHECKBOXES |*/ LVS_EX_FULLROWSELECT);
 
-	std::list<dcppPluginInformation*> plugins;
+	std::list<dcpp::interfaces::PluginInfo*> plugins;
 	PluginsManager::getInstance()->getPluginsInfo(plugins);
 	TStringList list;
 	wchar_t buf[64];
-	for(std::list<dcppPluginInformation*>::const_iterator i = plugins.begin(); i != plugins.end(); ++i) {
+	for(std::list<dcpp::interfaces::PluginInfo*>::const_iterator i = plugins.begin(); i != plugins.end(); ++i) {
 		list.push_back(Text::toT((*i)->name ? (*i)->name : "N/A"));
 		list.push_back(Text::toT((*i)->description ? (*i)->description : "N/A"));
 		list.push_back(Text::toT((*i)->author ? (*i)->author : "N/A"));

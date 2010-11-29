@@ -267,7 +267,18 @@ void HubFrame::onEnter() {
 		}
 		currentCommand = Util::emptyStringT;
 
-		bool dropMessage = client->plugChatSendLine(Text::fromT(s)); //RSX++
+		//RSX++
+		bool dropMessage;
+		{
+			ChatMessage cm(Text::fromT(s));
+			cm.timestamp = time(0);
+			cm.thirdPerson = strncmp("/me ", cm.text.c_str(), 4) == 0;
+			if(cm.thirdPerson) {
+				cm.text = cm.text.substr(4);
+			}
+			dropMessage = client->handleChatMessage<false>(cm);
+		}
+		//END
 
 		// Special command
 		if(s[0] == _T('/')) {

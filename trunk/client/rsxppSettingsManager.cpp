@@ -343,7 +343,6 @@ void rsxppSettingsManager::on(Save, SimpleXML& xml) throw() {
 		xml.addChildAttrib("Value", j->second);
 	}
 	xml.stepOut();
-	PluginsManager::getInstance()->getSpeaker().speak(DCPP_EVENT_CORE, DCPP_EVENT_CORE_SETTINGS_SAVE, 0, 0);
 }
 
 int rsxppSettingsManager::getInt(const string& sname) {

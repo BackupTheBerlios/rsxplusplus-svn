@@ -1304,7 +1304,7 @@ void QueueManager::putDownload(Download* aDownload, bool finished, bool reportFi
 	HintedUser fl_user = aDownload->getHintedUser();
 	Flags::MaskType fl_flag = 0;
 
-	//bool downloadList = aDownload->isSet(Download::FLAG_CHECK_FILE_LIST) && aDownload->isSet(Download::FLAG_TESTSUR);
+	bool downloadList = false;
 
 	{
 		Lock l(cs);
@@ -1332,7 +1332,7 @@ void QueueManager::putDownload(Download* aDownload, bool finished, bool reportFi
 					// partial filelist probably failed, redownload full list
 					dcassert(!finished);
 					
-					//downloadList = true;
+					downloadList = true;
 					fl_flag = q->getFlags() & ~QueueItem::FLAG_PARTIAL_LIST;	
 				}
 					
@@ -1479,10 +1479,10 @@ void QueueManager::putDownload(Download* aDownload, bool finished, bool reportFi
 		processList(fl_fname, fl_user, fl_flag);
 	}
 
-	// check filelist only if user is still online (hasn't been banned for testsur)
-	if(fl_user.user->isOnline() && fl_flag > 0) {
+	// partial file list failed, redownload full list
+	if(fl_user.user->isOnline() && downloadList) {
 		try {
-			addList(fl_user, fl_flag/* == 0 ? QueueItem::FLAG_CHECK_FILE_LIST : fl_flag*/);
+			addList(fl_user, fl_flag);
 		} catch(const Exception&) {}
 	}
 }

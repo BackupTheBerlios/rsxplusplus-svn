@@ -25,55 +25,35 @@
 #include "Client.h"
 #include "User.h"
 #include "UserConnection.h"
-
-#include "sdk/sdk.h"
+#include "AdcCommand.h"
 
 #include "LogManager.h"
 #include "version.h"
+#include "sdk/StringImpl.hpp"
+#include "sdk/AdcCommandImpl.hpp"
 
 namespace dcpp {
 
-PluginsManager::PluginsManager() : dcpp_func(new dcppFunctions) {
-	udp.create(Socket::TYPE_UDP);
-
-	memzero(dcpp_func, sizeof(dcppFunctions));
-
-	dcpp_func->call = &PluginsManager::callFunc;
-
-	dcpp_func->addCaller = &PluginsManager::addCaller;
-	dcpp_func->removeCaller = &PluginsManager::removeCaller;
-
-	dcpp_func->addSpeaker = &PluginsManager::addSpeaker;
-	dcpp_func->removeSpeaker = &PluginsManager::removeSpeaker;
-	dcpp_func->isSpeaker = &PluginsManager::isSpeaker;
-	dcpp_func->fireSpeaker = &PluginsManager::speak;
-
-	dcpp_func->addListener = &PluginsManager::addListener;
-	dcpp_func->removeListener = &PluginsManager::removeListener;
+PluginsManager::PluginsManager() {
+//	udp.create(Socket::TYPE_UDP);
 
 	TimerManager::getInstance()->addListener(this);
-
-	// prepare speakers (protected as default)
-	getSpeaker().addSpeaker("Core/");
-	getSpeaker().addSpeaker("User/");
-	getSpeaker().addSpeaker("Hub/");
-	getSpeaker().addSpeaker("UserConnection/");
-	getSpeaker().addSpeaker("Timer/");
-
-	getSpeaker().addCaller(&PluginsManager::coreCallFunc);
-	getSpeaker().addCaller(&Client::clientCallFunc);
-	getSpeaker().addCaller(&UserConnection::ucCallFunc);
-	getSpeaker().addCaller(&OnlineUser::userCallFunc);
+	SettingsManager::getInstance()->addListener(this);
 }
 
 PluginsManager::~PluginsManager() {
+//	udp.shutdown();
+
+	SettingsManager::getInstance()->removeListener(this);
 	TimerManager::getInstance()->removeListener(this);
+	
 	close();
-	delete dcpp_func;
+	std::for_each(cmSet.begin(), cmSet.end(), DeleteFunction());
+	cmSet.clear();
 }
 
 void PluginsManager::loadPlugin(Plugin*& p, HINSTANCE dll) throw(Exception) {
-	typedef dcppPluginInformation* (__stdcall *plugInfo)(unsigned long long, int);
+	typedef interfaces::PluginInfo* (__stdcall *plugInfo)(unsigned long long, int);
 	p = new Plugin(dll);
 
 	Plugin::PluginLoad pLoad = reinterpret_cast<Plugin::PluginLoad>(GetProcAddress(dll, "pluginLoad"));
@@ -90,17 +70,19 @@ void PluginsManager::loadPlugin(Plugin*& p, HINSTANCE dll) throw(Exception) {
 	p->pluginLoad = pLoad;
 	p->pluginUnload = pUnload;
 
-	dcppPluginInformation* nfo = pInfo(SDK_VERSION, SVN_REVISION);
+	interfaces::PluginInfo* nfo = pInfo(SDK_VERSION, SVN_REVISION);
 	if(!nfo)
 		throw Exception("Missing plugin information");
 
 	p->info = nfo;
 
-	if(nfo->guid != 0) {
-		for(Plugins::const_iterator i = plugins.begin(); i != plugins.end(); ++i) {
-			if((*i)->info->guid != 0 && strcmp(nfo->guid, (*i)->info->guid) == 0)
-				throw Exception("Only one copy of this plugin is allowed");
-		}
+	if(p->info->guid == 0 || strlen(p->info->guid) < 32) {
+		throw Exception("GUID not set or not valid");
+	}
+
+	for(Plugins::const_iterator i = plugins.begin(); i != plugins.end(); ++i) {
+		if(strcmp(p->info->guid, (*i)->info->guid) == 0)
+			throw Exception("Plugin with same GUID is already loaded");
 	}
 
 	if(VER_MAJ(nfo->sdkVersion) != VER_MAJ(SDK_VERSION) || 
@@ -108,7 +90,7 @@ void PluginsManager::loadPlugin(Plugin*& p, HINSTANCE dll) throw(Exception) {
 		VER_REV(nfo->sdkVersion) != VER_REV(SDK_VERSION))
 		throw Exception("Plugin is compiled with old version of PluginSDK");
 
-	if(pLoad(dcpp_func) != DCPP_FALSE) {
+	if(pLoad(this, (Plugin*)p) != 0) {
 		pUnload();
 		throw Exception("Unknown exception while calling pluginLoad function");
 	}
@@ -138,220 +120,225 @@ void PluginsManager::init(void (*f)(void*, const tstring&), void* pv) {
 	}
 }
 
-void PluginsManager::getPluginsInfo(std::list<dcppPluginInformation*>& p) {
+void PluginsManager::getPluginsInfo(std::list<dcpp::interfaces::PluginInfo*>& p) {
 	Lock l(cs);
 	for(Plugins::const_iterator i = plugins.begin(); i != plugins.end(); ++i)
 		p.push_back((*i)->info);
 }
 
 void PluginsManager::load() {
-	getSpeaker().speak(DCPP_EVENT_CORE, DCPP_EVENT_CORE_LOAD, 0, 0);
+
 }
 
 void PluginsManager::close() {
-	getSpeaker().speak(DCPP_EVENT_CORE, DCPP_EVENT_CORE_UNLOAD, 0, 0);
-	getSpeaker().cleanup();
-
 	Lock l(cs);
-	for(Plugins::const_iterator i = plugins.begin(); i != plugins.end(); ++i) {
-		FreeLibrary((*i)->handle);
-		delete *i;
+	for(Plugins::iterator i = plugins.begin(); i != plugins.end(); ++i) {
+		Plugin* p = *i;
+		if(p->pluginUnload)
+			p->pluginUnload();
+		FreeLibrary((HMODULE)p->handle);
+		
+		i = plugins.erase(i);
+		delete p;
+		p = 0;
 	}
-	plugins.clear();
 }
 
-dcpp_param PluginsManager::dcppBuffer_strcpy(const string& str, dcppBuffer* buf) {
-	if(!buf || buf->buf == 0 || buf->size == 0)
-		return 0;
-	dcpp_param len = buf->size;
-	if(str.size() < len)
-		len = str.size();
-	if(len > 0)
-		memcpy(buf->buf, &str[0], len);
-	return len;
+void PluginsManager::log(const char* msg) {
+	LogManager::getInstance()->message(string(msg));
 }
 
-dcpp_param PluginsManager::coreCallFunc(const char* type, dcpp_param p1, dcpp_param p2, dcpp_param p3, int* handled) {
-	*handled = DCPP_TRUE;
-	if(strncmp(type, "Core/", 5) == 0) {
-		if(strncmp(type+5, "Setting/", 8) == 0) {
-			const char* name = reinterpret_cast<const char*>(p1);
-			if(strncmp(type+13, "Plug/", 5) == 0) {
-				if(strncmp(type+18, "Get", 3) == 0) {
-					dcppBuffer* buf = reinterpret_cast<dcppBuffer*>(p2);
-					return dcppBuffer_strcpy(rsxppSettingsManager::getInstance()->getExtSetting(name), buf);
-				} else if(strncmp(type+18, "Set", 3) == 0) {
-					rsxppSettingsManager::getInstance()->setExtSetting(name, reinterpret_cast<const char*>(p2));
-					return DCPP_TRUE;
-				}
-			} else if(strncmp(type+13, "dcpp/", 5) == 0) {
-				int settingType, key;
-				key = SettingsManager::getInstance()->findKey(reinterpret_cast<const char*>(p1), settingType);
-				if(strncmp(type+18, "Get", 3) == 0) {
-					switch(settingType) {
-						case 1: {
-							*reinterpret_cast<dcpp_param*>(p2) = static_cast<dcpp_param>(SettingsManager::getInstance()->get((SettingsManager::IntSetting)key));
-							break;
-						}
-						case 2: {
-							*reinterpret_cast<dcpp_param*>(p2) = static_cast<dcpp_param>(SettingsManager::getInstance()->get((SettingsManager::Int64Setting)key));
-							break;
-						}
-						case 3: {
-							*reinterpret_cast<dcpp_param*>(p2) = reinterpret_cast<dcpp_param>(SettingsManager::getInstance()->get((SettingsManager::StrSetting)key).c_str());
-							break;
-						}
-						default: {
-							return DCPP_SETTINGS_TYPE_NOT_FOUND;
-						}
-					}
-					return (dcpp_param)settingType;
-				} else if(strncmp(type+18, "Set", 3) == 0) {
-					switch(settingType) {
-						case 1: {
-							SettingsManager::getInstance()->set((SettingsManager::IntSetting)key, static_cast<int>(p2));
-							break;
-						}
-						case 2: {
-							SettingsManager::getInstance()->set((SettingsManager::Int64Setting)key, static_cast<int64_t>(p2));
-							break;
-						}
-						case 3: {
-							SettingsManager::getInstance()->set((SettingsManager::StrSetting)key, reinterpret_cast<const char*>(p2));
-							break;
-						}
-						default: {
-							return DCPP_SETTINGS_TYPE_NOT_FOUND;
-						}
-					}
-					return DCPP_TRUE;
-				} else if(strncmp(type+18, "Type", 4) == 0) {
-					return (dcpp_param)settingType;
-				}
-				return DCPP_FALSE;
-			}
-		}
-	} else if(strncmp(type, "Utils/", 6) == 0) {
-		if(strncmp(type+6, "LogMessage", 10) == 0) {
-			LogManager::getInstance()->message(string(reinterpret_cast<const char*>(p1)));
-			return DCPP_TRUE;
-		} else if(strncmp(type+6, "FormatParams", 12) == 0) {
-			StringMap params;
-			dcppLinkedMap* ptr = reinterpret_cast<dcppLinkedMap*>(p1);
-			dcppBuffer* buf = reinterpret_cast<dcppBuffer*>(p3);
+void PluginsManager::addEventListener(interfaces::HubManagerListener* listener) {
+	Lock l(cs);
+	for(ProxyClientManagerSet::iterator i = cmSet.begin(); i != cmSet.end(); ++i) {
+		if((*i)->i == listener)
+			return;
+	}
 
-			while(ptr) {
-				params[static_cast<char*>(ptr->first)] = static_cast<char*>(ptr->second);
-				ptr = ptr->next;
-			}
+	ProxyClientManagerListener* px = new ProxyClientManagerListener(listener);
+	ClientManager::getInstance()->addListener(px);
+	cmSet.push_back(px);
+}
 
-			return dcppBuffer_strcpy(Util::formatParams(reinterpret_cast<char*>(p2), params, false), buf);
-		} else if(strncmp(type+6, "WideToUtf8", 10) == 0) {
-			const uint16_t* str = reinterpret_cast<const uint16_t*>(p1); // unsigned short - 2 bytes
-			dcppBuffer* buf = reinterpret_cast<dcppBuffer*>(p2);
-			if(!str || !buf || buf->size == 0) return DCPP_FALSE;
-			string s = Text::wideToUtf8(wstring((wchar_t*)str));
-			size_t len = buf->size;
-			if(s.size()*sizeof(wchar_t) < len)
-				len = s.size()*sizeof(wchar_t);
-			if(len > 0)
-				memcpy(buf->buf, &s[0], len);
-			return len;
-		} else if(strncmp(type+6, "Utf8ToAcp", 9) == 0) {
-			const char* str = reinterpret_cast<const char*>(p1);
-			dcppBuffer* buf = reinterpret_cast<dcppBuffer*>(p2);
-			if(!str || !buf || buf->size == 0) return DCPP_FALSE;
-			string s = Text::utf8ToAcp(str);
-			return dcppBuffer_strcpy(s, buf);
-		} else if(strncmp(type+6, "AcpToUtf8", 9) == 0) {
-			const char* str = reinterpret_cast<const char*>(p1);
-			dcppBuffer* buf = reinterpret_cast<dcppBuffer*>(p2);
-			if(!str || !buf || buf->size == 0) return DCPP_FALSE;
-			string s = Text::acpToUtf8(str);
-			return dcppBuffer_strcpy(s, buf);
-		} else if(strncmp(type+6, "GetPath", 7) == 0) {
-			dcppBuffer* buf = reinterpret_cast<dcppBuffer*>(p2);
-			int16_t pathType;
-			switch(p1) {
-				case DCPP_UTILS_PATH_GLOBAL_CONFIG: {
-					pathType = Util::PATH_GLOBAL_CONFIG;
-					break;
-				}
-				case DCPP_UTILS_PATH_USER_CONFIG: {
-					pathType = Util::PATH_USER_CONFIG;
-					break;
-				}
-				case DCPP_UTILS_PATH_USER_LOCAL: {
-					pathType = Util::PATH_USER_LOCAL;
-					break;
-				}
-				case DCPP_UTILS_PATH_RESOURCES: {
-					pathType = Util::PATH_RESOURCES;
-					break;
-				}
-				case DCPP_UTILS_PATH_LOCALE: {
-					pathType = Util::PATH_LOCALE;
-					break;
-				}
-				case DCPP_UTILS_PATH_DOWNLOADS: {
-					pathType = Util::PATH_DOWNLOADS;
-					break;
-				}
-				case DCPP_UTILS_PATH_FILE_LISTS: {
-					pathType = Util::PATH_FILE_LISTS;
-					break;
-				}
-				case DCPP_UTILS_PATH_HUB_LISTS: {
-					pathType = Util::PATH_HUB_LISTS;
-					break;
-				}
-				case DCPP_UTILS_PATH_NOTEPAD: {
-					pathType = Util::PATH_NOTEPAD;
-					break;
-				}
-				case DCPP_UTILS_PATH_EMOPACKS: {
-					pathType = Util::PATH_EMOPACKS;
-					break;
-				}
-				default: { 
-					pathType = -1;
-				}
-			}
-			if(pathType != -1) {
-				string path = Util::getPath((Util::Paths)pathType);
-				// append - trick to make own path easily
-				if(p3) {
-					path += reinterpret_cast<const char*>(p3);
-				}
-				return dcppBuffer_strcpy(path, buf);
-			}
-			return DCPP_FALSE;
-		} else if(strncmp(type+6, "SendUDP", 7) == 0) {
-			string ipPort(reinterpret_cast<const char*>(p1));
-			string::size_type i = ipPort.find(":");
-			if(i != string::npos) {
-				string ip = ipPort.substr(0, i);
-				uint16_t port = static_cast<uint16_t>(Util::toInt(ipPort.substr(i+1)));
-				try {
-					PluginsManager::getInstance()->udp.writeTo(ip, port, reinterpret_cast<const void*>(p2), static_cast<int>(p3));
-					return DCPP_TRUE;
-				} catch(const SocketException&) {
-					// damnit!
-				}
-			}
-			return DCPP_FALSE;
+void PluginsManager::remEventListener(interfaces::HubManagerListener* listener) {
+	Lock l(cs);
+	for(ProxyClientManagerSet::iterator i = cmSet.begin(); i != cmSet.end(); ++i) {
+		ProxyClientManagerListener* px = *i;
+		if(px->i == listener) {
+			ClientManager::getInstance()->removeListener(px);
+			delete px;
+			cmSet.erase(i);
+			break;
 		}
 	}
-	*handled = DCPP_FALSE;
-	return DCPP_FALSE;
+}
+
+void PluginsManager::addEventListener(interfaces::ConnectionManagerListener* listener) {
+	Lock l(cs);
+	for(CMInterfacesSet::iterator i = ucSet.begin(); i != ucSet.end(); ++i) {
+		if((*i) == listener)
+			return;
+	}
+	ucSet.push_back(listener);
+}
+
+void PluginsManager::remEventListener(interfaces::ConnectionManagerListener* listener) {
+	Lock l(cs);
+	CMInterfacesSet::iterator i = std::find(ucSet.begin(), ucSet.end(), listener);
+	if(i != ucSet.end())
+		ucSet.erase(i);
+}
+
+const char* PluginsManager::getPluginSetting(const char* key) {
+	return rsxppSettingsManager::getInstance()->getExtSetting(key).c_str();
+}
+
+void PluginsManager::setPluginSetting(const char* key, const char* value) {
+	rsxppSettingsManager::getInstance()->setExtSetting(key, value);
+}
+
+void PluginsManager::eventUserConnectionCreated(UserConnection* uc) {
+	Lock l(cs);
+	for(CMInterfacesSet::iterator i = ucSet.begin(); i != ucSet.end(); ++i) {
+		(*i)->onConnectionManager_ConnectionCreated(static_cast<interfaces::UserConnection*>(uc));
+	}
+}
+
+void PluginsManager::eventUserConnectionDestroyed(UserConnection* uc) {
+	Lock l(cs);
+	for(CMInterfacesSet::iterator i = ucSet.begin(); i != ucSet.end(); ++i) {
+		(*i)->onConnectionManager_ConnectionDestroyed(static_cast<interfaces::UserConnection*>(uc));
+	}
+}
+
+char* PluginsManager::alloc(size_t size) {
+	if(size > 0) {
+		char* c = new char[size];
+		memzero(c, size);
+		return c;
+	}
+	return 0;
+}
+
+void PluginsManager::free(char* data) {
+	if(data) {
+		delete data;
+	}
+}
+
+interfaces::string* PluginsManager::getString(const char* buf /*= 0*/) {
+	if(buf)
+		return new StringImpl();
+	return new StringImpl(buf);
+}
+
+void PluginsManager::putString(interfaces::string* str) {
+	StringImpl* s = dynamic_cast<StringImpl*>(str);
+	if(s)
+		delete s;
+}
+
+interfaces::stringList* PluginsManager::getStringList(size_t size /*= 0*/) {
+	return new StringListImpl(size);
+}
+
+void PluginsManager::putStringList(interfaces::stringList* list) {
+	StringListImpl* l = dynamic_cast<StringListImpl*>(list);
+	if(l)
+		delete l;
+}
+
+interfaces::stringMap* PluginsManager::getStringMap() {
+	return new StringMapImpl();
+}
+
+void PluginsManager::putStringMap(interfaces::stringMap* map) {
+	StringMapImpl* sm = dynamic_cast<StringMapImpl*>(map);
+	if(sm)
+		delete sm;
+}
+
+interfaces::AdcCommand* PluginsManager::getAdcCommand(uint32_t command) {
+	return new AdcCommandImpl(command);
+}
+
+interfaces::AdcCommand* PluginsManager::getAdcCommand(uint32_t command, const uint32_t target, char type) {
+	return new AdcCommandImpl(command, target, type);
+}
+
+interfaces::AdcCommand* PluginsManager::getAdcCommand(const char* str, bool nmdc) {
+	return new AdcCommandImpl(str, nmdc);
+}
+
+void PluginsManager::putAdcCommand(interfaces::AdcCommand* command) {
+	AdcCommandImpl* c = dynamic_cast<AdcCommandImpl*>(command);
+	if(c)
+		delete c;
+}
+
+interfaces::string* PluginsManager::formatParams(const char* format, interfaces::stringMap* params) {
+	StringMapImpl* sm = dynamic_cast<StringMapImpl*>(params);
+	if(sm) {
+		string formatted = Util::formatParams(format, sm->getMap(), false);
+		return new StringImpl(formatted);
+	}
+	return 0;
+}
+
+interfaces::string* PluginsManager::convertFromWideToUtf8(const wchar_t* str) {
+	StringImpl* s = new StringImpl();
+	Text::wideToUtf8(str, s->getString());
+	return s;
+}
+
+interfaces::string* PluginsManager::convertFromWideToAcp(const wchar_t* str) {
+	StringImpl* s = new StringImpl();
+	Text::wideToAcp(str, s->getString());
+	return s;
+}
+
+interfaces::string* PluginsManager::convertFromAcpToUtf8(const char* str) {
+	StringImpl* s = new StringImpl();
+	Text::acpToUtf8(str, s->getString());
+	return s;
+}
+
+interfaces::string* PluginsManager::convertFromUtf8ToAcp(const char* str) {
+	StringImpl* s = new StringImpl();
+	Text::utf8ToAcp(str, s->getString());
+	return s;
+}
+
+uint32_t PluginsManager::toSID(const char* sid) {
+	return AdcCommand::toSID(sid);
+}
+
+interfaces::string* PluginsManager::fromSID(uint32_t sid) {
+	return new StringImpl(AdcCommand::fromSID(sid));
+}
+
+uint32_t PluginsManager::toFourCC(const char* cc) {
+	return AdcCommand::toFourCC(cc);
+}
+
+interfaces::string* PluginsManager::fromFourCC(uint32_t cc) {
+	return new StringImpl(AdcCommand::fromFourCC(cc));
 }
 
 void PluginsManager::on(TimerManagerListener::Second, uint64_t tick) throw() {
-	getSpeaker().speak(DCPP_EVENT_TIMER, DCPP_EVENT_TIMER_TICK_SECOND, (dcpp_param)&tick, 0);
+
 }
 
 void PluginsManager::on(TimerManagerListener::Minute, uint64_t tick) throw() {
-	getSpeaker().speak(DCPP_EVENT_TIMER, DCPP_EVENT_TIMER_TICK_MINUTE, (dcpp_param)&tick, 0);
+
+}
+
+void PluginsManager::on(SettingsManagerListener::Load, SimpleXML& xml) throw() {
+
+}
+
+void PluginsManager::on(SettingsManagerListener::Save, SimpleXML& xml) throw() {
+
 }
 
 } // namespace dcpp

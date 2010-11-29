@@ -58,7 +58,7 @@
 				DefaultCharIsUnsigned="true"
 				TreatWChar_tAsBuiltInType="true"
 				ForceConformanceInForLoopScope="true"
-				RuntimeTypeInfo="false"
+				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="0"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="4"
@@ -130,7 +130,7 @@
 				RuntimeLibrary="1"
 				EnableFunctionLevelLinking="true"
 				DefaultCharIsUnsigned="true"
-				RuntimeTypeInfo="false"
+				RuntimeTypeInfo="true"
 				DebugInformationFormat="3"
 				CallingConvention="0"
 			/>
@@ -202,7 +202,7 @@
 				EnableFunctionLevelLinking="true"
 				FloatingPointModel="2"
 				DefaultCharIsUnsigned="true"
-				RuntimeTypeInfo="false"
+				RuntimeTypeInfo="true"
 				DebugInformationFormat="3"
 				CallingConvention="0"
 			/>
@@ -276,7 +276,7 @@
 				EnableEnhancedInstructionSet="0"
 				FloatingPointModel="2"
 				DefaultCharIsUnsigned="true"
-				RuntimeTypeInfo="false"
+				RuntimeTypeInfo="true"
 				DebugInformationFormat="3"
 				CallingConvention="0"
 			/>
@@ -349,7 +349,7 @@
 				DefaultCharIsUnsigned="true"
 				TreatWChar_tAsBuiltInType="true"
 				ForceConformanceInForLoopScope="true"
-				RuntimeTypeInfo="false"
+				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="0"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="4"
@@ -421,7 +421,7 @@
 				RuntimeLibrary="1"
 				EnableFunctionLevelLinking="true"
 				DefaultCharIsUnsigned="true"
-				RuntimeTypeInfo="false"
+				RuntimeTypeInfo="true"
 				DebugInformationFormat="3"
 				CallingConvention="0"
 			/>
@@ -493,7 +493,7 @@
 				EnableFunctionLevelLinking="true"
 				FloatingPointModel="2"
 				DefaultCharIsUnsigned="true"
-				RuntimeTypeInfo="false"
+				RuntimeTypeInfo="true"
 				DebugInformationFormat="3"
 				CallingConvention="0"
 			/>
@@ -567,7 +567,7 @@
 				EnableEnhancedInstructionSet="0"
 				FloatingPointModel="2"
 				DefaultCharIsUnsigned="true"
-				RuntimeTypeInfo="false"
+				RuntimeTypeInfo="true"
 				DebugInformationFormat="3"
 				CallingConvention="0"
 			/>

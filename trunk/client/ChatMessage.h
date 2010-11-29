@@ -20,10 +20,18 @@
 #define DCPLUSPLUS_DCPP_CHAT_MESSAGE_H
 
 #include "forward.h"
+#include "sdk/interfaces/ChatMessage.hpp"
 
 namespace dcpp {
 
-struct ChatMessage {
+struct ChatMessage : public interfaces::ChatMessage {
+	//RSX++
+	ChatMessage() : thirdPerson(false), timestamp(0) { }
+	ChatMessage(const string& _text) : text(_text) { }
+	ChatMessage(const string& _text, const OnlineUserPtr& _from) : text(_text), from(_from), timestamp(0), thirdPerson(false) { }
+	ChatMessage(const string& _text, const OnlineUserPtr& _from, const OnlineUserPtr& _to, const OnlineUserPtr& _replyTo) : 
+		text(_text), from(_from), to(_to), replyTo(_replyTo), timestamp(0), thirdPerson(false) { }
+	//END
 	string text;
 
 	OnlineUserPtr from;
@@ -34,6 +42,21 @@ struct ChatMessage {
 	time_t timestamp;
 
 	string format() const;
+
+	//RSX++ interface impl
+	const char* getText() { return text.c_str(); }
+	void setText(const char* msg) { text = msg; }
+
+	interfaces::OnlineUser* getFrom();
+	interfaces::OnlineUser* getTo();
+	interfaces::OnlineUser* getReplyTo();
+
+	bool getThirdPerson() { return thirdPerson; }
+	void setThirdPerson(bool t) { thirdPerson = t; }
+
+	time_t getTimeStamp() { return timestamp; }
+	void setTimeStamp(time_t ts) { timestamp = ts; }
+	//END
 };
 
 } // namespace dcpp

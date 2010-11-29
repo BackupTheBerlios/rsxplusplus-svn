@@ -247,7 +247,7 @@ void NmdcHub::onLine(const string& aLine) throw() {
 			return;
 		}
 
-		ChatMessage chatMessage = { unescape(message), findUser(nick) };
+		ChatMessage chatMessage(unescape(message), findUser(nick));
 		if(!chatMessage.from) {
 			OnlineUserPtr o = &getUser(nick);
 			// Assume that messages from unknown users come from the hub
@@ -262,8 +262,8 @@ void NmdcHub::onLine(const string& aLine) throw() {
 			chatMessage.thirdPerson = true;
 			chatMessage.text = chatMessage.text.substr(4);
 		}
-
-		fire(ClientListener::Message(), this, chatMessage);
+		if(!handleChatMessage<true>(chatMessage)) //RSX++
+			fire(ClientListener::Message(), this, chatMessage);
 		return;
     }
 
@@ -864,7 +864,7 @@ void NmdcHub::onLine(const string& aLine) throw() {
 		if(fromNick.empty() || param.size() < j + 2)
 			return;
 
-       	ChatMessage message = { unescape(param.substr(j + 2)), findUser(fromNick), &getUser(getMyNick()), findUser(rtNick) };
+       	ChatMessage message(unescape(param.substr(j + 2)), findUser(fromNick), &getUser(getMyNick()), findUser(rtNick));
 
 		if(!message.replyTo || !message.from) {
 			if(!message.replyTo) {
@@ -891,7 +891,7 @@ void NmdcHub::onLine(const string& aLine) throw() {
 			message.thirdPerson = true;
 			message.text = message.text.substr(4);
 		}
-		if(!plugChatMessage(message)) //RSX++
+		if(!handleChatMessage<true>(message)) //RSX++
 			fire(ClientListener::Message(), this, message);
 	} else if(cmd == "GetPass") {
 		OnlineUser& ou = getUser(getMyNick());
@@ -1090,7 +1090,8 @@ void NmdcHub::privateMessage(const OnlineUserPtr& aUser, const string& aMessage,
 	// Emulate a returning message...
 	OnlineUserPtr ou = findUser(getMyNick());
 	if(ou) {
-		ChatMessage message = { aMessage, ou, aUser, ou };
+		ChatMessage message(aMessage, ou, aUser, ou);
+		//if(!handleChatMessage<false>(message)) //RSX++
 		fire(ClientListener::Message(), this, message);
 	}
 }
@@ -1131,8 +1132,7 @@ void NmdcHub::on(Connected) throw() {
 void NmdcHub::on(Line, const string& aLine) throw() {
 	Client::on(Line(), aLine);
 
-	std::string line = toUtf8(aLine); //RSX++
-	if(!plugHubLine(line.c_str(), line.length(), true)) //RSX++
+	if(!handleHubLine<true>(aLine.c_str())) //RSX++
 		onLine(aLine);
 }
 

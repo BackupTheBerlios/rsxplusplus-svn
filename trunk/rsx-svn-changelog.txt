@@ -1,3 +1,13 @@
+** SVN 223 29/11/2010
+ ** fixed getting gui font
+ ** new OO PluginSDK - yeah, again, but this one is the coolest one
+ ** fixes for exception info generation from apex svn
+ ** small fix from dcpp (crash when hub failed to reconnect)
+ ** for svn & debug builds don't delete exceptioninfo.txt
+ ** little code cleanup
+ ** get real system font for splash
+ ** finally fixed never-ending match queue loop
+
 ** SVN 222 xx/08/10
  ** use queue for http downloads
  ** fixed http download

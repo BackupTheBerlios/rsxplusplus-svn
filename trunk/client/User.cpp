@@ -36,6 +36,9 @@
 #include "../rsx/IpManager.h"
 #include "../rsx/Wildcards.h"
 #include "../rsx/RsxUtil.h"
+
+#include "sdk/interfaces/Identity.hpp"
+
 #include "PluginsManager.h"
 //END
 
@@ -128,7 +131,7 @@ string Identity::getTag() const {
 		return get("TA");
 	if(get("VE").empty() || get("HN").empty() || get("HR").empty() || get("HO").empty() || get("SL").empty())
 		return Util::emptyString;
-	return "<" + get("VE") + ",M:" + string(isTcpActive() ? "A" : "P") + ",H:" + get("HN") + "/" +
+	return "<" + get("VE") + ",M:" + string(isTcpActive(0) ? "A" : "P") + ",H:" + get("HN") + "/" +
 		get("HR") + "/" + get("HO") + ",S:" + get("SL") + ">";
 }
 
@@ -529,7 +532,7 @@ bool Identity::isProtectedUser(const Client& c, bool OpBotHubCheck) const {
 }
 //RSX++ //checking stuff
 bool OnlineUser::getChecked(bool filelist/* = false*/, bool checkComplete/* = true*/) {
-	if(!identity.isTcpActive() && !getClient().isActive()) {
+	if(!identity.isTcpActive(0) && !getClient().isActive()) {
 		identity.setClientType("[Passive]");
 		setTestSURComplete();
 		setFileListComplete();
@@ -935,53 +938,16 @@ bool OnlineUser::update(int sortCol, const tstring& oldText) {
 	return needsSort;
 }
 //RSX++
-dcpp_param OnlineUser::userCallFunc(const char* type, dcpp_param p1, dcpp_param p2, dcpp_param p3, int* handled) {
-	*handled = DCPP_TRUE;
-	if(strncmp(type, "User/", 5) == 0) {
-		const char* cmd = type+5;
-		OnlineUser* ou = reinterpret_cast<OnlineUser*>(p1);
-		if(ou) {
-			if(strncmp(cmd, "Identity/", 9) == 0) {
-				Identity& i = ou->getIdentity();
-
-				if(strncmp(cmd+9, "Get/", 4) == 0) {
-					dcppBuffer* buf = reinterpret_cast<dcppBuffer*>(p3);
-					if(!buf) return DCPP_FALSE;
-					string value = i.get(reinterpret_cast<const char*>(p2));
-					return PluginsManager::dcppBuffer_strcpy(value, buf);
-				} else if(strncmp(cmd+9, "Set/", 4) == 0) {
-					i.set(reinterpret_cast<const char*>(p2), reinterpret_cast<const char*>(p3));
-					return DCPP_TRUE;
-				}
-				return DCPP_FALSE;
-			} else if(strncmp(cmd, "GetHubObject", 12) == 0) {
-				if(p2) {
-					*reinterpret_cast<dcpp_param*>(p2) = reinterpret_cast<dcpp_param>(&ou->getClient());
-					return DCPP_TRUE;
-				}
-				return DCPP_FALSE;
-			} else if(strncmp(cmd, "GetCID", 6) == 0) {
-				dcppBuffer* buf = reinterpret_cast<dcppBuffer*>(p2);
-				if(!buf) return DCPP_FALSE;
-				if(p3) {
-					if(buf->size >= CID::SIZE) {
-						memcpy(buf->buf, ou->getUser()->getCID().data(), CID::SIZE);
-						return DCPP_TRUE;
-					}
-					return DCPP_FALSE;
-				} else {
-					std::string cid = ou->getUser()->getCID().toBase32();
-					return PluginsManager::dcppBuffer_strcpy(cid, buf);
-				}
-			} else if(strncmp(cmd, "GetParams", 9) == 0) {
-				//TODO
-			}
-		}
-	}
-	*handled = DCPP_FALSE;
-	return DCPP_FALSE;
+interfaces::Hub* OnlineUser::getHub() { 
+	return static_cast<interfaces::Hub*>(&getClient()); 
 }
 
+const char* Identity::getField(const char* name) const { 
+	FastLock l(cs);
+	InfIter i = info.find(*(short*)name);
+	return i == info.end() ? Util::emptyString.c_str() : i->second.c_str();
+}
+//END
 } // namespace dcpp
 
 /**

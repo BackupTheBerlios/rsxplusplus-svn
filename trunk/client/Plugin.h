@@ -19,22 +19,23 @@
 #ifndef RSXPLUSPLUS_PLUGIN
 #define RSXPLUSPLUS_PLUGIN
 
-#include "sdk/dcpp.h"
+#include "sdk/interfaces/Core.hpp"
+#include "sdk/interfaces/PluginInfo.hpp"
 
 namespace dcpp {
 
 class Plugin {
 public:
-	typedef int (DCPP_CALL_CONV *PluginLoad)(dcppFunctions*);
-	typedef int (DCPP_CALL_CONV *PluginUnload)();
+	typedef int (__stdcall * PluginLoad)(dcpp::interfaces::Core*, void*);
+	typedef int (__stdcall * PluginUnload)();
 
 	Plugin(HINSTANCE h) : handle(h) { }
-	HINSTANCE handle;
 
 	PluginLoad pluginLoad;
 	PluginUnload pluginUnload;
 
-	dcppPluginInformation* info;
+	dcpp::interfaces::PluginInfo* info;
+	HINSTANCE handle;
 };
 
 } // namespace dcpp

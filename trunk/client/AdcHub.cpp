@@ -275,7 +275,7 @@ void AdcHub::handle(AdcCommand::MSG, AdcCommand& c) throw() {
 	if(c.getParameters().empty())
 		return;
 
-	ChatMessage message = { c.getParam(0), findUser(c.getFrom()) };
+	ChatMessage message(c.getParam(0), findUser(c.getFrom()));
 
 	if(!message.from)
 		return;
@@ -295,8 +295,8 @@ void AdcHub::handle(AdcCommand::MSG, AdcCommand& c) throw() {
 
 	if(c.getParam("TS", 1, temp))
 		message.timestamp = Util::toInt64(temp);
-
-	if(!plugChatMessage(message)) //RSX++
+	//RSX++
+	if(!handleChatMessage<true>(message))
 		fire(ClientListener::Message(), this, message);
 }
 
@@ -376,7 +376,7 @@ void AdcHub::handle(AdcCommand::CTM, AdcCommand& c) throw() {
 		return;
 	}
 
-	if(!u->getIdentity().isTcpActive()) {
+	if(!u->getIdentity().isTcpActive(0)) {
 		send(AdcCommand(AdcCommand::SEV_FATAL, AdcCommand::ERROR_PROTOCOL_GENERIC, "IP unknown", AdcCommand::TYPE_DIRECT).setTo(c.getFrom()));
 		return;
 	}
@@ -521,7 +521,7 @@ void AdcHub::handle(AdcCommand::STA, AdcCommand& c) throw() {
 		}
 	}
 
-	ChatMessage message = { c.getParam(1), u };
+	ChatMessage message(c.getParam(1), u);
 	fire(ClientListener::Message(), this, message);
 }
 
@@ -980,7 +980,7 @@ void AdcHub::on(Line l, const string& aLine) throw() {
 		fire(ClientListener::StatusMessage(), this, "<ADC>" + aLine + "</ADC>");
 	}
 
-	if(!plugHubLine(aLine.c_str(), aLine.length(), true)) //RSX++
+	if(!handleHubLine<true>(aLine.c_str())) //RSX++
 		dispatch(aLine);
 }
 

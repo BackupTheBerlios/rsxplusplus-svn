@@ -314,7 +314,10 @@ void PrivateFrame::onEnter()
 			cm.from = ctrlClient.getClient()->findUser(ctrlClient.getClient()->getMyNick());
 			cm.timestamp = time(0);
 			cm.thirdPerson = strncmp("/me ", cm.text.c_str(), 4) == 0;
-			dropMessage = ctrlClient.getClient()->plugChatMessage(cm, false);
+			if(cm.thirdPerson) {
+				cm.text = cm.text.substr(4);
+			}
+			dropMessage = ctrlClient.getClient()->handleChatMessage<false>(cm);
 		}
 		//END
 

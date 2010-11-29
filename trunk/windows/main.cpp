@@ -59,6 +59,9 @@ static bool firstException = true;
 
 static char buf[DEBUG_BUFSIZE];
 
+EXCEPTION_RECORD CurrExceptionRecord;
+CONTEXT CurrContext;
+
 #ifndef _DEBUG
 
 FARPROC WINAPI FailHook(unsigned /* dliNotify */, PDelayLoadInfo  pdli) {
@@ -75,28 +78,48 @@ FARPROC WINAPI FailHook(unsigned /* dliNotify */, PDelayLoadInfo  pdli) {
 string getExceptionName(DWORD code) {
 	switch(code)
     { 
-		case EXCEPTION_ACCESS_VIOLATION:      return "Access violation"; break; 
-		case EXCEPTION_ARRAY_BOUNDS_EXCEEDED:   return "Array out of range"; break; 
-		case EXCEPTION_BREAKPOINT:            return "Breakpoint"; break; 
-		case EXCEPTION_DATATYPE_MISALIGNMENT:   return "Read or write error"; break; 
-		case EXCEPTION_FLT_DENORMAL_OPERAND:   return "Floating-point error"; break; 
-		case EXCEPTION_FLT_DIVIDE_BY_ZERO:      return "Floating-point division by zero"; break; 
-		case EXCEPTION_FLT_INEXACT_RESULT:      return "Floating-point inexact result"; break; 
-		case EXCEPTION_FLT_INVALID_OPERATION:   return "Unknown floating-point error"; break; 
-		case EXCEPTION_FLT_OVERFLOW:         return "Floating-point overflow"; break; 
-		case EXCEPTION_FLT_STACK_CHECK:         return "Floating-point operation caused stack overflow"; break; 
-		case EXCEPTION_FLT_UNDERFLOW:         return "Floating-point underflow"; break; 
-		case EXCEPTION_ILLEGAL_INSTRUCTION:      return "Illegal instruction"; break; 
-		case EXCEPTION_IN_PAGE_ERROR:         return "Page error"; break; 
-		case EXCEPTION_INT_DIVIDE_BY_ZERO:      return "Integer division by zero"; break; 
-		case EXCEPTION_INT_OVERFLOW:         return "Integer overflow"; break; 
-		case EXCEPTION_INVALID_DISPOSITION:      return "Invalid disposition"; break; 
-		case EXCEPTION_NONCONTINUABLE_EXCEPTION:return "Noncontinueable exception"; break; 
-		case EXCEPTION_PRIV_INSTRUCTION:      return "Invalid instruction"; break; 
-		case EXCEPTION_SINGLE_STEP:            return "Single step executed"; break; 
-		case EXCEPTION_STACK_OVERFLOW:         return "Stack overflow"; break; 
+		case EXCEPTION_ACCESS_VIOLATION:
+			return "Access violation"; break; 
+		case EXCEPTION_ARRAY_BOUNDS_EXCEEDED:
+			return "Array out of range"; break; 
+		case EXCEPTION_BREAKPOINT:
+			return "Breakpoint"; break; 
+		case EXCEPTION_DATATYPE_MISALIGNMENT:
+			return "Read or write error"; break; 
+		case EXCEPTION_FLT_DENORMAL_OPERAND:
+			return "Floating-point error"; break; 
+		case EXCEPTION_FLT_DIVIDE_BY_ZERO:
+			return "Floating-point division by zero"; break; 
+		case EXCEPTION_FLT_INEXACT_RESULT:
+			return "Floating-point inexact result"; break; 
+		case EXCEPTION_FLT_INVALID_OPERATION:
+			return "Unknown floating-point error"; break; 
+		case EXCEPTION_FLT_OVERFLOW:
+			return "Floating-point overflow"; break; 
+		case EXCEPTION_FLT_STACK_CHECK:
+			return "Floating-point operation caused stack overflow"; break; 
+		case EXCEPTION_FLT_UNDERFLOW:
+			return "Floating-point underflow"; break; 
+		case EXCEPTION_ILLEGAL_INSTRUCTION:
+			return "Illegal instruction"; break; 
+		case EXCEPTION_IN_PAGE_ERROR:
+			return "Page error"; break; 
+		case EXCEPTION_INT_DIVIDE_BY_ZERO:
+			return "Integer division by zero"; break; 
+		case EXCEPTION_INT_OVERFLOW:
+			return "Integer overflow"; break; 
+		case EXCEPTION_INVALID_DISPOSITION:
+			return "Invalid disposition"; break; 
+		case EXCEPTION_NONCONTINUABLE_EXCEPTION:
+			return "Noncontinueable exception"; break; 
+		case EXCEPTION_PRIV_INSTRUCTION:
+			return "Invalid instruction"; break; 
+		case EXCEPTION_SINGLE_STEP:
+			return "Single step executed"; break; 
+		case EXCEPTION_STACK_OVERFLOW:
+			return "Stack overflow"; break; 
 	}
-	return "";
+	return "Unknown";
 }
 
 LONG __stdcall DCUnhandledExceptionFilter( LPEXCEPTION_POINTERS e )
@@ -120,10 +143,12 @@ LONG __stdcall DCUnhandledExceptionFilter( LPEXCEPTION_POINTERS e )
 
 #endif
 
+#if !defined(SVNBUILD) && !defined(_DEBUG) //RSX++
 	if(firstException) {
 		File::deleteFile(Util::getPath(Util::PATH_RESOURCES) + "exceptioninfo.txt");
 		firstException = false;
 	}
+#endif
 
 	if(File::getSize(Util::getPath(Util::PATH_RESOURCES) + "RSXPlusPlus.pdb") == -1) {
 		// No debug symbols, we're not interested...
@@ -135,13 +160,12 @@ LONG __stdcall DCUnhandledExceptionFilter( LPEXCEPTION_POINTERS e )
 #endif
 	}
 
-	File f(Util::getPath(Util::PATH_RESOURCES) + "exceptioninfo.txt", File::WRITE, File::OPEN | File::CREATE);
+	File f(Util::getPath(Util::PATH_RESOURCES) + "exceptioninfo.txt", File::RW, File::OPEN | File::CREATE);
 	f.setEndPos(0);
-	
-	DWORD exceptionCode = e->ExceptionRecord->ExceptionCode ;
 
-	sprintf(buf, "Code: %x\r\nVersion: %s\r\nException code: %s\r\n", 
-		exceptionCode, VERSIONSTRING, getExceptionName(exceptionCode).c_str());
+	DWORD exceptionCode = e->ExceptionRecord->ExceptionCode;
+	sprintf(buf, "Code: %x (%s)\r\nVersion: %s (%s)\r\n", 
+		exceptionCode, getExceptionName(exceptionCode).c_str(), VERSIONSTRING, __DATE__);
 
 	f.write(buf, strlen(buf));
 #ifdef SVNBUILD
@@ -163,26 +187,19 @@ LONG __stdcall DCUnhandledExceptionFilter( LPEXCEPTION_POINTERS e )
 		);
 
 	f.write(buf, strlen(buf));
+
 	time_t now;
 	time(&now);
 	strftime(buf, DEBUG_BUFSIZE, "Time: %Y-%m-%d %H:%M:%S\r\n", localtime(&now));
-
 	f.write(buf, strlen(buf));
 
 	f.write(LIT("TTH: "));
 	f.write(tth, strlen(tth));
-	f.write(LIT("\r\n"));
+	f.write(LIT("\r\n\r\n"));
 
-    f.write(LIT("\r\n"));
-    
-#ifndef _WIN64   
-	STACKTRACE2(f, e->ContextRecord->Eip, e->ContextRecord->Esp, e->ContextRecord->Ebp);
-#else
-	STACKTRACE2(f, e->ContextRecord->Rip, e->ContextRecord->Rsp, e->ContextRecord->Rbp);
-#endif
+	STACKTRACE(f, e->ContextRecord);
 
 	f.write(LIT("\r\n"));
-
 	f.close();
 
 	if ((!SETTING(SOUND_EXC).empty()) && (!BOOLSETTING(SOUNDS_DISABLED)))
@@ -206,7 +223,7 @@ LONG __stdcall DCUnhandledExceptionFilter( LPEXCEPTION_POINTERS e )
 #ifndef _DEBUG
 	EXTENDEDTRACEUNINITIALIZE();
 	
-	exit(-1);
+	ExitProcess(1);
 #else
 	return EXCEPTION_CONTINUE_SEARCH;
 #endif
@@ -299,39 +316,47 @@ LRESULT CALLBACK splashCallback(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 		hi.LoadFromResource(IDP_RSX_SPLASH, _T("PNG"), _Module.get_m_hInst());
 
 		HDC comp=CreateCompatibleDC(dc);
-		SelectObject(comp,hi);	
+		SelectObject(comp, hi);	
 
-		BitBlt(dc,0, 0 , 480, 150,comp,0,0,SRCCOPY);
+		BitBlt(dc, 0, 0, 480, 150, comp, 0, 0, SRCCOPY);
 
 		DeleteObject(hi);
 		DeleteObject(comp);
 		LOGFONT logFont;
 		HFONT hFont;
-		GetObject(GetStockObject(DEFAULT_GUI_FONT), sizeof(logFont), &logFont);
-		lstrcpy(logFont.lfFaceName, TEXT("Tahoma"));
+		//GetObject(GetStockObject(DEFAULT_GUI_FONT), sizeof(logFont), &logFont);
+		//RSX++
+		{
+			NONCLIENTMETRICS ncm = { sizeof(NONCLIENTMETRICS), 0 };
+			SystemParametersInfo(SPI_GETNONCLIENTMETRICS, sizeof(ncm), &ncm, 0);
+			logFont = ncm.lfMessageFont;
+		}
+		//END
+		//lstrcpy(logFont.lfFaceName, TEXT("Tahoma"));
 		logFont.lfHeight = 13;
 		logFont.lfWeight = 700;
 		hFont = CreateFontIndirect(&logFont);		
 		SelectObject(dc, hFont);
-		::SetTextColor(dc, RGB(255,255,255));
-		::DrawText(dc, sTitle.c_str(), _tcslen(sTitle.c_str()), &rc2, DT_RIGHT);
-		DeleteObject(hFont);
+		SetTextColor(dc, RGB(255, 255, 255));
+		DrawText(dc, sTitle.c_str(), _tcslen(sTitle.c_str()), &rc2, DT_RIGHT);
+		//DeleteObject(hFont);
 
 		if(!sText.empty()) {
 			rc2 = rc;
 			rc2.top = rc2.bottom - 15;
 			rc2.right = rc2.right - 10;
 
-			GetObject(GetStockObject(DEFAULT_GUI_FONT), sizeof(logFont), &logFont);
+			/*GetObject(GetStockObject(DEFAULT_GUI_FONT), sizeof(logFont), &logFont);
 			lstrcpy(logFont.lfFaceName, TEXT("Tahoma"));
 			logFont.lfHeight = 13;
 			logFont.lfWeight = 700;
-			hFont = CreateFontIndirect(&logFont);		
-			SelectObject(dc, hFont);
-			::SetTextColor(dc, RGB(255,255,255));
-			::DrawText(dc, sText.c_str(), _tcslen(sText.c_str()), &rc2, DT_RIGHT);
-			DeleteObject(hFont);
+			hFont = CreateFontIndirect(&logFont);*/
+			//SelectObject(dc, hFont);
+			//SetTextColor(dc, RGB(255, 255, 255));
+			DrawText(dc, sText.c_str(), _tcslen(sText.c_str()), &rc2, DT_RIGHT);
+			//DeleteObject(hFont);
 		}
+		DeleteObject(hFont);
 
 		ReleaseDC(hwnd, dc);
 	}

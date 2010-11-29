@@ -21,17 +21,22 @@
 
 #include "Singleton.h"
 #include "TimerManager.h"
-#include "PluginSpeaker.hpp"
 #include "Thread.h"
 #include "Socket.h"
+#include "Client.h"
+#include "ClientManagerListener.h"
+#include "SettingsManager.h"
 
-#include "sdk/dcpp.h"
+#include "sdk/interfaces/PluginInfo.hpp"
+#include "sdk/interfaces/Core.hpp"
 
 namespace dcpp {
 class Plugin;
 class Exception;
 
-class PluginsManager : public Singleton<PluginsManager>, public TimerManagerListener {
+class PluginsManager : public Singleton<PluginsManager>, private TimerManagerListener, private SettingsManagerListener,
+	protected interfaces::Core, protected interfaces::Memory, protected interfaces::Utils
+{
 public:
 	PluginsManager();
 	~PluginsManager();
@@ -44,67 +49,90 @@ public:
 	void load();
 	void close();
 
-	void getPluginsInfo(std::list<dcppPluginInformation*>& p);
+	void getPluginsInfo(std::list<dcpp::interfaces::PluginInfo*>& p);
 
-	PluginSpeaker& getSpeaker() { return speaker; }
+	void eventUserConnectionCreated(UserConnection* uc);
+	void eventUserConnectionDestroyed(UserConnection* uc);
 
-	static dcpp_param dcppBuffer_strcpy(const string& str, dcppBuffer* buf);
 private:
 	typedef std::list<Plugin*> Plugins;
 
 	void loadPlugin(Plugin*& p, HMODULE dll) throw(Exception);
-
-	dcppFunctions* dcpp_func;
-	CriticalSection cs;
-	PluginSpeaker speaker;
-	Plugins plugins;
-
-	Socket udp;
-
-	static dcpp_param DCPP_CALL_CONV coreCallFunc(const char* type, dcpp_param p1, dcpp_param p2, dcpp_param p3, int* handled);
-
-	// functions to manage caller/speaker/listener system
-	static dcpp_param DCPP_CALL_CONV callFunc(const char* type, dcpp_param p1, dcpp_param p2, dcpp_param p3) {
-		return PluginsManager::getInstance()->getSpeaker().call(type, p1, p2, p3);
-	}
-
-	static int DCPP_CALL_CONV addCaller(dcppCallFunc fn) {
-		return PluginsManager::getInstance()->getSpeaker().addCaller(fn) ? DCPP_TRUE : DCPP_FALSE;
-	}
-	static int DCPP_CALL_CONV removeCaller(dcppCallFunc fn) {
-		return PluginsManager::getInstance()->getSpeaker().removeCaller(fn) ? DCPP_TRUE : DCPP_FALSE;
-	}
-	static dcpp_param DCPP_CALL_CONV call(const char* type, dcpp_param p1, dcpp_param p2, dcpp_param p3) {
-		return PluginsManager::getInstance()->getSpeaker().call(type, p1, p2, p3);
-	}
-
-	static int DCPP_CALL_CONV addSpeaker(const char* type) {
-		return PluginsManager::getInstance()->getSpeaker().addSpeaker(string(type), false) ? DCPP_TRUE : DCPP_FALSE;
-	}
-
-	static int DCPP_CALL_CONV removeSpeaker(const char* type) {
-		return PluginsManager::getInstance()->getSpeaker().removeSpeaker(string(type)) ? DCPP_TRUE : DCPP_FALSE;
-	}
-
-	static int DCPP_CALL_CONV isSpeaker(const char* type) {
-		return PluginsManager::getInstance()->getSpeaker().isSpeaker(string(type)) ? DCPP_TRUE : DCPP_FALSE;
-	}
-
-	static int DCPP_CALL_CONV addListener(const char* type, dcppListenerFunc fn, void* userData) {
-		return PluginsManager::getInstance()->getSpeaker().addListener(string(type), fn, userData) ? DCPP_TRUE : DCPP_FALSE;
-	}
-
-	static int DCPP_CALL_CONV removeListener(const char* type, dcppListenerFunc fn) {
-		return PluginsManager::getInstance()->getSpeaker().removeListener(string(type), fn) ? DCPP_TRUE : DCPP_FALSE;
-	}
-
-	static int DCPP_CALL_CONV speak(const char* type, int callReason, dcpp_param param1, dcpp_param param2) {
-		return PluginsManager::getInstance()->getSpeaker().speak(string(type), callReason, param1, param2);
-	}
-
 	void on(TimerManagerListener::Second, uint64_t /*tick*/) throw();
 	void on(TimerManagerListener::Minute, uint64_t /*tick*/) throw();
+	void on(SettingsManagerListener::Load, SimpleXML&) throw();
+	void on(SettingsManagerListener::Save, SimpleXML&) throw();
+
+	CriticalSection cs;
+	Plugins plugins;
+	//Socket udp;
+
+	class ProxyClientManagerListener : public ClientManagerListener {
+	public:
+		ProxyClientManagerListener(interfaces::HubManagerListener* _i) : i(_i) { }
+		interfaces::HubManagerListener* i;
+	private:
+		void on(ClientManagerListener::UserUpdated, const OnlineUser& ou) throw() {
+			i->onHubManager_UserUpdated(const_cast<OnlineUser*>(&ou));
+		}
+		void on(ClientManagerListener::ClientConnected, const Client* c) throw() {
+			i->onHubManager_HubConnected(const_cast<Client*>(c));
+		}
+		void on(ClientManagerListener::ClientUpdated, const Client* c) throw() { 
+			i->onHubManager_HubUpdated(const_cast<Client*>(c));
+		}
+		void on(ClientManagerListener::ClientDisconnected, const Client* c) throw() { 
+			i->onHubManager_HubDisconnected(const_cast<Client*>(c));
+		}
+	};
+
+	typedef std::deque<ProxyClientManagerListener*> ProxyClientManagerSet;
+	typedef std::deque<interfaces::ConnectionManagerListener*> CMInterfacesSet;
+
+	ProxyClientManagerSet cmSet;
+	CMInterfacesSet ucSet;
+
+	// core
+	void log(const char* msg);
+	void addEventListener(interfaces::HubManagerListener* listener);
+	void addEventListener(interfaces::ConnectionManagerListener* listener);
+
+	void remEventListener(interfaces::HubManagerListener* listener);
+	void remEventListener(interfaces::ConnectionManagerListener* listener);
+
+	const char* getPluginSetting(const char* key);
+	void setPluginSetting(const char* key, const char* value);
+
+	interfaces::Memory* getMemoryManager() { return this; }
+	interfaces::Utils* getUtils() { return this; }
+
+	// memory
+	char* alloc(size_t size);
+	void free(char* data);
+	interfaces::string* getString(const char* buf = 0);
+	void putString(interfaces::string* str);
+	interfaces::stringList* getStringList(size_t size = 0);
+	void putStringList(interfaces::stringList* list);
+	interfaces::stringMap* getStringMap();
+	void putStringMap(interfaces::stringMap* map);
+	interfaces::AdcCommand* getAdcCommand(uint32_t command);
+	interfaces::AdcCommand* getAdcCommand(uint32_t command, const uint32_t target, char type);
+	interfaces::AdcCommand* getAdcCommand(const char* str, bool nmdc);
+	void putAdcCommand(interfaces::AdcCommand* command);
+
+	// utils
+	interfaces::string* formatParams(const char* format, interfaces::stringMap* params);
+	interfaces::string* convertFromWideToUtf8(const wchar_t* str);
+	interfaces::string* convertFromWideToAcp(const wchar_t* str);
+	interfaces::string* convertFromAcpToUtf8(const char* str);
+	interfaces::string* convertFromUtf8ToAcp(const char* str);
+	uint32_t toSID(const char* sid);
+	interfaces::string* fromSID(uint32_t sid);
+	uint32_t toFourCC(const char* cc);
+	interfaces::string* fromFourCC(uint32_t cc);
+
 };
+
 } // namespace dcpp
 
 #endif

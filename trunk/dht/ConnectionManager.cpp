@@ -111,7 +111,7 @@ namespace dht
 			return;
 		}
 
-		if(!node->getIdentity().isTcpActive()) 
+		if(!node->getIdentity().isTcpActive(0)) 
 		{
 			AdcCommand err(AdcCommand::SEV_FATAL, AdcCommand::ERROR_PROTOCOL_GENERIC, "IP unknown", AdcCommand::TYPE_UDP);
 			DHT::getInstance()->send(err, node->getIdentity().getIp(), static_cast<uint16_t>(Util::toInt(node->getIdentity().getUdpPort())), 

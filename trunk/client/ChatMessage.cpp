@@ -51,5 +51,18 @@ string ChatMessage::format() const {
 
 	return Text::toDOS(tmp);
 }
+//RSX++
+interfaces::OnlineUser* ChatMessage::getFrom() {
+	return from.get();
+}
+
+interfaces::OnlineUser* ChatMessage::getTo() {
+	return to.get();
+}
+
+interfaces::OnlineUser* ChatMessage::getReplyTo() {
+	return replyTo.get();
+}
+//END
 
 } // namespace dcpp

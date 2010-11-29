@@ -16,13 +16,32 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef DCPP_RAW_COMMAND_H
-#define DCPP_RAW_COMMAND_H
+#ifndef DCPP_INTERFACE_USER_HPP
+#define DCPP_INTERFACE_USER_HPP
 
+#include "RefInterface.hpp"
+
+namespace dcpp {
+	namespace interfaces {
+		class string;
+		class Hub;
+		class Identity;
+
+		class OnlineUser {
+		public:
+			virtual dcpp::interfaces::Identity* getUserIdentity() = 0;
+			virtual dcpp::interfaces::Hub* getHub() = 0;
+
+			// memory managment
+			virtual void refIncrement() = 0;
+			virtual void refDecrement() = 0;
+			virtual bool isUnique() = 0;
+		};
+
+		typedef RefInterface<dcpp::interfaces::OnlineUser> RefOnlineUser;
+
+	} // namespace interfaces
+} // namespace dcpp
 
 #endif
 
-/**
- * @file
- * $Id: rawCommand.h 213 2010-04-19 21:12:30Z adrian_007 $
- */

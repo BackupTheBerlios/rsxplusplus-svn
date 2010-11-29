@@ -30,13 +30,14 @@
 #include "MerkleTree.h"
 #include "DebugManager.h"
 #include "ClientManager.h"
-#include "sdk/dcpp.h" //RSX++
+
+#include "sdk/interfaces/UserConnection.hpp"
 
 namespace dcpp {
 
 class UserConnection : public Speaker<UserConnectionListener>, 
 	private BufferedSocketListener, public Flags, private CommandHandler<UserConnection>,
-	private boost::noncopyable
+	private boost::noncopyable, public interfaces::UserConnection
 {
 public:
 	friend class ConnectionManager;
@@ -180,7 +181,12 @@ public:
 	void handle(AdcCommand::GFI t, const AdcCommand& c) { fire(t, this, c);	}
 
 	// Ignore any other ADC commands for now
-	template<typename T> void handle(T , const AdcCommand& ) { }
+	//template<typename T> void handle(T , const AdcCommand& ) { }
+	//RSX++ or pass it to plugins :)
+	template<typename T> void handle(T , const AdcCommand& cmd) {
+		plugins.handleAdcCommand(this, cmd);
+	}
+	//END
 
 	int64_t getChunkSize() const { return chunkSize; }
 	void updateChunkSize(int64_t leafSize, int64_t lastChunk, uint64_t ticks);
@@ -207,7 +213,7 @@ private:
 		Download* download;
 		Upload* upload;
 	};
-
+	/* RSX++ - moved to .cpp
 	// We only want ConnectionManager to create this...
 	UserConnection(bool secure_) throw() : encoding(const_cast<string*>(&Text::systemCharset)), state(STATE_UNCONNECTED),
 		lastActivity(0), speed(0), chunkSize(0), socket(0), download(NULL), slotType(NOSLOT) {
@@ -220,12 +226,202 @@ private:
 		BufferedSocket::putSocket(socket);
 		dcassert(!download);
 	}
+	*/
+	UserConnection(bool secure_) throw();
+	~UserConnection() throw();
+	//END
 
 	friend struct DeleteFunction;
 	//RSX++
-	friend class PluginsManager;
-	static dcpp_param DCPP_CALL_CONV ucCallFunc(const char* type, dcpp_param p1, dcpp_param p2, dcpp_param p3, int* handled);
-	bool plugLine(const std::string& line, bool incoming);
+	class ProxyListener : public UserConnectionListener {
+	public:
+		void addListener(interfaces::UserConnectionListener* listener) {
+			Lock l(cs);
+			for(Listeners::iterator i = ls.begin(); i != ls.end(); ++i) {
+				if(*i == listener)
+					return;
+			}
+			ls.push_back(listener);
+		}
+
+		void remListener(interfaces::UserConnectionListener* listener) {
+			Lock l(cs);
+			for(Listeners::iterator i = ls.begin(); i != ls.end(); ++i) {
+				if(*i == listener) {
+					ls.erase(i);
+					break;
+				}
+			}
+		}
+
+	private:
+		friend class UserConnection;
+		typedef std::deque<interfaces::UserConnectionListener*> Listeners;
+
+		template<bool incoming>
+		bool handleLine(UserConnection* uc, const char* line) {
+			bool handled = false;
+			Lock l(cs);
+			for(Listeners::iterator i = ls.begin(); i != ls.end(); ++i) {
+				if(incoming) {
+					(*i)->onUserConnection_IncomingLine(uc, line, handled);
+				} else {
+					(*i)->onUserConnection_OutgoingLine(uc, line, handled);
+				}
+			}
+			return handled;
+		}
+
+		Listeners ls;
+		CriticalSection cs;
+
+		void on(UserConnectionListener::BytesSent, UserConnection* uc, size_t n1, size_t n2) throw() {
+			Lock l(cs);
+			for(Listeners::iterator i = ls.begin(); i != ls.end(); ++i) {
+				(*i)->onUserConnection_BytesSent(uc, n1, n2);
+			}
+		}
+		void on(UserConnectionListener::Connected, UserConnection* uc) throw() {
+			Lock l(cs);
+			for(Listeners::iterator i = ls.begin(); i != ls.end(); ++i) {
+				(*i)->onUserConnection_Connected(uc);
+			}
+		}
+		void on(UserConnectionListener::Data, UserConnection* uc, const uint8_t* data, size_t len) throw() {
+			Lock l(cs);
+			for(Listeners::iterator i = ls.begin(); i != ls.end(); ++i) {
+				(*i)->onUserConnection_Data(uc, data, len);
+			}
+		}
+		void on(UserConnectionListener::Failed, UserConnection* uc, const string& r) throw() {
+			Lock l(cs);
+			for(Listeners::iterator i = ls.begin(); i != ls.end(); ++i) {
+				(*i)->onUserConnection_Failed(uc, r.c_str());
+			}
+		}
+		void on(UserConnectionListener::CLock, UserConnection* uc, const string& r, const string& s) throw() {
+			Lock l(cs);
+			for(Listeners::iterator i = ls.begin(); i != ls.end(); ++i) {
+				(*i)->onUserConnection_CLock(uc, r.c_str(), s.c_str());
+			}
+		}
+		void on(UserConnectionListener::Key, UserConnection* uc, const string& key) throw() {
+			Lock l(cs);
+			for(Listeners::iterator i = ls.begin(); i != ls.end(); ++i) {
+				(*i)->onUserConnection_Key(uc, key.c_str());
+			}
+		}
+		void on(UserConnectionListener::Direction, UserConnection* uc, const string& r, const string& s) throw() {
+			Lock l(cs);
+			for(Listeners::iterator i = ls.begin(); i != ls.end(); ++i) {
+				(*i)->onUserConnection_Direction(uc, r.c_str(), s.c_str());
+			}
+		}
+		void on(UserConnectionListener::Get, UserConnection* uc, const string& s, int64_t n) throw() {
+			Lock l(cs);
+			for(Listeners::iterator i = ls.begin(); i != ls.end(); ++i) {
+				(*i)->onUserConnection_Get(uc, s.c_str(), n);
+			}
+		}
+		void on(UserConnectionListener::Send, UserConnection* uc) throw() {
+			Lock l(cs);
+			for(Listeners::iterator i = ls.begin(); i != ls.end(); ++i) {
+				(*i)->onUserConnection_Send(uc);
+			}
+		}
+		/*void on(UserConnectionListener::GetListLength, UserConnection* uc) throw() {
+			Lock l(cs);
+			for(Listeners::iterator i = ls.begin(); i != ls.end(); ++i) {
+			
+			}
+		}*/
+		void on(UserConnectionListener::MaxedOut, UserConnection* uc, string param = Util::emptyString) throw() {
+			Lock l(cs);
+			for(Listeners::iterator i = ls.begin(); i != ls.end(); ++i) {
+				(*i)->onUserConnection_MaxedOut(uc, param.empty() ? 0 : param.c_str());
+			}
+		}
+		void on(UserConnectionListener::ModeChange, UserConnection* uc) throw() {
+			Lock l(cs);
+			for(Listeners::iterator i = ls.begin(); i != ls.end(); ++i) {
+				(*i)->onUserConnection_ModeChange(uc);
+			}
+		}
+		void on(UserConnectionListener::MyNick, UserConnection* uc, const string& nick) throw() {
+			Lock l(cs);
+			for(Listeners::iterator i = ls.begin(); i != ls.end(); ++i) {
+				(*i)->onUserConnection_MyNick(uc, nick.c_str());
+			}
+		}
+		void on(UserConnectionListener::TransmitDone, UserConnection* uc) throw() {
+			Lock l(cs);
+			for(Listeners::iterator i = ls.begin(); i != ls.end(); ++i) {
+				(*i)->onUserConnection_TransmitDone(uc);
+			}
+		}
+		void on(UserConnectionListener::Supports, UserConnection* uc, const StringList& list) throw() {
+			Lock l(cs);
+			for(Listeners::iterator i = ls.begin(); i != ls.end(); ++i) {
+				(*i)->onUserConnection_Supports(uc, 0); //todo
+			}
+		}
+		void on(UserConnectionListener::FileNotAvailable, UserConnection* uc) throw() { 
+			Lock l(cs);
+			for(Listeners::iterator i = ls.begin(); i != ls.end(); ++i) {
+				(*i)->onUserConnection_FileNotAvailable(uc);
+			}
+		}
+		void on(UserConnectionListener::Updated, UserConnection* uc) throw() { 
+			Lock l(cs);
+			for(Listeners::iterator i = ls.begin(); i != ls.end(); ++i) {
+				(*i)->onUserConnection_Updated(uc);
+			}
+		}
+		/*void on(UserConnectionListener::ListLength, UserConnection* uc, const string&) throw() { 
+			Lock l(cs);
+			for(Listeners::iterator i = ls.begin(); i != ls.end(); ++i) {
+
+			}
+		}*/
+
+		void on(AdcCommand::SUP, UserConnection* uc, const AdcCommand& cmd) throw() { 
+			handleAdcCommand(uc, cmd);
+		}
+		void on(AdcCommand::INF, UserConnection* uc, const AdcCommand& cmd) throw() { 
+			handleAdcCommand(uc, cmd);
+		}
+		void on(AdcCommand::GET, UserConnection* uc, const AdcCommand& cmd) throw() { 
+			handleAdcCommand(uc, cmd);
+		}
+		void on(AdcCommand::SND, UserConnection* uc, const AdcCommand& cmd) throw() { 
+			handleAdcCommand(uc, cmd);
+		}
+		void on(AdcCommand::STA, UserConnection* uc, const AdcCommand& cmd) throw() { 
+			handleAdcCommand(uc, cmd);
+		}
+		void on(AdcCommand::RES, UserConnection* uc, const AdcCommand& cmd) throw() { 
+			handleAdcCommand(uc, cmd);
+		}
+		void on(AdcCommand::GFI, UserConnection* uc, const AdcCommand& cmd) throw() { 
+			handleAdcCommand(uc, cmd);
+		}
+
+		void handleAdcCommand(UserConnection* uc, const AdcCommand& cmd) throw();
+	}plugins;
+
+	void sendData(const void* data, size_t len) { send(std::string((const char*)data, len), false); }
+	void sendLine(const char* line) { send(line, false); }
+
+	void addEventListener(interfaces::UserConnectionListener* listener) {
+		plugins.addListener(listener);
+	}
+	void remEventListener(interfaces::UserConnectionListener* listener) {
+		plugins.remListener(listener);
+	}
+
+	void setFlags(int flags) { setFlag(flags); }
+	bool isFlagSet(int flag) { return isSet(flag); }
+	bool isAnyFlagSet(int flags) { return isAnySet(flags); }
 	//END
 
 	void setUser(const UserPtr& aUser) {
@@ -237,7 +433,10 @@ private:
 	void send(const string& aString, bool ext = true) {
 		lastActivity = GET_TICK();
 		COMMAND_DEBUG(aString, DebugManager::CLIENT_OUT, getRemoteIp());
-		if(ext && plugLine(aString, false)) return; //RSX++
+		//RSX++
+		if(ext && plugins.handleLine<false>(this, aString.c_str())) 
+			return;
+		//END
 		socket->write(aString);
 	}
 

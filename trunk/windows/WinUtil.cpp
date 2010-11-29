@@ -520,7 +520,14 @@ void WinUtil::init(HWND hWnd) {
 		ResourceLoader::LoadImageList(Text::toT(SETTING(USERLIST_IMAGE)).c_str(), userImages, 16, 16);
 	
 	LOGFONT lf, lf2;
-	::GetObject((HFONT)GetStockObject(DEFAULT_GUI_FONT), sizeof(lf), &lf);
+	
+	//RSX++ - get real gui font
+	//::GetObject((HFONT)GetStockObject(DEFAULT_GUI_FONT), sizeof(lf), &lf);
+	NONCLIENTMETRICS ncm = { sizeof(NONCLIENTMETRICS), 0 };
+	SystemParametersInfo(SPI_GETNONCLIENTMETRICS, sizeof(ncm), &ncm, 0);
+	lf = ncm.lfMessageFont;
+	//END
+
 	SettingsManager::getInstance()->setDefault(SettingsManager::TEXT_FONT, Text::fromT(encodeFont(lf)));
 	decodeFont(Text::toT(SETTING(TEXT_FONT)), lf);
 	::GetObject((HFONT)GetStockObject(ANSI_FIXED_FONT), sizeof(lf2), &lf2);
@@ -539,7 +546,7 @@ void WinUtil::init(HWND hWnd) {
 	lf.lfHeight *= 5;
 	lf.lfHeight /= 6;
 	smallBoldFont = ::CreateFontIndirect(&lf);
-	systemFont = (HFONT)::GetStockObject(DEFAULT_GUI_FONT);
+	systemFont = ::CreateFontIndirect(&ncm.lfMessageFont); //(HFONT)::GetStockObject(DEFAULT_GUI_FONT); //RSX++
 
 	if(BOOLSETTING(URL_HANDLER)) {
 		registerDchubHandler();

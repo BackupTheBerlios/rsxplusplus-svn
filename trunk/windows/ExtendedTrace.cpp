@@ -28,7 +28,7 @@
 #include "ExtendedTrace.h"
 
 #define BUFFERSIZE		0x200
-#define LIBCOUNT		46
+#define LIBCOUNT		47
 
 TCHAR* crashLibs[LIBCOUNT][2] = {
 	{ L"Vlsp", L"V-One Smartpass" },
@@ -76,7 +76,8 @@ TCHAR* crashLibs[LIBCOUNT][2] = {
 	{ L"ftp34", L"Troj/Agent-GZF" },
 	{ L"imonlsp", L"Internet Monitor Layered Service provider" },
 	{ L"McVSSkt", L"McAfee VirusScan Winsock Helper" },
-	{ L"adguard", L"Sir AdGuard" }
+	{ L"adguard", L"Sir AdGuard" },
+	{ L"msjetoledb40", L"Microsoft Jet 4.0" }
 };
 
 static void checkBuggyLibrary(PCSTR library) {
@@ -118,47 +119,51 @@ void PCSTR2LPTSTR( PCSTR lpszIn, LPTSTR lpszOut )
 // Let's figure out the path for the symbol files
 // Search path= ".;%_NT_SYMBOL_PATH%;%_NT_ALTERNATE_SYMBOL_PATH%;%SYSTEMROOT%;%SYSTEMROOT%\System32;" + lpszIniPath
 // Note: There is no size check for lpszSymbolPath!
-static void InitSymbolPath( PSTR lpszSymbolPath, PCSTR lpszIniPath )
+static void UpdateSymbolPath( PCSTR lpszIniPath )
 {
+	CHAR lpszSymbolPath[BUFFERSIZE*2];
 	CHAR lpszPath[BUFFERSIZE];
 
-   // Creating the default path
-   // ".;%_NT_SYMBOL_PATH%;%_NT_ALTERNATE_SYMBOL_PATH%;%SYSTEMROOT%;%SYSTEMROOT%\System32;"
-	strcpy( lpszSymbolPath, "." );
+	::ZeroMemory( lpszSymbolPath, BUFFERSIZE*2 );
+	::ZeroMemory( lpszPath, BUFFERSIZE );
 
-	// environment variable _NT_SYMBOL_PATH
+	strcat(lpszSymbolPath, Util::getFilePath(WinUtil::getAppName()).c_str());
+
+	// _NT_SYMBOL_PATH
 	if ( GetEnvironmentVariableA( "_NT_SYMBOL_PATH", lpszPath, BUFFERSIZE ) )
 	{
-	   strcat( lpszSymbolPath, ";" );
+		strcat( lpszSymbolPath, ";" );
 		strcat( lpszSymbolPath, lpszPath );
 	}
 
-	// environment variable _NT_ALTERNATE_SYMBOL_PATH
+	// _NT_ALTERNATE_SYMBOL_PATH
 	if ( GetEnvironmentVariableA( "_NT_ALTERNATE_SYMBOL_PATH", lpszPath, BUFFERSIZE ) )
 	{
-	   strcat( lpszSymbolPath, ";" );
+		strcat( lpszSymbolPath, ";" );
 		strcat( lpszSymbolPath, lpszPath );
 	}
 
-	// environment variable SYSTEMROOT
+	// SYSTEMROOT & SYSTEMROOT\System32
 	if ( GetEnvironmentVariableA( "SYSTEMROOT", lpszPath, BUFFERSIZE ) )
 	{
-	   strcat( lpszSymbolPath, ";" );
+		strcat( lpszSymbolPath, ";" );
 		strcat( lpszSymbolPath, lpszPath );
 		strcat( lpszSymbolPath, ";" );
-
-		// SYSTEMROOT\System32
 		strcat( lpszSymbolPath, lpszPath );
 		strcat( lpszSymbolPath, "\\System32" );
 	}
 
-   // Add user defined path
+	// Add user defined path
 	if ( lpszIniPath != NULL )
+	{
 		if ( lpszIniPath[0] != '\0' )
 		{
-		   strcat( lpszSymbolPath, ";" );
+			strcat( lpszSymbolPath, ";" );
 			strcat( lpszSymbolPath, lpszIniPath );
 		}
+	}
+
+	SymSetSearchPath( GetCurrentProcess(), lpszSymbolPath );
 }
 
 // Uninitialize the loaded symbol files
@@ -169,15 +174,20 @@ BOOL UninitSymInfo() {
 // Initializes the symbol files
 BOOL InitSymInfo( PCSTR lpszInitialSymbolPath )
 {
-	SymSetOptions(SYMOPT_DEFERRED_LOADS | SYMOPT_FAIL_CRITICAL_ERRORS | SYMOPT_LOAD_LINES );
-	CHAR     lpszSymbolPath[BUFFERSIZE];
-	InitSymbolPath( lpszSymbolPath, lpszInitialSymbolPath );
+	SymSetOptions( SYMOPT_DEFERRED_LOADS | SYMOPT_FAIL_CRITICAL_ERRORS | SYMOPT_LOAD_LINES );
+	BOOL bOk = SymInitialize( GetCurrentProcess(), NULL, TRUE);
+	if(bOk != FALSE)
+		UpdateSymbolPath( lpszInitialSymbolPath );
 
-	return SymInitialize( GetCurrentProcess(), lpszSymbolPath, TRUE);
+	return bOk;
 }
 
 // Get the module name from a given address
+#ifndef _WIN64
+static BOOL GetModuleNameFromAddress( DWORD address, LPTSTR lpszModule )
+#else
 static BOOL GetModuleNameFromAddress( DWORD64 address, LPTSTR lpszModule )
+#endif
 {
 	BOOL              ret = FALSE;
 	IMAGEHLP_MODULE   moduleInfo;
@@ -185,7 +195,7 @@ static BOOL GetModuleNameFromAddress( DWORD64 address, LPTSTR lpszModule )
 	::ZeroMemory( &moduleInfo, sizeof(moduleInfo) );
 	moduleInfo.SizeOfStruct = sizeof(moduleInfo);
 
-	if ( SymGetModuleInfo( GetCurrentProcess(), (DWORD)address, &moduleInfo ) )
+	if ( SymGetModuleInfo( GetCurrentProcess(), address, &moduleInfo ) )
 	{
 	   // Got it!
 		PCSTR2LPTSTR( moduleInfo.ModuleName, lpszModule );
@@ -205,19 +215,21 @@ static BOOL GetModuleNameFromAddress( DWORD64 address, LPTSTR lpszModule )
 static BOOL GetFunctionInfoFromAddresses( DWORD64 fnAddress, DWORD64 stackAddress, LPTSTR lpszSymbol )
 {
 	BOOL              ret = FALSE;
-	DWORD64             dwDisp = 0;
-	DWORD             dwSymSize = 1024*16;
-   TCHAR             lpszUnDSymbol[BUFFERSIZE]=_T("?");
-	CHAR              lpszNonUnicodeUnDSymbol[BUFFERSIZE]="?";
+	DWORD64           dwDisp = 0;
+	TCHAR             lpszUnDSymbol[BUFFERSIZE] = _T("?");
+	CHAR              lpszNonUnicodeUnDSymbol[BUFFERSIZE] = "?";
 	LPTSTR            lpszParamSep = NULL;
 	LPCTSTR           lpszParsed = lpszUnDSymbol;
-	PSYMBOL_INFO  pSym = (PSYMBOL_INFO)GlobalAlloc( GMEM_FIXED, dwSymSize );
+	BYTE              symBuf[sizeof(SYMBOL_INFO) + BUFFERSIZE];
+	PSYMBOL_INFO      pSym;
 
-	::ZeroMemory( pSym, dwSymSize );
-	pSym->SizeOfStruct = dwSymSize;
-	pSym->MaxNameLen = dwSymSize - sizeof(IMAGEHLP_SYMBOL);
+	::ZeroMemory( symBuf, sizeof(SYMBOL_INFO) + BUFFERSIZE );
+	pSym = (PSYMBOL_INFO)symBuf;
 
-   // Set the default to unknown
+	pSym->SizeOfStruct = sizeof(SYMBOL_INFO);
+	pSym->MaxNameLen = BUFFERSIZE;
+
+     // Set the default to unknown
 	_tcscpy( lpszSymbol, _T("?") );
 
 	// Get symbol info for IP
@@ -231,10 +243,11 @@ static BOOL GetFunctionInfoFromAddresses( DWORD64 fnAddress, DWORD64 stackAddres
 			UNDNAME_NO_MEMBER_TYPE |
 			UNDNAME_NO_MS_KEYWORDS |
 			UNDNAME_NO_ACCESS_SPECIFIERS );
+
 		// Symbol information is ANSI string
 		PCSTR2LPTSTR( lpszNonUnicodeUnDSymbol, lpszUnDSymbol );
 
-      // I am just smarter than the symbol file :)
+        // I am just smarter than the symbol file :)
 		if ( _tcscmp(lpszUnDSymbol, _T("_WinMain@16")) == 0 )
 			_tcscpy(lpszUnDSymbol, _T("WinMain(HINSTANCE,HINSTANCE,LPCTSTR,int)"));
 		else
@@ -252,8 +265,8 @@ static BOOL GetFunctionInfoFromAddresses( DWORD64 fnAddress, DWORD64 stackAddres
 
 		lpszSymbol[0] = _T('\0');
 
-      // Let's go through the stack, and modify the function prototype, and insert the actual
-      // parameter values from the stack
+        // Let's go through the stack, and modify the function prototype, and insert the actual
+        // parameter values from the stack
 		if ( _tcsstr( lpszUnDSymbol, _T("(void)") ) == NULL && _tcsstr( lpszUnDSymbol, _T("()") ) == NULL)
 		{
 			ULONG index = 0;
@@ -286,8 +299,7 @@ static BOOL GetFunctionInfoFromAddresses( DWORD64 fnAddress, DWORD64 stackAddres
 		_tcscat( lpszSymbol, lpszParsed );
    
 		ret = TRUE;
-	} 
-	GlobalFree( pSym );
+	}
 
 	return ret;
 }
@@ -340,14 +352,11 @@ static BOOL GetSourceInfoFromAddress( DWORD64 address, LPTSTR lpszSourceInfo )
 	return ret;
 }
 
-#ifndef _M_AMD64
-void StackTrace( HANDLE hThread, LPCTSTR lpszMessage, File& f, DWORD eip, DWORD esp, DWORD ebp )
-#else
-void StackTrace( HANDLE hThread, LPCTSTR lpszMessage, File& f, DWORD64 eip, DWORD64 esp, DWORD64 ebp )
-#endif
+void StackTrace( HANDLE hThread, File& f, const PCONTEXT pCtx)
 {
-	STACKFRAME     callStack;
 	BOOL           bResult;
+	STACKFRAME     callStack;
+	CONTEXT        ctx = *pCtx;
 	TCHAR          symInfo[BUFFERSIZE] = _T("?");
 	TCHAR          srcInfo[BUFFERSIZE] = _T("?");
 	HANDLE         hProcess = GetCurrentProcess();
@@ -362,14 +371,18 @@ void StackTrace( HANDLE hThread, LPCTSTR lpszMessage, File& f, DWORD64 eip, DWOR
 		}
 
 		::ZeroMemory( &callStack, sizeof(callStack) );
-		callStack.AddrPC.Offset    = eip;
-		callStack.AddrStack.Offset = esp;
-		callStack.AddrFrame.Offset = ebp;
+#ifndef _WIN64
+		callStack.AddrPC.Offset    = ctx.Eip;
+		callStack.AddrStack.Offset = ctx.Esp;
+		callStack.AddrFrame.Offset = ctx.Ebp;
+#else
+		callStack.AddrPC.Offset    = ctx.Rip;
+		callStack.AddrStack.Offset = ctx.Rsp;
+		callStack.AddrFrame.Offset = ctx.Rbp;
+#endif
 		callStack.AddrPC.Mode      = AddrModeFlat;
 		callStack.AddrStack.Mode   = AddrModeFlat;
 		callStack.AddrFrame.Mode   = AddrModeFlat;
-
-		f.write(Text::fromT(lpszMessage));
 
 		GetFunctionInfoFromAddresses( callStack.AddrPC.Offset, callStack.AddrFrame.Offset, symInfo );
 		GetSourceInfoFromAddress( callStack.AddrPC.Offset, srcInfo );
@@ -391,7 +404,7 @@ void StackTrace( HANDLE hThread, LPCTSTR lpszMessage, File& f, DWORD64 eip, DWOR
 				hProcess,
 				hThread,
 				&callStack,
-				NULL, 
+				&ctx, 
 				NULL,
 				SymFunctionTableAccess,
 				SymGetModuleBase,

@@ -1101,6 +1101,106 @@
 				>
 			</File>
 			<File
+				RelativePath=".\client\sdk\AdcCommandImpl.cpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						PrecompiledHeaderThrough="../stdinc.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						PrecompiledHeaderThrough="../stdinc.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						PrecompiledHeaderThrough="../stdinc.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						PrecompiledHeaderThrough="../stdinc.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="SvnRelease|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						PrecompiledHeaderThrough="../stdinc.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="SvnRelease|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						PrecompiledHeaderThrough="../stdinc.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_STLPort|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						PrecompiledHeaderThrough="../stdinc.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_STLPort|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						PrecompiledHeaderThrough="../stdinc.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_STLPort|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						PrecompiledHeaderThrough="../stdinc.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_STLPort|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						PrecompiledHeaderThrough="../stdinc.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="SvnRelease_STLPort|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						PrecompiledHeaderThrough="../stdinc.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="SvnRelease_STLPort|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						PrecompiledHeaderThrough="../stdinc.h"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath=".\client\AdcHub.cpp"
 				>
 			</File>
@@ -1509,10 +1609,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\client\PluginSpeaker.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\client\QueueItem.cpp"
 				>
 			</File>
@@ -1781,6 +1877,106 @@
 				>
 			</File>
 			<File
+				RelativePath=".\client\sdk\StringImpl.cpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						PrecompiledHeaderThrough="../stdinc.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						PrecompiledHeaderThrough="../stdinc.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						PrecompiledHeaderThrough="../stdinc.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						PrecompiledHeaderThrough="../stdinc.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="SvnRelease|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						PrecompiledHeaderThrough="../stdinc.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="SvnRelease|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						PrecompiledHeaderThrough="../stdinc.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_STLPort|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						PrecompiledHeaderThrough="../stdinc.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_STLPort|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						PrecompiledHeaderThrough="../stdinc.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_STLPort|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						PrecompiledHeaderThrough="../stdinc.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_STLPort|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						PrecompiledHeaderThrough="../stdinc.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="SvnRelease_STLPort|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						PrecompiledHeaderThrough="../stdinc.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="SvnRelease_STLPort|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						PrecompiledHeaderThrough="../stdinc.h"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath=".\client\StringPool.cpp"
 				>
 			</File>
@@ -1802,10 +1998,6 @@
 			</File>
 			<File
 				RelativePath=".\client\TimerManager.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\client\TraceManager.cpp"
 				>
 			</File>
 			<File
@@ -2058,6 +2250,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\client\sdk\interfaces\AdcCommand.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\client\sdk\AdcCommandImpl.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\client\AdcHub.h"
 				>
 			</File>
@@ -2294,27 +2494,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\client\PluginAPI\PluginAPI.h"
-				>
-			</File>
-			<File
-				RelativePath=".\client\PluginInfo.h"
-				>
-			</File>
-			<File
-				RelativePath=".\client\PluginAPI\PluginInformation.h"
-				>
-			</File>
-			<File
-				RelativePath=".\client\PluginAPI\PluginInterface.h"
-				>
-			</File>
-			<File
 				RelativePath=".\client\PluginsManager.h"
-				>
-			</File>
-			<File
-				RelativePath=".\client\PluginSpeaker.hpp"
 				>
 			</File>
 			<File
@@ -2558,6 +2738,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\client\sdk\StringImpl.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\client\StringSearch.h"
 				>
 			</File>
@@ -2591,10 +2775,6 @@
 			</File>
 			<File
 				RelativePath=".\client\TimerManager.h"
-				>
-			</File>
-			<File
-				RelativePath=".\client\TraceManager.h"
 				>
 			</File>
 			<File
@@ -2635,6 +2815,10 @@
 			</File>
 			<File
 				RelativePath=".\client\UserConnection.h"
+				>
+			</File>
+			<File
+				RelativePath=".\client\sdk\interfaces\UserConnection.hpp"
 				>
 			</File>
 			<File

@@ -38,7 +38,6 @@
 #include "QueueManager.h"
 #include "FinishedManager.h"
 //RSX++
-#include "sdk/hub.h"
 #include "PluginsManager.h"
 #include "rsxppSettingsManager.h"
 #include "RawManager.h"
@@ -66,16 +65,10 @@ Client* ClientManager::getClient(const string& aHubURL) {
 	}
 
 	c->addListener(this);
-	//RSX++
-	PluginsManager::getInstance()->getSpeaker().speak(DCPP_EVENT_HUB, DCPP_EVENT_HUB_CREATED, (dcpp_param)c, (dcpp_param)c->getHubUrl().c_str());
-	//END
 	return c;
 }
 
 void ClientManager::putClient(Client* aClient) {
-	//RSX++
-	PluginsManager::getInstance()->getSpeaker().speak(DCPP_EVENT_HUB, DCPP_EVENT_HUB_DESTROYED, (dcpp_param)aClient, (dcpp_param)aClient->getHubUrl().c_str());
-	//END
 	fire(ClientManagerListener::ClientDisconnected(), aClient);
 	aClient->removeListeners();
 

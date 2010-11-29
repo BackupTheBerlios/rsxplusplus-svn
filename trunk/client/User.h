@@ -28,7 +28,8 @@
 
 //RSX++
 #include "TimerManager.h"
-#include "sdk/dcpp.h"
+#include "sdk/interfaces/Identity.hpp"
+#include "sdk/interfaces/User.hpp"
 //END
 
 namespace dcpp {
@@ -103,7 +104,7 @@ struct HintedUser {
 };
 
 /** One of possibly many identities of a user, mainly for UI purposes */
-class Identity {
+class Identity : public interfaces::Identity {
 public:
 	enum ClientType {
 		CT_BOT = 1,
@@ -246,12 +247,18 @@ private:
 	string getDetectionField(const string& aName) const;
 	void getDetectionParams(StringMap& p);
 	string getPkVersion() const;
+
+	const char* getField(const char* name) const;
+	void setField(const char* name, const char* value) { set(name, string(value)); }
+	bool isField(const char* name) { return isSet(name); }
+	bool isTcpActive() const { return isTcpActive(0); }
+	//END
 };
 
 class NmdcHub;
 #include "UserInfoBase.h"
 
-class OnlineUser : public FastAlloc<OnlineUser>, public intrusive_ptr_base<OnlineUser>, public UserInfoBase {
+class OnlineUser : public FastAlloc<OnlineUser>, public intrusive_ptr_base<OnlineUser>, public UserInfoBase, public interfaces::OnlineUser {
 public:
 	enum {
 		COLUMN_FIRST,
@@ -360,7 +367,14 @@ private:
 
 	ClientBase& client;
 
-	static dcpp_param DCPP_CALL_CONV userCallFunc(const char* type, dcpp_param p1, dcpp_param p2, dcpp_param p3, int* handled);
+	//RSX++
+	interfaces::Identity* getUserIdentity() { return static_cast<interfaces::Identity*>(&identity); }
+	interfaces::Hub* getHub();
+
+	void refIncrement() { this->inc(); }
+	void refDecrement() { this->dec(); }
+	bool isUnique() { return this->unique(); }
+	//END
 };
 
 } // namespace dcpp

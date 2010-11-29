@@ -16,16 +16,30 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef DCPP_SDK_TIMER
-#define DCPP_SDK_TIMER
+#ifndef DCPP_INTERFACE_CHAT_MESSAGE_HPP
+#define DCPP_INTERFACE_CHAT_MESSAGE_HPP
 
-#define DCPP_EVENT_TIMER "Timer/"
-#define DCPP_EVENT_TIMER_TICK_SECOND 0
-#define DCPP_EVENT_TIMER_TICK_MINUTE 1
+#include "RefInterface.hpp"
+
+namespace dcpp {
+	namespace interfaces {
+		class OnlineUser;
+
+		class ChatMessage {
+		public:
+			virtual const char* getText() = 0;
+			virtual void setText(const char* msg) = 0;
+			virtual dcpp::interfaces::OnlineUser* getFrom() = 0;
+			virtual dcpp::interfaces::OnlineUser* getTo() = 0;
+			virtual dcpp::interfaces::OnlineUser* getReplyTo() = 0;
+
+			virtual bool getThirdPerson() = 0;
+			virtual void setThirdPerson(bool t) = 0;
+
+			virtual time_t getTimeStamp() = 0;
+			virtual void setTimeStamp(time_t ts) = 0;
+		};
+	} // namespace interfaces
+} // namespace dcpp
 
 #endif
-
-/**
- * @file
- * $Id$
- */

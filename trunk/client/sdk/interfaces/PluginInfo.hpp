@@ -16,27 +16,21 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef DCPP_SDK
-#define DCPP_SDK
+#ifndef DCPP_INTERFACES_PLUGIN_INFO_HPP
+#define DCPP_INTERFACES_PLUGIN_INFO_HPP
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#include "dcpp.h"
-#include "user.h"
-#include "hub.h"
-#include "connection.h"
-#include "timer.h"
-#include "utils.h"
-
-#ifdef __cplusplus
+namespace dcpp {
+	namespace interfaces {
+		struct PluginInfo {
+			const char*			name;			// Name of the plugin
+			const char*			guid;			// GUID, set if only one instance is allowed
+			const char*			author;			// Author
+			const char*			description;	// Short description of the plugin
+			const char*			website;		// Website of the plugin
+			uint64_t			version;		// Plugin's version
+			uint64_t			sdkVersion;		// SDK's version used to compile plugin, set to SDK_VERSION
+		};
+	}
 }
-#endif
 
 #endif
-
-/**
- * @file
- * $Id$
- */

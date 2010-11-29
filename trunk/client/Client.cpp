@@ -34,7 +34,6 @@
 #include "version.h"
 #include "Thread.h"
 #include "LogManager.h"
-#include "sdk/hub.h"
 //END
 
 namespace dcpp {
@@ -56,16 +55,19 @@ Client::Client(const string& hubURL, char separator_, bool secure_) :
 	//RSX++
 	setCheckedAtConnect(false);
 	cmdQueue.setClientPtr(this);
+	addListener(&plugins);
 	//END
 }
 
 Client::~Client() throw() {
 	dcassert(!sock);
-	
+	removeListener(&plugins);
+
 	// In case we were deleted before we Failed
 	FavoriteManager::getInstance()->removeUserCommand(getHubUrl());
 	TimerManager::getInstance()->removeListener(this);
 	updateCounts(true);
+
 }
 
 void Client::reconnect() {
@@ -167,8 +169,6 @@ void Client::connect() {
 
 	state = STATE_CONNECTING;
 
-	PluginsManager::getInstance()->getSpeaker().speak(DCPP_EVENT_HUB, DCPP_EVENT_HUB_CONNECTING, (dcpp_param)this, (dcpp_param)hubUrl.c_str()); //RSX++
-
 	try {
 		sock = BufferedSocket::getSocket(separator);
 		sock->addListener(this);
@@ -178,17 +178,20 @@ void Client::connect() {
 			BufferedSocket::putSocket(sock);
 			sock = 0;
 		}
+		shutdown();
+		/// @todo at this point, this hub instance is completely useless
 		fire(ClientListener::Failed(), this, e.getError());
 	}
 	updateActivity();
 }
 
 void Client::send(const char* aMessage, size_t aLen, bool bypassPlug /*= false*/) {
-	dcassert(sock);
-	if(!sock)
+	if(!isReady()) {
+		dcassert(0);
 		return;
+	}
 	//RSX++
-	if(!bypassPlug && plugHubLine(aMessage, aLen, false))
+	if(!bypassPlug && handleHubLine<false>(aMessage))
 		return;
 	//END
 	updateActivity();
@@ -201,15 +204,11 @@ void Client::on(Connected) throw() {
 	ip = sock->getIp();
 	localIp = sock->getLocalIp();
 
-	PluginsManager::getInstance()->getSpeaker().speak(DCPP_EVENT_HUB, DCPP_EVENT_HUB_CONNECTED, (dcpp_param)this, (dcpp_param)hubUrl.c_str()); //RSX++
-
 	fire(ClientListener::Connected(), this);
 	state = STATE_PROTOCOL;
 }
 
 void Client::on(Failed, const string& aLine) throw() {
-	PluginsManager::getInstance()->getSpeaker().speak(DCPP_EVENT_HUB, DCPP_EVENT_HUB_DISCONNECTED, (dcpp_param)this, (dcpp_param)hubUrl.c_str()); //RSX++
-
 	state = STATE_DISCONNECTED;
 	FavoriteManager::getInstance()->removeUserCommand(getHubUrl());
 	sock->removeListener(this);
@@ -222,15 +221,15 @@ void Client::disconnect(bool graceLess) {
 }
 
 bool Client::isSecure() const {
-	return sock && sock->isSecure();
+	return isReady() && sock->isSecure();
 }
 
 bool Client::isTrusted() const {
-	return sock && sock->isTrusted();
+	return isReady() && sock->isTrusted();
 }
 
 std::string Client::getCipherName() const {
-	return sock ? sock->getCipherName() : Util::emptyString;
+	return isReady() ? sock->getCipherName() : Util::emptyString;
 }
 
 void Client::updateCounts(bool aRemove) {
@@ -357,135 +356,6 @@ bool Client::isActionActive(const int aAction) const {
 	FavoriteHubEntry* hub = FavoriteManager::getInstance()->getFavoriteHubEntry(getHubUrl());
 	return hub ? FavoriteManager::getInstance()->getEnabledAction(hub, aAction) : true;
 }
-
-dcpp_param Client::clientCallFunc(const char* type, dcpp_param p1, dcpp_param p2, dcpp_param p3, int* handled) {
-	*handled = DCPP_TRUE;
-	if(strncmp(type, "Hub/", 4) == 0) {
-		const char* cmd = type+4;
-		if(strncmp(cmd, "Open", 4) == 0) {
-			if(p2)
-				ClientManager::getInstance()->openHub(reinterpret_cast<const char*>(p1));
-			else
-				return (dcpp_param)ClientManager::getInstance()->getClient(reinterpret_cast<const char*>(p1));
-			return DCPP_TRUE;
-		} else if(strncmp(cmd, "Close", 5) == 0) {
-			if(p2)
-				ClientManager::getInstance()->closeHub(reinterpret_cast<const char*>(p1));
-			else
-				ClientManager::getInstance()->putClient(reinterpret_cast<Client*>(p1));
-			return DCPP_TRUE;
-		} else if(strncmp(cmd, "FormatChatMessage", 17) == 0) {
-			ChatMessage cm;
-			dcppChatMessage* m = reinterpret_cast<dcppChatMessage*>(p1);
-			dcppBuffer* buf = reinterpret_cast<dcppBuffer*>(p2);
-			if(!m || !buf) return DCPP_FALSE;
-			cm.from = reinterpret_cast<OnlineUser*>(m->from);
-			cm.text = m->message;
-			cm.thirdPerson = m->thirdPerson != 0 ? true : false;
-			cm.timestamp = static_cast<time_t>(m->timestamp);
-
-			string msg = cm.format();
-			size_t len = buf->size;
-			if(msg.size() < len)
-				len = msg.size();
-			memcpy(buf->buf, &msg[0], len);
-			return len;
-		} else {
-			Client* c = reinterpret_cast<Client*>(p1);
-			if(!c) return DCPP_FALSE;
-
-			if(strncmp(cmd, "Redirect", 8) == 0) {
-
-			} else if(strncmp(cmd, "Identity/", 9) == 0) {
-				Identity* id = 0;
-				char* x = 0;
-				if(strncmp(cmd+9, "My/", 3) == 0) {
-					id = &c->getMyIdentity();
-					x = (char*)cmd+12;
-				} else if(strncmp(cmd+9, "Hub/", 4) == 0) {
-					id = &c->getHubIdentity();
-					x = (char*)cmd+13;
-				}
-				if(strncmp(x, "Get", 3) == 0) {
-					return (dcpp_param)id->get(reinterpret_cast<const char*>(p2)).c_str();
-				} else if(strncmp(x, "Set", 3) == 0) {
-					id->set(reinterpret_cast<const char*>(p2), reinterpret_cast<const char*>(p3));
-					return DCPP_TRUE;
-				}
-			} else if(strncmp(cmd, "SendChatMessage", 15) == 0) {
-				c->hubMessage(reinterpret_cast<const char*>(p2), p3 != 0 ? true : false);
-				return DCPP_TRUE;
-			} else if(strncmp(cmd, "SendUserCommand", 15) == 0) {
-				//todo: fixme
-				string message;
-				if(c->getType() == Client::ADC) {
-					message = Text::toUtf8(reinterpret_cast<const char*>(p2));
-				} else {
-					message = Text::fromUtf8(reinterpret_cast<const char*>(p2));
-				}
-				c->send(message);
-				//c->sendUserCmd(reinterpret_cast<const char*>(p2));
-				return DCPP_TRUE;
-			} else if(strncmp(cmd, "LineWrite", 9) == 0) {
-				c->send(reinterpret_cast<const char*>(p2), static_cast<size_t>(p3), true);
-				return DCPP_TRUE;
-			} else if(strncmp(cmd, "ChatWindowWrite", 15) == 0) {
-				c->addHubLine(reinterpret_cast<const char*>(p2), static_cast<int>(p3));
-				return DCPP_TRUE;
-			} else if(strncmp(cmd, "DispatchLine", 12) == 0) {
-				c->parseCommand(reinterpret_cast<const char*>(p2));
-				return DCPP_TRUE;
-			} else if(strncmp(cmd, "GetHubInfo", 10) == 0) {
-				dcppHubInfo* nfo = reinterpret_cast<dcppHubInfo*>(p2);
-				if(!nfo) return DCPP_FALSE;
-				nfo->port = c->getPort();
-				nfo->address = c->getAddress().c_str();
-				nfo->url = c->getHubUrl().c_str();
-				nfo->ip = c->getIp().c_str();
-				nfo->isAdc = c->getType() == ClientBase::ADC ? 1 : 0;
-				//@todo find a cause of access violation here at certain conditions...
-				//nfo->isSecured = c->isSecure() ? 1 : 0;
-				return DCPP_TRUE;
-			}
-		}
-	}
-	*handled = DCPP_FALSE;
-	return DCPP_FALSE;
-}
-
-bool Client::plugChatMessage(const ChatMessage& cm, bool incoming /*= true*/) {
-	dcppChatMessage m;
-	memzero(&m, sizeof(m));
-	m.from = reinterpret_cast<dcpp_param>(cm.from.get());
-	m.to = reinterpret_cast<dcpp_param>(cm.to.get());
-	m.hubPtr = reinterpret_cast<dcpp_param>(this);
-	m.replyTo = reinterpret_cast<dcpp_param>(cm.replyTo.get());
-	m.message = cm.text.c_str();
-	m.thirdPerson = cm.thirdPerson ? 1 : 0;
-	m.timestamp = cm.timestamp;
-	m.incoming = incoming ? 1 : 0;
-
-	int p = PluginsManager::getInstance()->getSpeaker().speak(DCPP_EVENT_HUB, DCPP_EVENT_HUB_CHAT_MESSAGE, reinterpret_cast<dcpp_param>(&m), (dcpp_param)hubUrl.c_str());
-	return p == DCPP_TRUE;
-}
-
-bool Client::plugHubLine(const char* line, size_t len, bool incoming) {
-	dcppHubLine m;
-	memzero(&m, sizeof(m));
-	m.hubPtr = reinterpret_cast<dcpp_param>(this);
-	m.line = line;
-	m.length = len;
-	m.incoming = incoming ? 1 : 0;
-
-	int p = PluginsManager::getInstance()->getSpeaker().speak(DCPP_EVENT_HUB, DCPP_EVENT_HUB_LINE, reinterpret_cast<dcpp_param>(&m), (dcpp_param)hubUrl.c_str());
-	return p == DCPP_TRUE;
-}
-
-bool Client::plugChatSendLine(const std::string& line) {
-	int p = PluginsManager::getInstance()->getSpeaker().speak(DCPP_EVENT_HUB, DCPP_EVENT_HUB_CHAT_SEND_LINE, reinterpret_cast<dcpp_param>(this), reinterpret_cast<dcpp_param>(line.c_str()));
-	return p == DCPP_TRUE;
-}
-
 //END
 
 } // namespace dcpp

@@ -42,6 +42,12 @@ LRESULT CDMDebugFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 	ctrlDetection.SetCheck(showDetection ? BST_CHECKED : BST_UNCHECKED);
 	detectionContainer.SubclassWindow(ctrlDetection.m_hWnd);
 
+	ctrlDHTFilter.Create(ctrlStatus.m_hWnd, rcDefault, _T("DHT"), WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, WS_EX_STATICEDGE);
+	ctrlDHTFilter.SetButtonStyle(BS_AUTOCHECKBOX, false);
+	ctrlDHTFilter.SetFont(WinUtil::systemFont);
+	ctrlDHTFilter.SetCheck(showDetection ? BST_CHECKED : BST_UNCHECKED);
+	dhtContainer.SubclassWindow(ctrlDHTFilter.m_hWnd);
+
 	ctrlFilterIp.Create(ctrlStatus.m_hWnd, rcDefault, _T("Filter"), WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, WS_EX_STATICEDGE);
 	ctrlFilterIp.SetButtonStyle(BS_AUTOCHECKBOX, false);
 	ctrlFilterIp.SetFont(WinUtil::systemFont);
@@ -89,11 +95,11 @@ void CDMDebugFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 	
 	if(ctrlStatus.IsWindow()) {
 		CRect sr;
-		int w[7];
+		int w[8];
 		ctrlStatus.GetClientRect(sr);
 
 		//int clearButtonWidth = 50;
-		int tmp = ((sr.Width() - 50) / 6) - 4;
+		int tmp = ((sr.Width() - 50) / 7) - 4;
 		w[0] = 50;
 		w[1] = w[0] + tmp;
 		w[2] = w[1] + tmp;
@@ -101,8 +107,9 @@ void CDMDebugFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 		w[4] = w[3] + tmp;
 		w[5] = w[4] + tmp;
 		w[6] = w[5] + tmp;
+		w[7] = w[6] + tmp;
 		
-		ctrlStatus.SetParts(7, w);
+		ctrlStatus.SetParts(8, w);
 
 		ctrlStatus.GetRect(0, sr);
 		ctrlClear.MoveWindow(sr);
@@ -113,15 +120,17 @@ void CDMDebugFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 		ctrlStatus.GetRect(3, sr);
 		ctrlDetection.MoveWindow(sr);
 		ctrlStatus.GetRect(4, sr);
-		ctrlFilterIp.MoveWindow(sr);
+		ctrlDHTFilter.MoveWindow(sr);
 		ctrlStatus.GetRect(5, sr);
+		ctrlFilterIp.MoveWindow(sr);
+		ctrlStatus.GetRect(6, sr);
 		ctrlFilterText.MoveWindow(sr);
 		tstring msg;
 		if(bFilterIp)
 			msg = Text::toT("Watching IP: ") + sFilterIp;
 		else
 			msg = _T("Watching all IPs");
-		ctrlStatus.SetText(6, msg.c_str());
+		ctrlStatus.SetText(7, msg.c_str());
 	}
 	
 	// resize client window

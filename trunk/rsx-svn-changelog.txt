@@ -1,3 +1,7 @@
+** SVN 224 03/12/2010
+ ** added DHT filter to CDM Debug Frame
+ ** updated openssl
+
 ** SVN 223 29/11/2010
  ** fixed getting gui font
  ** new OO PluginSDK - yeah, again, but this one is the coolest one

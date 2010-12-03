@@ -196,7 +196,7 @@ void Client::send(const char* aMessage, size_t aLen, bool bypassPlug /*= false*/
 	//END
 	updateActivity();
 	sock->write(aMessage, aLen);
-	COMMAND_DEBUG(aMessage, DebugManager::HUB_OUT, getIpPort());
+	COMMAND_DEBUG(aMessage, getType() == ClientBase::DHT ? DebugManager::DHT_OUT : DebugManager::HUB_OUT, getIpPort());
 }
 
 void Client::on(Connected) throw() {
@@ -303,7 +303,7 @@ uint64_t Client::search(int aSizeMode, int64_t aSize, int aFileType, const strin
  
 void Client::on(Line, const string& aLine) throw() {
 	updateActivity();
-	COMMAND_DEBUG(aLine, DebugManager::HUB_IN, getIpPort());
+	COMMAND_DEBUG(aLine, getType() == ClientBase::DHT ? DebugManager::DHT_IN : DebugManager::HUB_IN, getIpPort());
 }
 
 void Client::on(Second, uint64_t aTick) throw() {

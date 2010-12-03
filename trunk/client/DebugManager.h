@@ -35,7 +35,7 @@ public:
 	}
 	~DebugManager() { };
 	enum {
-		HUB_IN, HUB_OUT, CLIENT_IN, CLIENT_OUT
+		HUB_IN, HUB_OUT, CLIENT_IN, CLIENT_OUT, DHT_IN, DHT_OUT
 	};
 };
 #define COMMAND_DEBUG(a,b,c) DebugManager::getInstance()->SendCommandMessage(a,b,c);

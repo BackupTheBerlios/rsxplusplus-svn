@@ -12,6 +12,7 @@
 #define DEBUG_FILTER_MESSAGE_MAP 17
 #define DEBUG_FILTER_TEXT_MESSAGE_MAP 18
 #define CLEAR_MESSAGE_MAP 19
+#define DHT_COMMAND_MESSAGE_MAP 20
 
 #include "FlatTabCtrl.h"
 #include "WinUtil.h"
@@ -32,7 +33,8 @@ public:
 		cFilterContainer(WC_BUTTON, this, DEBUG_FILTER_MESSAGE_MAP),
 		eFilterContainer(WC_EDIT, this, DEBUG_FILTER_TEXT_MESSAGE_MAP),
 		clearContainer(WC_BUTTON, this, CLEAR_MESSAGE_MAP),
-		statusContainer(STATUSCLASSNAME, this, CLEAR_MESSAGE_MAP)
+		statusContainer(STATUSCLASSNAME, this, CLEAR_MESSAGE_MAP),
+		dhtContainer(WC_BUTTON, this, DHT_COMMAND_MESSAGE_MAP)
 	 { 
 	 }
 	
@@ -53,6 +55,8 @@ public:
 		MESSAGE_HANDLER(BM_SETCHECK, onSetCheckCommand)
 	ALT_MSG_MAP(HUB_COMMAND_MESSAGE_MAP)
 		MESSAGE_HANDLER(BM_SETCHECK, onSetCheckHubCommand)
+	ALT_MSG_MAP(DHT_COMMAND_MESSAGE_MAP)
+		MESSAGE_HANDLER(BM_SETCHECK, onSetCheckDHTCommand)
 	ALT_MSG_MAP(DEBUG_FILTER_MESSAGE_MAP)
 		MESSAGE_HANDLER(BM_SETCHECK, onSetCheckFilter)
 	ALT_MSG_MAP(DEBUG_FILTER_TEXT_MESSAGE_MAP)
@@ -101,6 +105,13 @@ public:
 		bHandled = FALSE;
 		return 0;
 	}
+	LRESULT onSetCheckDHTCommand(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled) {
+		showDHT = wParam == BST_CHECKED;
+		UpdateLayout();
+		bHandled = FALSE;
+		return 0;
+	}
+
 	LRESULT onChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
 		sFilterIp.resize(ctrlFilterText.GetWindowTextLength());
 
@@ -135,7 +146,7 @@ private:
 				x = cmdList.front();
 				cmdList.pop_front();
 			}
-			addLine("[" + Util::getTimeString() + "]" + x);
+			addLine(x);
 		}
 		
 		stop = false;
@@ -152,10 +163,10 @@ private:
 
 	CEdit ctrlPad, ctrlFilterText;
 	CStatusBarCtrl ctrlStatus;
-	CButton ctrlClear, ctrlCommands, ctrlHubCommands, ctrlDetection, ctrlFilterIp;
-	CContainedWindow clearContainer, statusContainer, detectionContainer, commandContainer, HubCommandContainer, cFilterContainer, eFilterContainer;
+	CButton ctrlClear, ctrlCommands, ctrlHubCommands, ctrlDetection, ctrlFilterIp, ctrlDHTFilter;
+	CContainedWindow clearContainer, statusContainer, detectionContainer, commandContainer, HubCommandContainer, cFilterContainer, eFilterContainer, dhtContainer;
 
-	bool showCommands, showHubCommands, showDetection, bFilterIp;
+	bool showCommands, showHubCommands, showDetection, bFilterIp, showDHT;
 	tstring sFilterIp;
 	bool closed;
 	
@@ -171,28 +182,42 @@ private:
 					if(!showHubCommands)
 						return;
 					if(!bFilterIp || Text::toT(ip) == sFilterIp) {
-						addCmd("Hub:\t[Incoming][" + ip + "]\t \t" + aLine);
+						addCmd("[" + Util::getTimeString() + "] Hub:\t[IN:\t" + ip + "]\t \t" + aLine);
 					}
 					break;
 				case DebugManager::HUB_OUT:
 					if(!showHubCommands)
 						return;
 					if(!bFilterIp || Text::toT(ip) == sFilterIp) {
-						addCmd("Hub:\t[Outgoing][" + ip + "]\t \t" + aLine);
+						addCmd("[" + Util::getTimeString() + "] Hub:\t[OUT:\t" + ip + "]\t \t" + aLine);
 					}
 					break;
 				case DebugManager::CLIENT_IN:
 					if(!showCommands)
 						return;
 					if(!bFilterIp || Text::toT(ip) == sFilterIp) {
-						addCmd("Client:\t[Incoming][" + ip + "]\t \t" + aLine);
+						addCmd("[" + Util::getTimeString() + "] Client:\t[IN:\t" + ip + "]\t \t" + aLine);
 					}
 					break;
 				case DebugManager::CLIENT_OUT:
 					if(!showCommands)
 						return;
 					if(!bFilterIp || Text::toT(ip) == sFilterIp) {
-						addCmd("Client:\t[Outgoing][" + ip + "]\t \t" + aLine);
+						addCmd("[" + Util::getTimeString() + "] Client:\t[OUT:\t" + ip + "]\t \t" + aLine);
+					}
+					break;
+				case DebugManager::DHT_IN:
+					if(!showDHT)
+						return;
+					if(!bFilterIp || Text::toT(ip) == sFilterIp) {
+						addCmd("[" + Util::getTimeString() + "] DHT:\t[IN:\t" + ip + "]\t \t" + aLine);
+					}
+					break;
+				case DebugManager::DHT_OUT:
+					if(!showDHT)
+						return;
+					if(!bFilterIp || Text::toT(ip) == sFilterIp) {
+						addCmd("[" + Util::getTimeString() + "] DHT:\t[OUT:\t" + ip + "]\t \t" + aLine);
 					}
 					break;
 				default: dcassert(0);

@@ -258,6 +258,7 @@ typedef struct x509_cinf_st
 	ASN1_BIT_STRING *issuerUID;		/* [ 1 ] optional in v2 */
 	ASN1_BIT_STRING *subjectUID;		/* [ 2 ] optional in v2 */
 	STACK_OF(X509_EXTENSION) *extensions;	/* [ 3 ] optional in v3 */
+	ASN1_ENCODING enc;
 	} X509_CINF;
 
 /* This stuff is certificate "auxiliary info"
@@ -585,6 +586,7 @@ struct pkcs8_priv_key_info_st
 #define PKCS8_NO_OCTET		1
 #define PKCS8_EMBEDDED_PARAM	2
 #define PKCS8_NS_DB		3
+#define PKCS8_NEG_PRIVKEY	4
         ASN1_INTEGER *version;
         X509_ALGOR *pkeyalg;
         ASN1_TYPE *pkey; /* Should be OCTET STRING but some are broken */

@@ -441,6 +441,11 @@ void HubFrame::onEnter() {
 					addStatus(detectorMsg, WinUtil::m_ChatTextSystem);
 			} else if((stricmp(cmd.c_str(), _T("hubsstats")) == 0)) {
 				addLine(ClientManager::getInstance()->getHubsLoadInfo());
+			} else if(stricmp(cmd.c_str(), _T("tiger")) == 0) {
+				std::string s = Text::fromT(param);
+				TigerHash t;
+				t.update(s.c_str(), s.length());
+				addLine(Text::toT(Encoder::toBase32(t.finalize(), TigerHash::BYTES)));
 			//END
 			} else {
 				if(!dropMessage) { //RSX++

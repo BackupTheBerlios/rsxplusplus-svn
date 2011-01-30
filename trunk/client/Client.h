@@ -380,7 +380,7 @@ private:
 
 		typedef std::deque<interfaces::HubListener*> Listeners;
 		Listeners ls;
-		CriticalSection cs;
+		static CriticalSection cs;
 
 		void on(ClientListener::Connecting, const Client* c) throw() {
 			Lock l(cs);

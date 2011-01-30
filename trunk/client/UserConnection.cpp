@@ -34,7 +34,9 @@
 //END
 
 namespace dcpp {
-
+//RSX++
+CriticalSection UserConnection::ProxyListener::cs;
+//END
 const string UserConnection::FEATURE_MINISLOTS = "MiniSlots";
 const string UserConnection::FEATURE_XML_BZLIST = "XmlBZList";
 const string UserConnection::FEATURE_ADCGET = "ADCGet";

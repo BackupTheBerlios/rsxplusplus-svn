@@ -101,19 +101,20 @@ private:
 	void onHub_OutgoingMessage(dcpp::interfaces::Hub* h, dcpp::interfaces::ChatMessage* cm, bool& handled) throw() {
 		if(!handled) {
 			std::string line = cm->getText();
-			if(line.compare(0, 7, "/winamp") == 0 || line.compare(0, 2, "/w") == 0) {
+			if(line.compare("/w") == 0 || line.compare("/winamp") == 0 || line.compare(0, 3, "/w ") == 0 || line.compare(0, 8, "/winamp ") == 0) {
 				std::string param;
 				std::string::size_type i = line.find(" ");
 				if(i != std::string::npos) {
 					param = line.substr(i);
 				}
-				sendSpam(h, core->getPluginSetting("winamp.fmt"), param);
+
+				sendSpam(h, core->getPluginSetting("winamp.fmt"), param, cm->getReplyTo());
 				handled = true;
 			}
 		}
 	}
 
-	void sendSpam(dcpp::interfaces::Hub* h, const std::string& format, const std::string& param) {
+	void sendSpam(dcpp::interfaces::Hub* h, const std::string& format, const std::string& param, dcpp::interfaces::OnlineUser* replyTo) {
 		HWND wnd = FindWindowW(L"Winamp v1.x", NULL);
 		if(wnd) {
 			RefStringMap params(core->getMemoryManager()->getStringMap());
@@ -216,7 +217,11 @@ private:
 			if(tp) {
 				msg->erase(0, 4);
 			}
-			h->sendMessage(msg->get(), tp);
+			if(replyTo != 0) {
+				h->sendPrivateMessage(replyTo, msg->get(), tp);
+			} else {
+				h->sendMessage(msg->get(), tp);
+			}
 		} else {
 			// notify
 		}

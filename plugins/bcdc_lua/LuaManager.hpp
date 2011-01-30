@@ -26,7 +26,7 @@
 extern int lua_dostring(const char* str);
 
 struct LuaManager {
-	static dcppFunctions* dcppLib;
+	//static dcppFunctions* dcppLib;
 	static char appPath[MAX_PATH];
 	static char configPath[MAX_PATH];
 	static char tempBuffer[TEMPBUF_SIZE];

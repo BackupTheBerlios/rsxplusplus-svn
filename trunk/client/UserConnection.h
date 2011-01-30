@@ -273,7 +273,7 @@ private:
 		}
 
 		Listeners ls;
-		CriticalSection cs;
+		static CriticalSection cs;
 
 		void on(UserConnectionListener::BytesSent, UserConnection* uc, size_t n1, size_t n2) throw() {
 			Lock l(cs);

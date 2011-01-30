@@ -39,6 +39,9 @@
 namespace dcpp {
 
 Client::Counts Client::counts;
+//RSX++
+CriticalSection Client::ProxyListener::cs;
+//END
 
 Client::Client(const string& hubURL, char separator_, bool secure_) : 
 	myIdentity(ClientManager::getInstance()->getMe(), 0),

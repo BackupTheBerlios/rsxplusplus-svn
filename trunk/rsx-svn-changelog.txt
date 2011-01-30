@@ -1,3 +1,8 @@
+** SVN 229 30/01/2011
+ ** fixed thread sync problem in plugin listeners
+ ** updated winamp_spam
+ ** partially updated bcdc_lua & updated lua to 5.2.0 alpha
+
 ** SVN 228 30/01/2011
  ** fix message field in update xml
  ** changelog again...

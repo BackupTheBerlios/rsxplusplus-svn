@@ -25,7 +25,7 @@
 #include "StringImpl.hpp"
 
 namespace dcpp {
-class AdcCommandImpl : public intrusive_ptr_base<StringImpl>, public interfaces::AdcCommand {
+class AdcCommandImpl : public intrusive_ptr_base<AdcCommandImpl>, public interfaces::AdcCommand {
 public:
 	AdcCommandImpl(uint32_t aCmd) : cmd(aCmd) { }
 	AdcCommandImpl(uint32_t aCmd, const uint32_t aTarget, char aType) : cmd(aCmd, aTarget, aType) { }
@@ -41,7 +41,14 @@ public:
 	interfaces::AdcCommand* setFeatures(const char* feat) { cmd.setFeatures(feat); return this; }
 	interfaces::AdcCommand* addParam(const char* name) { cmd.addParam(name); return this; }
 	interfaces::AdcCommand* addParam(const char* name, const char* value) { cmd.addParam(name, value); return this; }
-	interfaces::string* getParam(size_t n) { return new StringImpl(cmd.getParam(n)); }
+	dcpp::interfaces::string* getParam(const char* name, int n = 0) {
+		std::string ret;
+		if(cmd.getParam(name, n, ret))
+			return new StringImpl(ret);
+		return 0;
+	}
+
+	const char* getParam(int n) { return cmd.getParam(n).c_str(); }
 	size_t getParamsCount() { return cmd.getParameters().size(); }
 	bool hasFlag(const char* name, size_t start) const { return cmd.hasFlag(name, start); }
 
@@ -68,7 +75,7 @@ public:
 	void refDecrement() { this->dec(); }
 	bool isUnique() { return this->unique(); }
 
-	dcpp::AdcCommand& getString() { return cmd; }
+	dcpp::AdcCommand& getAdcCommand() { return cmd; }
 
 private:
 	dcpp::AdcCommand cmd;

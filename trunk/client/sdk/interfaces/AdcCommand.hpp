@@ -78,7 +78,8 @@ namespace dcpp {
 			virtual dcpp::interfaces::AdcCommand* setFeatures(const char* feat) = 0;
 			virtual dcpp::interfaces::AdcCommand* addParam(const char* name) = 0;
 			virtual dcpp::interfaces::AdcCommand* addParam(const char* name, const char* value) = 0;
-			virtual dcpp::interfaces::string* getParam(size_t n) = 0;
+			virtual dcpp::interfaces::string* getParam(const char* name, int n = 0) = 0;
+			virtual const char* getParam(int n) = 0;
 			virtual size_t getParamsCount() = 0;
 			virtual bool hasFlag(const char* name, size_t start) const = 0;
 

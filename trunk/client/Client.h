@@ -31,11 +31,12 @@
 //RSX++
 #include "rsxppSettingsManager.h"
 #include "CommandQueue.h"
+#include "sdk/interfaces/User.hpp"
 #include "sdk/interfaces/Hub.hpp"
 #include "ChatMessage.h"
 //END
-namespace dcpp {
 
+namespace dcpp {
 class ClientBase
 {
 public:
@@ -335,6 +336,16 @@ private:
 
 	interfaces::Identity* getAccountIdentity() { return static_cast<interfaces::Identity*>(&myIdentity); }
 	interfaces::Identity* getIdentity() { return static_cast<interfaces::Identity*>(&hubIdentity); }
+
+	dcpp::interfaces::OnlineUser* findOnlineUser(const char* cidOrNick, bool nick = true) {
+		if(nick) {
+			return this->findUser(cidOrNick).get();
+		} else {
+			return this->findUser(CID(cidOrNick));
+		}
+	}
+
+	dcpp::interfaces::OnlineUser* findOnlineUser(uint32_t sid) { return this->findUser(sid); }
 
 	void mutex(bool lock) {
 		if(lock)

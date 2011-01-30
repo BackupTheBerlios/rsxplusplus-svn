@@ -49,6 +49,8 @@ namespace dcpp {
 			virtual bool isSecure() const = 0;
 			virtual bool isTrusted() const = 0;
 			virtual uint16_t getPort() const = 0;
+			virtual const char* getIp() const = 0;
+			virtual const char* getHubURL() const = 0;
 			virtual void updated() = 0;
 
 			virtual void setFlags(int flags) = 0;

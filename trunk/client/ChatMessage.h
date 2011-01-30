@@ -51,6 +51,10 @@ struct ChatMessage : public interfaces::ChatMessage {
 	interfaces::OnlineUser* getTo();
 	interfaces::OnlineUser* getReplyTo();
 
+	void setFrom(dcpp::interfaces::OnlineUser*);
+	void setTo(dcpp::interfaces::OnlineUser*);
+	void setReplyTo(dcpp::interfaces::OnlineUser*);
+
 	bool getThirdPerson() { return thirdPerson; }
 	void setThirdPerson(bool t) { thirdPerson = t; }
 

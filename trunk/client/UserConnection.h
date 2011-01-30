@@ -422,6 +422,8 @@ private:
 	void setFlags(int flags) { setFlag(flags); }
 	bool isFlagSet(int flag) { return isSet(flag); }
 	bool isAnyFlagSet(int flags) { return isAnySet(flags); }
+	const char* getIp() const { return getRemoteIp().c_str(); }
+	const char* getHubURL() const { return hubUrl.c_str(); }
 	//END
 
 	void setUser(const UserPtr& aUser) {

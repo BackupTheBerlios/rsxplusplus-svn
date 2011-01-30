@@ -63,6 +63,21 @@ interfaces::OnlineUser* ChatMessage::getTo() {
 interfaces::OnlineUser* ChatMessage::getReplyTo() {
 	return replyTo.get();
 }
+
+void ChatMessage::setFrom(dcpp::interfaces::OnlineUser* ou) {
+	OnlineUser* u = dynamic_cast<OnlineUser*>(ou);
+	from = u;
+}
+
+void ChatMessage::setTo(dcpp::interfaces::OnlineUser* ou) {
+	OnlineUser* u = dynamic_cast<OnlineUser*>(ou);
+	to = u;
+}
+
+void ChatMessage::setReplyTo(dcpp::interfaces::OnlineUser* ou) {
+	OnlineUser* u = dynamic_cast<OnlineUser*>(ou);
+	replyTo = u;
+}
 //END
 
 } // namespace dcpp

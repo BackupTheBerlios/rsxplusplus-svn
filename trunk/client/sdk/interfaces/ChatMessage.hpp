@@ -33,6 +33,10 @@ namespace dcpp {
 			virtual dcpp::interfaces::OnlineUser* getTo() = 0;
 			virtual dcpp::interfaces::OnlineUser* getReplyTo() = 0;
 
+			virtual void setFrom(dcpp::interfaces::OnlineUser*) = 0;
+			virtual void setTo(dcpp::interfaces::OnlineUser*) = 0;
+			virtual void setReplyTo(dcpp::interfaces::OnlineUser*) = 0;
+
 			virtual bool getThirdPerson() = 0;
 			virtual void setThirdPerson(bool t) = 0;
 

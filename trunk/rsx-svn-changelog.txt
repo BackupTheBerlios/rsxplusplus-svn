@@ -1,3 +1,6 @@
+** SVN 226 30/01/2011
+ ** finished PluginSDK
+
 ** SVN 225 25/12/2010
  ** updated bzip2
 

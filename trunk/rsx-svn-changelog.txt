@@ -1,3 +1,6 @@
+** SVN 230 30/01/2011
+ ** copyrights updated
+
 ** SVN 229 30/01/2011
  ** fixed thread sync problem in plugin listeners
  ** updated winamp_spam

@@ -1,3 +1,7 @@
+** SVN 227 30/01/2011
+ ** add paths to plugin sdk utils
+ ** updated changelog
+
 ** SVN 226 30/01/2011
  ** finished PluginSDK
 

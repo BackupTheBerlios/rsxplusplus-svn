@@ -68,6 +68,21 @@ namespace dcpp {
 			virtual dcpp::interfaces::string* fromSID(uint32_t sid) = 0;
 			virtual uint32_t toFourCC(const char* cc) = 0;
 			virtual dcpp::interfaces::string* fromFourCC(uint32_t cc) = 0;
+
+			virtual const char* getPath(int type) const = 0;
+		};
+
+		namespace Paths {
+			static const int PATH_GLOBAL_CONFIG = 0;
+			static const int PATH_USER_CONFIG = 1;
+			static const int PATH_USER_LOCAL = 2;
+			static const int PATH_RESOURCES = 3;
+			static const int PATH_LOCALE = 4;
+			static const int PATH_DOWNLOADS = 5;
+			static const int PATH_FILE_LISTS = 6;
+			static const int PATH_HUB_LISTS = 7;
+			static const int PATH_NOTEPAD = 8;
+			static const int PATH_EMOPACKS = 9;
 		};
 
 		class OnlineUser;

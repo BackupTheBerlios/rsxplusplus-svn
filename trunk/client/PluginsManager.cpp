@@ -325,6 +325,42 @@ interfaces::string* PluginsManager::fromFourCC(uint32_t cc) {
 	return new StringImpl(AdcCommand::fromFourCC(cc));
 }
 
+const char* PluginsManager::getPath(int type) const {
+	switch(type) {
+		case interfaces::Paths::PATH_GLOBAL_CONFIG: {
+			return Util::getPath(Util::PATH_GLOBAL_CONFIG).c_str();
+		}
+		case interfaces::Paths::PATH_USER_CONFIG: {
+			return Util::getPath(Util::PATH_USER_CONFIG).c_str();
+		}
+		case interfaces::Paths::PATH_USER_LOCAL: {
+			return Util::getPath(Util::PATH_USER_LOCAL).c_str();
+		}
+		case interfaces::Paths::PATH_RESOURCES: {
+			return Util::getPath(Util::PATH_RESOURCES).c_str();
+		}
+		case interfaces::Paths::PATH_LOCALE: {
+			return Util::getPath(Util::PATH_LOCALE).c_str();
+		}
+		case interfaces::Paths::PATH_DOWNLOADS: {
+			return Util::getPath(Util::PATH_DOWNLOADS).c_str();
+		}
+		case interfaces::Paths::PATH_FILE_LISTS: {
+			return Util::getPath(Util::PATH_FILE_LISTS).c_str();
+		}
+		case interfaces::Paths::PATH_HUB_LISTS: {
+			return Util::getPath(Util::PATH_HUB_LISTS).c_str();
+		}
+		case interfaces::Paths::PATH_NOTEPAD: {
+			return Util::getPath(Util::PATH_NOTEPAD).c_str();
+		}
+		case interfaces::Paths::PATH_EMOPACKS: {
+			return Util::getPath(Util::PATH_EMOPACKS).c_str();
+		}
+	}
+	return 0;
+}
+
 void PluginsManager::on(TimerManagerListener::Second, uint64_t tick) throw() {
 
 }

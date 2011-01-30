@@ -130,6 +130,7 @@ private:
 	interfaces::string* fromSID(uint32_t sid);
 	uint32_t toFourCC(const char* cc);
 	interfaces::string* fromFourCC(uint32_t cc);
+	const char* getPath(int type) const;
 
 };
 

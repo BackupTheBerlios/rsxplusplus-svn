@@ -1,3 +1,14 @@
+** RSX++ 1.20 ** 30/12/2011
+ ** updated boost
+ ** updated OpenSSL
+ ** updated zlib
+ ** updated bzip2
+ ** country code & ip in chat replaced with extra info (INF fields can be used)
+ ** updated to StrongDC++ 2.41
+ ** fixed many crashes and bugs
+ ** fixed default fonts in GUI
+ ** option to disable DHT input in CDM Debug Frame
+
 ** RSX++ 1.11 ** 16/11/2009
  ** fixed many crashes...
  ** added option to set max filelist size (potential exploit fix)

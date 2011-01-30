@@ -8,6 +8,7 @@
  ** fixed many crashes and bugs
  ** fixed default fonts in GUI
  ** option to disable DHT input in CDM Debug Frame
+ ** new PluginSDK
 
 ** RSX++ 1.11 ** 16/11/2009
  ** fixed many crashes...

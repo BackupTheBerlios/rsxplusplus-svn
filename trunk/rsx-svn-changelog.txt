@@ -1,3 +1,7 @@
+** SVN 228 30/01/2011
+ ** fix message field in update xml
+ ** changelog again...
+
 ** SVN 227 30/01/2011
  ** add paths to plugin sdk utils
  ** updated changelog

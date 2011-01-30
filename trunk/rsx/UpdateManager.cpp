@@ -91,6 +91,7 @@ void UpdateManager::onVersionXml(string content, bool isFailed) {
 				xml.resetCurrentChild();
 				while(xml.findChild("Message")) {
 					clientCache.message += xml.getChildData();
+					clientCache.message += "\r\n";
 				}
 				xml.resetCurrentChild();
 				if(xml.findChild("VeryOldVersion")) {

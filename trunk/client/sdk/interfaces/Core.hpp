@@ -26,7 +26,7 @@
 #define VER_BLD(v)					(uint32_t)(((uint64_t)v & 0x000000000000FFFF))
 
 // PluginSDK version (include in PluginInformation)
-#define SDK_VERSION MAKE_VER(3, 0, 2, 0)
+#define SDK_VERSION MAKE_VER(3, 0, 3, 0)
 
 namespace dcpp {
 	namespace interfaces {

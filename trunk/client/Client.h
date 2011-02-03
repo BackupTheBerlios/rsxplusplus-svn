@@ -110,7 +110,6 @@ public:
 
 	void updated(const OnlineUserPtr& aUser) { fire(ClientListener::UserUpdated(), this, aUser); }
 	//RSX++
-	virtual void parseCommand(const std::string& command) = 0;
 	virtual tstring startChecking(const tstring& aParams) = 0;
 	virtual void stopChecking() = 0;
 	virtual void stopMyINFOCheck() = 0;

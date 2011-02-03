@@ -1,3 +1,8 @@
+** SVN 321 03/02/2011
+ ** more copyrights update
+ ** some missing methods in Hub interface
+ ** improved RefInterface a little bit
+
 ** SVN 230 30/01/2011
  ** copyrights updated
 

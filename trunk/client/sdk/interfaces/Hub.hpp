@@ -32,6 +32,7 @@ namespace dcpp {
 			virtual void sendMessage(const char* msg, bool thirdPerson = false) = 0;
 			virtual void sendPrivateMessage(dcpp::interfaces::OnlineUser* u, const char* msg, bool thirdPerson) = 0;
 			virtual void sendData(const void* data, size_t len) = 0;
+			virtual void parseLine(const char* line) = 0;
 
 			virtual dcpp::interfaces::OnlineUser* findOnlineUser(const char* cidOrNick, bool nick = true) = 0;
 			virtual dcpp::interfaces::OnlineUser* findOnlineUser(uint32_t sid) = 0;

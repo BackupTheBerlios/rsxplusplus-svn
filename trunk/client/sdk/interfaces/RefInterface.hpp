@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2010 adrian_007, adrian-007 on o2 point pl
+ * Copyright (C) 2007-2011 adrian_007, adrian-007 on o2 point pl
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,6 +38,14 @@ namespace dcpp {
 					obj->refDecrement();
 			}
 
+			inline RefInterface& operator =(T* o) {
+				if(obj)
+					obj->refDecrement();
+				obj = o;
+				if(obj)
+					obj->refIncrement();
+				return *this;
+			}
 			inline T* operator ->() {
 				return obj;
 			}
@@ -56,6 +64,13 @@ namespace dcpp {
 			inline bool operator != (const RefInterface<T>& ref) {
 				return obj != ref.get();
 			}
+			inline operator bool() {
+				return obj != 0;
+			}
+			inline bool operator !() {
+				return obj == 0;
+			}
+
 		protected:
 			T* obj;
 		};

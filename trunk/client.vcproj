@@ -2302,6 +2302,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\client\sdk\interfaces\ChatMessage.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\client\ChunkOutputStream.h"
 				>
 			</File>
@@ -2347,6 +2351,10 @@
 			</File>
 			<File
 				RelativePath=".\client\ConnectionManagerListener.h"
+				>
+			</File>
+			<File
+				RelativePath=".\client\sdk\interfaces\Core.hpp"
 				>
 			</File>
 			<File
@@ -2462,7 +2470,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\client\sdk\interfaces\Hub.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\rsx\HubUsersMap.h"
+				>
+			</File>
+			<File
+				RelativePath=".\client\sdk\interfaces\Identity.hpp"
 				>
 			</File>
 			<File
@@ -2494,6 +2510,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\client\sdk\interfaces\PluginInfo.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\client\PluginsManager.h"
 				>
 			</File>
@@ -2519,6 +2539,10 @@
 			</File>
 			<File
 				RelativePath=".\client\RawManager.h"
+				>
+			</File>
+			<File
+				RelativePath=".\client\sdk\interfaces\RefInterface.hpp"
 				>
 			</File>
 			<File
@@ -2611,6 +2635,10 @@
 			</File>
 			<File
 				RelativePath=".\client\Streams.h"
+				>
+			</File>
+			<File
+				RelativePath=".\client\sdk\interfaces\string.hpp"
 				>
 			</File>
 			<File
@@ -2807,6 +2835,10 @@
 			</File>
 			<File
 				RelativePath=".\client\sdk\user.h"
+				>
+			</File>
+			<File
+				RelativePath=".\client\sdk\interfaces\User.hpp"
 				>
 			</File>
 			<File

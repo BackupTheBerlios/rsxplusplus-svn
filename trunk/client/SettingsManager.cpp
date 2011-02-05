@@ -744,19 +744,19 @@ int SettingsManager::findKey(const string& name, int& type) {
 
 	for(i = INT_FIRST; i < INT_LAST; i++) {
 		if(stricmp(settingTags[i], name) == 0) {
-			type = 1;
+			type = TYPE_INT;
 			return i;
 		}
 	}
 	for(i = INT64_FIRST; i < INT64_LAST; i++) {
 		if(stricmp(settingTags[i], name) == 0) {
-			type = 2;
+			type = TYPE_INT64;
 			return i;
 		}
 	}
 	for(i = STR_FIRST; i < STR_LAST; i++) {
 		if(stricmp(settingTags[i], name) == 0) {
-			type = 3;
+			type = TYPE_STRING;
 			return i;
 		}
 	}

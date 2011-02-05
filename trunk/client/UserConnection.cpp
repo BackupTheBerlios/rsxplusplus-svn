@@ -301,7 +301,7 @@ void UserConnection::updateChunkSize(int64_t leafSize, int64_t lastChunk, uint64
 }
 //RSX++
 void UserConnection::ProxyListener::handleAdcCommand(UserConnection* uc, const AdcCommand& cmd) throw() {
-	Lock l(cs);
+	Lock l(PluginsManager::cs);
 	interfaces::AdcCommand* c = new AdcCommandImpl(cmd);
 	c->refIncrement();
 

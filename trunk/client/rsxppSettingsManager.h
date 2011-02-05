@@ -182,7 +182,7 @@ public:
 	ExtActions& getActions() { return ext_actions; }
 	~rsxppSettingsManager() throw();
 
-	const std::string& getExtSetting(const std::string& name) const;
+	const std::string& getExtSetting(const std::string& name, const std::string& defaultVal);
 	void setExtSetting(const std::string& name, const std::string& value);
 	StringMap& getExtSettings() { return extSettings; }
 

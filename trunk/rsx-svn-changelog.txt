@@ -1,4 +1,10 @@
-** SVN 321 03/02/2011
+** SVN 232 05/02/2011
+ ** added settings managment to sdk
+ ** added timer and core listeners to sdk
+ ** [bcdc_lua] ported more code to new sdk
+ ** some other... stuff...
+
+** SVN 231 03/02/2011
  ** more copyrights update
  ** some missing methods in Hub interface
  ** improved RefInterface a little bit

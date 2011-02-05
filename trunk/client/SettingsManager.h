@@ -275,6 +275,12 @@ public:
 
 	//RSX++
 	int findKey(const string& name, int& type);
+	enum {
+		TYPE_STRING = 1,
+		TYPE_INT = 2,
+		TYPE_INT64 = 3,
+		TYPE_UNKNOWN = 0
+	};
 	//END
 private:
 	friend class Singleton<SettingsManager>;

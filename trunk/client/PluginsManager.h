@@ -38,6 +38,8 @@ class PluginsManager : public Singleton<PluginsManager>, private TimerManagerLis
 	protected interfaces::Core, protected interfaces::Memory, protected interfaces::Utils
 {
 public:
+	static CriticalSection cs;
+
 	PluginsManager();
 	~PluginsManager();
 
@@ -63,7 +65,6 @@ private:
 	void on(SettingsManagerListener::Load, SimpleXML&) throw();
 	void on(SettingsManagerListener::Save, SimpleXML&) throw();
 
-	CriticalSection cs;
 	Plugins plugins;
 	//Socket udp;
 
@@ -88,20 +89,35 @@ private:
 
 	typedef std::deque<ProxyClientManagerListener*> ProxyClientManagerSet;
 	typedef std::deque<interfaces::ConnectionManagerListener*> CMInterfacesSet;
+	typedef std::deque<interfaces::CoreListener*> CoreSet;
+	typedef std::deque<interfaces::TimerListener*> TimerSet;
 
 	ProxyClientManagerSet cmSet;
 	CMInterfacesSet ucSet;
+	CoreSet coreSet;
+	TimerSet timerSet;
 
 	// core
 	void log(const char* msg);
 	void addEventListener(interfaces::HubManagerListener* listener);
 	void addEventListener(interfaces::ConnectionManagerListener* listener);
+	void addEventListener(interfaces::CoreListener* listener);
+	void addEventListener(interfaces::TimerListener* listener);
 
 	void remEventListener(interfaces::HubManagerListener* listener);
 	void remEventListener(interfaces::ConnectionManagerListener* listener);
+	void remEventListener(interfaces::CoreListener* listener);
+	void remEventListener(interfaces::TimerListener* listener);
 
-	const char* getPluginSetting(const char* key);
+	const char* getPluginSetting(const char* key, const char* defaultValue = 0);
 	void setPluginSetting(const char* key, const char* value);
+	bool getCoreSetting(const char* key, const char*& value);
+	bool getCoreSetting(const char* key, int& value);
+	bool getCoreSetting(const char* key, int64_t& value);
+
+	bool setCoreSetting(const char* key, const char* value);
+	bool setCoreSetting(const char* key, const int& value);
+	bool setCoreSetting(const char* key, const int64_t& value);
 
 	interfaces::Memory* getMemoryManager() { return this; }
 	interfaces::Utils* getUtils() { return this; }

@@ -162,10 +162,11 @@ int LuaManager::CreateClient(lua_State* L) {
 
 int LuaManager::InjectHubMessage(lua_State* L) {
 	if(LUA_ARGS_EQUAL(L, 2) && lua_islightuserdata(L, -2) && lua_isstring(L, -1)) {
-		//char* cmd;
-		//LuaManager::parseLuaCommand(lua_tostring(L, -1), cmd);
-		//LuaManager::dcppLib->call(DCPP_CALL_HUB_DISPATCH_LINE, (dcpp_param)lua_touserdata(L, -2), (dcpp_param)cmd, 0);
-		//free(cmd);
+		dcpp::interfaces::Hub* h = (dcpp::interfaces::Hub*)lua_touserdata(L, -2);
+		if(h) {
+			const char* line = lua_tostring(L, -1);
+			h->parseLine(line);
+		}
 	}
 	return 0;
 }
@@ -192,13 +193,11 @@ int LuaManager::FindWindow(lua_State* L) {
 
 int LuaManager::SendClientMessage(lua_State* L) {
 	if(LUA_ARGS_EQUAL(L, 2) && lua_islightuserdata(L, -2) && lua_isstring(L, -1)) {
-		/*dcpp::interfaces::Hub* h = (dcpp::interfaces::Hub*)lua_touserdata(L, -2);
-		if(h) {
+		dcpp::interfaces::UserConnection* uc = (dcpp::interfaces::UserConnection*)lua_touserdata(L, -2);
+		if(uc) {
 			const char* line = lua_tostring(L, -1);
-			h->sendData(line, strlen(line));
+			uc->sendLine(line);
 		}
-		//LuaManager::dcppLib->call(DCPP_CALL_CONNECTION_WRITE_LINE, (dcpp_param)lua_touserdata(L, -2), (dcpp_param)lua_tostring(L, -1), 0);
-		*/
 	}
 	return 0;
 }
@@ -234,10 +233,13 @@ int LuaManager::SendUDPPacket(lua_State* L) {
 
 int LuaManager::DropUserConnection(lua_State* L) {
 	if(LUA_ARGS_EQUAL(L, 1) && lua_islightuserdata(L, -1)) {
-		//if(!LuaManager::dcppLib->call(DCPP_CALL_CONNECTION_DISCONNECT, (dcpp_param)lua_touserdata(L, -1), 0, 0)) {
-		//	lua_pushliteral(L, "DropUserConnection: can't find connection at given address");
-		//	lua_error(L);
-		//}
+		dcpp::interfaces::UserConnection* uc = (dcpp::interfaces::UserConnection*)lua_touserdata(L, -2);
+		if(uc) {
+			uc->disconnect();
+		} else {
+			lua_pushliteral(L, "DropUserConnection: can't find connection at given address");
+			lua_error(L);
+		}
 	}
 	return 0;
 }
@@ -252,39 +254,24 @@ int LuaManager::GetSetting(lua_State* L) {
 		return 0;
 	}
 
-	/*const char* key = lua_tostring(L, -2);
-	dcpp_param settingValue;
-	int type = (int)LuaManager::dcppLib->call(DCPP_CALL_CORE_SETTING_DCPP_GET, (dcpp_param)key, (dcpp_param)&settingValue, 0);
+	const char* key = lua_tostring(L, -2);
 
-	switch(type) {
-		case DCPP_SETTINGS_TYPE_INT: {
-			if(!lua_isnumber(L, -1)) {
-				raiseBadArgumentTypeError(L, "GetSetting", 2, "number (4b)", -1);
-				return 0;
-			}
-			lua_pushnumber(L, static_cast<int>(settingValue));
-			return 1;
-		}
-		case DCPP_SETTINGS_TYPE_INT64: {
-			if(!lua_isnumber(L, -1)) {
-				raiseBadArgumentTypeError(L, "GetSetting", 2, "number (8b)", -1);
-				return 0;
-			}
-			lua_pushnumber(L, static_cast<lua_Number>(settingValue));
-			return 1;
-		}
-		case DCPP_SETTINGS_TYPE_STRING: {
-			if(!lua_isstring(L, -1)) {
-				raiseBadArgumentTypeError(L, "GetSetting", 2, "string", -1);
-				return 0;
-			}
-			lua_pushstring(L, reinterpret_cast<const char*>(settingValue));
-			return 1;
-		}
-		default: {
-			luaL_error(L,"Bad argument #1 to 'GetSetting' (the given setting doesn't exists)");
-		}
-	}*/
+	int value;
+	int64_t value64;
+	const char* valueString;
+
+	if(core->getCoreSetting(key, value)) {
+		lua_pushnumber(L, value);
+		return 1;
+	} else if(core->getCoreSetting(key, value64)) {
+		lua_pushnumber(L, static_cast<int>(value64));
+		return 1;
+	} else if(core->getCoreSetting(key, valueString)) {
+		lua_pushstring(L, valueString);
+		return 1;
+	}
+
+	luaL_error(L,"Bad argument #1 to 'GetSetting' (the given setting doesn't exists)");
 	return 0;
 }
 
@@ -298,38 +285,23 @@ int LuaManager::SetSetting(lua_State* L) {
 		return 0;
 	}
 
-	/*const char* key = lua_tostring(L, -2);
-	int type = (int)LuaManager::dcppLib->call(DCPP_CALL_CORE_SETTING_DCPP_GET_TYPE, (dcpp_param)key, 0, 0);
+	const char* key = lua_tostring(L, -2);
 
-	switch(type) {
-		case DCPP_SETTINGS_TYPE_INT: {
-			if(!lua_isnumber(L, -1)) {
-				raiseBadArgumentTypeError(L, "SetSetting", 2, "number (4b)", -1);
-				return 0;
-			}
-			LuaManager::dcppLib->call(DCPP_CALL_CORE_SETTING_DCPP_SET,(dcpp_param)key,(dcpp_param)lua_tonumber(L, -1), 0);
-			return 1;
+	if(lua_isnumber(L, -1)) {
+		if(core->setCoreSetting(key, (int)lua_tonumber(L, -1)) == false && core->setCoreSetting(key, (int64_t)lua_tonumber(L, -1)) == false) {
+			raiseBadArgumentTypeError(L, "SetSetting", 2, "setting does not exist", -1);
+			return 0;
 		}
-		case DCPP_SETTINGS_TYPE_INT64: {
-			if(!lua_isnumber(L, -1)) {
-				raiseBadArgumentTypeError(L, "SetSetting", 2, "number (8b)", -1);
-				return 0;
-			}
-			LuaManager::dcppLib->call(DCPP_CALL_CORE_SETTING_DCPP_SET,(dcpp_param)key,(dcpp_param)lua_tonumber(L, -1), 0);
-			return 1;
+		return 1;
+	} else if(lua_isstring(L, -1)) {
+		if(core->setCoreSetting(key, lua_tostring(L, -1)) == false) {
+			raiseBadArgumentTypeError(L, "SetSetting", 2, "setting does not exist", -1);
+			return 0;
 		}
-		case DCPP_SETTINGS_TYPE_STRING: {
-			if(!lua_isstring(L, -1)) {
-				raiseBadArgumentTypeError(L, "SetSetting", 2, "string", -1);
-				return 0;
-			}
-			LuaManager::dcppLib->call(DCPP_CALL_CORE_SETTING_DCPP_SET,(dcpp_param)key,(dcpp_param)lua_tostring(L, -1), 0);
-			return 1;
-		}
-		default: {
-			luaL_error(L,"Bad argument #1 to 'SetSetting' (the given setting doesn't exists)");
-		}
-	}*/
+		return 1;
+	} else {
+		luaL_error(L,"Bad argument #1 to 'SetSetting' (bad param type)");
+	}
 	return 0;
 }
 
@@ -390,19 +362,13 @@ int LuaManager::GetClientIp(lua_State* L) {
 		return 0;
 	}
 
-	/*dcpp_param connection = (dcpp_param)lua_touserdata(L, -1);
-	if(connection > 0) {
-		dcppConnectionInfo nfo;
-		memset(&nfo, 0, sizeof(dcppConnectionInfo));
-		if(LuaManager::dcppLib->call(DCPP_CALL_CONNECTION_GET_INFO, connection, (dcpp_param)&nfo, 0)) {
-			lua_pushstring(L, nfo.ip);
-			return 1;
-		} else {
-			luaL_error(L, "GetClientIp: can't find connection at given address");
-		}
+	dcpp::interfaces::UserConnection* uc = (dcpp::interfaces::UserConnection*)lua_touserdata(L, -2);
+	if(uc) {
+		lua_pushstring(L, uc->getIp());
+		return 1;
 	} else {
 		luaL_error(L, "GetClientIp: bad connection handle");
-	}*/
+	}
 	return 0;
 }
 
@@ -445,7 +411,7 @@ int LuaManager::GetHubUrl(lua_State* L) {
 }
 
 int LuaManager::RunTimer(lua_State* L) {
-	/*if(LUA_ARGS_EQUAL(L, 1) == false) {
+	if(LUA_ARGS_EQUAL(L, 1) == false) {
 		raiseBadArgumentError(L, "RunTimer", 1);
 		return 0;
 	} else if(!lua_isnumber(L, -1)) {
@@ -453,6 +419,6 @@ int LuaManager::RunTimer(lua_State* L) {
 		return 0;
 	}
 
-	LuaManager::timerActive = lua_tonumber(L, -1) != 0;*/
+	LuaManager::timerActive = lua_tonumber(L, -1) != 0;
 	return 0;
 }

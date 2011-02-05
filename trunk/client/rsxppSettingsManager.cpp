@@ -378,9 +378,16 @@ void rsxppSettingsManager::set(IntSetting key, int value) {
 	isSet[key] = true;
 }
 #endif
-const std::string& rsxppSettingsManager::getExtSetting(const std::string& name) const {
-	StringMap::const_iterator i = extSettings.find(name);
-	return i == extSettings.end() ? Util::emptyString : i->second;
+const std::string& rsxppSettingsManager::getExtSetting(const std::string& name, const std::string& defaultValue) {
+	StringMap::iterator i = extSettings.find(name);
+	if(i == extSettings.end()) {
+		std::pair<StringMap::iterator, bool> p = extSettings.insert(std::make_pair(name, defaultValue));
+		if(p.second)
+			return p.first->second;
+		else
+			return Util::emptyString;
+	}
+	return i->second;
 }
 
 void rsxppSettingsManager::setExtSetting(const std::string& name, const std::string& value) {

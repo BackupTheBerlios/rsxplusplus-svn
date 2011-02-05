@@ -26,7 +26,7 @@
 #define VER_BLD(v)					(uint32_t)(((uint64_t)v & 0x000000000000FFFF))
 
 // PluginSDK version (include in PluginInformation)
-#define SDK_VERSION MAKE_VER(3, 0, 3, 0)
+#define SDK_VERSION MAKE_VER(3, 0, 4, 0)
 
 namespace dcpp {
 	namespace interfaces {
@@ -108,6 +108,8 @@ namespace dcpp {
 		public:
 			virtual void onCore_LoadComplete() throw() { }
 			virtual void onCore_UnloadPrepare() throw() { }
+			virtual void onCore_SettingsLoad() throw() { }
+			virtual void onCore_SettingsSave() throw() { }
 		};
 
 		class ConnectionManagerListener {
@@ -122,15 +124,27 @@ namespace dcpp {
 	
 			virtual void addEventListener(dcpp::interfaces::HubManagerListener* listener) = 0;
 			virtual void addEventListener(dcpp::interfaces::ConnectionManagerListener* listener) = 0;
+			virtual void addEventListener(dcpp::interfaces::TimerListener* listener) = 0;
+			virtual void addEventListener(dcpp::interfaces::CoreListener* listener) = 0;
 
 			virtual void remEventListener(dcpp::interfaces::HubManagerListener* listener) = 0;
 			virtual void remEventListener(dcpp::interfaces::ConnectionManagerListener* listener) = 0;
+			virtual void remEventListener(dcpp::interfaces::TimerListener* listener) = 0;
+			virtual void remEventListener(dcpp::interfaces::CoreListener* listener) = 0;
 
 			virtual dcpp::interfaces::Memory* getMemoryManager() = 0;
 			virtual dcpp::interfaces::Utils* getUtils() = 0;
 
-			virtual const char* getPluginSetting(const char* key) = 0;
+			virtual const char* getPluginSetting(const char* key, const char* defaultValue = 0) = 0;
 			virtual void setPluginSetting(const char* key, const char* value) = 0;
+
+			virtual bool getCoreSetting(const char* key, const char*& value) = 0;
+			virtual bool getCoreSetting(const char* key, int& value) = 0;
+			virtual bool getCoreSetting(const char* key, int64_t& value) = 0;
+
+			virtual bool setCoreSetting(const char* key, const char* value) = 0;
+			virtual bool setCoreSetting(const char* key, const int& value) = 0;
+			virtual bool setCoreSetting(const char* key, const int64_t& value) = 0;
 		};
 	} // namespace interfaces
 } // namespace dcpp

@@ -168,7 +168,13 @@ dcpp::interfaces::PluginInfo info = {
 	SDK_VERSION
 };
 
-class Plugin : public dcpp::interfaces::HubListener, public dcpp::interfaces::HubManagerListener {
+class Plugin : 
+	private dcpp::interfaces::HubListener, 
+	private dcpp::interfaces::HubManagerListener,
+	private dcpp::interfaces::UserConnectionListener,
+	private dcpp::interfaces::ConnectionManagerListener,
+	private dcpp::interfaces::TimerListener
+{
 public:
 	Plugin() {
 		gL = luaL_newstate();
@@ -187,10 +193,12 @@ public:
 
 		memset(LuaManager::tempBuffer, 0, TEMPBUF_SIZE);
 		core->addEventListener((dcpp::interfaces::HubManagerListener*)this);
+		core->addEventListener((dcpp::interfaces::ConnectionManagerListener*)this);
 	}
 
 	~Plugin() {
 		core->remEventListener((dcpp::interfaces::HubManagerListener*)this);
+		core->remEventListener((dcpp::interfaces::ConnectionManagerListener*)this);
 	}
 
 private:
@@ -273,25 +281,39 @@ private:
 		h->remEventListener((dcpp::interfaces::HubListener*)this);
 	}
 
-};
-/*
-int DCPP_CALL_CONV onConnectionEvent(int callReason, dcpp_param p1, dcpp_param p2, void*) {
-	switch(callReason) {
-		case DCPP_EVENT_CONNECTION_LINE: {
-			dcppConnectionLine* line = (dcppConnectionLine*)p1;
-			if(line) {
-				MakeCall("dcpp", p2 ? "UserDataIn" : "UserDataOut", 1, line->connectionPtr, line->line);
-				return GetLuaBool() ? DCPP_TRUE : DCPP_FALSE;
-			}
-			break;
-		}
-		default: {
-			break;
+	void onConnectionManager_ConnectionCreated(dcpp::interfaces::UserConnection* uc) throw() {
+		uc->addEventListener((dcpp::interfaces::UserConnectionListener*)this);
+	}
+	void onConnectionManager_ConnectionDestroyed(dcpp::interfaces::UserConnection* uc) throw() {
+		uc->remEventListener((dcpp::interfaces::UserConnectionListener*)this);
+	}
+
+	void onUserConnection_IncomingLine(dcpp::interfaces::UserConnection* uc, const char* line, bool& handled) throw() {
+		if(!handled) {
+			MakeCall("dcpp", "UserDataIn", 1, uc, line);
+			handled = GetLuaBool();
 		}
 	}
-	return DCPP_FALSE;
-}
+	void onUserConnection_OutgoingLine(dcpp::interfaces::UserConnection* uc, const char* line, bool& handled) throw() {
+		if(!handled) {
+			MakeCall("dcpp", "UserDataOut", 1, uc, line);
+			handled = GetLuaBool();
+		}
+	}
+	void onUserConnection_AdcCommand(dcpp::interfaces::UserConnection* /*uc*/, dcpp::interfaces::AdcCommand* /*cmd*/) throw() {
+	
+	}
 
+	void onTimer_Second(uint64_t) throw() { 
+		if(LuaManager::timerActive) {
+			MakeCall("dcpp", "OnTimer");
+		}
+	}
+	void onTimer_Minute(uint64_t) throw() { 
+		lua_gc(gL, LUA_GCCOLLECT, 0);
+	}
+};
+/*
 int __stdcall onTimer(int callReason, dcpp_param p1, dcpp_param p2, void*) {
 	if(callReason == DCPP_EVENT_TIMER_TICK_SECOND && LuaManager::timerActive) {
 		MakeCall("dcpp", "OnTimer");

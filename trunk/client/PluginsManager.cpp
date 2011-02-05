@@ -34,6 +34,8 @@
 
 namespace dcpp {
 
+CriticalSection PluginsManager::cs;
+
 PluginsManager::PluginsManager() {
 //	udp.create(Socket::TYPE_UDP);
 
@@ -189,12 +191,116 @@ void PluginsManager::remEventListener(interfaces::ConnectionManagerListener* lis
 		ucSet.erase(i);
 }
 
-const char* PluginsManager::getPluginSetting(const char* key) {
-	return rsxppSettingsManager::getInstance()->getExtSetting(key).c_str();
+void PluginsManager::addEventListener(interfaces::CoreListener* listener) {
+	Lock l(cs);
+	for(CoreSet::iterator i = coreSet.begin(); i != coreSet.end(); ++i) {
+		if((*i) == listener)
+			return;
+	}
+	coreSet.push_back(listener);
+}
+
+void PluginsManager::remEventListener(interfaces::CoreListener* listener) {
+	Lock l(cs);
+	CoreSet::iterator i = std::find(coreSet.begin(), coreSet.end(), listener);
+	if(i != coreSet.end())
+		coreSet.erase(i);
+}
+
+void PluginsManager::addEventListener(interfaces::TimerListener* listener) {
+	Lock l(cs);
+	for(TimerSet::iterator i = timerSet.begin(); i != timerSet.end(); ++i) {
+		if((*i) == listener)
+			return;
+	}
+	timerSet.push_back(listener);
+}
+
+void PluginsManager::remEventListener(interfaces::TimerListener* listener) {
+	Lock l(cs);
+	TimerSet::iterator i = std::find(timerSet.begin(), timerSet.end(), listener);
+	if(i != timerSet.end())
+		timerSet.erase(i);
+}
+
+const char* PluginsManager::getPluginSetting(const char* key, const char* defaultValue /*= 0*/) {
+	return rsxppSettingsManager::getInstance()->getExtSetting(key, defaultValue == 0 ? Util::emptyString : defaultValue).c_str();
 }
 
 void PluginsManager::setPluginSetting(const char* key, const char* value) {
 	rsxppSettingsManager::getInstance()->setExtSetting(key, value);
+}
+
+bool PluginsManager::getCoreSetting(const char* key, const char*& value) {
+	int type;
+	int k = SettingsManager::getInstance()->findKey(key, type);
+	if(k < 0)
+		return false;
+
+	if(type != SettingsManager::TYPE_STRING)
+		return false;
+	value = SettingsManager::getInstance()->get((SettingsManager::StrSetting)k).c_str();
+	return true;
+}
+
+bool PluginsManager::getCoreSetting(const char* key, int& value) {
+	int type;
+	int k = SettingsManager::getInstance()->findKey(key, type);
+	if(k < 0)
+		return false;
+
+	if(type != SettingsManager::TYPE_INT)
+		return false;
+	value = SettingsManager::getInstance()->get((SettingsManager::IntSetting)k);
+	return true;
+}
+
+bool PluginsManager::getCoreSetting(const char* key, int64_t& value) {
+	int type;
+	int k = SettingsManager::getInstance()->findKey(key, type);
+	if(k < 0)
+		return false;
+
+	if(type != SettingsManager::TYPE_INT64)
+		return false;
+	value = SettingsManager::getInstance()->get((SettingsManager::Int64Setting)k);
+	return true;
+}
+
+bool PluginsManager::setCoreSetting(const char* key, const char* value) {
+	int type;
+	int k = SettingsManager::getInstance()->findKey(key, type);
+	if(k < 0)
+		return false;
+
+	if(type != SettingsManager::TYPE_STRING)
+		return false;
+	SettingsManager::getInstance()->set((SettingsManager::StrSetting)k, value);
+	return true;
+}
+
+bool PluginsManager::setCoreSetting(const char* key, const int& value) {
+	int type;
+	int k = SettingsManager::getInstance()->findKey(key, type);
+	if(k < 0)
+		return false;
+
+	if(type != SettingsManager::TYPE_INT)
+		return false;
+	SettingsManager::getInstance()->set((SettingsManager::IntSetting)k, value);
+	return true;
+}
+
+bool PluginsManager::setCoreSetting(const char* key, const int64_t& value) {
+	int type;
+	int k = SettingsManager::getInstance()->findKey(key, type);
+	if(k < 0)
+		return false;
+
+	if(type != SettingsManager::TYPE_INT64)
+		return false;
+	SettingsManager::getInstance()->set((SettingsManager::Int64Setting)k, value);
+	return true;
 }
 
 void PluginsManager::eventUserConnectionCreated(UserConnection* uc) {
@@ -362,19 +468,31 @@ const char* PluginsManager::getPath(int type) const {
 }
 
 void PluginsManager::on(TimerManagerListener::Second, uint64_t tick) throw() {
-
+	Lock l(cs);
+	for(TimerSet::const_iterator i = timerSet.begin(); i != timerSet.end(); ++i) {
+		(*i)->onTimer_Second(tick);
+	}
 }
 
 void PluginsManager::on(TimerManagerListener::Minute, uint64_t tick) throw() {
-
+	Lock l(cs);
+	for(TimerSet::const_iterator i = timerSet.begin(); i != timerSet.end(); ++i) {
+		(*i)->onTimer_Minute(tick);
+	}
 }
 
 void PluginsManager::on(SettingsManagerListener::Load, SimpleXML& xml) throw() {
-
+	Lock l(cs);
+	for(CoreSet::const_iterator i = coreSet.begin(); i != coreSet.end(); ++i) {
+		(*i)->onCore_SettingsLoad();
+	}
 }
 
 void PluginsManager::on(SettingsManagerListener::Save, SimpleXML& xml) throw() {
-
+	Lock l(cs);
+	for(CoreSet::const_iterator i = coreSet.begin(); i != coreSet.end(); ++i) {
+		(*i)->onCore_SettingsSave();
+	}
 }
 
 } // namespace dcpp

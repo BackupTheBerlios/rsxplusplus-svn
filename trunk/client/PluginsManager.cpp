@@ -224,14 +224,18 @@ void PluginsManager::remEventListener(interfaces::TimerListener* listener) {
 }
 
 const char* PluginsManager::getPluginSetting(const char* key, const char* defaultValue /*= 0*/) {
+	Lock l(PluginsManager::cs);
 	return rsxppSettingsManager::getInstance()->getExtSetting(key, defaultValue == 0 ? Util::emptyString : defaultValue).c_str();
 }
 
 void PluginsManager::setPluginSetting(const char* key, const char* value) {
+	Lock l(PluginsManager::cs);
 	rsxppSettingsManager::getInstance()->setExtSetting(key, value);
 }
 
 bool PluginsManager::getCoreSetting(const char* key, const char*& value) {
+	Lock l(PluginsManager::cs);
+
 	int type;
 	int k = SettingsManager::getInstance()->findKey(key, type);
 	if(k < 0)
@@ -244,6 +248,8 @@ bool PluginsManager::getCoreSetting(const char* key, const char*& value) {
 }
 
 bool PluginsManager::getCoreSetting(const char* key, int& value) {
+	Lock l(PluginsManager::cs);
+
 	int type;
 	int k = SettingsManager::getInstance()->findKey(key, type);
 	if(k < 0)
@@ -256,6 +262,8 @@ bool PluginsManager::getCoreSetting(const char* key, int& value) {
 }
 
 bool PluginsManager::getCoreSetting(const char* key, int64_t& value) {
+	Lock l(PluginsManager::cs);
+
 	int type;
 	int k = SettingsManager::getInstance()->findKey(key, type);
 	if(k < 0)
@@ -268,6 +276,8 @@ bool PluginsManager::getCoreSetting(const char* key, int64_t& value) {
 }
 
 bool PluginsManager::setCoreSetting(const char* key, const char* value) {
+	Lock l(PluginsManager::cs);
+
 	int type;
 	int k = SettingsManager::getInstance()->findKey(key, type);
 	if(k < 0)
@@ -280,6 +290,8 @@ bool PluginsManager::setCoreSetting(const char* key, const char* value) {
 }
 
 bool PluginsManager::setCoreSetting(const char* key, const int& value) {
+	Lock l(PluginsManager::cs);
+
 	int type;
 	int k = SettingsManager::getInstance()->findKey(key, type);
 	if(k < 0)
@@ -292,6 +304,8 @@ bool PluginsManager::setCoreSetting(const char* key, const int& value) {
 }
 
 bool PluginsManager::setCoreSetting(const char* key, const int64_t& value) {
+	Lock l(PluginsManager::cs);
+
 	int type;
 	int k = SettingsManager::getInstance()->findKey(key, type);
 	if(k < 0)

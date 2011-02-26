@@ -75,15 +75,19 @@ private:
 		interfaces::HubManagerListener* i;
 	private:
 		void on(ClientManagerListener::UserUpdated, const OnlineUser& ou) throw() {
+			Lock l(PluginsManager::cs);
 			i->onHubManager_UserUpdated(const_cast<OnlineUser*>(&ou));
 		}
 		void on(ClientManagerListener::ClientConnected, const Client* c) throw() {
+			Lock l(PluginsManager::cs);
 			i->onHubManager_HubConnected(const_cast<Client*>(c));
 		}
-		void on(ClientManagerListener::ClientUpdated, const Client* c) throw() { 
+		void on(ClientManagerListener::ClientUpdated, const Client* c) throw() {
+			Lock l(PluginsManager::cs);
 			i->onHubManager_HubUpdated(const_cast<Client*>(c));
 		}
-		void on(ClientManagerListener::ClientDisconnected, const Client* c) throw() { 
+		void on(ClientManagerListener::ClientDisconnected, const Client* c) throw() {
+			Lock l(PluginsManager::cs);
 			i->onHubManager_HubDisconnected(const_cast<Client*>(c));
 		}
 	};

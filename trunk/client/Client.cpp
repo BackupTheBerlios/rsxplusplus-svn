@@ -40,7 +40,7 @@ namespace dcpp {
 
 Client::Counts Client::counts;
 //RSX++
-CriticalSection Client::ProxyListener::cs;
+//CriticalSection Client::ProxyListener::cs;
 //END
 
 Client::Client(const string& hubURL, char separator_, bool secure_) : 
@@ -49,7 +49,7 @@ Client::Client(const string& hubURL, char separator_, bool secure_) :
 	encoding(const_cast<string*>(&Text::systemCharset)), state(STATE_DISCONNECTED), sock(0),
 	hubUrl(hubURL), port(0), separator(separator_),
 	secure(secure_), countType(COUNT_UNCOUNTED), availableBytes(0)
-	, usersLimit(0), userCount(0) //RSX++
+	, usersLimit(0), userCount(0), plugins(PluginsManager::getInstance()->getCriticalSection()) //RSX++
 {
 	string file;
 	Util::decodeUrl(hubURL, address, port, file);

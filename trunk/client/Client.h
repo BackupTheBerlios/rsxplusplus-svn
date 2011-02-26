@@ -355,6 +355,8 @@ private:
 
 	class ProxyListener : public ClientListener {
 	public:
+		ProxyListener(CriticalSection& _cs) : cs(_cs) { }
+
 		void addListener(interfaces::HubListener* listener) {
 			Lock l(cs);
 			for(Listeners::iterator i = ls.begin(); i != ls.end(); ++i) {
@@ -379,7 +381,7 @@ private:
 
 		typedef std::deque<interfaces::HubListener*> Listeners;
 		Listeners ls;
-		static CriticalSection cs;
+		CriticalSection& cs;
 
 		void on(ClientListener::Connecting, const Client* c) throw() {
 			Lock l(cs);

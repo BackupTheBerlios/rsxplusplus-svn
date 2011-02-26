@@ -235,6 +235,8 @@ private:
 	//RSX++
 	class ProxyListener : public UserConnectionListener {
 	public:
+		ProxyListener(CriticalSection& _cs) : cs(_cs) { }
+
 		void addListener(interfaces::UserConnectionListener* listener) {
 			Lock l(cs);
 			for(Listeners::iterator i = ls.begin(); i != ls.end(); ++i) {
@@ -273,7 +275,7 @@ private:
 		}
 
 		Listeners ls;
-		static CriticalSection cs;
+		CriticalSection& cs;
 
 		void on(UserConnectionListener::BytesSent, UserConnection* uc, size_t n1, size_t n2) throw() {
 			Lock l(cs);

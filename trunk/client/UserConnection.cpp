@@ -35,7 +35,7 @@
 
 namespace dcpp {
 //RSX++
-CriticalSection UserConnection::ProxyListener::cs;
+//CriticalSection UserConnection::ProxyListener::cs;
 //END
 const string UserConnection::FEATURE_MINISLOTS = "MiniSlots";
 const string UserConnection::FEATURE_XML_BZLIST = "XmlBZList";
@@ -55,7 +55,9 @@ const string UserConnection::DOWNLOAD = "Download";
 
 // We only want ConnectionManager to create this...
 UserConnection::UserConnection(bool secure_) throw() : encoding(const_cast<string*>(&Text::systemCharset)), state(STATE_UNCONNECTED),
-lastActivity(0), speed(0), chunkSize(0), socket(0), download(NULL), slotType(NOSLOT) {
+lastActivity(0), speed(0), chunkSize(0), socket(0), download(NULL), slotType(NOSLOT),
+plugins(PluginsManager::getInstance()->getCriticalSection())
+{
 	if(secure_) {
 		setFlag(FLAG_SECURE);
 	}

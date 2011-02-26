@@ -1,3 +1,6 @@
+** SVN 233 26/02/2011
+ ** using one mutex for all calls to/from plugins (fixes some crashes)
+
 ** SVN 232 05/02/2011
  ** added settings managment to sdk
  ** added timer and core listeners to sdk

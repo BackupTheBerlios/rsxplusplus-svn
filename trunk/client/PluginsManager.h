@@ -56,6 +56,7 @@ public:
 	void eventUserConnectionCreated(UserConnection* uc);
 	void eventUserConnectionDestroyed(UserConnection* uc);
 
+	CriticalSection& getCriticalSection() { return cs; }
 private:
 	typedef std::list<Plugin*> Plugins;
 

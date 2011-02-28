@@ -173,10 +173,23 @@ class Plugin :
 	private dcpp::interfaces::HubManagerListener,
 	private dcpp::interfaces::UserConnectionListener,
 	private dcpp::interfaces::ConnectionManagerListener,
-	private dcpp::interfaces::TimerListener
+	private dcpp::interfaces::TimerListener,
+	private dcpp::interfaces::CoreListener
 {
 public:
 	Plugin() {
+		core->addEventListener((dcpp::interfaces::CoreListener*)this);
+		core->addEventListener((dcpp::interfaces::HubManagerListener*)this);
+		core->addEventListener((dcpp::interfaces::ConnectionManagerListener*)this);
+	}
+
+	~Plugin() {
+		core->remEventListener((dcpp::interfaces::HubManagerListener*)this);
+		core->remEventListener((dcpp::interfaces::ConnectionManagerListener*)this);
+	}
+
+private:
+	void onCore_LoadComplete() throw() { 
 		gL = luaL_newstate();
 		luaL_openlibs(gL);
 
@@ -196,12 +209,10 @@ public:
 		core->addEventListener((dcpp::interfaces::ConnectionManagerListener*)this);
 	}
 
-	~Plugin() {
-		core->remEventListener((dcpp::interfaces::HubManagerListener*)this);
-		core->remEventListener((dcpp::interfaces::ConnectionManagerListener*)this);
+	void onCore_UnloadPrepare() throw() {
+
 	}
 
-private:
 	void onHub_Connecting(dcpp::interfaces::Hub* h) throw() {
 
 	}

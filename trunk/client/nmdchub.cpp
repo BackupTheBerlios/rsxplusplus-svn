@@ -1002,7 +1002,7 @@ void NmdcHub::myInfo(bool alwaysSend) {
 		fromUtf8(escape(getCurrentDescription())).c_str(), extVer.c_str(), dc.c_str(), version.c_str(), modeChar, getCounts().c_str(), 
 		UploadManager::getInstance()->getSlots(), uploadSpeed.c_str(), StatusMode, fromUtf8(escape(getCurrentEmail())).c_str());
 
-	int64_t newBytesShared = ShareManager::getInstance()->getShareSize();
+	int64_t newBytesShared = getHideShare() ? 0 : ShareManager::getInstance()->getShareSize();
 	if (strcmp(myInfo, lastMyInfo.c_str()) != 0 || alwaysSend || (newBytesShared != lastBytesShared && lastUpdate + 15*60*1000 < GET_TICK())) {
 		dcdebug("MyInfo %s...\n", getMyNick().c_str());		
 		send(string(myInfo) + Util::toString(newBytesShared) + "$|");

@@ -1,4 +1,9 @@
-** SVN 234 xx/02/2011
+** SVN 235 28/02/2011
+ ** fixed hideshare on nndc hubs
+ ** changed plugins unload procedure
+ ** [bcdc_lua] load scripts when core is loaded
+
+** SVN 234 26/02/2011
  ** more mutex fixes in plugin interface
  ** copyrights updated
 

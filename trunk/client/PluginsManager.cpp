@@ -50,8 +50,6 @@ PluginsManager::~PluginsManager() {
 	TimerManager::getInstance()->removeListener(this);
 	
 	close();
-	std::for_each(cmSet.begin(), cmSet.end(), DeleteFunction());
-	cmSet.clear();
 }
 
 void PluginsManager::loadPlugin(Plugin*& p, HINSTANCE dll) throw(Exception) {
@@ -129,21 +127,38 @@ void PluginsManager::getPluginsInfo(std::list<dcpp::interfaces::PluginInfo*>& p)
 }
 
 void PluginsManager::load() {
-
+	Lock l(cs);
+	for(CoreSet::const_iterator i = coreSet.begin(); i != coreSet.end(); ++i) {
+		(*i)->onCore_LoadComplete();
+	}
 }
 
 void PluginsManager::close() {
 	Lock l(cs);
+
+	for(CoreSet::const_iterator i = coreSet.begin(); i != coreSet.end(); ++i) {
+		(*i)->onCore_UnloadPrepare();
+	}
+
+	Plugin* p;
 	for(Plugins::iterator i = plugins.begin(); i != plugins.end(); ++i) {
-		Plugin* p = *i;
+		p = *i;
 		if(p->pluginUnload)
 			p->pluginUnload();
 		FreeLibrary((HMODULE)p->handle);
 		
-		i = plugins.erase(i);
+		//i = plugins.erase(i);
 		delete p;
 		p = 0;
 	}
+
+	plugins.clear();
+	ucSet.clear();
+	coreSet.clear();
+	timerSet.clear();
+
+	std::for_each(cmSet.begin(), cmSet.end(), DeleteFunction());
+	cmSet.clear();
 }
 
 void PluginsManager::log(const char* msg) {

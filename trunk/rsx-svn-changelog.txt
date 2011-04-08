@@ -1,3 +1,12 @@
+** SVN 236 09/04/2011
+ ** [ticket #12] fixed
+ ** [sdk] plugins can emulate user connection commands
+ ** [sdk] updateUrl field in PluginInfo
+ ** little cleanup
+ ** [winamp_spam] updated to sdk changes
+ ** [bcdc_lua] updated to sdk changes
+ ** [ApexProxy] begun some work...
+
 ** SVN 235 28/02/2011
  ** fixed hideshare on nndc hubs
  ** changed plugins unload procedure

@@ -426,13 +426,14 @@ private:
 	bool isAnyFlagSet(int flags) { return isAnySet(flags); }
 	const char* getIp() const { return getRemoteIp().c_str(); }
 	const char* getHubURL() const { return hubUrl.c_str(); }
+	void parseLine(const char* line) { onLine(line, true); }
 	//END
 
 	void setUser(const UserPtr& aUser) {
 		user = aUser;
 	}
 
-	void onLine(const string& aLine) throw();
+	void onLine(const string& aLine, bool dropPlugins = false) throw();
 
 	void send(const string& aString, bool ext = true) {
 		lastActivity = GET_TICK();

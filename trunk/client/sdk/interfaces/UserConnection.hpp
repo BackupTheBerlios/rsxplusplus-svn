@@ -59,6 +59,7 @@ namespace dcpp {
 
 			virtual void sendData(const void* data, size_t len) = 0;
 			virtual void sendLine(const char* line) = 0;
+			virtual void parseLine(const char* line) = 0;
 
 			virtual void addEventListener(dcpp::interfaces::UserConnectionListener* listener) = 0;
 			virtual void remEventListener(dcpp::interfaces::UserConnectionListener* listener) = 0;

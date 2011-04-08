@@ -35,7 +35,7 @@
  *
  *	2§ set_hook and un_hook implementations must automatically create (if missing) and free hooks from
  *	   HookID range [1, HOOK_USER] respectively. The type of any automatically created hooks should be
- *	   HOOK_SIMPLE.
+ *	   HOOK_EVENT.
  *
  *	3§ Host node must create the callback CALLBACK_BASE, which is the only guaranteed callback between
  *	   host node and (all of) the plugin nodes (this callback should be a hook of type HOOK_CALLBACK).
@@ -69,16 +69,16 @@
  *
  *	4§ Plugins can also intercommunicate and depend on each other because everyone can create and call hooks freely
  *	   this also allows plugins to complement the hosts implementations of the API (as noted under Host node
- *	   implementation). However, plugin intercom is something independant of the host and the API itself. To put it
- *	   simply plugins have to "know each other" and check for any dependancies on their own based on missing
- *	   or existing hooks (based on return of set_hook).
+ *	   implementation). However, plugin intercom is something largely independant of the host and the API itself.
+ *	   To put it simply plugins have to "know each other", the API only allows for basic checking of dependencies
+ *	   based on plugin GUIDs.
  *
  * Misc implementation
  *	§1 Implementations that add additional messages or types to any of the groups of constants must always aim to
  *	   preserve the existing constants and their values so that backwards compatibility is maintained.
  *
- *	§2 Any constants should not exceed the absolute minium size requirements for an int (ie. 16bit, [-32767, 32767])
- *	   even though on most architectures today int can be larger.
+ *	§2 Any constants should not exceed the absolute minium size requirements for an integer (ie. 16bit, [-32767, 32767])
+ *	   even though on most architectures today integer can be larger.
  */
 
 #ifndef DCPLUSPLUS_DCPP_PLUGIN_DEFS_H
@@ -87,6 +87,12 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/* Version of the plugin api (must change every time the API has changed) */
+#define DCAPI_VER				0.50
+
+/* The earliest version of the API that this version is backwards compatible with */
+#define DCAPI_COMPATIBLE_VER	0.50
 
 #ifdef _WIN32
 # define DCAPI __stdcall
@@ -102,8 +108,9 @@ extern "C" {
 # define DCIMP __attribute__ ((visibility("default")))
 #endif
 
+#ifndef DCAPI_HOST
 /* current STLPort GIT implements this */
-#if defined(_MSC_VER) && (!defined(_STLPORT_VERSION) || (_STLPORT_VERSION < 0x600))
+# if _MSC_VER <= 1500 && (!defined(_STLPORT_VERSION) || (_STLPORT_VERSION < 0x600))
 typedef signed __int8 int8_t;
 typedef signed __int16 int16_t;
 typedef signed __int32 int32_t;
@@ -113,18 +120,16 @@ typedef unsigned __int8 uint8_t;
 typedef unsigned __int16 uint16_t;
 typedef unsigned __int32 uint32_t;
 typedef unsigned __int64 uint64_t;
-#else
-# include <stdint.h>
+# else
+#  include <stdint.h>
+# endif
 #endif
-
-/* Version of the plugin api (must change every time this file has changed) */
-#define DCAPI_VER			0.45
 
 /* Hook types */
 typedef enum tagHookType {
-	HOOK_SIMPLE = 0,
-	HOOK_CALLBACK,
-	HOOK_EVENT
+	HOOK_ID = 0,									/* Used by the message register functions, to register new hooks */
+	HOOK_CALLBACK,									/* Callback (inbound) hook */
+	HOOK_EVENT										/* Regular (outbound) hook */
 } HookType;
 
 /* Hook IDs */
@@ -212,7 +217,8 @@ typedef enum tagHookEvent {
 
 	/* UI hook events (HOOK_UI) */
 	UI_CREATED = 3000,								/* Host node UI has been created (if any, obj: impl. dependant) */
-	UI_CHAT_DISPLAY,								/* Chat messages before displayed to user (obj: StringData) */
+	UI_CHAT_DISPLAY,								/* Chat messages before displayed in chat (obj: StringData) */
+	UI_PROCESS_CHAT_CMD,							/* Client side commands in chat (obj: CommandData) */
 
 	/* Plugin created hook events (EVENT_USER + n) */
 	EVENT_USER = 3500
@@ -220,13 +226,26 @@ typedef enum tagHookEvent {
 
 /* Conversion functions */
 typedef enum tagConversionType {
-	CONV_ACP_TO_UTF8 = 0,							/* Convert ACP (Ansi Code Page) string to UTF-8 */
-	CONV_UTF8_TO_ACP,								/* Reverse of CONV_ACP_TO_UTF8 */
-	CONV_UTF8_TO_WIDE,								/* Convert UTF-8 string to wide characters (wchar_t) */
+	CONV_TO_UTF8 = 0,								/* Convert string to UTF-8 */
+	CONV_FROM_UTF8,									/* Reverse of CONV_TO_UTF8 */
+	CONV_UTF8_TO_WIDE,								/* Convert UTF-8 string to wide character string */
 	CONV_WIDE_TO_UTF8,								/* Reverse of CONV_UTF8_TO_WIDE */
 	CONV_TO_BASE32,									/* Convert unsigned short data (uint8_t*, array) to string */
 	CONV_FROM_BASE32								/* Reverse of CONV_TO_BASE32 */
 } ConversionType;
+
+typedef enum tagConfigType {
+	CFG_TYPE_REMOVE = -1,							/* Config value will be removed */
+	CFG_TYPE_STRING,								/* Config value is string */
+	CFG_TYPE_INT,									/* Config value is 32bit integer */
+	CFG_TYPE_INT64									/* Config value is 64bit integer */
+} ConfigType;
+
+typedef enum tagProtocolType {
+	PROTOCOL_ADC = 0,								/* Protocol used ís ADC */
+	PROTOCOL_NMDC,									/* Protocol used is NMDC */
+	PROTOCOL_DHT									/* DHT node (not used, reserved) */
+} ProtocolType;
 
 typedef enum tagPathType {
 	PATH_GLOBAL_CONFIG = 0,							/* Global configuration */
@@ -254,8 +273,7 @@ typedef enum tagQueuePrio {
 } QueuePrio;
 
 /* Types */
-typedef void *hookHandle, *dcptr_t;
-typedef uint32_t subsHandle;
+typedef void *hookHandle, *dcptr_t, *subsHandle;
 typedef enum tagDCBool { dcFalse = 0, dcTrue } dcBool;
 
 /* Workaround for other bool defs */
@@ -269,12 +287,30 @@ typedef Bool (DCAPI* DCHOOKEX)		(uint32_t eventId, dcptr_t pData, Bool* bBreak);
 typedef Bool (DCAPI* DCHOOKCOMMON)	(uint32_t eventId, dcptr_t pData, void* pCommon);
 typedef Bool (DCAPI* DCHOOKCOMMONEX)(uint32_t eventId, dcptr_t pData, void* pCommon, Bool* bBreak);
 
+/* Config Value (for get_cfg/set_cfg) */
+typedef struct tagConfigValue {
+	ConfigType type;								/* Indicates which type value holds */
+	union {
+		const char* str;
+		int32_t int32;
+		int64_t int64;
+	} value;
+} ConfigValue, *ConfigValuePtr;
+
 /* String Data (for substitutions) */
 typedef struct tagStringData {
-	dcptr_t object;									/* Any related object (may be omitted) */
+	dcptr_t object;									/* Any related object (internal, may be omitted) */
 	const char* in;									/* Incoming string */
-	char* out;										/* Resulting new string */
+	char* out;										/* Resulting new string (allocated with DCCore::memalloc) */
 } StringData, *StringDataPtr;
+
+/* Client side chat commands */
+typedef struct tagCommandData {
+	dcptr_t object;									/* UserData or ClientData based on isPrivate */
+	const char* command;							/* Command name */
+	const char* params;								/* Command parameters passed */
+	Bool isPrivate;									/* Used in a private context (private messages) */
+} CommandData, *CommandDataPtr;
 
 /* Users */
 typedef struct tagUserData {
@@ -282,12 +318,12 @@ typedef struct tagUserData {
 	const char* hubHint;							/* Contains hub url to find the user from */
 	const uint8_t* cid;								/* User CID (raw data, size: 192 / 8) */
 	dcptr_t object;									/* The source/destination for the data */
+	ProtocolType protocol;							/* The protocol used */
+	Bool isOp;										/* Whether user has a key or not */
 	union {
 		char nick[36];								/* Users nick (only valid in NMDC) */
 		uint32_t sid;								/* Users SID (only valid in ADC) */
 	} uid;
-	Bool isOp;										/* Whether user has a key or not */
-	Bool isAdc;										/* The protocol used (True if ADC) */
 } UserData, *UserDataPtr;
 
 /* Hubs (clients) */
@@ -297,8 +333,8 @@ typedef struct tagClientData {
 	const char* ip;									/* Hub ip address */
 	dcptr_t object;									/* The source/destination for the data */
 	uint16_t port;									/* Hub port */
+	ProtocolType protocol;							/* The protocol used */
 	Bool isOp;										/* Whether we have a key on this hub or not */
-	Bool isAdc;										/* The protocol used (True if ADC) */
 	Bool isSecure;									/* True for TLS encrypted connections */
 } ClientData, *ClientDataPtr;
 
@@ -308,8 +344,8 @@ typedef struct tagConnectionData {
 	const char* ip;									/* The ip address (remote) for this connection */
 	dcptr_t object;									/* The source/destination for the data */
 	uint16_t port;									/* The port for this connection */
+	ProtocolType protocol;							/* The protocol used */
 	Bool isOp;										/* Whether user has a key or not */
-	Bool isAdc;										/* The protocol used (True if ADC) */
 	Bool isSecure;									/* True for TLS encrypted connections */
 } ConnectionData, *ConnectionDataPtr;
 
@@ -331,9 +367,11 @@ typedef struct tagMetaData {
 	const char* description;						/* *Short* description of plugin functionality (may be multiple lines) */
 	const char* web;								/* Authors website if any */
 	const char* guid;								/* Plugins unique GUID */
-	double apiVersion;								/* API version the plugin was compiled against */
+	const char** dependencies;						/* Array of plugin dependencies */
+	uint32_t numDependencies;						/* Number of plugin GUIDs in dependencies array */
 	double version;									/* Plugin version */
-	int icon;										/* Icon for the plugin (out of the settings icons, default: 27) */
+	double apiVersion;								/* API version the plugin was compiled against */
+	double compatibleVersion;						/* Earliest API version the plugin can be used with */
 } MetaData, *MetaDataPtr;
 
 /* Interaction layer */
@@ -355,34 +393,33 @@ typedef struct tagDCCore {
 	uint32_t	(DCAPI *register_range)		(HookType type, const char* name, uint32_t count);
 	uint32_t	(DCAPI *seek_message)		(const char* name);
 
-	/* Generic */
-	void*		(DCAPI* memalloc)			(void* ptr, size_t bytes);
-	size_t		(DCAPI *strconv)			(ConversionType type, void* dst, void* src, size_t len);
-
 	/* Settings management */
-	void		(DCAPI *set_cfg)			(const char* guid, const char* setting, const char* value);
-	const char*	(DCAPI *get_cfg)			(const char* guid, const char* setting);
+	void		(DCAPI *set_cfg)			(const char* guid, const char* setting, ConfigValuePtr val);
+	Bool		(DCAPI *get_cfg)			(const char* guid, const char* setting, ConfigValuePtr val);
 
+	/* General */
+	void*		(DCAPI *memalloc)			(void* ptr, size_t bytes);
+	size_t		(DCAPI *strconv)			(ConversionType type, void* dst, void* src, size_t len);
 } DCCore, *DCCorePtr;
 
-/* For Callback functions (after long thinking and with much regret) */
-typedef struct tagTextCommandRes {
-	dcptr_t object;
-	const char* data;
-	dcptr_t res;
-} TextCommandRes, *TextCommandResPtr;
-
-typedef struct tagTextCommandCond {
-	dcptr_t object;
-	const char* data;
-	uint32_t cond;
-} TextCommandCond, *TextCommandCondPtr;
-
+/* For callback function arguments (after long thinking and with much regret) */
 typedef struct tagTextDataCond {
 	const char* data;
 	uint32_t cond;
 	char* res;
 } TextDataCond, *TextDataCondPtr;
+
+typedef struct tagTextArgsRes {
+	dcptr_t object;
+	const char* data;
+	dcptr_t res;
+} TextArgsRes, *TextArgsResPtr;
+
+typedef struct tagTextArgsCond {
+	dcptr_t object;
+	const char* data;
+	uint32_t cond;
+} TextArgsCond, *TextArgsCondPtr;
 
 typedef struct tagQueueArgs {
 	const char* target;
@@ -419,8 +456,8 @@ typedef struct tagQueueArgs {
 
 #define BASE_HUB_EMULATE_CMD(core, client, cmd) \
 { \
-	TextCommandRes args; \
-	memset(&args, 0, sizeof(TextCommandRes)); \
+	TextArgsRes args; \
+	memset(&args, 0, sizeof(TextArgsRes)); \
 	args.object = client; \
 	args.data = cmd; \
 	core->call_hook(CALLBACK_BASE, PROTOCOL_HUB_EMULATE_CMD, &args); \
@@ -428,8 +465,8 @@ typedef struct tagQueueArgs {
 
 #define BASE_HUB_SEND_CMD(core, client, cmd) \
 { \
-	TextCommandRes args; \
-	memset(&args, 0, sizeof(TextCommandRes)); \
+	TextArgsRes args; \
+	memset(&args, 0, sizeof(TextArgsRes)); \
 	args.object = client; \
 	args.data = cmd; \
 	core->call_hook(CALLBACK_BASE, PROTOCOL_HUB_SEND_CMD, &args); \
@@ -437,8 +474,8 @@ typedef struct tagQueueArgs {
 
 #define BASE_CONN_SEND_CMD(core, uc, cmd) \
 { \
-	TextCommandRes args; \
-	memset(&args, 0, sizeof(TextCommandRes)); \
+	TextArgsRes args; \
+	memset(&args, 0, sizeof(TextArgsRes)); \
 	args.object = uc; \
 	args.data = cmd; \
 	core->call_hook(CALLBACK_BASE, PROTOCOL_CONN_SEND_CMD, &args); \
@@ -446,8 +483,8 @@ typedef struct tagQueueArgs {
 
 #define BASE_CONN_TERMINATE(core, uc, graceless) \
 { \
-	TextCommandCond args; \
-	memset(&args, 0, sizeof(TextCommandCond)); \
+	TextArgsCond args; \
+	memset(&args, 0, sizeof(TextArgsCond)); \
 	args.object = uc; \
 	args.cond = graceless; \
 	core->call_hook(CALLBACK_BASE, PROTOCOL_CONN_TERMINATE, &args); \
@@ -455,8 +492,8 @@ typedef struct tagQueueArgs {
 
 #define BASE_CREATE_HUB(core, aUrl, aData) \
 { \
-	TextCommandRes args; \
-	memset(&args, 0, sizeof(TextCommandRes)); \
+	TextArgsRes args; \
+	memset(&args, 0, sizeof(TextArgsRes)); \
 	args.data = aUrl; \
 	args.res = aData; \
 	core->call_hook(CALLBACK_BASE, HUBS_CREATE_HUB, &args); \
@@ -464,8 +501,8 @@ typedef struct tagQueueArgs {
 
 #define BASE_FIND_HUB(core, aUrl, aData) \
 { \
-	TextCommandRes args; \
-	memset(&args, 0, sizeof(TextCommandRes)); \
+	TextArgsRes args; \
+	memset(&args, 0, sizeof(TextArgsRes)); \
 	args.data = aUrl; \
 	args.res = aData; \
 	core->call_hook(CALLBACK_BASE, HUBS_FIND_HUB, &args); \
@@ -473,8 +510,8 @@ typedef struct tagQueueArgs {
 
 #define BASE_HUB_SEND_CHAT(core, client, aMsg, third_person) \
 { \
-	TextCommandCond args; \
-	memset(&args, 0, sizeof(TextCommandCond)); \
+	TextArgsCond args; \
+	memset(&args, 0, sizeof(TextArgsCond)); \
 	args.object = client; \
 	args.data = aMsg; \
 	args.cond = third_person; \
@@ -483,8 +520,8 @@ typedef struct tagQueueArgs {
 
 #define BASE_HUB_SEND_PM(core, ou, aMsg, third_person) \
 { \
-	TextCommandCond args; \
-	memset(&args, 0, sizeof(TextCommandCond)); \
+	TextArgsCond args; \
+	memset(&args, 0, sizeof(TextArgsCond)); \
 	args.object = ou; \
 	args.data = aMsg; \
 	args.cond = third_person; \
@@ -493,8 +530,8 @@ typedef struct tagQueueArgs {
 
 #define BASE_HUB_SEND_LOCAL(core, type, client, aMsg) \
 { \
-	TextCommandCond args; \
-	memset(&args, 0, sizeof(TextCommandCond)); \
+	TextArgsCond args; \
+	memset(&args, 0, sizeof(TextArgsCond)); \
 	args.object = client; \
 	args.data = aMsg; \
 	args.cond = type; \
@@ -514,8 +551,8 @@ typedef struct tagQueueArgs {
 
 #define BASE_QUEUE_SET_PRIO(core, qi, aPrio) \
 { \
-	TextCommandCond args; \
-	memset(&args, 0, sizeof(TextCommandCond)); \
+	TextArgsCond args; \
+	memset(&args, 0, sizeof(TextArgsCond)); \
 	args.object = qi; \
 	args.cond = aPrio; \
 	core->call_hook(CALLBACK_BASE, QUEUE_SET_PRIO, &args); \
@@ -530,5 +567,5 @@ typedef struct tagQueueArgs {
 
 /**
  * @file
- * $Id: PluginDefs.h 638 2010-02-14 11:39:07Z crise $
+ * $Id: PluginDefs.h 725 2010-10-11 11:22:11Z crise $
  */

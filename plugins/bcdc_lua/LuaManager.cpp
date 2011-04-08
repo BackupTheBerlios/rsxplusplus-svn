@@ -113,7 +113,7 @@ void LuaManager::parseLuaCommand(const char* cmd, char*& copy) {
 		len = strlen(copy);
 		copy = (char*)realloc(copy, len+10);
 		memset(copy+len, 0, 10);
-		LOG(copy);
+		//LOG(copy);
 	}
 }
 

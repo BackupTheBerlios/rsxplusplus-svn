@@ -164,6 +164,7 @@ dcpp::interfaces::PluginInfo info = {
 	"adrian_007",
 	"BCDC++ compatible " LUA_RELEASE " Interface",
 	"http://rsxplusplus.sf.net",
+	0,
 	MAKE_VER(1, 0, 0, 0),
 	SDK_VERSION
 };

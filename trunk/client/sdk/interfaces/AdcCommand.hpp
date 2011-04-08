@@ -23,6 +23,8 @@
 
 namespace dcpp {
 	namespace interfaces {
+
+		// this is wrapped from AdcCommand.cpp from dcpp source
 		namespace AdcCommandTypes {
 			static const char Broadcast = 'B';
 			static const char Client = 'C';

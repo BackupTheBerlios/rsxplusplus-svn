@@ -34,9 +34,7 @@
 //END
 
 namespace dcpp {
-//RSX++
-//CriticalSection UserConnection::ProxyListener::cs;
-//END
+
 const string UserConnection::FEATURE_MINISLOTS = "MiniSlots";
 const string UserConnection::FEATURE_XML_BZLIST = "XmlBZList";
 const string UserConnection::FEATURE_ADCGET = "ADCGet";
@@ -56,7 +54,7 @@ const string UserConnection::DOWNLOAD = "Download";
 // We only want ConnectionManager to create this...
 UserConnection::UserConnection(bool secure_) throw() : encoding(const_cast<string*>(&Text::systemCharset)), state(STATE_UNCONNECTED),
 lastActivity(0), speed(0), chunkSize(0), socket(0), download(NULL), slotType(NOSLOT),
-plugins(PluginsManager::getInstance()->getCriticalSection())
+plugins(PluginsManager::getInstance()->getCriticalSection()) //RSX++
 {
 	if(secure_) {
 		setFlag(FLAG_SECURE);
@@ -77,14 +75,19 @@ UserConnection::~UserConnection() throw() {
 	dcassert(!download);
 }
 
+//RSX++ changed it for plugins to emulate commands (moved to method)
 void UserConnection::on(BufferedSocketListener::Line, const string& aLine) throw () {
-
+	onLine(aLine);
+}
+//... here
+//END
+void UserConnection::onLine(const string& aLine, bool dropPlugins /*= false*/) throw() {
 	if(aLine.length() < 2)
 		return;
 
 	COMMAND_DEBUG(aLine, DebugManager::CLIENT_IN, getRemoteIp());
 	//RSX++
-	if(plugins.handleLine<true>(this, aLine.c_str()))
+	if(dropPlugins == false && plugins.handleLine<true>(this, aLine.c_str()))
 		return;
 	//END
 	if(aLine[0] == 'C' && !isSet(FLAG_NMDC)) {

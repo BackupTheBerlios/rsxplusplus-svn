@@ -26,7 +26,28 @@
 #define VER_BLD(v)					(uint32_t)(((uint64_t)v & 0x000000000000FFFF))
 
 // PluginSDK version (include in PluginInformation)
-#define SDK_VERSION MAKE_VER(3, 0, 4, 0)
+#define SDK_VERSION MAKE_VER(3, 0, 5, 0)
+
+#ifndef _WIN32
+#include <stdint.h>
+
+// some non-windows stuff... todo 4sure...
+typedef unsigned short wchar_t;
+#else
+
+#if (!defined(_STLPORT_VERSION)) || (_STLPORT_VERSION < 0x600)
+	typedef signed __int8 int8_t;
+	typedef signed __int16 int16_t;
+	typedef signed __int32 int32_t;
+	typedef signed __int64 int64_t;
+
+	typedef unsigned __int8 uint8_t;
+	typedef unsigned __int16 uint16_t;
+	typedef unsigned __int32 uint32_t;
+	typedef unsigned __int64 uint64_t;
+#endif
+
+#endif // _WIN32
 
 namespace dcpp {
 	namespace interfaces {

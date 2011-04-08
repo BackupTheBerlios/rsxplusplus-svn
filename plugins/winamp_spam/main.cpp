@@ -53,6 +53,7 @@ dcpp::interfaces::PluginInfo info = {
 	"adrian_007",
 	"Support for /w command on main chat to send info about song from Winamp",
 	"http://rsxplusplus.sf.net",
+	0,
 	MAKE_VER(1, 2, 1, 0),
 	SDK_VERSION
 };

@@ -67,15 +67,15 @@ namespace dcpp {
 		class HubListener {
 		public:
 			// notifications, can't stop them
-			virtual void onHub_Connecting(dcpp::interfaces::Hub*) throw() 							{ }
-			virtual void onHub_Connected(dcpp::interfaces::Hub*) throw() 								{ }
-			virtual void onHub_UserUpdated(dcpp::interfaces::Hub*, interfaces::OnlineUser*) throw() 	{ }
-			virtual void onHub_UserRemoved(dcpp::interfaces::Hub*, interfaces::OnlineUser*) throw() 	{ }
-			virtual void onHub_Redirect(dcpp::interfaces::Hub*, const char*) throw() 					{ }
-			virtual void onHub_Failed(dcpp::interfaces::Hub*, const char*) throw() 					{ }
-			virtual void onHub_HubUpdated(dcpp::interfaces::Hub*) throw() 							{ }
-			virtual void onHub_HubFull(dcpp::interfaces::Hub*) throw() 								{ }
-			virtual void onHub_AccountNickTaken(dcpp::interfaces::Hub*) throw() 						{ }
+			virtual void onHub_Connecting(dcpp::interfaces::Hub*) throw() { }
+			virtual void onHub_Connected(dcpp::interfaces::Hub*) throw() { }
+			virtual void onHub_UserUpdated(dcpp::interfaces::Hub*, interfaces::OnlineUser*) throw() { }
+			virtual void onHub_UserRemoved(dcpp::interfaces::Hub*, interfaces::OnlineUser*) throw() { }
+			virtual void onHub_Redirect(dcpp::interfaces::Hub*, const char*) throw() { }
+			virtual void onHub_Failed(dcpp::interfaces::Hub*, const char*) throw() { }
+			virtual void onHub_HubUpdated(dcpp::interfaces::Hub*) throw() { }
+			virtual void onHub_HubFull(dcpp::interfaces::Hub*) throw() { }
+			virtual void onHub_AccountNickTaken(dcpp::interfaces::Hub*) throw() { }
 
 			//events, we can stop them by changing last param to true
 			virtual void onHub_IncomingCommand(dcpp::interfaces::Hub*, const char*, bool&) throw() { }

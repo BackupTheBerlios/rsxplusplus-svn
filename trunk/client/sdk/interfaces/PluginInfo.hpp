@@ -27,6 +27,7 @@ namespace dcpp {
 			const char*			author;			// Author
 			const char*			description;	// Short description of the plugin
 			const char*			website;		// Website of the plugin
+			const char*			updateUrl;		// URL to xml file for update notify (null if not used)
 			uint64_t			version;		// Plugin's version
 			uint64_t			sdkVersion;		// SDK's version used to compile plugin, set to SDK_VERSION
 		};

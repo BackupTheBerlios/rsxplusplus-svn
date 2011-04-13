@@ -69,7 +69,9 @@ void UpdateManager::resetInfo() {
 void UpdateManager::onVersionXml(string content, bool isFailed) {
 	Lock l(cs);
 	if(isFailed) {
-		LogManager::getInstance()->message("[UpdateCheck]Error: " + content);
+		if(content.empty()) 
+			content = "unknown exception.";
+		LogManager::getInstance()->message("[Update] Error: " + content);
 	} else {
 		try {
 			SimpleXML xml;
@@ -110,17 +112,23 @@ void UpdateManager::onVersionXml(string content, bool isFailed) {
 				xml.stepOut();
 			}
 		} catch(const Exception& e) {
-			LogManager::getInstance()->message("[UpdateCheck]Error: " + e.getError());
+			LogManager::getInstance()->message("[Update] XML Exception: " + e.getError());
 		}
 	}
-	const string& profileXml = RSXPP_SETTING(PROFILE_VER_URL) + "profileVersion.xml";
-	HTTPDownloadManager::getInstance()->addRequest(boost::bind(&UpdateManager::onProfileVersionXml, this, _1, _2), profileXml);
+
+	string profileXml = RSXPP_SETTING(PROFILE_VER_URL);
+	if(profileXml.empty() == false) {
+		profileXml += "profileVersion.xml";
+		HTTPDownloadManager::getInstance()->addRequest(boost::bind(&UpdateManager::onProfileVersionXml, this, _1, _2), profileXml);
+	}
 }
 
 void UpdateManager::onProfileVersionXml(string content, bool isFailed) {
 	Lock l(cs);
 	if(isFailed) {
-		LogManager::getInstance()->message("[UpdateCheck]Error: " + content);
+		if(content.empty()) 
+			content = "unknown exception.";
+		LogManager::getInstance()->message("[Update] Error: " + content);
 	} else {
 		try {
 			SimpleXML xml;
@@ -199,7 +207,7 @@ void UpdateManager::onProfileVersionXml(string content, bool isFailed) {
 				xml.stepOut();
 			}
 		} catch(const Exception& e) {
-			LogManager::getInstance()->message("[UpdateCheck]Error: " + e.getError());
+			LogManager::getInstance()->message("[Update] XML Exception: " + e.getError());
 		}
 	}
 	// call listeners

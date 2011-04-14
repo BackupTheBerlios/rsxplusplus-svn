@@ -1,3 +1,6 @@
+** SVN 238 14/04/2011
+ ** changelog updated
+
 ** SVN 237 13/04/2011
  ** some changes in logging update errors/exceptions
  ** updated .rc file

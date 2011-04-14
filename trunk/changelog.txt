@@ -1,5 +1,10 @@
+** RSX++ 1.21 ** 14/04/2011
+ ** fixed some old tickets reported on trac
+ ** fixed multithreading issues with plugins
+ ** added some features to PluginSDK
+
 ** RSX++ 1.20 ** 30/12/2011
- ** updated boost
+ ** updated boosts
  ** updated OpenSSL
  ** updated zlib
  ** updated bzip2

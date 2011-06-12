@@ -35,7 +35,6 @@ static void callalert (lua_State *L, int status) {
 			strcat(message, "LUA ERROR: ");
 			strncat(message, msg, len);
 
-			//LuaManager::dcppLib->call(DCPP_CALL_UTILS_LOG_MESSAGE, (dcpp_param)message, 0, 0);
 			core->log(message);
 
 			delete[] message;
@@ -94,7 +93,7 @@ static bool MakeCallRaw(const char* table, const char* method, int args = 0, int
 		} else {
 			strcat(message, " (unknown)");
 		}
-		//LuaManager::dcppLib->call(DCPP_CALL_UTILS_LOG_MESSAGE, (dcpp_param)message, 0, 0);
+
 		core->log(message);
 		lua_pop(gL, 1);
 	} else {
@@ -162,10 +161,10 @@ dcpp::interfaces::PluginInfo info = {
 	"BCDC++ LuaScripts",
 	"{338A05CC-B0A5-4533-9CF5-A7FD824AE6D2}",
 	"adrian_007",
-	"BCDC++ compatible " LUA_RELEASE " Interface",
+	"BCDC++ compatible " LUA_RELEASE " interface",
 	"http://rsxplusplus.sf.net",
 	0,
-	MAKE_VER(1, 0, 0, 0),
+	MAKE_VER(1, 1, 0, 0),
 	SDK_VERSION
 };
 
@@ -210,38 +209,28 @@ private:
 		core->addEventListener((dcpp::interfaces::ConnectionManagerListener*)this);
 	}
 
+	/*
 	void onCore_UnloadPrepare() throw() {
-
 	}
-
 	void onHub_Connecting(dcpp::interfaces::Hub* h) throw() {
-
 	}
-
 	void onHub_Connected(dcpp::interfaces::Hub*) throw() {
-	
 	}
 	void onHub_UserUpdated(dcpp::interfaces::Hub*, dcpp::interfaces::OnlineUser*) throw() { 
-	
 	}
 	void onHub_UserRemoved(dcpp::interfaces::Hub*, dcpp::interfaces::OnlineUser*) throw() {
-	
 	}
 	void onHub_Redirect(dcpp::interfaces::Hub*, const char*) throw() { 
-	
 	}
 	void onHub_Failed(dcpp::interfaces::Hub*, const char*) throw() 	{ 
-	
 	}
 	void onHub_HubUpdated(dcpp::interfaces::Hub*) throw() { 
-	
 	}
 	void onHub_HubFull(dcpp::interfaces::Hub*) throw() 	{ 
-	
 	}
 	void onHub_AccountNickTaken(dcpp::interfaces::Hub*) throw() { 
-	
 	}
+	*/
 
 	void onHub_IncomingCommand(dcpp::interfaces::Hub* h, const char* line, bool& handled) throw() { 
 		if(!handled) {
@@ -325,17 +314,7 @@ private:
 		lua_gc(gL, LUA_GCCOLLECT, 0);
 	}
 };
-/*
-int __stdcall onTimer(int callReason, dcpp_param p1, dcpp_param p2, void*) {
-	if(callReason == DCPP_EVENT_TIMER_TICK_SECOND && LuaManager::timerActive) {
-		MakeCall("dcpp", "OnTimer");
-	} else if(callReason == DCPP_EVENT_TIMER_TICK_MINUTE) {
-		// collect every minute
-		lua_gc(gL, LUA_GCCOLLECT, 0);
-	}
-	return DCPP_FALSE;
-}
-*/
+
 Plugin* plugin = 0;
 dcpp::interfaces::Core* core = 0;
 
@@ -357,27 +336,3 @@ int __stdcall pluginUnload() {
 }
 
 }
-
-/*
-int DCPP_CALL_CONV pluginLoad(dcppFunctions* pF) {
-	LuaManager::dcppLib = pF;
-	LuaManager::dcppLib->addListener(DCPP_EVENT_CORE, onCoreLoad, 0);
-	LuaManager::dcppLib->addListener(DCPP_EVENT_HUB, onHubEvent, 0);
-	LuaManager::dcppLib->addListener(DCPP_EVENT_CONNECTION, onConnectionEvent, 0);
-	LuaManager::dcppLib->addListener(DCPP_EVENT_TIMER, onTimer, 0);
-
-	return 0;
-}
-
-int DCPP_CALL_CONV pluginUnload() {
-	lua_close(gL);
-
-	LuaManager::dcppLib->removeListener(DCPP_EVENT_CORE, onCoreLoad);
-	LuaManager::dcppLib->removeListener(DCPP_EVENT_HUB, onHubEvent);
-	LuaManager::dcppLib->removeListener(DCPP_EVENT_CONNECTION, onConnectionEvent);
-	LuaManager::dcppLib->removeListener(DCPP_EVENT_TIMER, onTimer);
-
-	LuaManager::dcppLib = 0;
-	return 0;
-}
-*/

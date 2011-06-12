@@ -1,3 +1,6 @@
+** SVN 239 12/06/2011
+ ** [bcdc_lua] well, beta release
+
 ** SVN 238 14/04/2011
  ** changelog updated
 

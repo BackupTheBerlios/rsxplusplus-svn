@@ -209,8 +209,6 @@ int LuaManager::SendHubMessage(lua_State* L) {
 			const char* line = lua_tostring(L, -1);
 			h->sendData(line, strlen(line));
 		}
-		//const char* msg = lua_tostring(L, -1);
-		//LuaManager::dcppLib->call(DCPP_CALL_HUB_SEND_USER_COMMAND, (dcpp_param)lua_touserdata(L, -2), (dcpp_param)msg, 0);
 	}
 	return 0;
 }
@@ -218,7 +216,6 @@ int LuaManager::SendHubMessage(lua_State* L) {
 int LuaManager::GenerateDebugMessage(lua_State* L) {
 	if(LUA_ARGS_EQUAL(L, 1) && lua_isstring(L, -1)) {
 		core->log(lua_tostring(L, -1));
-		//dcppLib->call(DCPP_CALL_UTILS_LOG_MESSAGE, (dcpp_param)lua_tostring(L, -1), 0, 0);
 	}
 	return 0;
 }

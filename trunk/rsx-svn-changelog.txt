@@ -1,3 +1,6 @@
+** SVN 241 24/06/2011
+ ** or make cleanup in regular branches and start there
+
 ** SVN 240 24/06/2011
  ** prepare wx branch
 

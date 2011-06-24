@@ -1,3 +1,6 @@
+** SVN 240 24/06/2011
+ ** prepare wx branch
+
 ** SVN 239 12/06/2011
  ** [bcdc_lua] well, beta release
 

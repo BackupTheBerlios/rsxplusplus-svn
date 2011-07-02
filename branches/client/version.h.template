@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2001-2010 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2011 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,30 +16,39 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#define APPNAME "StrongDC++"
-#define VERSIONSTRING "3.0"
-#define VERSIONFLOAT 3.0
+#define APPNAME "RSX++"
+#define VERSIONSTRING "2.00"
+#define VERSIONFLOAT 2.00
 
 #define DCVERSIONSTRING "0.777"
-#define VERSION_URL "http://strongdc.sourceforge.net/download/version.xml"
+#define DCVERSIONFLOAT 0.777
 
-#define SVNVERSION "svn$WCREV$"
+#define SVNVERSION "svn566"
 
-#ifdef _WIN64
-# define CONFIGURATION_TYPE "x86-64"
+#define SVN_REVISION $WCREV$
+
+#define RSXPP_SITE		"http://rsxplusplus.sf.net/"
+#define RSXPP_TRAC		"http://sourceforge.net/apps/trac/rsxplusplus/"
+#define RSXPP_FORUM		"http://sourceforge.net/apps/phpbb/rsxplusplus/"
+#define RSXPP_DONATE	"http://rsxplusplus.sf.net/donate.html"
+#define VERSION_URL		"http://rsxplusplus.sf.net/version.xml"
+
+#ifdef _WIN32
+# ifdef _WIN64
+#  define CONFIGURATION_NAME "x86-64"
+# else
+#  define CONFIGURATION_NAME "x86-32"
+# endif
 #else
-# define CONFIGURATION_TYPE "x86-32"
+# define CONFIGURATION_NAME "TODO"
 #endif
 
-#ifdef SVNVERSION
-# define COMPLETEVERSIONSTRING	_T(APPNAME) _T(" ") _T(VERSIONSTRING) _T(" ") _T(CONFIGURATION_TYPE) _T(" ") _T(SVNVERSION) _T(" / ") _T(DCVERSIONSTRING)
+#if defined(SVNBUILD)
+# define COMPLETEVERSIONSTRING _T(APPNAME) _T(" ") _T(VERSIONSTRING) _T(" ") _T(CONFIGURATION_NAME) _T(" [SVN:") _T(BOOST_STRINGIZE(SVN_REVISION)) _T(" / ") _T(DCVERSIONSTRING) _T(" / ") _T(SVNVERSION) _T("]")
+#elif defined(_DEBUG)
+# define COMPLETEVERSIONSTRING _T(APPNAME) _T(" ") _T(VERSIONSTRING) _T(" ") _T(CONFIGURATION_NAME) _T(" [DEBUG SVN:") _T(BOOST_STRINGIZE(SVN_REVISION)) _T(" / ") _T(DCVERSIONSTRING) _T(" / ") _T(SVNVERSION) _T("]")
 #else
-# define COMPLETEVERSIONSTRING	_T(APPNAME) _T(" ") _T(VERSIONSTRING) _T(" ") _T(CONFIGURATION_TYPE)
+# define COMPLETEVERSIONSTRING _T(APPNAME) _T(" ") _T(VERSIONSTRING) _T(" ") _T(CONFIGURATION_NAME)
 #endif
 
 /* Update the .rc file as well... */
-
-/**
- * @file
- * $Id: version.h 487 2010-02-27 17:50:12Z bigmuscle $
- */

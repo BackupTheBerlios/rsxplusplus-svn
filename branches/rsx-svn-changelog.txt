@@ -1,0 +1,1262 @@
+** SVN 242 02/07/2011
+ * initial import of wxStrongDC
+
+** SVN 241 24/06/2011
+ ** or make cleanup in regular branches and start there
+
+** SVN 240 24/06/2011
+ ** prepare wx branch
+
+** SVN 239 12/06/2011
+ ** [bcdc_lua] well, beta release
+
+** SVN 238 14/04/2011
+ ** changelog updated
+
+** SVN 237 13/04/2011
+ ** some changes in logging update errors/exceptions
+ ** updated .rc file
+
+** SVN 236 09/04/2011
+ ** [ticket #12] fixed
+ ** [sdk] plugins can emulate user connection commands
+ ** [sdk] updateUrl field in PluginInfo
+ ** little cleanup
+ ** [winamp_spam] updated to sdk changes
+ ** [bcdc_lua] updated to sdk changes
+ ** [ApexProxy] begun some work...
+
+** SVN 235 28/02/2011
+ ** fixed hideshare on nndc hubs
+ ** changed plugins unload procedure
+ ** [bcdc_lua] load scripts when core is loaded
+
+** SVN 234 26/02/2011
+ ** more mutex fixes in plugin interface
+ ** copyrights updated
+
+** SVN 233 26/02/2011
+ ** using one mutex for all calls to/from plugins (fixes some crashes)
+
+** SVN 232 05/02/2011
+ ** added settings managment to sdk
+ ** added timer and core listeners to sdk
+ ** [bcdc_lua] ported more code to new sdk
+ ** some other... stuff...
+
+** SVN 231 03/02/2011
+ ** more copyrights update
+ ** some missing methods in Hub interface
+ ** improved RefInterface a little bit
+
+** SVN 230 30/01/2011
+ ** copyrights updated
+
+** SVN 229 30/01/2011
+ ** fixed thread sync problem in plugin listeners
+ ** updated winamp_spam
+ ** partially updated bcdc_lua & updated lua to 5.2.0 alpha
+
+** SVN 228 30/01/2011
+ ** fix message field in update xml
+ ** changelog again...
+
+** SVN 227 30/01/2011
+ ** add paths to plugin sdk utils
+ ** updated changelog
+
+** SVN 226 30/01/2011
+ ** finished PluginSDK
+
+** SVN 225 25/12/2010
+ ** updated bzip2
+
+** SVN 224 03/12/2010
+ ** added DHT filter to CDM Debug Frame
+ ** updated openssl
+
+** SVN 223 29/11/2010
+ ** fixed getting gui font
+ ** new OO PluginSDK - yeah, again, but this one is the coolest one
+ ** fixes for exception info generation from apex svn
+ ** small fix from dcpp (crash when hub failed to reconnect)
+ ** for svn & debug builds don't delete exceptioninfo.txt
+ ** little code cleanup
+ ** get real system font for splash
+ ** finally fixed never-ending match queue loop
+
+** SVN 222 xx/08/10
+ ** use queue for http downloads
+ ** fixed http download
+ ** use one HttpConnection for all http dowloads
+
+** SVN 221 21/08/10
+ ** zlib updated to 1.2.5
+
+** SVN 220 20/08/10
+ ** [bcdc_lua] Lua 5.2work4
+
+** SVN 219 20/08/10
+ ** [sdk] implemented basic user calls
+ ** [sdk] added private message speaker
+ ** [bcdc_lua] new events dcpp.OnPrivateMessageIn & dcpp.OnPrivateMessageOut (arguments: cid, text)
+
+** SVN 218 04/07/10
+ ** [bcdc_lua] merged with sdk changes
+ ** [bcdc_lua] changed Lunar to Luna (lighter)
+ ** [bcdc_lua] Lua 5.2.0 work3
+ ** [sdk] SEND_USER_COMMAND now use proper encoding
+ ** [winamp_spam] merged with sdk changes
+
+** SVN 217 14/06/10
+ ** [sdk] hub.h documentation...
+ ** [sdk] code cleanup... breaks compatibility with previous sdks
+ ** sdc svn merge
+
+** SVN 216 27/04/10
+ ** [bcdc_lua] implemented missing methods (now ignore.lua works)
+ ** [bcdc_lua] garbage collector collects on every minute
+
+** SVN 215 20/04/10
+ ** indeed, it crashes on reconnect...
+
+** SVN 214 19/04/10
+ ** [bcdc_lua] Lua 5.2 (work2)
+
+** SVN 213 19/04/10
+ ** [sdk] fixed typo (thx Thor)
+ ** zlib updated to 1.2.4
+ ** [bcdc_lua & winamp_spam] fixed warnings in Win32 build
+ ** [sdk] some twearking on get/set dcpp settings
+ ** [bcdc_lua] some nice error reporting from thor here and there (need to finish, but now i'm lazy)
+
+** SVN 211-212 14/04/10
+ ** [sdk] added core settings getter/setter
+ ** [sdk] changed platform dependent dcpp_ptr_t to unsigned long long for x64 & x86
+ ** [sdk] added call to send udp packet in utils
+ ** [bcdc_lua] most stuff implemented + GetConfigPath method
+
+** WARNING ** recompile plugins
+
+** SVN 210 12/04/10
+ ** [winamp_spam] updated to new sdk
+ ** [winamp_spam] converted to visual studio 2008
+ ** [bcdc_lua] updated to new sdk
+
+** SVN 209 08/04/10
+ ** [sdk] added user data to listener function
+ ** strongdc++ 2.41 merge
+
+** SVN 208 18/03/10
+ ** [bcdc_lua] fixed removing hub from list (didn't trigger when hub was closed - not disconnected)
+
+** SVN 207 08/03/10
+ ** fixed moveFile problem with TestSUR
+ ** some post-sdc-merge fixes
+ ** [sdk] implemented method to open hub with visible frame
+
+** SVN 206 07/03/10
+ ** fixed warnings on win32 build
+ ** fixed WIN32 build (fcuked typo!)
+
+** SVN 205 06/03/10
+ ** fix build
+
+** SVN 204 06/03/10
+ ** macro for proper window title
+ ** proper version of sdc in about dlg
+ ** attempt to fix odd crash with winamp_spam
+ ** fixed stats display
+
+** SVN 203 05/03/10
+ ** sdc svn merge
+ ** updated openssl
+
+** SVN 202 25/02/10
+ ** changed some status bar info
+ ** [bcdc_lua] added scripts from bcdc
+
+** SVN 201 25/02/10
+ ** [sdk] in more hub events second param is hub url - might be usefull
+ ** [bcdc_lua] fixes to fit previous hub_event_* changes
+
+** SVN 200 25/02/10
+ ** [bcdc_lua] hub added/removed triggered on connecting/disconnect state (fixes bug on reconnect)
+ ** [sdk] triggered DCPP_EVENT_HUB_CONNECTING
+ ** [sdk] in DCPP_EVENT_HUB_CONNECTING/CONNECTED/DISCONNECTED second param is hub url
+ ** cleanup
+ ** fixed some dht-related crashes
+
+** SVN 199
+ ** [bcdc_lua] removed sdk files - always get it from /client/sdk directory
+
+** SVN 198
+ ** removed boost::flyweight - no real gain on that
+ ** [bcdc_lua] fixed win32 build
+
+** SVN 197
+ ** [bcdc_lua] timer & some error msg stuff
+
+** SVN 196
+ ** fixed encoding issue with Client::parseCommand in nmdc hub
+ ** [bcdc_lua] don't use raw socket->send for chat messages
+
+** SVN 195
+ ** [sdk] hub created/destroyed, connected/disconnected event implemented
+ ** [sdk] more text conversions
+ ** [sdk] some changes in hub structs to get info if hub is nmdc/adc as function param
+ ** [sdk] option to get hub info
+ ** fixed crash on close
+ ** initial release of bcdc++ lua plugin
+
+ ** WARNING **
+ if you experience any problem with winamp_spam, recompile with new sdk
+
+** SVN 194
+ ** unused files cleanup
+ ** [sdk] GetPath in Utils
+ ** removed PK & Lock columns from users list (it doesn't exists in adc)
+
+** SVN 193
+ ** experimental use of boost::flyweight to reduce memory usage
+
+** SVN 192
+ ** fix build...
+
+** SVN 191
+ ** sdc svn merge
+ ** dht crash fix
+ ** more vista look goodies
+
+** SVN 190
+ ** some vista listview style here and there
+ ** main window won't block unhandled application commands (like extra buttons on keyboard)
+
+** SVN 189
+ ** show extra info only for real users
+
+** SVN 188
+ ** removed country code & ip in chat and added extra info in chat (user/my/hub params + country)
+
+** SVN 187
+ ** [sdk] UserConnection implementation done
+
+** SVN 186
+ ** one big sdc svn merge (need heavy testing)
+ ** removed HubSettings class
+
+** WARNING **
+ this update will reset some of favhub settings
+
+** SVN 185
+ ** compile error (oops...)
+
+** SVN 184
+ ** bigger line dialog
+ ** [sdk] plugins can use settings again
+ ** [winamp_spam] make use of settings ^^
+ ** more code cleanup
+ ** changed column sizes in add-ons settings page
+ ** [sdk] DCPP_EVENT_CORE_SETTINGS_SAVE
+ ** updated copyrights
+
+** SVN 183
+ ** little code cleanup here and there
+ ** fixed compilation without STLport
+
+** SVN 182
+ ** configuration cleanup
+
+** SVN 181
+ ** removed /MP switch (visual c++ 2008 doesn't support it with /Gm... why?!)
+
+** SVN 180
+ ** [winamp_spam] missing commit...
+
+** SVN 179
+ ** fix for WTL SVN
+ ** updated docs
+ ** boost 1.41.0 & removed unused libs
+ ** [winamp_spam] updated to latest sdk
+
+** SVN 178
+ ** [sdk] fix for wideToUtf8 conversion
+ ** version bump
+ ** [sdk] call conv fix
+
+** SVN 177
+ ** fix plugin unload when pluginLoad failed (bad return value)
+ ** [sdk] more Hub implementation
+ ** some code cleanup
+
+** SVN 176
+ ** [sdk] partial implementation of refactored PluginSDK
+
+** SVN 175
+ ** updated icons (thx i.nfrar.ed)
+ ** cleanup etc
+
+** SVN 174
+ ** visual studio 2008
+ ** openssl 1.0.0 beta 4
+ ** converted flags.png
+
+** SVN 173
+ ** ...
+
+** SVN 172
+ ** cosmetic...
+ ** removed LuaAPI
+
+** SVN 171
+ ** changelog
+ ** trick to fool dht check on strongdc server for a while ;p
+
+** SVN 170
+ ** added option to set max filelist size - potential zip-bomb exploit fix
+ ** reworked a bit experts page
+
+** SVN 169
+ ** missing flags... (edited in paint :P)
+
+** SVN 167-168
+ ** version bump
+ ** missing file
+
+** SVN 166
+ ** cosmetic in sdk
+ ** sdc svn merge
+
+** SVN 165
+ ** probably fixed some crashes...
+
+** SVN 164
+ ** fix dht support info on adc hubs and removed from nmdc hubs
+
+** SVN 163
+ ** windows 7 in stats :P
+ ** sdc svn merge
+
+ ** WARNING - kinda much unstable and untested... but up-to-date :P **
+
+** SVN 162
+ ** changed link to donate
+ ** [lua] user command enum fixed
+ ** [lua] added bool isADC in Client class
+
+** SVN 161
+ ** better fix for buffer bounds checks
+ ** winamp_spam updated - some buffer fixes ^^
+
+** SVN 160
+ ** probably fixed crash with bad buffer size in plugmng
+
+** SVN 159
+ ** a bit more fixes....
+
+** SVN 158
+ ** more odd possible crash fixes
+
+** SVN 157
+ ** try to fix crash when trying to kick DHT user
+
+** SVN 156
+ ** openssl update
+
+** SVN 155
+ ** fixed link to donate site
+ ** 1.1 changelog
+
+** SVN 154
+ ** typo in stats
+ ** [lua] pm frame event...
+ ** removed user ignore feature
+ ** timestamp in cdm debug frame is back
+
+** SVN 153
+ ** [lua] fixed uint64_t conversion
+ ** [lua] rand added to utils
+ ** [lua] formatBytes for numbers
+ ** [lua] getHubs for ClientManager
+ ** [lua] getUsers for ClientManager
+ ** [lua] getParams for Identity
+ ** [lua] findUserBy{X} changed to overloads
+ ** [lua] changed getUsers in Client (now takes table as param, doesnt return one)
+ ** [lua] some error handling during load
+ ** [lua] enum for paths in utils class
+
+** SVN 152
+ ** fixed emoticons dialog crash on 64bit platforms
+ ** donate menu (:P)
+ ** sdc svn merge
+ ** settings icons updated (thx infra)
+
+** SVN 151
+ ** sdc svn merge
+
+** SVN 150
+ ** [lua] fixed UC_ON_COMMAND enum (thx Thor)
+ ** [sdk] added timer
+ ** [sdk] rearranged events and calls values
+ ** [sdk] allow fallback (diff build version in SDK_VERSION)
+ ** [sdk] pass SDK_VERSION and SVN_REVISION as arguments to pluginInfo
+
+** WARNING ** you need to recompile plugins with new sdk
+
+** SVN 149
+ ** [lua] more Util bindings
+ ** fixed crash with DHT enabled (thx newborn)
+
+** SVN 148
+ ** [winamp_spam] added website & code cleanup
+ ** fixed loading search interval value from favs (must be 10 or larger)
+ ** [lua] added option to get/set extension settings via rsxSettingsManager
+
+** SVN 147
+ ** [winamp_spam] fix various spell errors (memset curst....)
+
+** SVN 146
+ ** [sdk] fixed flags in userConnection
+ ** cleanup in /plugins svn dir, removed old stuff, added winamp_spam (to get a snapshot, instead of getting /trunk, get /plugins :P)
+
+** SVN 145
+ ** [lua] added info method to Client class (to update MyINFO/INF fields)
+ ** some twearks and addons to plugins manager/psdk
+ ** little code cleanup
+
+** SVN 144
+ ** missing file
+
+** SVN 143
+ ** [lua] added timer event
+ ** [lua] bound client manager, now open/CloseClient methods are available
+ ** [lua] parseCommand added to Client class
+ ** [lua] bound favmanager + UserCommand class
+ ** [lua] added onUserCommand event, which occurs when user choose _lua_ item from user command menu
+ ** cleanup in ClientListener
+ ** boost 1.39.0
+
+** WARNING ** lua stuff isn't checked, please do it
+
+** SVN 142
+ ** changes to stlport (i finally updated it) - now there's only one bat file to compile both x64 and x86 libs, see stlport/rsxpp-readme.txt
+ ** spellcheck now works as a dll - not as a static library (put dll where exe is)
+ ** sdc svn merge
+ ** fixed (svn)release build
+ ** resource info updated
+
+** SVN 141
+ ** some spell mistakes drawing issues
+ ** [sdk] flags in user connection
+ ** less code in plugin call func
+ ** spell check in private frame
+ ** [lua] changed slots to listeners (just a name) which means new loading method
+
+ ** sdc merge... damn, 20 revs! aaded DHT btw.
+ ** some issues with random ports in NAT-PMP
+ ** [lua] fixed loading xml event (txh Thor)
+
+** SVN 140
+ ** fixed ensuring scripts dir
+ ** try to fix odd crash in rsx++ page in settings
+
+** SVN 139
+ ** fixed random ports when nat-pmp is disabled
+ ** [lua] more bindings (util and text)
+ ** some improvements in scripts dialog
+ ** build cleanup
+ ** fixed toolbar hotkeys
+ ** removed plugins page from settings
+
+** SVN 138
+ ** fixed libhunspell build in x64 mode
+ ** some twearks in nat-pmp
+
+** SVN 137
+ ** fixed renewing port mapping with NAT-PMP
+ ** [lua] enum to client class with message styles
+ ** [lua] bound queue manager
+ ** some more cosmetic work
+
+** SVN 136
+ ** [lua] more share manager bindings
+ ** temp folders replaced with hidden folders in share manager (need twearking)
+
+** SVN 135
+ ** [lua] started binding share manager
+ ** added option to add temp files to share manager, accessed by token (ie in GET cmd)
+
+** SVN 134
+ ** fixed change random => manual port setting when NAT-PMP is used
+ ** fixed timer when NAT-PMP is used
+ ** separated configuration for stlport and non-stlport compilation
+
+** SVN 133
+ ** initial support for NAT-PMP
+
+** SVN 132
+ ** missing file
+
+** SVN 131
+ ** [sdk] documentation will be on wiki, not in headers...
+ ** [sdk] cleanup in events.h
+ ** [sdk] implemented user connection listener
+ ** [sdk] little optimization trick in callFunc
+
+** SVN 130
+ ** fixed shutdown manager once for all
+ ** code cleanup
+ ** updated compile.txt
+ ** [sdk] started some documentation in headers
+ ** added spell check (hunspell)
+ ** [sdk] major changes in event handling (now it's event-driven)
+
+** SVN 129
+ ** fixed delayed shutdown (oops)
+
+** SVN 128
+ ** new shutdown sheduler
+
+** SVN 127
+ ** [lua] fixed some lua bindings
+ ** [lua] error handling
+ ** [lua] added enums to Identity, User and UserConnection classes
+ ** [lua] added BitOp extension to get easy way to check many flags
+ ** [lua] removed WinAPI binding (but it can be added via plugin)
+ ** [lua] added methods to Client class: closeHub & redirect
+ ** [sdk] added event DCPP_ACT_LUA_INIT (lua_State* as param)
+
+** SVN 126
+ ** fixed event DCPP_HUB_PRIVATE_MSG_OUT
+ ** branches sync
+
+** SVN 122-125
+ ** [I.nfraR.ed] updated icons (why the hell so many commits? :D)
+
+** SVN 121
+ ** [sdk] some memory optimisations
+ ** [sdk] added basic settings manager
+ ** [sdk] option to access core settings
+ ** [sdk] option to add chat line
+ ** [sdk] new event - on config change
+ ** page in settings for extensions config
+ ** pluginsmanager's destructor
+ ** fixed a bunch of warnings caused by boost::unordered
+ ** trick to check "/me" message sent by plugin
+ ** fixed DCPP_INIT_CLOSE event
+ ** updated openssl (but no, dbg libs are not dbg libs... renamed from rls build ^^)
+ ** sdk version check during load and some log messages if load failed
+
+** SVN 119-120
+ ** build and configuration fixes
+ ** boost updated
+
+** SVN 118
+ ** [sdk] fixes in dcpp.h to compile in C
+ ** [sdk] fixed version's macros
+ ** [sdk] DCPP_STRING_MAP changed to DCPP_LINKED_MAP to have it more universal
+ ** [sdk] added option to convert from/to wide string
+ ** version column in plugins' dialog, plus some cosmetic
+
+** SVN 117
+ ** begun work on new Lua API
+ ** begun work on new Plugin SDK
+ ** merged some icons from branches
+ ** AboutDlg updated
+ ** sdc svn merge
+ ** begun work on new actions & raws page
+ ** updated resource info
+ ** cleanup in RawManager (this can mess up a bit with action/raw state - need testing)
+ ** reverted CDM debug frame
+ ** improved loading raws from favorites.xml
+ ** script's list dlg is now a setting's page
+ ** added menu item to open containing folder (need improvements)
+ ** rsx++ settings manager reworked a bit (now everything is stored in DCPlusPlus.xml)
+ ** removed old connection style
+ ** now using boost::unordered instead of stlport version (faster one)
+ ** in splash screen scripts and plugins are showed during load
+ ** some more stuff which i dont remember ;)
+
+TODO: some reasonable way to store settings (plugins and lua)
+
+** SVN 116
+ ** [I.nfraR.ed] improved several icons
+
+** SVN 111
+ ** ooops... fixed build
+
+** SVN 110
+ ** fixed stlport bat files
+ ** StrongDC++ SVN merge
+ ** Lua 5.1.4
+ ** removed log message on skipped files in share (makes log huge and spam statusbar)
+ ** removed plugins and scripts support (only for a while)
+
+** SVN 109
+ ** [L#261845] fixed auto refresh and hash speed settings
+ ** fixed null character at end of plugin setting in fav hub dlg
+ ** PluginAPI 1.2.3.1 - rString fixes
+ ** workaround for build w/o svn files
+
+** SVN 108
+ ** fixed old connection type save/load
+ ** fixed hub settings save
+ ** added tab to change plugin's settings from favhub dialog
+
+** SVN 107
+ ** scripts disabled as default (enable certain scripts in scripts list dialog)
+ ** fixed message about bad tag state
+
+** SVN 106
+ ** updated icons
+ ** solution fixes
+ ** changelog updated a bit (damn i hate it)
+
+** SVN 105
+ ** stats reworked
+ ** added /MP flag to speed-up compile time on multiprocessor platforms (5.17s vs 3.29s)
+ ** more x64 ports (fixed crash on emoticon button click)
+
+** SVN 104
+ ** hello native x64 :)
+ ** some fixes for manifest file
+
+** SVN 103
+ ** some more myinfo -> user info changes
+ ** fixed loading at startup
+ ** added option to set max chat buffer size
+
+** SVN 102
+ ** updated links to AML
+ ** some translations and default settings
+ ** fixed UserConnectionInterface (lua as well) trigger
+
+** SVN 101
+ ** changed rString class to template and added wide representation of rString (rStringW)
+ ** added Plugins' place in settings dialog (tabs, now plugin only have to provide a resource dlg - good/bad?)
+ ** some other cosmetic changes
+
+** SVN 100
+ ** fixed display of 1000 upload speed
+ ** fixed nmdc user counting
+
+** SVN 99
+ ** fixed memory leak in fake detector page
+ ** code cleanup
+ ** configuration fixed a bit
+ ** fixed kickline function
+ ** removed standard op commands from user command's list
+ ** fixed empty User Command submenu (when op)
+
+** SVN 98
+ ** removed svn version script, now TortoiseSVN util is used
+ ** fixed displaing cheats for adlsearch
+ ** fixed points counting, now everything should be ok
+
+** SVN 97
+ ** added option to check regex in favhub dialog
+ ** fixed some translations/names
+ ** adl search points system reworked
+ ** fixed some asserts in debug mode
+ ** added field for profiles version check url in settings dialog
+
+** SVN 96
+ ** added PluginAPI func to add Hub/Connection Support/Feature string
+ ** added new event to plugin interface - onUserConnection in/out
+ ** done profiles' update feat. + some other changes in update dlg
+ ** fixed some menu items in chat
+ TODO: sth with filelist generator check...
+
+** SVN 95
+ ** added MediaPlayers plugin
+ ** User Info Detector done
+
+** SVN 94
+ ** updates from ApexDC++
+ ** User Info Detector almost done
+
+** SVN 93
+ ** some fixes in detector start/stop commands
+ ** hub settings are updated on close when hub is in favorites
+ ** added options in hub settings to show ip/country code in chat
+ ** updated and extended plugin api
+ ** added plugin SnapWindow
+ ** updated icons and added some new to menus (thx I.nfraR.ed)
+ ** fixed plugin toolbar icons when there were plugins w/o icon
+ ** fixed memory leak related with plugins toolbar
+ ** updated testapi
+ ** adedd plugin SnapWindow (docking)
+
+** SVN 92
+ ** ok, now fixed, really...
+
+** SVN 91
+ ** fix release build
+
+** SVN 90
+ ** dump folder for all configuration
+ ** added chat message on started check (on connect)
+ ** fixed checking on connect (nmdc & adc)
+ ** removed profiles clipboard (useless...)
+ ** version template script ignore stlport and wtl dirs
+ ** added option to set active lua scripts (also scripts load routine, fixes scripts' log msg on startup as well)
+ ** added option to disable lua error messages
+ ** applied crise patch
+ ** dynamic hub settings (optimalization to store more stuff, also gonna be shared with plugins)
+ ** threaded sender suspended (most of stuff is already threaded - no point for it... also it makes prblems :P)
+ ** StrongDC++ SVN merge
+ ** when detector stops running, active items are removed from queue
+ ** changed check queue routine - need some twearks
+
+*** WARNING ***
+ since this revision some of Favorites' options might be gone
+ same thing can happen with Action & Raws
+
+** SVN 89
+ ** added option to load compressed ClientProfiles
+ ** begun work on UserInfo Detector
+ ** reverted some changes related with critical section class
+ ** fixed lock with delay in threaded sender
+ ** some more improvements in detection
+ ** detector has been rewritten (fixed deadlock, big thanks to BigMuscle for help in finding it and some tips) - need twearking
+ ** StrongDC++ SVN merge (2.2)
+
+** SVN 88
+ ** compile fix
+ ** some changelog updates
+
+** SVN 87
+ ** StrongDC++ SVN merge
+ ** code cleanup a bit
+ ** some missing settings
+ ** highlights improved a bit
+ ** some revision info in window title in debug mode + some info in description as well
+ KNOWN ISSUES: MyINFO detector seems to be broken
+
+** SVN 86
+ ** StrongDC++ SVN merge
+ ** removed toolbarmanager
+ ** fixed threaded detector - ups...
+ ** changed Fast to normal critical section, it mess other threads and make locks
+ ** branches sync.
+
+** SVN 84
+ ** added adccommands.lua
+ ** changes in DetectionEntry - +2 INFMaps, now there are fields for 2 protocols + for both (only one used at check)
+ ** some code clean-up
+ ** some improvements on checking external ip
+ ** prevent crash on ip update
+TODO: remove MyINFO check and add replacement
+partial commit, crise - do the job ;)
+
+** SVN 83
+ ** updated OpenSSL to 0.9.8h (32 & 64 bit libs)
+ ** updated bats in stlport dir, added some cleanup parts
+ ** StrongDC++ SVN merge + some twearks on x64 mode
+ ** added crise's dialogs for new detection (some things has been changed comparing to branch, some doesn't work now)
+ KNOWN ISSUES: TestSUR doesn't work (comes with StrongDC++ SVN)
+
+** SVN 79
+ ** more pm frame fixes - properly loaded last lines
+
+** SVN 78
+ ** fixed no next line in pm frame
+
+** SVN 77
+ ** let say trunk import... lots of things i've changed since last commit, so i don't remember what was changed :P
+
+** SVN 70-76
+ ** random fixes, improvements, changes and branch updates...
+
+** SVN 69
+ ** a lot of fixes
+ ** new update manager, now version info is cached and updated constantly (once for 3-6h - random number)
+ ** boost::function and boost::bind used instead of speaker in some places
+ ** new HTTP download manager (switch with previous UpdateManager)
+ ** sdc merge
+ ** pcre updated to 7.7 (additionally i've patched code to fit vc++ call conventions)
+ ** new DetectionManager almost all implemented
+ ** stlport & wtl are now in project directory (no need to use them globally in vc++)
+
+** SVN 68
+ ** ...
+
+** SVN 67
+ ** sdc merge
+ ** betacheck support
+ ** some cosmetic changes here and there
+
+** SVN 66 (Crise)
+ ** cleaned up DetectionManager constructor/destructor
+ ** changed params handling (less code in DetectionManager, while same functionality when combined with the new ParamsPage code)
+ ** ClientsPage and ParamsPage updated
+ ** TODO: DetectionEntryDlg
+
+** SVN 65
+ ** initial support for new detection engine
+ ** some more twearks
+ ** disabled emulation on adc hubs
+
+** SVN 64
+ ** added profile info
+ ** added flags to DetectionEntry (dunno if it work @ save/load)
+ ** added option to enable/disable item
+ ** some twearks
+
+** SVN 63
+ ** added params support
+ ** Crise's suggestions
+
+** SVN 62
+ ** initial import of new detection engine
+
+** SVN 61
+ ** new PluginAPI revision - now fully type-safe, stlport independient
+ ** separated directories for stlport and wtl
+
+** SVN 60
+ ** nothing special again :P
+
+** SVN 59
+ ** removed option to sort protected first [f*** up order in sorting and might cause problems]
+
+** SVN 58
+ ** nothing special
+
+** SVN 57
+ ** removed MakeDefs project
+ ** added makedefs.py
+ ** added versiontemplate.py
+ NOTE: now you have to install Python to run some scripts
+
+** SVN 56
+ ** svn rev bump :P
+ TODO: rewrite protection check
+
+** SVN 55
+ ** prevent freeze on remove offline checks
+ ** some workaround for less queue manager calls when detectors are running
+ ** fixed some flood valules init
+ ** removed $BotList support
+ ** reverted to sdc setCheat way
+ ** removed option to separate protected patterns by space
+ ** improved protection check
+ ** option to use wildcards for protected user matcher
+ ** let say little stability improvements...
+ NOTE: broken sorting of protected users
+
+** SVN 54
+ ** critical problem fixes
+ ** threaded myinfo check suspended due to instability (back in next rev)
+
+** SVN 53
+ ** more cosmetic before release :)
+ ** sdc crash fixes + some more fixes
+
+** SVN 52
+ ** little cleanup/improvements in script manager
+ ** DC++ SVN partial merge (might help with freezes)
+
+** SVN 51
+ ** version check improved
+ ** setting to change url to profile version xml (change it manually in RSXSettings.xml)
+ ** partial x64 port (needs a recompiled libs and warning fixes)
+ ** added fav tabs icons and a fav dlg icon
+ ** some stuff in downloadmanager
+ ** fixed dropping msg in pm frame
+
+** SVN 50
+ ** some workaround in dl manager
+ ** added regex/wildcard match functions to PluginAPI
+ ** cleanup in user <=> client classes
+ ** fixed detection of versiom mismatch [0.69+]
+ ** added option to use wildcards to set protected users patterns
+ ** various fixes
+ ** some possible emulation detection
+
+** SVN 49
+ ** Lua updated to 5.1.3
+ ** little cleanup in clientmanager
+ ** removed fake share detection (myinfo detector can do it)
+ ** little DC++ SVN merge + some sdc code
+ ** fixed filelist n/a action
+
+** SVN 48
+ ** code cleanup once again
+ ** more variables in raw dialog help
+ ** use ShellExecute instead of winutil func (stupid windows lib includes)
+ ** added Threaded Task Queue in AutoSearchManager (pretty experimental)
+ ** some limits in release build
+ @todo handle checks in transferview but with properly closed connection
+ (now you can get no pk/sup/lock false check in extreme situation)
+
+** SVN 47
+ ** some little optimizations in client/myinfo detection
+ ** fixed sorting in favorite frame (move up/down)
+ ** autosearch page improved
+ ** improvements and fixes in usermap
+ ** [Plugins] added client interface
+ ** fixed handling in/out messages
+ ** [Lua] fixed event onUserConnectionMessage In/Out
+ ** fixed some deadlocks... i hope at least...
+ ** code cleanup
+ ** [Lua] some client-event-functions changes/improvements
+ ** fixed crash on sending raws
+ ** fixed highlights (thx I.nfraR.ed)
+ ** PCRE updated to 7.5
+ ** sdc 2.11 merge
+ ** PeerGuardian removed
+ ** [Plugins] added user interface
+ ** removed log msg on finished filelist check download
+ ** small improvements in filelist matching (client manager)
+ ** [Plugins] re-added interface revision + check
+ ** PluginAPI 1.0.0.0 RC1 (version cleanup :p)
+ ** removed list of all forbidden filenames on filelist check (too big to store in mem)
+
+** SVN 46
+ ** back to idea with plugin lib (pdc way cause maaany bugs/freezes/crashes) (rev 1.1.0.0)
+ ** probably fixed bug with freezing window on check
+ ** fixed removing from transferview slow filelists checks
+ ** TestAPI updated
+
+** SVN 45
+ ** changed password character to arial's black circle (xp style, unicode)
+ ** [PluginAPI] some changed due to mem heap corruption in some cases
+ ** added favorite hubs grouping
+ ** added tabs to fav hub dlg to make it nicer and to have more space ;)
+ ** removed option to reload/unload plugin at runtime due to crashes [temp]
+ ** fixed pm tab context menu
+ ** played with about dialog
+ ** added option to show ip and country code in chat
+ ** fake page rewritten
+ ** some translations stuff
+ ** workaround for disconnects without real reason (15sec delay due to broken average speed)
+ ** some workarounds for app freezes
+ ** fixed time delay between autsearches
+ ** some other minor stuff that I can't remember ;)
+ NOTE: if plugins don't work, don't use them till' next commit
+
+** SVN 44
+ ** [TestAPI] code cleanup (ups...)
+ ** ensure plugin dir
+ ** workaround for saving plugin settings on unload -> reload
+ ** played with toolbars and tooltips for it ;)
+ ** fixed ensuring plugins dir + added scripts' dir ensure
+ ** some pointers changed to reference here and back there
+ ** DC++ SVN merge
+ ** QueueFrame shouldn't display weird TTH strings for filelists/testsurs
+ ** hopefully fixed crash on exit with opened debug window
+ ** removed unused settings + bugfix
+
+** SVN 43
+ ** [PluginAPI] fixed setSetting
+ ** next missing file...
+ ** removed support for media players... ;)
+ ** some lua optimizations
+ ** fixed hub copy submenu
+ ** when qs box is empty, on loose focus, default string is displayed
+ ** option to reconnect disconnected hubs
+ ** trunk moved to berlios.de
+ ** fixed fonts in dialogs...
+ ** removed option to disable partial file sharing
+ ** fixed removing filelist on disconnect
+ ** option to run rsx++ at windows startup
+ ** history box is resized on new version ;)
+ ** fixed QueueManager's crash
+ ** something from DC++ 0.703
+ ** allows to set one segment in QueueFrame
+ ** some changes about timing in TransferView
+ ** option to sort protected users after favorite users (if fav sort is enabled)
+ ** played with icon status for adc protocol
+ ** code cleanup as usual ;)
+ ** ip watch improved + added option to match host name
+ ** option to use lua function in raw
+ ** isp check included in ip watch
+ ** isp list completly removed
+ ** fixed fulDC detection (filelist...)
+ ** compile date in about box
+
+ not tested at all...
+
+** SVN 42
+ ** [TestAPI] missing icon file
+ ** fixed reconnect bug & workaround for some conflicts with id and resources
+ ** played with PluginAPI and PluginManager
+ ** code cleanup
+ ** custom kick dialog improved
+ ** custom/multi hub kick in pm frame
+ ** updated Compile.txt
+ ** [PluginAPI] all string are wide
+ ** [PluginAPI] added settingmanager
+ ** [PluginAPI] onLoad delayed due to frame creation
+ ** [PluginAPI] added regular expression and wildcard match functions
+ ** [PluginAPI] improvements (Crise suggestions)
+ ** [TestAPI] some code cleanup
+ ** another try to fix that damn myinfo detector crash
+ ** some stuff about average speed measuring
+ ** DC++ version bump
+ ** some DC++ SVN merge
+ ** added "AdWare.Win32.BHO.cw" to crash libraries
+ ** added "Traffic Compressor" to crash libraries
+ ** some DC++ SVN merge
+ ** chunk size is equal to TTH block size
+ ** MDI windows are always maximized
+ ** yaSSL replaced with OpenSSL
+ NOTE: Use latest STLPort SVN due to crash on plugin unload
+
+** SVN 41
+ ** adls point system suspended (will continue work on it later)
+ ** fixed threaded filelist checking (when checking only filelists)
+ ** more work on plugin api
+ ** added plugins toolbar
+ ** fixes here and there
+
+** SVN 40
+ ** updated PluginAPI (thx Crise for pdc code ;))
+ ** another try to fix myinfo detector (hope this will help this time)
+ ** TestAPI updated as well (no need for using any libs)
+
+** SVN 39
+ ** added PluginAPI project to solution
+ ** API v0.02
+ ** some lua fixes
+
+** SVN 38
+ ** missing file
+
+** SVN 37
+ ** fixed path to regexp.vcproj ;)
+ ** added custom adls points system (see filelist detector page)
+ ** some changes in UserMap
+
+** SVN 36
+ ** regexp (pcre) updated to 7.4 - but i'm not sure if it's better and even works like it should :P
+ ** progressbar colors' page improved
+ ** splash screen changes
+
+** SVN 35
+ ** some optimization on sendAction
+ ** code cleanup
+ ** workaround for checking listlen mismatch with other clients
+ ** workaround for dc++ older than 0.699 (client/filelist check)
+ ** [toolkit] moooore settings
+ ** [toolkit] twearks in favorite importer
+ ** [toolkit] code cleanup
+ ** [toolkit] adl search tags now are from settings
+
+** SVN 34
+ ** added two root's in queue frame to separate filelist and client checks
+ ** [toolkit] added ADLSearch file support
+ ** [toolkit] gui workaround
+ ** [toolkit] more preset values
+ ** [toolkit] settings now are stored in xml (no need recompiling when tags get changed ;))
+
+** SVN 33
+ ** code cleanup
+ ** removed fav converter
+ ** begun work on rsx++ toolkit
+
+** SVN 32
+ ** fixed bad overridding ip
+ ** [ADC] fixed detector menu
+ ** [ADC] added cheat message
+ ** fix for correct updating user pos in list after reconnect (when op)
+ ** workaround with raw sender
+ ** [ADC] unlocked threaded detector (working only with dc++ 0.699 and newer)
+ ** workaround in cdm debug frame
+
+** SVN 31
+ ** buf in raw dlg for command set to 1024
+ ** fixed crash on refreshing userlist
+ ** fixed threaded fake share detection
+ ** removed ignore.lua - got this func built in
+ ** changes in startup.lua
+ ** raw sender rewritten
+ ** tried to make threaded myinfo detector more stable ;)
+
+** SVN 29-30
+ ** try to fix detectors crashes
+ ** fav away buf increased
+ ** fixed lua FindWindow a bit
+ ** added lua function SendWindowMessageEx
+ ** cdm debug frame is richeditctrl and is controlled by lua function OnColorize
+ ** added lua func OnColorize to handle rtf frames (see above... ;) )
+ ** hopefully fixed bug with disconnecting testsur
+ ** fixed restoring old profiles
+ ** added lua function OpenLink
+ ** added lua function DecodeURI
+ ** hash_* containers replaced with unordered_* to match the future C++ standard (DC++ SVN)
+ ** implemented periodic downloaded parts exchanging with partial sources
+ ** UPnP fixes (DC++ SVN)
+ ** workaround in pm frame
+ ** update system improved
+
+** SVN 28
+ ** code updated
+ ** workaround with detector popup menu
+
+** SVN 26-27 ** 27/08/2007
+ ** multiline in raw dlg
+ ** code cleanup
+ ** fixed download button in svn build
+ ** fixed saving extend. dirs + some twearks (added var to path - %[dd] - download directory)
+ ** finished lua support on adc hubs
+ ** added option to set startup process prio
+
+** SVN 25 ** 02/08/2007
+ ** fixed setting total shared files count
+ ** fixed sent raw counting...
+ ** removed assembly code from /stats [it was destroing User pointer in private frame :x]
+ ** fixed invalid regexp matching in highlights [wrong string pos]
+ ** finished highlight's action code
+ ** removed link to apexdc.net in pg updater
+ ** some updates from apex b3
+ ** code cleanup
+ ** moved some bools from user to identity class to save memory
+ ** changed setting for default columns in hub frame
+ ** fixed compile issue in debug mode
+ ** added three columns to adls frame [points, action, override]
+ ** adls prop dlg workaround
+ ** about dlg updated
+ ** option to set min users count to use actions in hub
+ ** fixed checkboxes in filter dlg
+ ** highlights now are stored in Filters.xml
+ ** workaround in fav file converter
+ ** pm spamm detection moved to identity class
+ ** base version StrongDC++ 2.04
+ ** fixed enabling/disabling autosearch items
+
+** SVN 24 ** 20/07/2007
+ ** fixed rare crash in detector (old code)
+ ** fixed timer manager in raw manager :P
+ ** fixed crash in queue frame
+ ** fixed threaded filelist check iterator
+ ** added params to /sc command [clients/filelists/all]
+ ** improved detector code
+
+** SVN 23 ** 19/07/2007
+ ** added 1,5sec delay to MyINFO threaded check to get complete results
+ ** moved fake share to threaded check [myinfo]
+ ** fixed bug when after nick there is no space in cmd
+ ** cpu name is id string from processor [not from registry]
+ ** hash maps in raw manager
+ ** code merge
+ ** fixed timer bug [temp]
+ ** improved ip watch & isp check
+ ** removed predefined actions, now raw setting is imported to new profiles from old file when updating via http (less cpu/mem usage, a little bit faster detection)
+ ** fixed some mem leaks (thx Crise)
+ ** fixed 'next' button in client/myinfo profiles (doesn't work after http update)
+ ** improved Autosearch list saving
+ ** detector engine rewritten, now using template class to handle both protocols
+
+** SVN 22 ** 08/07/2007
+ ** added custom raw on detector menu
+ ** added multi hub kick
+ ** fixed userlist colors
+ ** ADLS properties frame workaround
+ ** more autosearch ban/cheat spam prevent
+ ** removed fakeshare raw from filelist detector page (got one in fake detector page)
+ ** extended copy menu function - now allows to copy data from more than one user
+ ** added /hubsstats cmd
+ ** changed some default texts :)
+ ** webserver workaround
+ ** option to use default font/back color in highlight&filter
+ ** code merge
+ ** added actions in highlights [not working now]
+ ** updated stlport & wtl
+ ** fixed autosearch behave when list is empty
+ ** changed Raw Sender multimap to hash_multimap
+ ** moved sendRawCommand to ClientManager
+ ** improved checking user protection
+ ** mooore code cleanup
+ ** completly removed alpha blending
+ ** threaded MyINFO check (check only when you're op; experimental) :)
+ ** optimised hub frame [less variables]
+ ** removed unused variables & some warnings
+ ** fixed update dialog
+
+** SVN 21 ** 22/06/2007
+ ** fixed raw sending
+ ** fixed saving client properties in clients page
+ ** fixed hublist edit dialog
+ ** fixed raws listitem in fav hub properties
+ ** fixed loading autosearch list
+ ** option to set autosearch recheck time
+ ** fixed autosearch directory matching
+ ** added checkboxes in autosearch list to enable/disable searches
+ ** DC++ emulation detection workaround
+ ** improved autosearch list loading/reading/saving
+ ** fixed autosearch cheat spam when banning
+ ** code merge
+ ** fixed forbidden folders counting
+ ** added variable to get no. of forbidden files/directories
+ ** autosearch load/save moved to autosearchmanager
+ ** alpha bledning temporary [or no?] disabled
+ ** some spins in filelist detector page
+ ** option to disable slow download kick
+
+** SVN 20 ** 20/06/2007
+ ** fixed away msg to bots... really
+ ** favorite importer in File menu (cmd /convert was removed)
+ ** added quick search box
+ ** fixed RSXSettingManagerListener
+ ** ignored users now are stored in rsx settings file
+ ** custom away msg reworked
+ ** added style selector
+ ** raw manager workaround
+ ** db click actions and play with controls in fav hub properties
+ ** fixed directories by filename/extension
+ ** site http://rsxplusplus.sf.net/ and svn
+ ** some code cleanup
+ ** detector improve
+ ** custom away msg improved, it should be more simple and faster
+ ** changed default links
+ ** fixed rclick menu in pm window on hubbot
+ ** code merge
+ ** added option to set raw sender sleep time
+ ** some spins in rsx advanced page
+ ** added pm flood detection + raw + option to ignore this users instead of kick
+ ** autosearch page workaround
+ ** fixed highlight xml read
+ ** added option to use underline & strikeout font in filter + some improve itself :)
+ ** list items second color a little brighter
+ ** fixed raw selector & autosearch raw combobox bug (thx kulmegil)
+ ** custom user protection in rclick detector menu
+ ** added help in raw dialog
+ ** dbclick in raw page
+ ** played with destructors =)
+
+** CVS 19 ** 03/06/2007
+ ** fixed custom away msg
+ ** added conversion tool to import favorite hubs (use /convert command)
+ ** option to use chat filter/highlights to new connected hubs
+ ** fixed autosearch, now autosearch time is reseted on every search
+ ** changed the way of cleaning user's data
+ ** fixed no away msg for bots
+ ** added fake slot count in tag detection
+ ** added slow download kick action
+ ** small code cleanup
+
+** CVS 18 ** 30/05/2007
+ ** code merge
+ ** played with update dialog
+ ** const values in detector
+ ** resized settings pages (275x300) and some pages desing changes ;)
+ ** RegExp in IPWatch to match ip (default Wildcards)
+ ** PeerGuardian support (ApexDC++; experimental)
+ ** Highlight formatting now have 'highest priority' :)
+ ** Emoticons removed from links
+ ** Hideshare in ADC hubs
+ ** Extended support on ADC hubs (CDM string in sup - shown when op features are used in hub)
+ ** Custom Email on ADC hubs
+ ** Check on connect on ADC hubs
+ ** Threaded Sender twearks
+ ** hopefully fixed finding user by nick on ADC hub
+
+** CVS 17 ** 26/05/2007
+ ** finished update manager
+ ** chatctrl implement in private frame
+ ** highlight fix, (cheat/report match)
+ ** autosearch twearks
+ ** cosmetic changes here and there
+ ** changed default colors

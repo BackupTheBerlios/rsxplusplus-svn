@@ -1,0 +1,102 @@
+** RSX++ 1.21 ** 14/04/2011
+ ** fixed some old tickets reported on trac
+ ** fixed multithreading issues with plugins
+ ** added some features to PluginSDK
+
+** RSX++ 1.20 ** 30/12/2011
+ ** updated boosts
+ ** updated OpenSSL
+ ** updated zlib
+ ** updated bzip2
+ ** country code & ip in chat replaced with extra info (INF fields can be used)
+ ** updated to StrongDC++ 2.41
+ ** fixed many crashes and bugs
+ ** fixed default fonts in GUI
+ ** option to disable DHT input in CDM Debug Frame
+ ** new PluginSDK
+
+** RSX++ 1.11 ** 16/11/2009
+ ** fixed many crashes...
+ ** added option to set max filelist size (potential exploit fix)
+ ** minor changes in PluginSDK
+
+** RSX++ 1.1 ** 30/08/2009
+ ** updated to StrongDC++ 2.30
+ ** PluginAPI => PluginSDK (rewritten, ANSI C compatible)
+ ** new lua interface (LuaAPI), more cool, better etc. no need for startup.lua, all old scripts are incompatible
+ ** fixed numerous bugs (see bugtrack on launchpad)
+ ** added spell checker
+ ** Lua updated to 5.1.4
+ ** small icons improvements
+ ** removed RSXSettings.xml, now everything is stored in DCPlusPlus.xml
+ ** memory optimizations
+ ** boost & stlport also updated
+ ** new shutdown sheduler
+ ** experimental support for NAT-PMP (supported mostly by Apple devices - or my linksys router :)
+ ** moved to sourceforge fully, now for bugreports use Trac, forum is also moved to new place
+ ** removed user's ignore feature (ignore.lua will do it)
+
+** RSX++ 1.00 ** 10/08/2008
+ ** updated to StrongDC++ 2.21
+ ** added new detection engine to fit ADC protocol and for optimization
+ ** MyINFO detector replace with User Info Detector (ADC compatible)
+ ** fixed many critical bugs
+ ** fixed most of deadlocks
+ ** added test box for protected users pattern in fav dialog
+ ** added new HTTP content download manager (replaced old UpdateManager)
+ ** default icons changed (thx I.nfraR.ed)
+ ** PluginAPI strongly rebuilt, which includes
+	- added option to manage User Connections
+	- added own string class implementation (support unicode & wide char) - now plugins doesn't depend on used STL implementation
+	- added option to add dialog into settings dialog in client (see Plugins page)
+	- added option to store settings per hub (see iClient class header)
+ ** fixed Plugin Toolbar buttons order
+ ** added option to manage scripts via GUI (View -> Scripts List - avoid loading scripts inside of script)
+ ** many optimizations in random places ;)
+ ** extended /sc command (supports custom checks, e.g "/sc c", supported params: c, f, all)
+ ** added Max Chat Buffer Size setting
+ ** improved Custom ADLSearch Points System
+ ** File List Generator temporary suspended
+ ** added option to set IP/Country Code in chat per hub
+ ** when detector is manually stopped, checked items are automatically removed from queue
+ ** removed Threaded Raw Sender
+ ** initial release of 64-bit version
+
+*** WARNING ***
+ This version may not import some of favorite's hub settings! (only basic will stay)
+
+
+** RSX++ 1.00 Beta 3 ** 23/02/2008
+ ** fixed major problems with some deadlocks
+ ** Threaded MyINFO check temporary suspended due to instability
+
+** RSX++ 1.00 Beta 2 ** xx/02/2008
+ ** updated to StrongDC++ 2.11
+ ** PCRE updated to 7.5
+ ** Lua updated to 5.1.3
+
+ ** added Custom ADLSearch Points
+ ** added favorite hubs grouping
+ ** added support for plugins + plugin's toolbar
+ ** added raw commands logging
+ ** added option to sort protected users first/after favs (depending on other settings)
+ ** added option to color cdm debug frame content via lua function Colorize
+ ** added option to show ip and/or country in chat
+ ** added option to use Lua in raws
+
+ ** some GUI changes/improvements
+ ** improved Client & MyINFO detector (fixed some crashes)
+ ** extended IP Watch
+	- match methods: wildcards, regexp, range check
+	- option to check ip or host name
+	- option to set isp after detection
+ ** threaded raw sender rewritten
+ ** fixed some deadlocks in special cases
+ ** fixes and improvements from ApexDC++ (progressbar mainly)
+ ** fixed lua functions in UserConnection class
+
+ ** removed ISP List (split with IPWatch)
+ ** removed favorite importer (now it's stand-alone application)
+ ** removed media players support
+ ** removed option to disable PFS - now it's always enabled
+ ** removed PeerGuardian support

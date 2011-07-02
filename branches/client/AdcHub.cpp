@@ -988,13 +988,13 @@ void AdcHub::info(bool /*alwaysSend*/) {
 	addParam(lastInfoMap, c, "HR", Util::toString(counts[COUNT_REGISTERED]));
 	addParam(lastInfoMap, c, "HO", Util::toString(counts[COUNT_OP]));
 
-#ifdef SVNVERSION
-#define VER VERSIONSTRING SVNVERSION
+#ifdef SVNBUILD
+#define VER VERSIONSTRING "svn" BOOST_STRINGIZE(SVN_REVISION)
 #else
 #define VER VERSIONSTRING
 #endif		
 
-	addParam(lastInfoMap, c, "VE", getStealth() ? ("++ " DCVERSIONSTRING) : ("StrgDC++ " VER));
+	addParam(lastInfoMap, c, "VE", getStealth() ? ("++ " DCVERSIONSTRING) : (TAGNAME " " VER));
 	addParam(lastInfoMap, c, "AW", Util::getAway() ? "1" : Util::emptyString);
 	
 	int64_t limit = BOOLSETTING(THROTTLE_ENABLE) ? ThrottleManager::getInstance()->getDownloadLimit() : 0;

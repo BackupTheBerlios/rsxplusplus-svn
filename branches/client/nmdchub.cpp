@@ -910,9 +910,9 @@ void NmdcHub::myInfo(bool alwaysSend) {
 	if (getStealth()) {
 		dc = "++";
 	} else {
-		dc = "StrgDC++";
-#ifdef SVNVERSION
-		version = VERSIONSTRING SVNVERSION;
+		dc = TAGNAME;
+#ifdef SVNBUILD
+		version = VERSIONSTRING "svn" BOOST_STRINGIZE(SVN_REVISION);
 #else
 		version = VERSIONSTRING;
 #endif

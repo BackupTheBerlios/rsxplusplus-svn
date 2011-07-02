@@ -21,6 +21,7 @@
 #ifndef _EXTENDEDTRACE_H
 #define _EXTENDEDTRACE_H
 
+#ifndef _WIN64
 class TextStackWalker : public wxStackWalker
 {
 public:
@@ -33,6 +34,14 @@ private:
 
 	void OnStackFrame(const wxStackFrame& frame);
 };
+
+#else
+class TextStackWalker {
+public:
+	TextStackWalker(string*) { }
+};
+
+#endif // _WIN64
 
 #endif	// _EXTENDEDTRACE_H
 

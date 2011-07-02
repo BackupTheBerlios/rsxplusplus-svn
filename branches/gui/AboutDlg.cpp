@@ -41,12 +41,14 @@ AboutDlg::AboutDlg(wxWindow* parent, const wxString& title, const wxPoint& pos, 
 	wxBoxSizer* bSizer3;
 	bSizer3 = new wxBoxSizer(wxVERTICAL);
 	
-	versionLabel = new wxStaticText(this, IDC_VERSION, _T("StrongDC++ v") + wxString(VERSIONSTRING) + _T(" (c) Copyright 2004-2010 Big Muscle\nBased on: DC++ ") +
-		wxString(DCVERSIONSTRING) + _T(" (c) Copyright 2001-2010 Jacek Sieka"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE);
+	wxString versionText = _(APPNAME) + _(" v") + _(VERSIONSTRING) + _(" (c) Copyrights 2007-2011 adrian_007\nBased on: StrongDC++ 3.0 (c) Copyrights 2001-2011 Big Muscle")
+		+ _("\nBased on: DC++ ") + _(DCVERSIONSTRING) + _(" (c) Copyright 2001-2011 Jacek Sieka");
+
+	versionLabel = new wxStaticText(this, IDC_VERSION, versionText, wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE);
 	versionLabel->Wrap(-1);
 	bSizer3->Add(versionLabel, 0, wxALL | wxEXPAND, 5);
 	
-	strongLink = new wxHyperlinkCtrl(this, wxID_ANY, _("http://strongdc.sf.net"), wxT("http://strongdc.sf.net"), wxDefaultPosition, wxDefaultSize, wxHL_ALIGN_CENTRE | wxHL_DEFAULT_STYLE);
+	strongLink = new wxHyperlinkCtrl(this, wxID_ANY, _(RSXPP_SITE), wxT(RSXPP_SITE), wxDefaultPosition, wxDefaultSize, wxHL_ALIGN_CENTRE | wxHL_DEFAULT_STYLE);
 	bSizer3->Add(strongLink, 0, wxALL | wxEXPAND, 5);
 
 	wxBoxSizer* bSizer4;

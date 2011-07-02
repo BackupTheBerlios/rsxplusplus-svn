@@ -1,3 +1,18 @@
+** SVN 245 02/07/2011
+ * fixed scripts to compile wxWidgets
+ * fixed configuration to match wxWidgets setup
+ * all 32-bit configuration works now
+ * changes in about dialog
+ * changes in application name
+ * changed tag name
+ * fixed some boost warnings
+ * TODO: fix x64 build
+
+** SVN 244 02/07/2011
+ * changes in version.h.template
+ * scripts to compile wxWidgets (rule is same as for stlport before)
+ * configuration changed to fit x86 and x64 wx libs
+
 ** SVN 243 02/07/2011
  * svn build configuration
  * little fixes

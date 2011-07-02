@@ -94,6 +94,7 @@ static void checkBuggyLibrary(const wxString& library)
 	}
 }
 
+#ifndef _WIN64
 void TextStackWalker::OnStackFrame(const wxStackFrame& frame)
 {
 	if(frame.HasSourceLocation())
@@ -112,6 +113,9 @@ void TextStackWalker::OnStackFrame(const wxStackFrame& frame)
 	*stackString += ": " + Text::fromT(frame.GetName());
 	*stackString += "\r\n";
 }
+#else
+
+#endif
 
 /**
 * @file

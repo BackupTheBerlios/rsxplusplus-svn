@@ -48,6 +48,8 @@ public:
     void SetNormalFont(const wxFont& font) { defaultArt.SetNormalFont(font); }
     void SetSelectedFont(const wxFont& font) { defaultArt.SetSelectedFont(font); }
     void SetMeasuringFont(const wxFont& font) { defaultArt.SetMeasuringFont(font); }
+	void SetColour(const wxColour& colour) { defaultArt.SetColour(colour); }
+	void SetActiveColour(const wxColour& colour) { defaultArt.SetActiveColour(colour); }
 
     void DrawBackground(
                  wxDC& dc,

@@ -167,9 +167,10 @@
       <WarningLevel>Level4</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <PreprocessorDefinitions>HAVE_NATUPNP_H;_UNICODE;UNICODE;_WINDOWS;__WXMSW__;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;HAVE_NATUPNP_H;_UNICODE;UNICODE;_WINDOWS;__WXMSW__;wxUSE_UNICODE=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalOptions>-Zm115 %(AdditionalOptions)</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
     </ClCompile>
     <ResourceCompile>
       <Culture>0x0409</Culture>
@@ -212,8 +213,9 @@
       <WarningLevel>Level4</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <PreprocessorDefinitions>HAVE_NATUPNP_H;_UNICODE;UNICODE;;__WXMSW__%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;HAVE_NATUPNP_H;_UNICODE;UNICODE;_WINDOWS;__WXMSW__;wxUSE_UNICODE=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
     </ClCompile>
     <ResourceCompile>
       <Culture>0x0409</Culture>
@@ -262,7 +264,7 @@
       </AdditionalOptions>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
       <ForceConformanceInForLoopScope>true</ForceConformanceInForLoopScope>
-      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
       <AssemblerOutput>
@@ -270,7 +272,7 @@
       <WarningLevel>Level4</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <PreprocessorDefinitions>HAVE_NATUPNP_H;_UNICODE;UNICODE;;__WXMSW__%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>HAVE_NATUPNP_H;_UNICODE;UNICODE;_WINDOWS;NDEBUG;__WXMSW__;wxUSE_UNICODE=1;wxDEBUG_LEVEL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <ResourceCompile>
@@ -330,7 +332,7 @@
       </AdditionalOptions>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
       <ForceConformanceInForLoopScope>true</ForceConformanceInForLoopScope>
-      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
       <AssemblerOutput>
@@ -338,7 +340,7 @@
       <WarningLevel>Level4</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <PreprocessorDefinitions>SVNBUILD;HAVE_NATUPNP_H;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SVNBUILD;HAVE_NATUPNP_H;_UNICODE;UNICODE;_WINDOWS;NDEBUG;__WXMSW__;wxUSE_UNICODE=1;wxDEBUG_LEVEL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <ResourceCompile>
@@ -398,7 +400,7 @@
       </AdditionalOptions>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
       <ForceConformanceInForLoopScope>true</ForceConformanceInForLoopScope>
-      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
       <AssemblerOutput>
@@ -406,7 +408,7 @@
       <WarningLevel>Level4</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <PreprocessorDefinitions>HAVE_NATUPNP_H;_UNICODE;UNICODE;;__WXMSW__%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>HAVE_NATUPNP_H;_UNICODE;UNICODE;_WINDOWS;NDEBUG;__WXMSW__;wxUSE_UNICODE=1;wxDEBUG_LEVEL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <ResourceCompile>
@@ -466,7 +468,7 @@
       </AdditionalOptions>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
       <ForceConformanceInForLoopScope>true</ForceConformanceInForLoopScope>
-      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
       <AssemblerOutput>
@@ -474,7 +476,7 @@
       <WarningLevel>Level4</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <PreprocessorDefinitions>SVNBUILD;HAVE_NATUPNP_H;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SVNBUILD;HAVE_NATUPNP_H;_UNICODE;UNICODE;_WINDOWS;NDEBUG;__WXMSW__;wxUSE_UNICODE=1;wxDEBUG_LEVEL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <ResourceCompile>
@@ -516,6 +518,9 @@
     <Link>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
     </Link>
+    <ClCompile>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Template|x64'">
     <ResourceCompile>
@@ -524,6 +529,9 @@
     <Link>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
     </Link>
+    <ClCompile>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <None Include="res\ADLSearch.ico" />

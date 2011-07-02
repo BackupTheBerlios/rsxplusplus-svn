@@ -70,7 +70,7 @@ private:
 	int sortType;
 	bool ascending;
 
-	static int wxCALLBACK CompareFunc(long item1, long item2, wxIntPtr sortData);
+	static int wxCALLBACK CompareFunc(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData);
 
 	template<class T> static int compare(const T& a, const T& b) 
 	{

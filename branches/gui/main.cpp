@@ -104,8 +104,12 @@ void StrongDC::OnFatalException()
     f.write(LIT("\r\n"));
 
 	string stack;
+#ifndef _WIN64
 	TextStackWalker tsw(&stack);
 	tsw.WalkFromException();
+#else
+#pragma message(__FILE__ ": TODO: write stack walker for x64")
+#endif
 
 	f.write(stack);
 	f.write(LIT("\r\n"));

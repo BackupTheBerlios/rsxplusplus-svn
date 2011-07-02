@@ -29,7 +29,16 @@
 #include "DebugManager.h"
 #include "SearchQueue.h"
 
+#ifdef _WIN32
+#pragma warning(push)
+#pragma warning(disable:4244)
+#endif // _WIN32
+
 #include <atomic>
+
+#ifdef _WIN32
+#pragma warning(pop)
+#endif // _WIN32
 
 namespace dcpp {
 

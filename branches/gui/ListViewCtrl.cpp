@@ -121,7 +121,7 @@ void ListViewCtrl::resort()
 	}
 }
 
-int wxCALLBACK ListViewCtrl::CompareFunc(long item1, long item2, wxIntPtr sortData)
+int wxCALLBACK ListViewCtrl::CompareFunc(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData)
 {
 	ListViewCtrl* p = (ListViewCtrl*) sortData;
 	wxString buf, buf2;

@@ -17,6 +17,8 @@
  */
 
 #define APPNAME "RSX++"
+#define TAGNAME "RSX++"
+
 #define VERSIONSTRING "2.00"
 #define VERSIONFLOAT 2.00
 

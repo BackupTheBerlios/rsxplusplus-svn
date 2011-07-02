@@ -39,13 +39,7 @@
 #include <wx/button.h>
 #include <wx/dialog.h>
 
-static const tstring thanks = 
-	_T("Děkuji všem, kteří mě ve vývoji podporovali. THX: Andyman (for muscle-arm logo), Atom, Blackrabbit, Catalin, Chmelic, \
-Cinique, Corvik, Crakter, darwusch, Dreamveawer, FarCry, Fartman, GargoyleMT, Gigadisk (for Czech translation), Ice, \
-Jove, King Wenceslas, klirik, Lee, Legolas, Liny, MaynardK, Mlok, Naga, Patrol, popKorn, Pothead, ProLogic, Rm., \
-Testament, Warrior, WereWiking, xAyiDe, XiND and ToH+trup for very nice betatesting :-) and to all donators who support me: \
-Kulmegil, Michal Seckar, k3dt, majki, mazeboy, Fino, Architect, Ujep, Jeepo, mlok, redsaq, anton009, Lee, share2all, \
-Dr. Martin Sereday, Jozef Akantis, Halfspider, Khalid Talbi, Shine Developer");
+static const tstring thanks = _T("I.nfraR.ed, Kulmegil, Crise, newborn & Aqualung, Morbid, Thor\r\nKeep it coming!");
 
 class AboutDlg : public wxDialog
 {

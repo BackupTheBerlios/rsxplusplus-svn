@@ -1,3 +1,7 @@
+** SVN 243 02/07/2011
+ * svn build configuration
+ * little fixes
+
 ** SVN 242 02/07/2011
  * initial import of wxStrongDC
 

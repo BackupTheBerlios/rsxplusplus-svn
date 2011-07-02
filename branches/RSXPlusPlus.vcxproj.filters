@@ -163,9 +163,6 @@
     <None Include="Extensions.txt">
       <Filter>Documentation</Filter>
     </None>
-    <None Include="res\bmp00001.bmp">
-      <Filter>Resource Files</Filter>
-    </None>
     <None Include="wx\msw\hand.cur">
       <Filter>Resource Files</Filter>
     </None>

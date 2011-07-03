@@ -31,6 +31,8 @@ public:
 	wxBitmap toolbar20;
 	wxBitmap toolbar;
 	wxBitmap emoticon;
+	wxBitmap users;
+	wxBitmap folders;
 private:
 
 };

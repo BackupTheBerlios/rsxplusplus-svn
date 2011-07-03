@@ -28,6 +28,8 @@ ImageManager::ImageManager(void)
 	toolbar20 = LOAD_PNG(toolbar20);
 	toolbar = LOAD_PNG(toolbar);
 	emoticon = LOAD_PNG(emoticon);
+	users = LOAD_PNG(users);
+	folders = LOAD_PNG(folders);
 }
 
 ImageManager::~ImageManager(void)

@@ -21,6 +21,10 @@
 
 #include "SharePage.h"
 
+//RSX++
+#include "ImageManager.h"
+//END
+
 #include "../client/File.h"
 #include "../client/ShareManager.h"
 #include "../client/version.h"
@@ -180,7 +184,7 @@ void SharePage::fillDirTree()
 
 	wxImageList* icons = new wxImageList(16, 16);
 	icons->Add(wxIcon(wxT("IDI_HUB")));	// use hub icon for Computer item
-	icons->Add(wxBitmap(wxT("IDB_FOLDERS")));	// TODO: use native folder icon (opened/closed)
+	icons->Add(ImageManager::getInstance()->folders);	// TODO: use native folder icon (opened/closed)
 
 	dirTree->AssignImageList(icons);
 

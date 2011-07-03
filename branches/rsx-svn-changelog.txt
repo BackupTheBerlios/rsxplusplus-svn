@@ -1,3 +1,8 @@
+** SVN 248 03/07/2011
+ * changed some translation strings
+ * changed links
+ * changed folders and users icons
+
 ** SVN 247 03/07/2011
  * changed default fonts and colors
  * fixed font color in debug tab

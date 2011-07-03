@@ -1885,7 +1885,7 @@ void HubFrame::on(HubUpdated, const Client*) throw()
 		hubName += " - " + client->getHubDescription();
 	}
 	hubName += " (" + client->getHubUrl() + ")";
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(SVNBUILD)
 	string version = client->getHubIdentity().get("VE");
 	if(!version.empty()) {
 		hubName += " - " + version;

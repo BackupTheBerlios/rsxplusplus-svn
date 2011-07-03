@@ -151,9 +151,7 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 // Bitmap
 //
 
-IDB_FOLDERS             BITMAP                  "res\\folders.bmp"
 IDB_ARROWS              BITMAP                  "res\\arrows.bmp"
-IDB_USERS               BITMAP                  "res\\users.bmp"
 IDB_SETTINGS            BITMAP                  "res\\o_settings_dlg.bmp"
 
 #ifdef APSTUDIO_INVOKED

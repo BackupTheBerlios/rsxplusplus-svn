@@ -145,6 +145,7 @@ MainWindow::MainWindow(const wxPoint &position, const wxSize& size) : wxAuiMDIPa
 	//SetDoubleBuffered(true);
 	manager.SetFlags( wxAUI_MGR_DEFAULT | wxAUI_MGR_ALLOW_ACTIVE_PANE | wxAUI_MGR_LIVE_RESIZE );
 	manager.GetArtProvider()->SetMetric(wxAUI_DOCKART_PANE_BORDER_SIZE, 0);
+	//manager.GetArtProvider()->SetMetric(wxAUI_DOCKART_GRADIENT_TYPE, wxAUI_GRADIENT_NONE);
 	manager.SetManagedWindow(this);
 
 	TimerManager::getInstance()->addListener(this);
@@ -944,12 +945,12 @@ void MainWindow::OnLink(wxCommandEvent& event)
 	tstring site;
 	switch(event.GetId())
 	{
-		case ID_CMD_HOMEPAGE: site = _T("http://strongdc.sf.net"); break;
+		case ID_CMD_HOMEPAGE: site = _T(RSXPP_SITE); break;
 		case ID_CMD_GEOIPFILE: site = _T("http://www.maxmind.com/download/geoip/database/GeoIPCountryCSV.zip"); break;
-		case ID_CMD_TRANSLATIONS: site = _T("http://strongdc.sf.net/forum/viewtopic.php?t=5201"); break;
-		case ID_CMD_FAQ: site = _T("http://strongdc.sf.net/forum/viewtopic.php?t=4067"); break;
-		case ID_CMD_DISCUSS: site = _T("http://strongdc.sf.net/forum/index.php"); break;
-		case ID_CMD_DONATE: site = _T("http://strongdc.sf.net/donate.php"); break;
+		case ID_CMD_TRANSLATIONS: site = _T(RSXPP_ADDONS); break;
+		case ID_CMD_FAQ: site = _T(RSXPP_TRAC); break;
+		case ID_CMD_DISCUSS: site = _T(RSXPP_FORUM); break;
+		case ID_CMD_DONATE: site = _T(RSXPP_DONATE); break;
 	}
 
 	WinUtil::openLink(site);

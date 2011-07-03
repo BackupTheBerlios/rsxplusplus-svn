@@ -33,6 +33,7 @@
 #define RSXPP_TRAC		"http://sourceforge.net/apps/trac/rsxplusplus/"
 #define RSXPP_FORUM		"http://sourceforge.net/apps/phpbb/rsxplusplus/"
 #define RSXPP_DONATE	"http://rsxplusplus.sf.net/donate.html"
+#define RSXPP_ADDONS	"http://rsxplusplus.sf.net/addons.html"
 #define VERSION_URL		"http://rsxplusplus.sf.net/version.xml"
 
 #ifdef _WIN32

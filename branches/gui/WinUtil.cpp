@@ -24,6 +24,10 @@
 #include "SearchFrame.h"
 #include "MagnetDlg.h"
 
+//RSX++
+#include "ImageManager.h"
+//END
+
 #include "../client/QueueManager.h"
 #include "../client/ShareManager.h"
 #include "../client/StringTokenizer.h"
@@ -77,12 +81,12 @@ void WinUtil::init(MainWindow* _mainWindow)
 
 	userImages.Create(16, 16, false);
 	if(SETTING(USERLIST_IMAGE) == "")
-		userImages.Add(wxBitmap(wxT("IDB_USERS"), wxBITMAP_TYPE_BMP_RESOURCE));
+		userImages.Add(ImageManager::getInstance()->users);
 	else
 		userImages.Add(wxBitmap(Text::toT(SETTING(USERLIST_IMAGE)).c_str(), wxBITMAP_TYPE_BMP));
 
 	fileImages.Create(16, 16, true);
-	fileImages.Add(wxBitmap(wxT("IDB_FOLDERS")));
+	fileImages.Add(ImageManager::getInstance()->folders);
 	dirIconIndex = fileImageCount++;
 	dirMaskedIndex = fileImageCount++;
 

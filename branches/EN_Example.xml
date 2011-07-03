@@ -34,7 +34,7 @@
 -- You are in active mode, but have activated passive search. --
 -- Don't use passive search if you have search results without this option --
 -- because you don't get search result from passive clients !!! --
--- Turn it off in settings =&gt; StrongDC++ =&gt; Always use Passive Mode for Search --
+-- Turn it off in settings =&gt; RSX++ =&gt; Always use Passive Mode for Search --
 </String>
 		<String Name="Any">Any</String>
 		<String Name="AtLeast">At least</String>
@@ -222,7 +222,7 @@
 		<String Name="HashProgress">Creating file index...</String>
 		<String Name="HashProgressBackground">Run in background</String>
 		<String Name="HashProgressStats">Statistics</String>
-		<String Name="HashProgressText">Please wait while StrongDC++ indexes your files (they won't be shared until they've been indexed)...</String>
+		<String Name="HashProgressText">Please wait while RSX++ indexes your files (they won't be shared until they've been indexed)...</String>
 		<String Name="HashReadFailed">Unable to read hash data file</String>
 		<String Name="HashRebuilt">Hash database rebuilt</String>
 		<String Name="HashingFailed">Hashing failed:</String>
@@ -286,10 +286,10 @@
 		<String Name="LatestVersion">Latest version</String>
 		<String Name="Left">left</String>
 		<String Name="LeftColor">Left color</String>
-		<String Name="LibCrash">Application ""%s"" caused an unhandled exception in StrongDC++. Please uninstall it, upgrade it or use an alternate product.</String>
+		<String Name="LibCrash">Application ""%s"" caused an unhandled exception in RSX++. Please uninstall it, upgrade it or use an alternate product.</String>
 		<String Name="Limit">Upload Limit</String>
 		<String Name="LoadedFileList">File list loaded.</String>
-		<String Name="Loading">Loading StrongDC++, please wait...</String>
+		<String Name="Loading">Loading RSX++, please wait...</String>
 		<String Name="LoadingFileList">Loading file list, this may take a while if the list is large.</String>
 		<String Name="Lock">Lock</String>
 		<String Name="LogOff">Log off</String>
@@ -303,11 +303,11 @@
 		<String Name="MagnetDlgRemember">Do the same action next time without asking</String>
 		<String Name="MagnetDlgSearch">Start a search for this file</String>
 		<String Name="MagnetDlgSize">File Size:</String>
-		<String Name="MagnetDlgTextBad">A MAGNET link was given to StrongDC++, but it didn't contain a valid file hash for use on the Direct Connect network.  No action will be taken.</String>
-		<String Name="MagnetDlgTextGood">StrongDC++ has detected a MAGNET link with a file hash that can be searched for on the Direct Connect network.  What would you like to do?</String>
+		<String Name="MagnetDlgTextBad">A MAGNET link was given to RSX++, but it didn't contain a valid file hash for use on the Direct Connect network.  No action will be taken.</String>
+		<String Name="MagnetDlgTextGood">RSX++ has detected a MAGNET link with a file hash that can be searched for on the Direct Connect network.  What would you like to do?</String>
 		<String Name="MagnetDlgTitle">MAGNET Link detected</String>
 		<String Name="MagnetHandlerDesc">Download files from the Direct Connect network</String>
-		<String Name="MagnetHandlerRoot">StrongDC++</String>
+		<String Name="MagnetHandlerRoot">RSX++</String>
 		<String Name="MagnetShellDesc">URL:MAGNET URI</String>
 		<String Name="ManageGroups">Manage Groups</String>
 		<String Name="MatchQueue">Match queue</String>
@@ -321,7 +321,7 @@
 		<String Name="Mb">MiB</String>
 		<String Name="Mbitsps">MBits/s</String>
 		<String Name="Mbps">MiB/s</String>
-		<String Name="MenuAbout">About StrongDC++</String>
+		<String Name="MenuAbout">About RSX++</String>
 		<String Name="MenuAdlSearch">ADL Search</String>
 		<String Name="MenuArrange">Arrange icons</String>
 		<String Name="MenuCascade">Cascade</String>
@@ -331,7 +331,7 @@
 		<String Name="MenuCloseAllPm">Close all PM windows</String>
 		<String Name="MenuCloseAllSearchframe">Close all search windows</String>
 		<String Name="MenuCloseDisconnected">Close disconnected</String>
-		<String Name="MenuDiscuss">StrongDC++ Discussion forum</String>
+		<String Name="MenuDiscuss">RSX++ Discussion forum</String>
 		<String Name="MenuDonate">Donate</String>
 		<String Name="MenuDownloadQueue">&amp;Download Queue	Ctrl+D</String>
 		<String Name="MenuExit">E&amp;xit</String>
@@ -345,7 +345,7 @@
 		<String Name="MenuHelp">&amp;Help</String>
 		<String Name="MenuHelpGeoipfile">GeoIP database update</String>
 		<String Name="MenuHelpTranslations">Translations</String>
-		<String Name="MenuHomepage">StrongDC++ Homepage</String>
+		<String Name="MenuHomepage">RSX++ Homepage</String>
 		<String Name="MenuHorizontalTile">Horizontal Tile</String>
 		<String Name="MenuMinimizeAll">Minimize &amp;All</String>
 		<String Name="MenuNetworkStatistics">Network Statistics</String>
@@ -407,7 +407,7 @@
 		<String Name="NoUsersToDownloadFrom">No users to download from</String>
 		<String Name="None">None</String>
 		<String Name="Normal">Normal</String>
-		<String Name="NotListening">Not listening for connections - please restart StrongDC++</String>
+		<String Name="NotListening">Not listening for connections - please restart RSX++</String>
 		<String Name="Notepad">Notepad</String>
 		<String Name="NumberOfSegments">segment(s)</String>
 		<String Name="Offline">Offline</String>
@@ -547,7 +547,7 @@
 		<String Name="SetstrongdcPrivateSound">Private message sound</String>
 		<String Name="SetstrongdcProgressbarColors">Progressbar colors</String>
 		<String Name="SetstrongdcProgressbarText">Progressbar text colors</String>
-		<String Name="SetstrongdcRemoveForbidden">Remove Forbidden (Unfinished Kazaa, Win MX, GetRight, eMule, StrongDC++)</String>
+		<String Name="SetstrongdcRemoveForbidden">Remove Forbidden (Unfinished Kazaa, Win MX, GetRight, eMule, RSX++)</String>
 		<String Name="SetstrongdcSecondaryLimiting">Secondary Transfer Rate Limiting</String>
 		<String Name="SetstrongdcSlowDisconnect">Disconnecting slow downloads</String>
 		<String Name="SetstrongdcSmallFiles">Small file size</String>
@@ -607,14 +607,14 @@
 		<String Name="SettingsConfirmExit">Confirm application exit</String>
 		<String Name="SettingsConfirmHubRemoval">Confirm favorite hub removal</String>
 		<String Name="SettingsConfirmItemRemoval">Confirm item removal in download queue</String>
-		<String Name="SettingsStrongdc">StrongDC++</String>
+		<String Name="SettingsStrongdc">RSX++</String>
 		<String Name="SettingsStrongdcExtraDownloads">Highest Priority Extra Download Slots</String>
 		<String Name="SettingsDebugCommands">Debug commands</String>
 		<String Name="SettingsDefaultAwayMsg">Default away message</String>
 		<String Name="SettingsDirect">Direct connection</String>
 		<String Name="SettingsDirectories">Directories</String>
 		<String Name="SettingsDisplayCheatsInMainChat">Display cheats in main chat</String>
-		<String Name="SettingsDisplayDcUpdate">Don't announce new StrongDC++ versions (version.xml is still downloaded)</String>
+		<String Name="SettingsDisplayDcUpdate">Don't announce new RSX++ versions (version.xml is still downloaded)</String>
 		<String Name="SettingsDontDlAlreadyShared">Don't download files already in share</String>
 		<String Name="SettingsDownconn">Dwnld attempts/second</String>
 		<String Name="SettingsDownloadDirectory">Default download directory</String>
@@ -695,7 +695,7 @@
 		<String Name="SettingsPublicHubListUrl">Public Hubs list URL</String>
 		<String Name="SettingsQueue">Queue</String>
 		<String Name="SettingsRenameFolder">Rename</String>
-		<String Name="SettingsRequiresRestart">Note; most of these options require that you restart StrongDC++</String>
+		<String Name="SettingsRequiresRestart">Note; most of these options require that you restart RSX++</String>
 		<String Name="SettingsReset">Reset</String>
 		<String Name="SettingsSbMaxSources">Max sources for match queue</String>
 		<String Name="SettingsSearchHistory">Search history</String>

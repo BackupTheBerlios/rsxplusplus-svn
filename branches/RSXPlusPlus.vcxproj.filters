@@ -25,16 +25,10 @@
     <None Include="res\arrows.bmp">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="res\bitmap1.bmp">
-      <Filter>Resource Files</Filter>
-    </None>
     <None Include="res\CDM.ico">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="res\Directory.ico">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="res\emoticon.bmp">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="res\fav.bmp">
@@ -122,9 +116,6 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="res\RSXPlusPlus.ico">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="res\toolbar.bmp">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="res\transfer_compressed.ico">
@@ -229,7 +220,61 @@
     <None Include="wx\msw\colours.bmp">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="res\toolbar20.bmp">
+    <None Include="res\arrows.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\emoticon.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\fav.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\favtabs.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\flags.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\folders.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\o_settings_dlg.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\rsx_splash.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\search_icons.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\speeds.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\state.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\toolbar.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\toolbar20.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\toolbar20-highlight.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\TranferSpeeds.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\TransferSpeedsBW.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\users.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\users256.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\users-cb.png">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
@@ -435,6 +480,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="gui\SharePage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="gui\ImageManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -662,6 +710,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="gui\SystemLog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gui\ImageManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

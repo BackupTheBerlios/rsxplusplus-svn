@@ -81,14 +81,11 @@ WXICON_SMALL_REMOVEABLE ICON                    "wx/msw/removble.ico"
 
 CSQUERY                 BITMAP                  "wx/msw/csquery.bmp"
 WXBITMAP_STD_COLOURS    BITMAP                  "wx/msw/colours.bmp"
-IDB_SPLASH              BITMAP                  "res\\bitmap1.bmp"
 IDB_STATE               BITMAP                  "res\\state.bmp"
 IDB_SEARCH_TYPES        BITMAP                  "res\\search_icons.bmp"
 IDB_SPEEDS              BITMAP                  "res\\speeds.bmp"
 IDB_FAVSTATES           BITMAP                  "res\\fav.bmp"
 IDB_FLAGS               BITMAP                  "res\\flags.bmp"
-IDB_EMOTICON            BITMAP                  "res\\emoticon.bmp"
-IDB_TOOLBAR20           BITMAP                  "res\\toolbar20.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -157,7 +154,6 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 IDB_FOLDERS             BITMAP                  "res\\folders.bmp"
 IDB_ARROWS              BITMAP                  "res\\arrows.bmp"
 IDB_USERS               BITMAP                  "res\\users.bmp"
-IDB_TOOLBAR             BITMAP                  "res\\toolbar.bmp"
 IDB_SETTINGS            BITMAP                  "res\\o_settings_dlg.bmp"
 
 #ifdef APSTUDIO_INVOKED
@@ -194,8 +190,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 0,7,6,0
- PRODUCTVERSION 2,4,0,1
+ FILEVERSION 0,7,7,0
+ PRODUCTVERSION 2,0,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -212,7 +208,7 @@ BEGIN
         BEGIN
             VALUE "Comments", "http://rsxplusplus.sf.net"
             VALUE "FileDescription", "RSX++"
-            VALUE "FileVersion", "0, 7, 6, 0"
+            VALUE "FileVersion", "0, 7, 7, 0"
             VALUE "InternalName", "RSX++"
             VALUE "LegalCopyright", "Based on StrongDC++"
             VALUE "OriginalFilename", "RSXPlusPlus.exe"

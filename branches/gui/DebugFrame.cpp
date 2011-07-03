@@ -29,9 +29,9 @@ END_EVENT_TABLE()
 DebugFrame::DebugFrame(wxWindow* parent) : wxWindow(parent, ID_CMD_CDMDEBUG_WINDOW)
 {
 	textCtrl = new wxTextCtrl(this, ID_DEBUG_TEXTBOX, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxCLIP_SIBLINGS | wxCLIP_CHILDREN | wxVSCROLL | wxHSCROLL | /*wxTE_AUTO_SCROLL |*/ wxTE_MULTILINE | wxTE_AUTO_URL);
+	textCtrl->SetFont(WinUtil::font);
 	textCtrl->SetBackgroundColour(WinUtil::bgColor);
 	textCtrl->SetForegroundColour(WinUtil::textColor);
-	textCtrl->SetFont(WinUtil::font);
 	textCtrl->SetEditable(false);
 
 	statusBar = new wxStatusBar(this, 1, wxCLIP_CHILDREN | wxFULL_REPAINT_ON_RESIZE, "");
@@ -52,6 +52,7 @@ DebugFrame::DebugFrame(wxWindow* parent) : wxWindow(parent, ID_CMD_CDMDEBUG_WIND
 	ctrlEnableFilter->SetValue(false);
 
 	ctrlFilter = new wxTextCtrl(statusBar, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(100, -1), wxCLIP_SIBLINGS | wxCLIP_CHILDREN);
+	ctrlFilter->SetFont(WinUtil::font);
 
 	int width;
 	int i = 0;

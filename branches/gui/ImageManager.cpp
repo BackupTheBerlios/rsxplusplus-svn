@@ -16,30 +16,20 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef _NOTEPAD_FRAME_H_
-#define _NOTEPAD_FRAME_H_
+#include "stdafx.h"
+#include "ImageManager.h"
+#include "../res/images.h"
 
-#include "StaticFrame.h"
-#include "../client/SettingsManager.h"
+#define LOAD_PNG(name) wxMEMORY_BITMAPEX(images::name, wxBITMAP_TYPE_PNG)
 
-class NotepadFrame : public StaticFrame<NotepadFrame>, private SettingsManagerListener {
-public:
-	typedef StaticFrame<NotepadFrame> BaseType;
+ImageManager::ImageManager(void)
+{
+	splash = LOAD_PNG(rsx_splash);
+	toolbar20 = LOAD_PNG(toolbar20);
+	toolbar = LOAD_PNG(toolbar);
+	emoticon = LOAD_PNG(emoticon);
+}
 
-	NotepadFrame();
-	~NotepadFrame();
-
-private:
-	DECLARE_EVENT_TABLE();
-
-	void UpdateLayout();
-
-	void on(SettingsManagerListener::Save, SimpleXML& /*xml*/) throw();
-
-	// events
-	void OnClose(wxCloseEvent& event);
-
-	wxTextCtrl* textCtrl;
-};
-
-#endif
+ImageManager::~ImageManager(void)
+{
+}

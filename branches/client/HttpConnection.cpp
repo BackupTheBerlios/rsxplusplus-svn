@@ -91,7 +91,8 @@ void HttpConnection::downloadFile(const string& aUrl) {
 void HttpConnection::on(BufferedSocketListener::Connected) throw() { 
 	dcassert(socket); 
 	socket->write("GET " + file + " HTTP/1.1\r\n"); 
-	socket->write("User-Agent: " APPNAME " v" VERSIONSTRING "\r\n"); 
+	//RSX++ TODO: change to variable
+	socket->write("User-Agent: StrongDC++ v 2.41\r\n"); 
 
 	string sRemoteServer = server; 
 	if(!SETTING(HTTP_PROXY).empty()) 

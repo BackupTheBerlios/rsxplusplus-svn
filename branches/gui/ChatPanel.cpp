@@ -21,6 +21,7 @@
 
 #include "EmoticonsDlg.h"
 #include "WinUtil.h"
+#include "ImageManager.h" //RSX++
 
 #include "../client/File.h"
 #include "../client/StringTokenizer.h"
@@ -29,6 +30,7 @@
 #include <wx/filefn.h>
 #include <wx/sound.h>
 #include <wx/wx.h>
+#include <wx/bmpbuttn.h>
 
 BEGIN_EVENT_TABLE(ChatPanel, wxSplitterWindow)
 	EVT_BUTTON(IDC_EMOT, ChatPanel::OnEmoticons)
@@ -57,12 +59,12 @@ ChatPanel::ChatPanel(wxWindow* parent, long style) : wxSplitterWindow(parent, wx
 
 	msgSizer->Add(ctrlMessage, 1, wxLEFT | wxRIGHT | wxEXPAND, 2);
 
-	wxButton* emoticon = new wxButton(messagePanel, IDC_EMOT, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxCLIP_SIBLINGS | wxCLIP_CHILDREN);
-	emoticon->SetBitmap(wxBitmap(wxT("IDB_EMOTICON")));
-	emoticon->SetBitmapMargins(-2, -2);
+	wxBitmapButton* emoticon = new wxBitmapButton(messagePanel, IDC_EMOT, ImageManager::getInstance()->emoticon, wxDefaultPosition, wxSize(-1, ctrlMessage->GetSize().GetHeight()), wxCLIP_SIBLINGS | wxCLIP_CHILDREN | wxNO_BORDER);
+	emoticon->SetBitmapMargins(0, 0);
+
 	//emoticon->Enable(Util::fileExists(Util::getPath(Util::PATH_EMOPACKS) + SETTING(EMOTICONS_FILE) + ".xml"));
 	emoticon->Connect(wxEVT_CONTEXT_MENU, wxContextMenuEventHandler(ChatPanel::OnEmotContextMenu), NULL, this);
-	msgSizer->Add(emoticon, 0, wxALL | wxALIGN_BOTTOM, 0);
+	msgSizer->Add(emoticon, 0, wxALL | wxTILE, 0);
 
 	messagePanel->SetSizerAndFit(msgSizer);
 

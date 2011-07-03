@@ -458,7 +458,7 @@ SettingsManager::SettingsManager()
 	setDefault(MAIN_WINDOW_POS_Y, -1);
 
 	/* Theme settings */
-	setDefault(TEXT_FONT, "Segoe UI,-11,400,0");
+/*	setDefault(TEXT_FONT, "Segoe UI,-11,400,0");
 
 	setDefault(BACKGROUND_COLOR, RGB(242,245,255));
 	setDefault(TEXT_COLOR, RGB(0,0,128));
@@ -532,13 +532,89 @@ SettingsManager::SettingsManager()
 	setDefault(FULL_CHECKED_COLOUR, RGB(0, 128, 64));
 	setDefault(BAD_CLIENT_COLOUR, RGB(192,0,0));
 	setDefault(BAD_FILELIST_COLOUR, RGB(204,0,204));
+*/
+	/* Theme settings */
+	setDefault(TEXT_FONT, "Tahoma,-11,400,0");
+
+	setDefault(BACKGROUND_COLOR, RGB(0,0,0));
+	setDefault(TEXT_COLOR, 12632256);
+
+	setDefault(TEXT_GENERAL_BACK_COLOR, RGB(0,0,0));
+	setDefault(TEXT_GENERAL_FORE_COLOR, RGB(133,186,250));
+	setDefault(TEXT_GENERAL_BOLD, false);
+	setDefault(TEXT_GENERAL_ITALIC, false);
+
+	setDefault(TEXT_MYOWN_BACK_COLOR, RGB(0,0,0));
+	setDefault(TEXT_MYOWN_FORE_COLOR, RGB(0,128,192));
+	setDefault(TEXT_MYOWN_BOLD, false);
+	setDefault(TEXT_MYOWN_ITALIC, false);
+
+	setDefault(TEXT_PRIVATE_BACK_COLOR, RGB(0,0,0));
+	setDefault(TEXT_PRIVATE_FORE_COLOR, RGB(250,200,130));
+	setDefault(TEXT_PRIVATE_BOLD, true);
+	setDefault(TEXT_PRIVATE_ITALIC, false);
+
+	setDefault(TEXT_SYSTEM_BACK_COLOR, RGB(0,0,0));
+	setDefault(TEXT_SYSTEM_FORE_COLOR, RGB(192,192,192));
+	setDefault(TEXT_SYSTEM_BOLD, false);
+	setDefault(TEXT_SYSTEM_ITALIC, true);
+
+	setDefault(TEXT_SERVER_BACK_COLOR, RGB(0,0,0));
+	setDefault(TEXT_SERVER_FORE_COLOR, RGB(128,255,128));
+	setDefault(TEXT_SERVER_BOLD, false);
+	setDefault(TEXT_SERVER_ITALIC, false);
+
+	setDefault(TEXT_TIMESTAMP_BACK_COLOR, RGB(0,0,0));
+	setDefault(TEXT_TIMESTAMP_FORE_COLOR, RGB(128,128,0));
+	setDefault(TEXT_TIMESTAMP_BOLD, false);
+	setDefault(TEXT_TIMESTAMP_ITALIC, false);
+
+	setDefault(TEXT_MYNICK_BACK_COLOR, RGB(0,0,0));
+	setDefault(TEXT_MYNICK_FORE_COLOR, RGB(255,255,255));
+	setDefault(TEXT_MYNICK_BOLD, false);
+	setDefault(TEXT_MYNICK_ITALIC, false);
+
+	setDefault(TEXT_FAV_BACK_COLOR, RGB(0,0,0));
+	setDefault(TEXT_FAV_FORE_COLOR, RGB(255,255,255));
+	setDefault(TEXT_FAV_BOLD, false);
+	setDefault(TEXT_FAV_ITALIC, false);
+
+	setDefault(TEXT_OP_BACK_COLOR, RGB(0,0,0));
+	setDefault(TEXT_OP_FORE_COLOR, RGB(0,128,255));
+	setDefault(TEXT_OP_BOLD, true);
+	setDefault(TEXT_OP_ITALIC, false);
+
+	setDefault(TEXT_URL_BACK_COLOR, RGB(0,0,0));
+	setDefault(TEXT_URL_FORE_COLOR, RGB(255,255,255));
+	setDefault(TEXT_URL_BOLD, false);
+	setDefault(TEXT_URL_ITALIC, false);
+
+	setDefault(ERROR_COLOR, RGB(255, 0, 0));
+	setDefault(SEARCH_ALTERNATE_COLOUR, RGB(255,200,0));
+
+	setDefault(MENUBAR_TWO_COLORS, false);
+	setDefault(MENUBAR_LEFT_COLOR, RGB(13, 2, 106));
+	setDefault(MENUBAR_RIGHT_COLOR, RGB(194, 78, 7));
+	setDefault(MENUBAR_BUMPED, true);
+
+	setDefault(NORMAL_COLOUR, RGB(233,233,233));
+	setDefault(FAVORITE_COLOR, RGB(51,51,255));	
+	setDefault(RESERVED_SLOT_COLOR, RGB(255,51,255));
+	setDefault(IGNORED_COLOR, RGB(192,192,192));	
+	setDefault(FIREBALL_COLOR, RGB(255,100,0));
+ 	setDefault(SERVER_COLOR, RGB(128,128,255));
+	setDefault(OP_COLOR, RGB(192,192,192));
+	setDefault(PASIVE_COLOR, RGB(255,255,255));
+	setDefault(FULL_CHECKED_COLOUR, RGB(0, 160, 0));
+	setDefault(BAD_CLIENT_COLOUR, RGB(204,0,0));
+	setDefault(BAD_FILELIST_COLOUR, RGB(204,0,204));
 
 	setDefault(PROGRESS_3DDEPTH, 4);
 	setDefault(PROGRESS_OVERRIDE_COLORS, true);
 	setDefault(PROGRESS_TEXT_COLOR_DOWN, RGB(255, 255, 255));
 	setDefault(PROGRESS_TEXT_COLOR_UP, RGB(255, 255, 255));
-	setDefault(UPLOAD_BAR_COLOR, RGB(255, 64, 0));
-	setDefault(DOWNLOAD_BAR_COLOR, RGB(55, 170, 85));
+	setDefault(UPLOAD_BAR_COLOR, RGB(26, 234, 125));
+	setDefault(DOWNLOAD_BAR_COLOR, RGB(75, 25, 140));
 	setDefault(PROGRESS_BACK_COLOR, RGB(95, 95, 95));
 	setDefault(PROGRESS_COMPRESS_COLOR, RGB(222, 160, 0));
 	setDefault(PROGRESS_SEGMENT_COLOR, RGB(49, 106, 197));

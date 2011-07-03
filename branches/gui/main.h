@@ -22,13 +22,13 @@
 #include <wx/app.h>
 #include <wx/snglinst.h>
 
-class StrongDC :
+class RSXPlusPlus :
 	public wxApp
 {
 public:
 
-	StrongDC();
-	~StrongDC();
+	RSXPlusPlus();
+	~RSXPlusPlus();
 
 	bool	OnInit();
 	int		OnExit();

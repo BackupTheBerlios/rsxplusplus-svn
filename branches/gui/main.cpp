@@ -31,6 +31,7 @@
 #include "SplashWindow.h"
 #include "UPnP_COM.h"
 #include "UPnP_MiniUPnPc.h"
+#include "ImageManager.h"
 
 #include <delayimp.h>
 
@@ -46,9 +47,9 @@ static bool firstException = true;
 
 static char buf[DEBUG_BUFSIZE];
 
-IMPLEMENT_APP(StrongDC)
+IMPLEMENT_APP(RSXPlusPlus)
 
-StrongDC::StrongDC()
+RSXPlusPlus::RSXPlusPlus()
 {
 #ifdef _WIN32
 	// this is needed for UPnP to work correctly
@@ -56,14 +57,14 @@ StrongDC::StrongDC()
 #endif
 }
 
-StrongDC::~StrongDC()
+RSXPlusPlus::~RSXPlusPlus()
 {
 #ifdef _WIN32
 	CoUninitialize();
 #endif
 }
 
-void StrongDC::OnFatalException()
+void RSXPlusPlus::OnFatalException()
 {
 	Lock l(cs);
 
@@ -119,11 +120,11 @@ void StrongDC::OnFatalException()
 	if ((!SETTING(SOUND_EXC).empty()) && (!BOOLSETTING(SOUNDS_DISABLED)))
 		wxSound::Play(Text::toT(SETTING(SOUND_EXC)), wxSOUND_ASYNC);
 
-	WinUtil::notifyUser(_("StrongDC++ has crashed"), _("exceptioninfo.txt was generated"), wxICON_ERROR);
+	WinUtil::notifyUser(_("RSX++ has crashed"), _("exceptioninfo.txt was generated"), wxICON_ERROR);
 
-	if(wxMessageBox(_("StrongDC++ just encountered a fatal bug and should have written an exceptioninfo.txt the same directory as the executable. You can upload this file at http://strongdc.sf.net/crash/ to help us find out what happened. Go there now?"), _("StrongDC++ has crashed"), wxYES_NO | wxICON_ERROR) == wxYES) 
+	if(wxMessageBox(_("RSX++ just encountered a fatal bug and should have written an exceptioninfo.txt the same directory as the executable. You can report this at ") + _(RSXPP_TRAC) + _(" to help us find out what happened. Go there now?"), _("RSX++ has crashed"), wxYES_NO | wxICON_ERROR) == wxYES) 
 	{
-		WinUtil::openLink(_T("http://strongdc.sf.net/crash/"));
+		WinUtil::openLink(_T(RSXPP_TRAC));
 	}
 }
 
@@ -135,9 +136,9 @@ void callBack(void* x, const tstring& a)
 	splash->Update();
 }
 
-bool StrongDC::OnInit()
+bool RSXPlusPlus::OnInit()
 {
-	dcapp = new wxSingleInstanceChecker(wxT("{STRONGDC-AEE8350A-B49A-4753-AB4B-E55479A48351}"));
+	dcapp = new wxSingleInstanceChecker(wxT("{RSXPLUSPLUS-AEE8350A-B49A-4753-AB4B-E55479A48351}"));
 	if(dcapp->IsAnotherRunning())
 	{
 		// Allow for more than one instance...
@@ -145,7 +146,7 @@ bool StrongDC::OnInit()
 
 		if(argc == 1) 
 		{
-			if (wxMessageBox(_("There is already an instance of StrongDC++ running.\nDo you want to launch another instance anyway?"), 
+			if (wxMessageBox(_("There is already an instance of RSX++ running.\nDo you want to launch another instance anyway?"), 
 				wxT(APPNAME) wxT(" ") wxT(VERSIONSTRING), wxYES_NO | wxICON_QUESTION | wxNO_DEFAULT) == wxYES) 
 			{
 				multiple = true;
@@ -177,7 +178,10 @@ bool StrongDC::OnInit()
             return false;
 		}
 	}
-			 
+	
+	wxImage::AddHandler(new wxPNGHandler);
+	ImageManager::newInstance();
+
 #ifndef _DEBUG
 	// if we install our own exception handler, the debugger won't break on exception
 	// and it will be very hard to debug crashes, so enabled it for release build only
@@ -255,11 +259,12 @@ bool StrongDC::OnInit()
 	return true;
 }
 
-int StrongDC::OnExit()
+int RSXPlusPlus::OnExit()
 {
 	shutdown();
 
 	delete dcapp;
+	ImageManager::deleteInstance();
 
 	return 0;
 }

@@ -18,6 +18,7 @@
  
 #include "stdafx.h"
 #include "SplashWindow.h"
+#include "ImageManager.h"
 
 #include <wx/dcbuffer.h>
 #include <wx/settings.h>
@@ -30,10 +31,12 @@ END_EVENT_TABLE()
 
 SplashWindow::SplashWindow() : wxFrame(NULL, 1, wxT(APPNAME) wxT(" ") wxT(VERSIONSTRING))
 {
+	const wxBitmap& bmp = ImageManager::getInstance()->splash;
+	
 	SetTransparent(220);
 	SetWindowStyle(wxBORDER_NONE | wxCENTRE_ON_SCREEN | wxFRAME_NO_TASKBAR);
 	SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
-	SetSize(350, 120);
+	SetSize(bmp.GetWidth(), bmp.GetHeight());
 	Centre();
 
 	title = _T(VERSIONSTRING);
@@ -73,14 +76,15 @@ void SplashWindow::OnPaint(wxPaintEvent& /*event*/)
 	rc2.SetTop(rc2.GetBottom() - 35);
 	rc2.SetRight(rc2.GetRight() - 10);
 
+	wxBitmap& bmp = ImageManager::getInstance()->splash;
+
 	wxMemoryDC memDC;
-	wxBitmap bmp(wxT("IDB_SPLASH"));
 	memDC.SelectObject(bmp);
-	dc.Blit(0, 0, 350, 120, &memDC, 0, 0);
+	dc.Blit(0, 0, bmp.GetWidth(), bmp.GetHeight(), &memDC, 0, 0);
 
 	wxFont font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
-	font.SetFaceName(wxT("Tahoma"));
-	font.SetPixelSize(wxSize(0, 14));
+	//font.SetFaceName(wxT("Tahoma"));
+	font.SetPixelSize(wxSize(0, 11));
 	font.SetWeight(wxFONTWEIGHT_BOLD);
 
 	dc.SetFont(font);
@@ -91,9 +95,12 @@ void SplashWindow::OnPaint(wxPaintEvent& /*event*/)
 	{
 		rc2 = rc;
 		rc2.SetTop(rc2.GetBottom() - 15);
+		rc2.SetRight(rc2.GetRight() - 10);
 
-		font.SetPixelSize(wxSize(0, 10));
+		//font.SetPixelSize(wxSize(0, 10));
+		font.SetWeight(wxFONTWEIGHT_NORMAL);
+
 		dc.SetFont(font);
-		dc.DrawLabel(wxString((_T(".:: ") + text + _T(" ::.")).c_str()), rc2, wxALIGN_CENTER_HORIZONTAL);
+		dc.DrawLabel(wxString(text).c_str(), rc2, wxALIGN_RIGHT);
 	}
 }

@@ -16,30 +16,23 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef _NOTEPAD_FRAME_H_
-#define _NOTEPAD_FRAME_H_
+#ifndef RSXPLUSPLUS_IMAGE_MANAGER_H
+#define RSXPLUSPLUS_IMAGE_MANAGER_H
 
-#include "StaticFrame.h"
-#include "../client/SettingsManager.h"
+#include "../client/Singleton.h"
 
-class NotepadFrame : public StaticFrame<NotepadFrame>, private SettingsManagerListener {
+class ImageManager : public Singleton<ImageManager>
+{
 public:
-	typedef StaticFrame<NotepadFrame> BaseType;
+	ImageManager(void);
+	~ImageManager(void);
 
-	NotepadFrame();
-	~NotepadFrame();
-
+	wxBitmap splash;
+	wxBitmap toolbar20;
+	wxBitmap toolbar;
+	wxBitmap emoticon;
 private:
-	DECLARE_EVENT_TABLE();
 
-	void UpdateLayout();
-
-	void on(SettingsManagerListener::Save, SimpleXML& /*xml*/) throw();
-
-	// events
-	void OnClose(wxCloseEvent& event);
-
-	wxTextCtrl* textCtrl;
 };
 
-#endif
+#endif // RSXPLUSPLUS_IMAGE_MANAGER_H

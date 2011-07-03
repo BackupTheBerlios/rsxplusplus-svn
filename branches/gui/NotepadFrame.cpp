@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2010 adrian_007 adrian-007 on o2 point pl
+ * Copyright (C) 2010-2011 adrian_007 adrian-007 on o2 point pl
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,9 +27,9 @@ END_EVENT_TABLE()
 
 NotepadFrame::NotepadFrame() : BaseType(ID_CMD_NOTEPAD, CTSTRING(NOTEPAD), wxColour(0, 0, 0), wxT("IDI_NOTEPAD")) {
 	textCtrl = new wxTextCtrl(this, ID_NOTEPAD_TEXTBOX, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxCLIP_SIBLINGS | wxCLIP_CHILDREN | wxVSCROLL | wxHSCROLL | /*wxTE_AUTO_SCROLL |*/ wxTE_MULTILINE | wxTE_AUTO_URL);
+	textCtrl->SetFont(WinUtil::font);
 	textCtrl->SetBackgroundColour(WinUtil::bgColor);
 	textCtrl->SetForegroundColour(WinUtil::textColor);
-	textCtrl->SetFont(WinUtil::font);
 
 	string tmp;
 	try {

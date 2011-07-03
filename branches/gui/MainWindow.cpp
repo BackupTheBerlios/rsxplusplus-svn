@@ -42,6 +42,10 @@
 #include "WinUtil.h"
 #include "wxAuiArts.h"
 
+//RSX++
+#include "ImageManager.h"
+//END
+
 #include "../client/ADLSearch.h"
 #include "../client/ConnectionManager.h"
 #include "../client/ConnectivityManager.h"
@@ -295,25 +299,24 @@ void MainWindow::createMenu()
 {
 	wxMenuBar* mainMenu = new wxMenuBar();
 
-	wxBitmap bitmapList = wxBitmap(wxT("IDB_TOOLBAR"), wxBITMAP_TYPE_BMP_RESOURCE);
-	WinUtil::premultiplyAlpha(bitmapList);
+	wxBitmap bitmapList = ImageManager::getInstance()->toolbar;
 
 	wxMenu* file = new wxMenu();
 	file->Append(createMenuItem(file, ID_CMD_OPEN_FILE_LIST, CTSTRING(MENU_OPEN_FILE_LIST), bitmapList, 13));
-	file->Append(createMenuItem(file, ID_CMD_OPEN_MY_LIST, CTSTRING(MENU_OPEN_OWN_LIST)));
-	file->Append(createMenuItem(file, ID_CMD_MATCH_ALL, CTSTRING(MENU_OPEN_MATCH_ALL)));
-	file->Append(createMenuItem(file, ID_CMD_REFRESH_FILE_LIST, CTSTRING(MENU_REFRESH_FILE_LIST)));
-	file->Append(createMenuItem(file, ID_CMD_OPEN_DOWNLOADS, CTSTRING(MENU_OPEN_DOWNLOADS_DIR)));
+	file->Append(createMenuItem(file, ID_CMD_OPEN_MY_LIST, CTSTRING(MENU_OPEN_OWN_LIST), bitmapList, 27));
+	file->Append(createMenuItem(file, ID_CMD_MATCH_ALL, CTSTRING(MENU_OPEN_MATCH_ALL), bitmapList, 28));
+	file->Append(createMenuItem(file, ID_CMD_REFRESH_FILE_LIST, CTSTRING(MENU_REFRESH_FILE_LIST), bitmapList, 29));
+	file->Append(createMenuItem(file, ID_CMD_OPEN_DOWNLOADS, CTSTRING(MENU_OPEN_DOWNLOADS_DIR), bitmapList, 30));
 	file->AppendSeparator();
-	file->Append(createMenuItem(file, ID_CMD_QUICK_CONNECT, CTSTRING(MENU_QUICK_CONNECT)));
-	file->Append(createMenuItem(file, ID_CMD_FOLLOW, CTSTRING(MENU_FOLLOW_REDIRECT)));
+	file->Append(createMenuItem(file, ID_CMD_QUICK_CONNECT, CTSTRING(MENU_QUICK_CONNECT), bitmapList, 31));
+	file->Append(createMenuItem(file, ID_CMD_FOLLOW, CTSTRING(MENU_FOLLOW_REDIRECT), bitmapList, 2));
 	file->Append(createMenuItem(file, ID_CMD_RECONNECT, CTSTRING(MENU_RECONNECT), bitmapList, 1));
 	file->AppendSeparator();
 	file->Append(createMenuItem(file, ID_CMD_SETTINGS, CTSTRING(MENU_SETTINGS), bitmapList, 14));
 	file->Append(createMenuItem(file, ID_CMD_GET_TTH, CTSTRING(MENU_TTH), bitmapList, 23));
 	file->Append(createMenuItem(file, ID_CMD_UPDATE, CTSTRING(UPDATE_CHECK), bitmapList, 24));
 	file->AppendSeparator();
-	file->Append(createMenuItem(file, ID_CMD_QUIT, CTSTRING(MENU_EXIT)));
+	file->Append(createMenuItem(file, ID_CMD_QUIT, CTSTRING(MENU_EXIT), bitmapList, 44));
 
 	mainMenu->Append(file, CTSTRING(MENU_FILE));
 
@@ -330,7 +333,7 @@ void MainWindow::createMenu()
 	view->Append(createMenuItem(view, ID_CMD_SEARCH_SPY, CTSTRING(MENU_SEARCH_SPY), bitmapList, 12));
 	view->AppendSeparator();
 	view->Append(createMenuItem(view, ID_CMD_NOTEPAD, CTSTRING(MENU_NOTEPAD), bitmapList, 15));
-	view->Append(createMenuItem(view, ID_CMD_HASH_PROGRESS, CTSTRING(MENU_HASH_PROGRESS)));
+	view->Append(createMenuItem(view, ID_CMD_HASH_PROGRESS, CTSTRING(MENU_HASH_PROGRESS), bitmapList, 25));
 	view->AppendSeparator();
 	view->AppendCheckItem(ID_CMD_VIEW_TOOLBAR, CTSTRING(MENU_TOOLBAR));
 	view->AppendCheckItem(ID_CMD_TOGGLE_QSEARCH, CTSTRING(TOGGLE_QSEARCH));	
@@ -372,14 +375,13 @@ void MainWindow::createMenu()
 	mainMenu->Append(window, CTSTRING(MENU_WINDOW));
 */
 	wxMenu *help = new wxMenu();
-	help->Append(ID_CMD_ABOUT, CTSTRING(MENU_ABOUT));
+	help->Append(createMenuItem(help, ID_CMD_ABOUT, CTSTRING(MENU_ABOUT), bitmapList, 39));
 	help->AppendSeparator();
-	help->Append(ID_CMD_HOMEPAGE, CTSTRING(MENU_HOMEPAGE));
-	help->Append(ID_CMD_GEOIPFILE, CTSTRING(MENU_HELP_GEOIPFILE));
-	help->Append(ID_CMD_TRANSLATIONS, CTSTRING(MENU_HELP_TRANSLATIONS));
-	help->Append(ID_CMD_FAQ, CTSTRING(MENU_FAQ));
-	help->Append(ID_CMD_DISCUSS, CTSTRING(MENU_DISCUSS));
-	help->Append(ID_CMD_DONATE, CTSTRING(MENU_DONATE));
+	help->Append(createMenuItem(help, ID_CMD_HOMEPAGE, CTSTRING(MENU_HOMEPAGE), bitmapList, 40));
+	help->Append(createMenuItem(help, ID_CMD_GEOIPFILE, CTSTRING(MENU_HELP_GEOIPFILE), bitmapList, 41));
+	help->Append(createMenuItem(help, ID_CMD_FAQ, CTSTRING(MENU_FAQ), bitmapList, 42));
+	help->Append(createMenuItem(help, ID_CMD_DISCUSS, CTSTRING(MENU_DISCUSS), bitmapList, 43));
+	help->Append(createMenuItem(help, ID_CMD_DONATE, CTSTRING(MENU_DONATE)));
 
 	mainMenu->Append(help, CTSTRING(MENU_HELP));
 
@@ -398,8 +400,7 @@ void MainWindow::createToolBar()
 	wxBitmap bitmapList;
 	if(SETTING(TOOLBARIMAGE) == "")
 	{
-		bitmapList = wxBitmap(wxT("IDB_TOOLBAR20"), wxBITMAP_TYPE_BMP_RESOURCE);
-		WinUtil::premultiplyAlpha(bitmapList);
+		bitmapList = ImageManager::getInstance()->toolbar20;
 	} 
 	else
 	{

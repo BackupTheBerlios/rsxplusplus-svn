@@ -1,3 +1,6 @@
+** SVN 246 03/07/2011
+ * merge with sdc complete
+
 ** SVN 245 02/07/2011
  * fixed scripts to compile wxWidgets
  * fixed configuration to match wxWidgets setup

@@ -89,8 +89,7 @@ public:
 						if(i + 1 == iend) 
 						{
 							cur->Append(IDC_USER_COMMAND + n, name);
-#pragma message(__FILE__ ": fix Bind method call")
-							//((T*)this)->Bind(wxEVT_COMMAND_MENU_SELECTED, std::bind(&T::runUserCommand, static_cast<T*>(this), std::cref(uc)), IDC_USER_COMMAND + n);
+							((T*)this)->Bind(wxEVT_COMMAND_MENU_SELECTED, std::bind(&T::runUserCommand, static_cast<T*>(this), std::cref(uc)), IDC_USER_COMMAND + n);
 							m++;
 						} 
 						else 

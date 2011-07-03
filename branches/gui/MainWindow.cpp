@@ -191,7 +191,7 @@ MainWindow::MainWindow(const wxPoint &position, const wxSize& size) : wxAuiMDIPa
 	wxAuiNotebook* bottomNotebook = new wxAuiNotebook(this);
 
 	// workaround for event bug when wxAuiNotebook docked in wxAuiMDIParentFrame
-	//bottomNotebook->Bind(wxEVT_COMMAND_AUINOTEBOOK_PAGE_CHANGED, [this](wxAuiNotebookEvent& /*event*/) {  });
+	bottomNotebook->Bind(wxEVT_COMMAND_AUINOTEBOOK_PAGE_CHANGED, [this](wxAuiNotebookEvent& /*event*/) {  });
 
 	transferView = new TransferView(bottomNotebook);
 

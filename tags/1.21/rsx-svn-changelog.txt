@@ -1,9 +1,3 @@
-** SVN 249 09/02/2012
- * some kind of really big structure changes...
-
-** SVN 242-248 xx/xx/2011
- * some sort of started wx port, but we start over...
-
 ** SVN 241 24/06/2011
  ** or make cleanup in regular branches and start there
 
